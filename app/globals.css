@@ -1,42 +1,182 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+.pyramid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  margin: 20px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.level {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+.player {
+  min-width: 120px;
+  padding: 12px 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  text-align: center;
+  font-weight: 600;
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  user-select: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.player:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+.add-match-form {
+  margin: 20px;
+  padding: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  max-width: 300px;
+  background: #f9fafb;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+.add-match-form h3 {
+  margin-bottom: 10px;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+.add-match-form label {
+  display: block;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.add-match-form select {
+  width: 100%;
+  padding: 6px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.add-match-form button {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  background: #3b82f6;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.add-match-form button:hover {
+  background: #2563eb;
+}
+
+.open-form-btn {
+  margin: 20px auto;
+  display: block;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #10b981;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.open-form-btn:hover {
+  background: #059669;
+}
+
+/* Модалка */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 320px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Базовый стиль для всех кнопок */
+.btn {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+/* Основная кнопка (например, Добавить матч) */
+.history-btn {
+  background: #10b981; /* зелёная */
+  border-radius: 6px;
+  margin: 8px 14px;
+  color: white;
+}
+.history-btn:hover {
+  background: #059669;
+}
+
+/* Вторичная (например, Закрыть) */
+.btn-secondary {
+  background: #e5e7eb; /* светло-серая */
+  color: #333;
+}
+.btn-secondary:hover {
+  background: #d1d5db;
+}
+
+/* Опасная (если надо, например, удалить матч) */
+.btn-danger {
+  background: #ef4444; /* красная */
+  color: white;
+}
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+.all-matches {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.all-matches table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.all-matches th,
+.all-matches td {
+  padding: 8px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.all-matches th {
+  background: #f3f4f6;
+  font-weight: 600;
 }
