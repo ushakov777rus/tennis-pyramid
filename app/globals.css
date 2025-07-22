@@ -9,10 +9,26 @@
 .level {
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  
   gap: 20px;
   width: 100%;
 }
+
+/* Левая колонка с уровнем */
+.level-label {
+  width: 40px;
+  text-align: center;
+  font-weight: bold;
+  color: #555;
+  margin-right: 12px;
+}
+
+/* Ряд игроков */
+.players-row {
+  display: flex;
+  gap: 12px;
+}
+
 
 .player {
   min-width: 120px;
@@ -179,4 +195,12 @@
 .all-matches th {
   background: #f3f4f6;
   font-weight: 600;
+}
+
+input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-top: 4px;
 }

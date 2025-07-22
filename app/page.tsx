@@ -2,20 +2,26 @@
 
 import { useState } from "react";
 import { PyramidWithHistory } from "./components/pyramid";
+import { AddPlayerForm } from "./components/addplayer";
 import { AddMatchForm } from "./components/addmatch";
 import { AllMatchesHistory } from "./components/allmatches";
 
 export default function MainPage() {
-  const [showForm, setShowForm] = useState(false);
+  const [showAddMatch, setShowAddMatch] = useState(false);
+  const [showAddPlayer, setShowAddPlayer] = useState(false);
   const [showAllMatches, setShowAllMatches] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   return (
-    <div>
+    <div className="container">
       <h1>🎾 Пирамида игроков</h1>
 
       <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginBottom: "20px" }}>
-        <button onClick={() => setShowForm(true)} className="btn btn-primary">
+        <button onClick={() => setShowAddPlayer(true)} className="btn btn-primary">
+          ➕ Добавить игрока
+        </button>
+
+        <button onClick={() => setShowAddMatch(true)} className="btn btn-primary">
           ➕ Добавить матч
         </button>
 
@@ -26,17 +32,34 @@ export default function MainPage() {
 
       <PyramidWithHistory refreshKey={refreshKey} />
 
+      {/* Модалка с формой добавления игрока */}
+      {showAddPlayer && (
+        <div className="modal">
+          <div className="modal-content">
+            <AddPlayerForm
+              onPlayerAdded={() => {
+                setShowAddPlayer(false);
+                setRefreshKey((prev) => prev + 1);
+              }}
+            />
+            <button onClick={() => setShowAddPlayer(false)} className="btn btn-secondary">
+              Закрыть
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Модалка с формой добавления матча */}
-      {showForm && (
+      {showAddMatch && (
         <div className="modal">
           <div className="modal-content">
             <AddMatchForm
               onMatchAdded={() => {
-                setShowForm(false);
+                setShowAddMatch(false);
                 setRefreshKey((prev) => prev + 1);
               }}
             />
-            <button onClick={() => setShowForm(false)} className="btn btn-secondary">
+            <button onClick={() => setShowAddMatch(false)} className="btn btn-secondary">
               Закрыть
             </button>
           </div>

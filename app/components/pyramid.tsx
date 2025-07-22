@@ -20,7 +20,7 @@ const supabaseUrl = "https://ffwivirtakoycjmfbdji.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmd2l2aXJ0YWtveWNqbWZiZGppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjY0NjYsImV4cCI6MjA2ODYwMjQ2Nn0.-COpvUWIacuwXSpOHPi60lhWKwKu7CqUncFKvStw79Y";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-export function PyramidWithHistory() {
+export function PyramidWithHistory({refreshKey}:{refreshKey:number}) {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -32,7 +32,7 @@ export function PyramidWithHistory() {
     async function fetchPlayers() {
       setLoading(true);
       const { data, error } = await supabase
-        .from<Player>("users")
+        .from<Player>("players")
         .select("id, name, level")
         .order("level", { ascending: true });
 
@@ -41,7 +41,7 @@ export function PyramidWithHistory() {
       setLoading(false);
     }
     fetchPlayers();
-  }, []);
+  }, [refreshKey]);
 
   async function loadMatches(playerId: number) {
     setLoadingMatches(true);
@@ -71,6 +71,10 @@ export function PyramidWithHistory() {
       <div className="pyramid">
         {sortedLevels.map(([level, levelPlayers]) => (
           <div key={level} className="level">
+            
+            <div className="level-label">{level}</div>
+
+            <div className="players-row">
             {levelPlayers.map((player) => (
               <div
                 key={player.id}
@@ -79,7 +83,7 @@ export function PyramidWithHistory() {
                   background: `hsl(${(player.level * 35) % 360}, 50%, 75%)`,
                 }}
               >
-                {player.name} (Lvl {player.level})
+                {player.name}
                 <br />
                 <button
                   className="history-btn"
@@ -92,6 +96,7 @@ export function PyramidWithHistory() {
                 </button>
               </div>
             ))}
+          </div>
           </div>
         ))}
       </div>
