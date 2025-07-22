@@ -1,11 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = "https://ffwivirtakoycjmfbdji.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmd2l2aXJ0YWtveWNqbWZiZGppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjY0NjYsImV4cCI6MjA2ODYwMjQ2Nn0.-COpvUWIacuwXSpOHPi60lhWKwKu7CqUncFKvStw79Y";
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from "../../lib/supabaseClient";
 
 export function AddPlayerForm({ onPlayerAdded }: { onPlayerAdded: () => void }) {
   const [name, setName] = useState("");
