@@ -44,6 +44,7 @@ h1, h3 {
   border-radius: 8px;
   padding: 4px 0;
   margin-right: 12px;
+  min-width: 50px;
 }
 
 /* Ряд игроков */
