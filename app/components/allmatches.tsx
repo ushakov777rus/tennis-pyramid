@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "../../lib/supabaseClient";
 
 type Player = { id: number; name: string };
 type Match = {
@@ -9,11 +9,8 @@ type Match = {
   winner_id: number;
   loser_id: number;
   date: string;
+  score: string[] | null; // массив сетов
 };
-
-const supabaseUrl = "https://ffwivirtakoycjmfbdji.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmd2l2aXJ0YWtveWNqbWZiZGppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjY0NjYsImV4cCI6MjA2ODYwMjQ2Nn0.-COpvUWIacuwXSpOHPi60lhWKwKu7CqUncFKvStw79Y";
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 export function AllMatchesHistory() {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -26,7 +23,10 @@ export function AllMatchesHistory() {
 
       const [playersRes, matchesRes] = await Promise.all([
         supabase.from("players").select("id, name"),
-        supabase.from("matches").select("*").order("date", { ascending: false }),
+        supabase
+          .from("matches")
+          .select("*")
+          .order("date", { ascending: false }),
       ]);
 
       if (!playersRes.error && playersRes.data) setPlayers(playersRes.data);
@@ -42,44 +42,60 @@ export function AllMatchesHistory() {
     return players.find((p) => p.id === id)?.name ?? "??";
   }
 
+  function formatScore(score: any): string {
+    if (!score || !Array.isArray(score)) return "-";
+    return score.map((s: any) => `${s.winner}–${s.loser}`).join(", ");
+  }
+
   if (loading) return <p>Загрузка истории матчей...</p>;
 
   return (
-    <div className="all-matches">
-      <h3>История всех матчей</h3>
+    <div className="p-4">
+      <h3 className="text-xl font-bold mb-4">История всех матчей</h3>
 
       {matches.length === 0 ? (
-        <p>Матчей пока нет</p>
+        <p className="text-gray-500">Матчей пока нет</p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Дата</th>
-              <th>Победитель</th>
-              <th>Проигравший</th>
-            </tr>
-          </thead>
-          <tbody>
-            {matches.map((m) => {
-              const date = new Date(m.date).toLocaleDateString("ru-RU", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              });
+        <div className="overflow-x-auto">
+          <table className="w-full border border-gray-300 rounded-lg">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-2 border">Дата</th>
+                <th className="p-2 border">Победитель</th>
+                <th className="p-2 border">Проигравший</th>
+                <th className="p-2 border">Счёт</th>
+              </tr>
+            </thead>
+            <tbody>
+              {matches.map((m) => {
+                const date = new Date(m.date).toLocaleDateString("ru-RU", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                });
 
-              const winnerName = getPlayerName(m.winner_id);
-              const loserName =  getPlayerName(m.loser_id);
+                const winnerName = getPlayerName(m.winner_id);
+                const loserName = getPlayerName(m.loser_id);
+                const matchScore = formatScore(m.score);
 
-              return (
-                <tr key={m.id}>
-                  <td>{date}</td>
-                  <td>✅ {winnerName}</td>
-                  <td>❌ {loserName}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                return (
+                  <tr key={m.id} className="text-center hover:bg-gray-50">
+                    <td className="p-2 border">{date}</td>
+                    <td className="p-2 border text-green-600 font-semibold">
+                      ✅ {winnerName}
+                    </td>
+                    <td className="p-2 border text-red-500">
+                      ❌ {loserName}
+                    </td>
+                    <td className="p-2 border font-medium">
+                      {matchScore}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

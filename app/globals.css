@@ -120,6 +120,7 @@ h1, h3 {
 .add-match-form button {
   width: 100%;
   padding: 8px;
+  margin: 4px;
   border: none;
   border-radius: 8px;
   background: #3b82f6;

@@ -1,16 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "../../lib/supabaseClient";
 
 type Player = {
   id: number;
   name: string;
 };
-
-const supabaseUrl = "https://ffwivirtakoycjmfbdji.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmd2l2aXJ0YWtveWNqbWZiZGppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjY0NjYsImV4cCI6MjA2ODYwMjQ2Nn0.-COpvUWIacuwXSpOHPi60lhWKwKu7CqUncFKvStw79Y";
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 export function AddMatchForm({ onMatchAdded }: { onMatchAdded: () => void }) {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -34,6 +30,20 @@ export function AddMatchForm({ onMatchAdded }: { onMatchAdded: () => void }) {
     }
     fetchPlayers();
   }, []);
+
+
+  // Счет
+  const [sets, setSets] = useState([{ winner: "", loser: "" }]);
+
+  const addSet = () => {
+    setSets([...sets, { winner: "", loser: "" }]);
+  };
+
+  const updateSet = (index: number, field: "winner" | "loser", value: string) => {
+    const newSets = [...sets];
+    newSets[index][field] = value;
+    setSets(newSets);
+  };
 
 
   async function updatePlayerLevel(playerId: number, delta: number) {
@@ -85,6 +95,7 @@ export function AddMatchForm({ onMatchAdded }: { onMatchAdded: () => void }) {
         winner_id: winnerId,
         loser_id: loserId,
         date: today,
+        score: sets
       },
     ]);
 
@@ -139,6 +150,32 @@ export function AddMatchForm({ onMatchAdded }: { onMatchAdded: () => void }) {
           </option>
         ))}
       </select>
+
+
+      {sets.map((set, idx) => (
+        <div key={idx} className="flex">
+          <label>Сет: {idx + 1}</label>
+          <input
+            type="number"
+            placeholder="Победитель"
+            value={set.winner}
+            onChange={(e) => updateSet(idx, "winner", e.target.value)}
+            className="border"
+          />
+          <input
+            type="number"
+            placeholder="Проигравший"
+            value={set.loser}
+            onChange={(e) => updateSet(idx, "loser", e.target.value)}
+            className="border"
+          />
+        </div>
+      ))}
+
+      <button type="button" onClick={addSet}>
+        + Добавить сет
+      </button>
+
 
       <button onClick={saveMatch} disabled={saving}>
         {saving ? "Сохраняем..." : "Сохранить матч"}

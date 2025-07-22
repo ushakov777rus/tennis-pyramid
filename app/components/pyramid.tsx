@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "../../lib/supabaseClient";
 
 type Player = {
   id: number;
@@ -15,10 +15,6 @@ type Match = {
   loser_id: number;
   date: string;
 };
-
-const supabaseUrl = "https://ffwivirtakoycjmfbdji.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmd2l2aXJ0YWtveWNqbWZiZGppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjY0NjYsImV4cCI6MjA2ODYwMjQ2Nn0.-COpvUWIacuwXSpOHPi60lhWKwKu7CqUncFKvStw79Y";
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 export function PyramidWithHistory({refreshKey}:{refreshKey:number}) {
   const [players, setPlayers] = useState<Player[]>([]);
