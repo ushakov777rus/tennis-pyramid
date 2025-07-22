@@ -25,8 +25,8 @@ export function AllMatchesHistory() {
       setLoading(true);
 
       const [playersRes, matchesRes] = await Promise.all([
-        supabase.from<Player>("players").select("id, name"),
-        supabase.from<Match>("matches").select("*").order("date", { ascending: false }),
+        supabase.from("players").select("id, name"),
+        supabase.from("matches").select("*").order("date", { ascending: false }),
       ]);
 
       if (!playersRes.error && playersRes.data) setPlayers(playersRes.data);
