@@ -42,11 +42,13 @@ export function AllMatchesHistory() {
     return players.find((p) => p.id === id)?.name ?? "??";
   }
 
-  function formatScore(score: any): string {
-    if (!score || !Array.isArray(score)) return "-";
-    return score.map((s: any) => `${s.winner}–${s.loser}`).join(", ");
-  }
+  type SetScore = { winner: string; loser: string };
 
+  function formatScore(score: SetScore[] | null): string {
+    if (!score || !Array.isArray(score)) return "-";
+    return score.map((s) => `${s.winner}–${s.loser}`).join(", ");
+  }
+  
   if (loading) return <p>Загрузка истории матчей...</p>;
 
   return (
