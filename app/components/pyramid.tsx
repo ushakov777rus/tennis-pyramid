@@ -32,7 +32,7 @@ export function PyramidWithHistory({refreshKey}:{refreshKey:number}) {
     async function fetchPlayers() {
       setLoading(true);
       const { data, error } = await supabase
-        .from<Player>("players")
+        .from("players")
         .select("id, name, level")
         .order("level", { ascending: true });
 
@@ -47,7 +47,7 @@ export function PyramidWithHistory({refreshKey}:{refreshKey:number}) {
     setLoadingMatches(true);
 
     const { data, error } = await supabase
-      .from<Match>("matches")
+      .from("matches")
       .select("*")
       .or(`winner_id.eq.${playerId},loser_id.eq.${playerId}`)
       .order("date", { ascending: false });
