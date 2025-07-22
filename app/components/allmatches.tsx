@@ -44,11 +44,30 @@ export function AllMatchesHistory() {
 
   type SetScore = { winner: string; loser: string };
 
-  function formatScore(score: SetScore[] | null): string {
-    if (!score || !Array.isArray(score)) return "-";
-    return score.map((s) => `${s.winner}–${s.loser}`).join(", ");
+  function parseScore(score: unknown): SetScore[] | null {
+    if (!score) return null;
+
+    // Если уже массив
+    if (Array.isArray(score)) return score as SetScore[];
+
+    // Если Supabase вернул строку JSON
+    if (typeof score === "string") {
+      try {
+        return JSON.parse(score) as SetScore[];
+      } catch {
+        return null;
+      }
+    }
+
+    return null;
   }
-  
+
+  function formatScore(score: unknown): string {
+    const parsed = parseScore(score);
+    if (!parsed || parsed.length === 0) return "-";
+    return parsed.map((s) => `${s.winner}–${s.loser}`).join(", ");
+  }
+
   if (loading) return <p>Загрузка истории матчей...</p>;
 
   return (
