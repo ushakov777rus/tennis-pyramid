@@ -16,7 +16,7 @@ export default function MainPage() {
     <div className="container">
       <h1>🎾 Пирамида игроков</h1>
 
-      <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginBottom: "20px" }}>
+      <div className="button-bar">
         <button onClick={() => setShowAddPlayer(true)} className="btn btn-primary">
           ➕ Добавить игрока
         </button>
@@ -25,7 +25,7 @@ export default function MainPage() {
           ➕ Добавить матч
         </button>
 
-        <button onClick={() => setShowAllMatches(true)} className="btn btn-secondary">
+        <button onClick={() => setShowAllMatches(true)} className="btn btn-primary">
           📜 История всех матчей
         </button>
       </div>

@@ -12,7 +12,7 @@ const supabaseUrl = "https://ffwivirtakoycjmfbdji.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmd2l2aXJ0YWtveWNqbWZiZGppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjY0NjYsImV4cCI6MjA2ODYwMjQ2Nn0.-COpvUWIacuwXSpOHPi60lhWKwKu7CqUncFKvStw79Y";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-export function AddMatchForm() {
+export function AddMatchForm({ onMatchAdded }: { onMatchAdded: () => void }) {
   const [players, setPlayers] = useState<Player[]>([]);
   const [winnerId, setWinnerId] = useState<number | null>(null);
   const [loserId, setLoserId] = useState<number | null>(null);
@@ -24,7 +24,7 @@ export function AddMatchForm() {
   useEffect(() => {
     async function fetchPlayers() {
       const { data, error } = await supabase
-        .from<Player>("users")
+        .from<Player>("players")
         .select("id, name")
         .order("name", { ascending: true });
 
@@ -34,6 +34,35 @@ export function AddMatchForm() {
     }
     fetchPlayers();
   }, []);
+
+
+  async function updatePlayerLevel(playerId: number, delta: number) {
+    // 1. Получаем текущий уровень
+    const { data: playerData, error: fetchError } = await supabase
+      .from("players")
+      .select("level")
+      .eq("id", playerId)
+      .single();
+
+    if (fetchError || !playerData) {
+      console.error("Ошибка загрузки игрока:", fetchError);
+      return;
+    }
+
+    const newLevel = playerData.level + delta;
+
+    // 2. Обновляем уровень
+    const { error: updateError } = await supabase
+      .from("players")
+      .update({ level: newLevel })
+      .eq("id", playerId);
+
+    if (updateError) {
+      console.error("Ошибка обновления уровня:", updateError);
+    } else {
+      console.log(`✅ Игрок ${playerId} теперь уровень ${newLevel}`);
+    }
+  }
 
   // Сохранение матча
   async function saveMatch() {
@@ -69,6 +98,14 @@ export function AddMatchForm() {
     }
 
     setSaving(false);
+
+
+    // 2. Обновляем уровни игроков:
+    await updatePlayerLevel(winnerId, -1);
+    await updatePlayerLevel(loserId, +1);
+
+    setLoading(false);
+    onMatchAdded();
   }
 
   if (loading) return <p>Загрузка игроков...</p>;

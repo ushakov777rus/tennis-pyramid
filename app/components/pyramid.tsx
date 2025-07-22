@@ -78,7 +78,7 @@ export function PyramidWithHistory({refreshKey}:{refreshKey:number}) {
             {levelPlayers.map((player) => (
               <div
                 key={player.id}
-                className="player"
+                className="player-cell"
                 style={{
                   background: `hsl(${(player.level * 35) % 360}, 50%, 75%)`,
                 }}
@@ -86,7 +86,7 @@ export function PyramidWithHistory({refreshKey}:{refreshKey:number}) {
                 {player.name}
                 <br />
                 <button
-                  className="history-btn"
+                  className="btn btn-secondary"
                   onClick={() => {
                     setSelectedPlayer(player);
                     loadMatches(player.id);
@@ -138,7 +138,7 @@ export function PyramidWithHistory({refreshKey}:{refreshKey:number}) {
                 })}
               </ul>
             )}
-            <button onClick={() => setSelectedPlayer(null)}>Закрыть</button>
+            <button className="btn btn-secondary" onClick={() => setSelectedPlayer(null)}>Закрыть</button>
           </div>
         </div>
       )}
