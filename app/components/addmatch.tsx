@@ -24,7 +24,7 @@ export function AddMatchForm({ onMatchAdded }: { onMatchAdded: () => void }) {
   useEffect(() => {
     async function fetchPlayers() {
       const { data, error } = await supabase
-        .from<Player>("players")
+        .from("players")
         .select("id, name")
         .order("name", { ascending: true });
 
