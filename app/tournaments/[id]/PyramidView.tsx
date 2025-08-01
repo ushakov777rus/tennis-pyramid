@@ -62,6 +62,13 @@ export function PyramidView({
     return winnerId === id ? "winner" : "loser";
   };
 
+
+
+
+
+
+
+
   return (
     <div className="pyramid-container">
       {Object.entries(levels).map(([level, players]) => {
@@ -71,7 +78,7 @@ export function PyramidView({
         );
 
         return (
-          <div key={level} className="pyramid-row">
+          <div key={level} className="pyramid-row" data-level={`Уровень ${level}`}>
             {sortedPlayers.map((p) => {
               const statusClass = getPlayerClass(p);
               const id = p.player?.id ?? p.team?.id;

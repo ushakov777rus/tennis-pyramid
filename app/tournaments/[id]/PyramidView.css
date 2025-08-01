@@ -43,13 +43,38 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 2px;
+  width: 100%;
+  overflow-x: auto; /* добавляем горизонтальный скролл при необходимости */
+  padding: 8px 8px; /* чтобы не прилипало к краям */
+  box-sizing: border-box;
 }
 
 .pyramid-row {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 5px;
+  flex-wrap: wrap;
+  max-width: 100%;
+  padding: 5px;
+  border: 1px solid #ccc; /* рамка для уровня */
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: #fafafa; /* легкий фон, чтобы выделялось */
+  position: relative;
+  width:100%;
+}
+
+.pyramid-row::before {
+  content: attr(data-level); /* берём значение уровня из data-атрибута */
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #555;
+  background: #fff;
+  padding: 0 4px;
 }
 
 .pyramid-player {
