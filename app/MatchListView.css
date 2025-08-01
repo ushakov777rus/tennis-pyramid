@@ -1,0 +1,40 @@
+.match-list {
+  max-width: 800px;
+  margin: 20px auto;
+  font-family: Arial, sans-serif;
+}
+
+.match-list table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.match-list th,
+.match-list td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.match-list th {
+  background: #f0f0f0;
+}
+
+.btn {
+  padding: 4px 8px;
+  margin: 0 4px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-view {
+  background: #3498db;
+  color: white;
+  text-decoration: none;
+}
+
+.btn-delete {
+  background: #e74c3c;
+  color: white;
+}

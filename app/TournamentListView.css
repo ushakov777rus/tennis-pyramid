@@ -1,0 +1,234 @@
+.tournament-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+
+.tournament-container h2 {
+  margin-bottom: 20px;
+}
+
+/* --- Форма создания турнира --- */
+.add-tournament {
+  padding: 20px;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+  margin-bottom: 30px;
+  border-radius: 8px;
+}
+
+.add-tournament h3 {
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+.add-tournament label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.add-tournament input,
+.add-tournament select {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  margin-bottom: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.add-tournament button {
+  padding: 10px 16px;
+  background-color: #0070f3;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.add-tournament button:hover {
+  background-color: #0056c4;
+}
+
+/* --- Список турниров --- */
+.tournament-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.tournament-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.tournament-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tournament-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+}
+
+.status.draft {
+  background-color: #666;
+}
+
+.status.ongoing {
+  background-color: #f39c12;
+}
+
+.status.finished {
+  background-color: #27ae60;
+}
+
+.tournament-details {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #444;
+}
+
+.tournament-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.tournament-actions button {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tournament-actions button:first-child {
+  background-color: #3498db;
+  color: white;
+}
+
+.tournament-actions .btn-delete {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.tournament-actions button:hover {
+  opacity: 0.9;
+}
+
+.add-tournament .row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.input-name {
+  flex: 3; /* 75% */
+}
+
+.input-type {
+  flex: 1; /* 25% */
+}
+
+.input-date {
+  flex: 1; /* 50% */
+}
+
+.add-tournament select,
+.add-tournament input[type="text"],
+.add-tournament input[type="date"] {
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tournament-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.field {
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* Распределение ширины по умолчанию (широкий экран) */
+.field.name {
+  flex: 3 1 0%;
+  min-width: 200px;
+  order: 1;
+}
+
+.field.type {
+  flex: 1 1 0%;
+  min-width: 100px;
+  order: 4; /* переносится последней */
+}
+
+.field.date-start,
+.field.date-end {
+  flex: 1 1 0%;
+  min-width: 120px;
+  order: 2;
+}
+
+/* Смещение окончания за начальной */
+.field.date-end {
+  order: 3;
+}
+
+/* Кнопка */
+.add-tournament button {
+  padding: 10px 16px;
+  background-color: #0070f3;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Мягкий responsive */
+@media (max-width: 600px) {
+  .field.name {
+    flex: 1 1 100%;
+  }
+
+  .field.date-start,
+  .field.date-end {
+    flex: 1 1 48%;
+  }
+
+  .field.type {
+    flex: 1 1 100%;
+  }
+}

@@ -1,0 +1,49 @@
+.player-list-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.player-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.player-table th,
+.player-table td {
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.player-table th {
+  background-color: #f4f4f4;
+}
+
+.player-table input,
+.player-table select {
+  width: 100%;
+  padding: 4px 6px;
+  box-sizing: border-box;
+}
+
+.player-table button {
+  margin-right: 5px;
+  padding: 4px 8px;
+  cursor: pointer;
+  background-color: #e9e9e9;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+}
+
+.player-table button:hover {
+  background-color: #d1d1d1;
+}
+
+.add-row input,
+.edit-row input,
+.add-row select,
+.edit-row select {
+  background-color: #fffff7;
+}
