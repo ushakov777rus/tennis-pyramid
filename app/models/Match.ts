@@ -17,7 +17,7 @@ export class Match {
     id: number,
     type: "single" | "double",
     date: Date,
-    setsRaw: any, // может быть строка/объект/массив
+    setsRaw: [number, number][], // может быть строка/объект/массив
     tournament: Tournament,
     player1?: Player,
     player2?: Player,
