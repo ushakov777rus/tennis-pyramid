@@ -173,8 +173,10 @@ export default function TournamentPage() {
         selectedId={participant1Id}
         onSelect={setParticipant1Id}
         onShowHistory={(id) => {
-          setHistoryPlayerId(id);   // запоминаем игрока
-          setHistoryOpen(true);
+          if (id !== undefined) {
+            setHistoryPlayerId(id);
+            setHistoryOpen(true);
+          }
         }}
         matches={matches}
       />
