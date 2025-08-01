@@ -19,10 +19,10 @@ export class TeamsRepository {
     }
 
     return (
-      data?.map((t: any) => ({
+      data?.map((t: Team) => ({
         id: t.id,
         name: t.name,
-        players: t.team_players?.map((tp: any) => ({
+        players: t.players?.map((tp: any) => ({
           id: tp.player_id,
           name: tp.players.name,
         })),
