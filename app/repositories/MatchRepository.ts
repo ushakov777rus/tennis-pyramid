@@ -23,9 +23,9 @@ export class MatchRepository {
             match_type: type,
             scores,
             tournament_id: tournamentId,
-            player1_id: team1PlayerIds[0], // первый игрок
-            player2_id: team2PlayerIds[0], // второй игрок
-            date: date, // дата текущая
+            player1_id: team1PlayerIds[0],
+            player2_id: team2PlayerIds[0],
+            date,
           },
         ])
         .select("id")
@@ -34,34 +34,27 @@ export class MatchRepository {
       if (error) throw error;
       return data.id;
     } else {
-      // парный матч → создаём команды
+      // парный матч → создаём команды с двумя игроками
       const { data: teams, error: teamErr } = await supabase
         .from("teams")
-        .insert([{ name: "Team 1" }, { name: "Team 2" }])
+        .insert([
+          {
+            name: "Team 1",
+            player1_id: team1PlayerIds[0] ?? null,
+            player2_id: team1PlayerIds[1] ?? null,
+          },
+          {
+            name: "Team 2",
+            player1_id: team2PlayerIds[0] ?? null,
+            player2_id: team2PlayerIds[1] ?? null,
+          },
+        ])
         .select();
 
       if (teamErr) throw teamErr;
 
       const team1 = teams[0];
       const team2 = teams[1];
-
-      // добавляем игроков в команды
-      const teamPlayersInsert = [
-        ...team1PlayerIds.map((pid) => ({
-          team_id: team1.id,
-          player_id: pid,
-        })),
-        ...team2PlayerIds.map((pid) => ({
-          team_id: team2.id,
-          player_id: pid,
-        })),
-      ];
-
-      const { error: playersErr } = await supabase
-        .from("team_players")
-        .insert(teamPlayersInsert);
-
-      if (playersErr) throw playersErr;
 
       // создаём матч
       const { data: match, error: matchErr } = await supabase
@@ -73,7 +66,7 @@ export class MatchRepository {
             tournament_id: tournamentId,
             team1_id: team1.id,
             team2_id: team2.id,
-            date: new Date().toISOString(),
+            date,
           },
         ])
         .select("id")
@@ -85,28 +78,6 @@ export class MatchRepository {
     }
   }
 
-  static async loadAllMatches() {
-    const { data, error } = await supabase
-      .from("matches")
-      .select("id, match_type, date, scores")
-      .order("date", { ascending: false });
-
-    if (error) {
-      console.error("Ошибка загрузки матчей:", error);
-      return [];
-    }
-
-    return (data ?? []).map((m) => ({
-      id: m.id,
-      type: m.match_type as "single" | "double",
-      date: new Date(m.date),
-      sets:
-        typeof m.scores === "string"
-          ? JSON.parse(m.scores)
-          : m.scores ?? [],
-    }));
-  }
-
   static async loadMatches(tournamentId: number): Promise<Match[]> {
     const { data, error } = await supabase
       .from("matches")
@@ -116,22 +87,26 @@ export class MatchRepository {
         scores,
         match_type,
         tournament_id,
-        tournaments ( id, name, start_date, end_date, tournament_type ),
-        player1_id:players!fk_player1(id, name, ntrp, phone, sex),
-        player2_id:players!fk_player2(id, name, ntrp, phone, sex),
-        team1_id:teams!fk_team1 (
+        tournaments (
           id,
           name,
-          team_players (
-            players ( id, name, ntrp, phone, sex )
-          )
+          start_date,
+          end_date,
+          tournament_type
         ),
-        team2_id:teams!fk_team2 (
+        player1:players!fk_player1(id, name, ntrp, phone, sex),
+        player2:players!fk_player2(id, name, ntrp, phone, sex),
+        team1:teams!fk_team1 (
           id,
           name,
-          team_players (
-            players ( id, name, ntrp, phone, sex )
-          )
+          player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
+          player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
+        ),
+        team2:teams!fk_team2 (
+          id,
+          name,
+          player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
+          player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
         )
       `)
       .eq("tournament_id", tournamentId);
@@ -141,37 +116,32 @@ export class MatchRepository {
       return [];
     }
 
-    if (!data || data.length === 0) {
-      return []; // просто вернуть пустой массив, если нет матчей
-    }
-
     return (data ?? []).map((row: any) => {
-      const player1 = row.player1_id
-        ? new Player(row.player1_id)
+      const player1 = row.player1
+        ? new Player(row.player1)
         : undefined;
-      const player2 = row.player2_id
-        ? new Player(row.player2_id)
+      const player2 = row.player2
+        ? new Player(row.player2)
         : undefined;
 
-      const team1 = row.team1_id?.[0]
+      const team1 = row.team1
         ? new Team(
-            row.team1_id[0].id,
-            row.team1_id[0].name,
-            new Player(row.team1_id[0].team_players?.[0]?.players),
-            new Player(row.team1_id[0].team_players?.[1]?.players)
+            row.team1.id,
+            row.team1.name,
+            new Player(row.team1.player1),
+            new Player(row.team1.player2)
           )
         : undefined;
 
-      const team2 = row.team2_id?.[0]
+      const team2 = row.team2
         ? new Team(
-            row.team2_id[0].id,
-            row.team2_id[0].name,
-            new Player(row.team2_id[0].team_players?.[0]?.players),
-            new Player(row.team2_id[0].team_players?.[1]?.players)
+            row.team2.id,
+            row.team2.name,
+            new Player(row.team2.player1),
+            new Player(row.team2.player2)
           )
         : undefined;
 
-      // создаём Tournament из join-а
       const tournament = row.tournaments
         ? new Tournament(
             row.tournaments.id,
@@ -179,7 +149,7 @@ export class MatchRepository {
             "draft",
             row.tournaments.tournament_type,
             row.tournaments.start_date,
-            row.tournaments.end_date,
+            row.tournaments.end_date
           )
         : undefined;
 
@@ -207,59 +177,49 @@ export class MatchRepository {
         match_type,
         tournament_id,
         tournaments ( id, name, start_date, end_date, tournament_type ),
-        player1_id:players!fk_player1(id, name, ntrp, phone, sex),
-        player2_id:players!fk_player2(id, name, ntrp, phone, sex),
-        team1_id:teams!fk_team1 (
+        player1:players!fk_player1(id, name, ntrp, phone, sex),
+        player2:players!fk_player2(id, name, ntrp, phone, sex),
+        team1:teams!fk_team1 (
           id,
           name,
-          team_players (
-            players ( id, name, ntrp, phone, sex )
-          )
+          player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
+          player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
         ),
-        team2_id:teams!fk_team2 (
+        team2:teams!fk_team2 (
           id,
           name,
-          team_players (
-            players ( id, name, ntrp, phone, sex )
-          )
+          player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
+          player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
         )
       `)
       .eq("id", matchId)
-      .single(); // получаем одну запись
+      .single();
 
     if (error) {
       console.error("Ошибка загрузки матча:", error);
       return null;
     }
 
-    if (!data) {
-      return null;
-    }
+    if (!data) return null;
 
-    console.error("Loaded match:", data);
+    const player1 = data.player1 ? new Player(data.player1[0]) : undefined;
+    const player2 = data.player2 ? new Player(data.player2[0]) : undefined;
 
-    const player1 = data.player1_id?.[0]
-      ? new Player(data.player1_id[0])
-      : undefined;
-    const player2 = data.player2_id?.[0]
-      ? new Player(data.player2_id[0])
-      : undefined;
-
-    const team1 = data.team1_id?.[0]
+    const team1 = data.team1
       ? new Team(
-          data.team1_id[0].id,
-          data.team1_id[0].name,
-          new Player(data.team1_id[0].team_players?.[0]?.players[0]),
-          new Player(data.team1_id[0].team_players?.[1]?.players[1])
+          data.team1[0].id,
+          data.team1[0].name,
+          new Player(data.team1[0].player1[0]),
+          new Player(data.team1[0].player2[0])
         )
       : undefined;
 
-    const team2 = data.team2_id?.[0]
+    const team2 = data.team2
       ? new Team(
-          data.team2_id[0].id,
-          data.team2_id[0].name,
-          new Player(data.team2_id[0].team_players?.[0]?.players[0]),
-          new Player(data.team2_id[0].team_players?.[1]?.players[1])
+          data.team2[0].id,
+          data.team2[0].name,
+          new Player(data.team2[0].player1[0]),
+          new Player(data.team2[0].player2[0])
         )
       : undefined;
 
@@ -287,30 +247,23 @@ export class MatchRepository {
     );
   }
 
+  // обновление и удаление — без изменений
   static async updateMatch(updatedMatch: Match): Promise<Match | null> {
     try {
-      console.log("Update match: ", updatedMatch);
-
       const { data, error } = await supabase
         .from("matches")
         .update({
           date: updatedMatch.date.toISOString(),
-          scores: updatedMatch.scores, // если jsonb — так пойдет
+          scores: updatedMatch.scores,
         })
         .eq("id", updatedMatch.id)
-        .select(); // вернет обновленную строку
+        .select();
 
       if (error) {
         console.error("Ошибка при обновлении матча:", error);
         return null;
       }
-
-      if (!data || data.length === 0) {
-        console.warn("⚠️ Матч не найден для обновления, id:", updatedMatch.id);
-        return null;
-      }
-
-      return data[0] as Match;
+      return data?.[0] as Match;
     } catch (err) {
       console.error("Неожиданная ошибка updateMatch:", err);
       return null;
