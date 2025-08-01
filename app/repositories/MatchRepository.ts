@@ -317,12 +317,12 @@ export class MatchRepository {
     }
   }
 
-  static async deleteMatch(matchId: number): Promise<boolean> {
+  static async deleteMatch(match: Match): Promise<boolean> {
     try {
       const { error } = await supabase
         .from("matches")
         .delete()
-        .eq("id", matchId);
+        .eq("id", match.id);
 
       if (error) {
         console.error("Ошибка при удалении матча:", error);

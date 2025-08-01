@@ -10,7 +10,7 @@ type MatchHistoryModalProps = {
   matches: Match[];
   playerId: number | null;
   onEditMatch?: (match: Match) => void;
-  onDeleteMatch?: (matchId: number) => void;
+  onDeleteMatch?: (match: Match) => void;
 };
 
 export function formatDate(date: Date): string {
@@ -138,7 +138,7 @@ export function MatchHistoryModal({
                       ) : (
                         <>
                           <button onClick={() => startEditing(m)}>✏️</button>
-                          <button onClick={() => onDeleteMatch?.(m.id)}>🗑️</button>
+                          <button onClick={() => onDeleteMatch?.(m)}>🗑️</button>
                         </>
                       )}
                     </td>

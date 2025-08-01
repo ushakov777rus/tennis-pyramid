@@ -212,7 +212,7 @@ export default function TournamentPage() {
         matches={matches}
         playerId={historyPlayerId}
         onEditMatch={(m) => handleEditMatchSave(m)}        // ✅ передали
-        onDeleteMatch={handleDeleteMatch}             // ✅ передали
+        onDeleteMatch={(m) => handleDeleteMatch(m)}             // ✅ передали
       />
 
       <div className="add-participant">
