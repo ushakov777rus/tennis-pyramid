@@ -6,7 +6,7 @@ export class Match {
   id: number;
   type: "single" | "double";
   date: Date;
-  sets: [number, number][]; 
+  scores: [number, number][]; 
   tournament: Tournament;
   player1?: Player;
   player2?: Player;
@@ -30,11 +30,11 @@ export class Match {
 
     // ✅ гарантируем, что это массив
     if (!setsRaw) {
-      this.sets = [];
+      this.scores = [];
     } else if (typeof setsRaw === "string") {
-      this.sets = JSON.parse(setsRaw);
+      this.scores = JSON.parse(setsRaw);
     } else {
-      this.sets = setsRaw;
+      this.scores = setsRaw;
     }
 
     this.tournament = tournament;
@@ -47,7 +47,7 @@ export class Match {
   }
 
   getTotalScore(): [number, number] {
-    return this.sets.reduce<[number, number]>(
+    return this.scores.reduce<[number, number]>(
       ([sum1, sum2], [s1, s2]) => [sum1 + s1, sum2 + s2],
       [0, 0]
     );
@@ -67,7 +67,7 @@ export class Match {
   }
 
   formatResult(): string {
-    if (!this.sets || this.sets.length === 0) return "-";
-    return this.sets.map(([a, b]) => `${a}-${b}`).join(", ");
+    if (!this.scores || this.scores.length === 0) return "-";
+    return this.scores.map(([a, b]) => `${a}-${b}`).join(", ");
   }
 }

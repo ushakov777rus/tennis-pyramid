@@ -33,6 +33,7 @@ export default function TournamentPage() {
   const [selectedLevel, setSelectedLevel] = useState<number>(15); // по умолчанию на 15 уровень
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyPlayerId, setHistoryPlayerId] = useState<number | null>(null);
+  const [editingMatch, setEditingMatch] = useState<Match | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -87,6 +88,29 @@ export default function TournamentPage() {
     await TournamentsRepository.removeParticipant(id);
     const parts = await TournamentsRepository.loadParticipants(tournamentId);
     setParticipants(parts);
+  };
+
+  const handleEditMatchSave = async (updatedMatch: Match) => {
+    try {
+      await MatchRepository.updateMatch(updatedMatch);
+      const m = await MatchRepository.loadMatches(tournamentId);
+      setMatches(m);
+      setEditingMatch(null);
+    } catch (err) {
+      console.error("Ошибка при обновлении матча:", err);
+      alert("Не удалось обновить матч");
+    }
+  };
+
+  const handleDeleteMatch = async (matchId: number) => {
+    try {
+      await MatchRepository.deleteMatch(matchId);
+      const m = await MatchRepository.loadMatches(tournamentId);
+      setMatches(m);
+    } catch (err) {
+      console.error("Ошибка при удалении матча:", err);
+      alert("Не удалось удалить матч");
+    }
   };
 
   const handleAddMatch = async () => {
@@ -181,12 +205,14 @@ export default function TournamentPage() {
         matches={matches}
       />
 
-            {/* Вставляем модалку */}
+      {/* Вставляем модалку */}
       <MatchHistoryModal
         isOpen={historyOpen}
         onClose={() => setHistoryOpen(false)}
         matches={matches}
         playerId={historyPlayerId}
+        onEditMatch={(m) => handleEditMatchSave(m)}        // ✅ передали
+        onDeleteMatch={handleDeleteMatch}             // ✅ передали
       />
 
       <div className="add-participant">
@@ -252,7 +278,7 @@ export default function TournamentPage() {
                 <td>{m.date.toDateString()}</td>
                 <td>{m.player1?.name || m.team1?.teamName || "??"}</td>
                 <td>{m.player2?.name || m.team2?.teamName || "??"}</td>
-                <td>{m.sets || "-"}</td>
+                <td>{m.scores || "-"}</td>
               </tr>
             ))}
           </tbody>

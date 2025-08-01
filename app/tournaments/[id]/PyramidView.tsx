@@ -87,8 +87,6 @@ export function PyramidView({
               const now = new Date();
               const diffMs = now.getTime() - lastMatch.date.getTime();
               daysWithoutGames = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-              console.log("Days without games:", lastMatch);
             }
 
             return (

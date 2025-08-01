@@ -287,8 +287,51 @@ export class MatchRepository {
     );
   }
 
-  static async deleteMatch(id: number) {
-    const { error } = await supabase.from("matches").delete().eq("id", id);
-    if (error) console.error("Ошибка удаления матча:", error);
+  static async updateMatch(updatedMatch: Match): Promise<Match | null> {
+    try {
+      console.log("Update match: ", updatedMatch);
+
+      const { data, error } = await supabase
+        .from("matches")
+        .update({
+          date: updatedMatch.date.toISOString(),
+          scores: updatedMatch.scores, // если jsonb — так пойдет
+        })
+        .eq("id", updatedMatch.id)
+        .select(); // вернет обновленную строку
+
+      if (error) {
+        console.error("Ошибка при обновлении матча:", error);
+        return null;
+      }
+
+      if (!data || data.length === 0) {
+        console.warn("⚠️ Матч не найден для обновления, id:", updatedMatch.id);
+        return null;
+      }
+
+      return data[0] as Match;
+    } catch (err) {
+      console.error("Неожиданная ошибка updateMatch:", err);
+      return null;
+    }
+  }
+
+  static async deleteMatch(matchId: number): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from("matches")
+        .delete()
+        .eq("id", matchId);
+
+      if (error) {
+        console.error("Ошибка при удалении матча:", error);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error("Неожиданная ошибка deleteMatch:", err);
+      return false;
+    }
   }
 }
