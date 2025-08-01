@@ -130,7 +130,9 @@ export default function TournamentPage() {
       const team1 = [participant1Id];
       const team2 = [participant2Id];
 
-      await MatchRepository.saveMatch(
+      console.log("Добавляем матч");
+
+      await MatchRepository.addMatch(
         new Date(matchDate),
         tournament.tournament_type,
         scores,
@@ -139,11 +141,20 @@ export default function TournamentPage() {
         tournament.id
       );
 
+      console.log("Добавили матч");
+
       // очистка формы
       setMatchDate("");
       setMatchScore("");
       setParticipant1Id(null);
       setParticipant2Id(null);
+
+      console.log("Грузим новых участников");
+
+      const parts = await TournamentsRepository.loadParticipants(tournamentId);
+      setParticipants(parts);
+
+      console.log("Новые участники:",parts);
 
       // обновляем список матчей
       const m = await MatchRepository.loadMatches(tournamentId);

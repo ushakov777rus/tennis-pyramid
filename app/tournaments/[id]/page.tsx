@@ -102,9 +102,9 @@ export default function TournamentPage() {
     }
   };
 
-  const handleDeleteMatch = async (matchId: number) => {
+  const handleDeleteMatch = async (match: Match) => {
     try {
-      await MatchRepository.deleteMatch(matchId);
+      await MatchRepository.deleteMatch(match);
       const m = await MatchRepository.loadMatches(tournamentId);
       setMatches(m);
     } catch (err) {
@@ -129,7 +129,7 @@ export default function TournamentPage() {
       const team1 = [participant1Id];
       const team2 = [participant2Id];
 
-      await MatchRepository.saveMatch(
+      await MatchRepository.addMatch(
         new Date(matchDate),
         tournament.tournament_type,
         scores,
@@ -276,8 +276,8 @@ export default function TournamentPage() {
             {matches.map((m) => (
               <tr key={m.id}>
                 <td>{m.date.toDateString()}</td>
-                <td>{m.player1?.name || m.team1?.teamName || "??"}</td>
-                <td>{m.player2?.name || m.team2?.teamName || "??"}</td>
+                <td>{m.player1?.name || m.team1?.name || "??"}</td>
+                <td>{m.player2?.name || m.team2?.name || "??"}</td>
                 <td>{m.scores || "-"}</td>
               </tr>
             ))}

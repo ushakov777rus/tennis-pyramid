@@ -70,4 +70,17 @@ export class Match {
     if (!this.scores || this.scores.length === 0) return "-";
     return this.scores.map(([a, b]) => `${a}-${b}`).join(", ");
   }
+
+  static getWinnerId(scores: [number, number][], id1: number, id2: number): [number, number] {
+    const [total1, total2] = scores.reduce<[number, number]>(
+      ([sum1, sum2], [s1, s2]) => [sum1 + s1, sum2 + s2],
+      [0, 0]
+    );
+
+    if (total1 > total2) {
+      return [id1, id2];
+    }
+    return [id2, id1];
+
+  }
 }

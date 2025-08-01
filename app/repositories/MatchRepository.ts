@@ -5,8 +5,9 @@ import { Team } from "../models/Team";
 import { Tournament } from "../models/Tournament";
 
 export class MatchRepository {
+
   // Сохранение матча в БД
-  static async saveMatch(
+  static async addMatch(
     date: Date,
     type: "single" | "double",
     scores: [number, number][],
@@ -14,6 +15,9 @@ export class MatchRepository {
     team2PlayerIds: number[],
     tournamentId: number
   ): Promise<number> {
+    console.log("MatchRepository:Add match");
+    let newMatchId: number;
+
     if (type === "single") {
       // одиночный матч
       const { data, error } = await supabase
@@ -32,7 +36,7 @@ export class MatchRepository {
         .single();
 
       if (error) throw error;
-      return data.id;
+      newMatchId = data.id;
     } else {
       // парный матч → создаём команды с двумя игроками
       const { data: teams, error: teamErr } = await supabase
@@ -74,9 +78,19 @@ export class MatchRepository {
 
       if (matchErr) throw matchErr;
 
-      return match.id;
+      newMatchId = match.id;
     }
+    console.log("Меняем участников местами: ", team1PlayerIds, team2PlayerIds)
+    const matchRes = Match.getWinnerId(scores,team1PlayerIds[0],team2PlayerIds[0]);
+    this.processMatchResult(newMatchId, matchRes[0], matchRes[1]);
+    console.log("==MatchRepository:Add match");
+    return newMatchId;
   }
+
+
+
+
+
 
   static async loadMatches(tournamentId: number): Promise<Match[]> {
     const { data, error } = await supabase
@@ -285,6 +299,54 @@ export class MatchRepository {
     } catch (err) {
       console.error("Неожиданная ошибка deleteMatch:", err);
       return false;
+    }
+  }
+
+
+  static async processMatchResult(matchId: number, winnerId: number, loserId: number) {
+    console.log(`✅ Игроки ${winnerId} и ${loserId} поменялись местами`);
+
+    // Загружаем участников матча
+    const { data: participants, error } = await supabase
+      .from("tournament_participants")
+      .select("*")
+      .in("player_id", [winnerId, loserId]);
+
+    if (error || !participants) {
+      console.error("Ошибка загрузки участников после добавления матча:", error);
+      return;
+    }
+
+    const winner = participants.find((p) => p.player_id === winnerId);
+    const loser = participants.find((p) => p.player_id === loserId);
+
+    if (!winner || !loser) {
+      console.error("Не найдены игроки в пирамиде");
+      return;
+    }
+
+    // Меняем местами уровни и позиции
+    const updates = [
+      {
+        id: winner.id,
+        level: loser.level,
+        position: loser.position,
+      },
+      {
+        id: loser.id,
+        level: winner.level,
+        position: winner.position,
+      },
+    ];
+
+    const { error: updateError } = await supabase
+      .from("tournament_participants")
+      .upsert(updates);
+
+    if (updateError) {
+      console.error("Ошибка обновления уровней:", updateError);
+    } else {
+      console.log(`✅ Игроки ${winnerId} и ${loserId} поменялись местами`);
     }
   }
 }

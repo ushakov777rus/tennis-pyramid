@@ -95,7 +95,7 @@ export class TournamentsRepository {
       .eq("tournament_id", tournamentId);
 
     if (error) {
-      console.error("Ошибка загрузки участников:", error);
+      console.error("Ошибка загрузки участников для турнира:", tournamentId, error);
       return [];
     }
 
@@ -145,7 +145,7 @@ export class TournamentsRepository {
     });
   }
 
-  /** Добавить матч в турнир */
+  /** Добавить матч в турнир 
   static async addMatch(
     tournamentId: number,
     match_date: string | null,
@@ -158,7 +158,7 @@ export class TournamentsRepository {
     });
 
     if (error) console.error("Ошибка добавления матча:", error);
-  }
+  }*/
 
   /** Добавить игрока */
   static async addPlayer(
