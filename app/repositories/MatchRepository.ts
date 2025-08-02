@@ -87,10 +87,93 @@ export class MatchRepository {
     return newMatchId;
   }
 
+  static async loadAll(): Promise<Match[]> {
+    const { data, error } = await supabase
+      .from("matches")
+      .select(`
+        id,
+        date,
+        scores,
+        match_type,
+        tournament_id,
+        tournaments (
+          id,
+          name,
+          start_date,
+          end_date,
+          tournament_type
+        ),
+        player1:players!fk_player1(id, name, ntrp, phone, sex),
+        player2:players!fk_player2(id, name, ntrp, phone, sex),
+        team1:teams!fk_team1 (
+          id,
+          name,
+          player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
+          player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
+        ),
+        team2:teams!fk_team2 (
+          id,
+          name,
+          player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
+          player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
+        )
+      `);
 
+    if (error) {
+      console.error("Ошибка загрузки матчей:", error);
+      return [];
+    }
 
+    return (data ?? []).map((row: any) => {
+      const player1 = row.player1
+        ? new Player(row.player1)
+        : undefined;
+      const player2 = row.player2
+        ? new Player(row.player2)
+        : undefined;
 
+      const team1 = row.team1
+        ? new Team(
+            row.team1.id,
+            row.team1.name,
+            new Player(row.team1.player1),
+            new Player(row.team1.player2)
+          )
+        : undefined;
 
+      const team2 = row.team2
+        ? new Team(
+            row.team2.id,
+            row.team2.name,
+            new Player(row.team2.player1),
+            new Player(row.team2.player2)
+          )
+        : undefined;
+
+      const tournament = row.tournaments
+        ? new Tournament(
+            row.tournaments.id,
+            row.tournaments.name,
+            "draft",
+            row.tournaments.tournament_type,
+            row.tournaments.start_date,
+            row.tournaments.end_date
+          )
+        : undefined;
+
+      return new Match(
+        row.id,
+        row.match_type,
+        new Date(row.date),
+        row.scores,
+        tournament!,
+        player1,
+        player2,
+        team1,
+        team2
+      );
+    });
+  }
 
   static async loadMatches(tournamentId: number): Promise<Match[]> {
     const { data, error } = await supabase

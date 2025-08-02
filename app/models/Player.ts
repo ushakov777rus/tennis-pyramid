@@ -1,3 +1,5 @@
+import { Match } from "./Match";
+
 export class Player {
   id: number;
   name: string;
@@ -12,4 +14,44 @@ export class Player {
     this.sex = sex;
     this.ntrp = ntrp;
   }
+
+  // ⬇️ агрегатор по игрокам
+  static getPlayerStats(matches: Match[]): Record<number, { matches: number; wins: number }> {
+    const stats: Record<number, { matches: number; wins: number }> = {};
+
+    matches.forEach((m) => {
+      const participants: Player[] = [];
+
+      if (m.type === "single") {
+        if (m.player1) participants.push(m.player1);
+        if (m.player2) participants.push(m.player2);
+      } else if (m.type === "double") {
+        if (m.team1?.player1) participants.push(m.team1.player1);
+        if (m.team1?.player2) participants.push(m.team1.player2);
+        if (m.team2?.player1) participants.push(m.team2.player1);
+        if (m.team2?.player2) participants.push(m.team2.player2);
+      }
+
+      // всем участникам увеличиваем количество матчей
+      participants.forEach((p) => {
+        if (!stats[p.id]) stats[p.id] = { matches: 0, wins: 0 };
+        stats[p.id].matches++;
+      });
+
+      // победителю увеличиваем победы
+      const winnerId = m.getWinnerId();
+      if (winnerId && stats[winnerId]) {
+        stats[winnerId].wins++;
+      }
+    });
+
+    return stats;
+  }
+
+
+
+
+
+
+
 }
