@@ -33,6 +33,11 @@ export function MatchHistoryModal({
     (m) => m.player1?.id === playerId || m.player2?.id === playerId
   );
 
+  // Сортировка (новые → старые)
+  const sortedMatches = [...playerMatches].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
   // Определяем имя игрока
   const playerName =
     playerMatches[0]?.player1?.id === playerId
@@ -87,7 +92,7 @@ export function MatchHistoryModal({
               </tr>
             </thead>
             <tbody>
-              {playerMatches.map((m) => {
+              {sortedMatches.map((m) => {
                 const isWinner = m.getWinnerId() === playerId;
                 const opponentName =
                   m.player1?.id === playerId ? m.player2?.name : m.player1?.name;
