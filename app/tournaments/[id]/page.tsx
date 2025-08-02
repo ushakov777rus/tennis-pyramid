@@ -160,80 +160,79 @@ const handleAddMatch = async () => {
         </div>
 
         {/* --- блок вкладки + форма добавления матча справа --- */}
-        <div className="tabs-row">
-          <div className="tabs">
-            <button
-              className={activeTab === "pyramid" ? "active" : ""}
-              onClick={() => setActiveTab("pyramid")}
-            >
-              Пирамида
-            </button>
-            <button
-              className={activeTab === "matches" ? "active" : ""}
-              onClick={() => setActiveTab("matches")}
-            >
-              Матчи
-            </button>
+        <div className="tabs">
+          <button
+            className={activeTab === "pyramid" ? "active" : ""}
+            onClick={() => setActiveTab("pyramid")}
+          >
+            Пирамида
+          </button>
+          <button
+            className={activeTab === "matches" ? "active" : ""}
+            onClick={() => setActiveTab("matches")}
+          >
+            Матчи
+          </button>
 
-            <input
-              type="date"
-              value={matchDate}
-              onChange={(e) => setMatchDate(e.target.value)}
-            />
+          <input
+            type="date"
+            value={matchDate}
+            onChange={(e) => setMatchDate(e.target.value)}
+          />
 
-            <select
-              onChange={(e) =>
-                setSelectedIds((prev) => {
-                  const newVal = Number(e.target.value);
-                  if (!newVal) return prev;
-                  if (prev.includes(newVal)) return prev;
-                  if (prev.length === 0) return [newVal];
-                  if (prev.length === 1) return [...prev, newVal];
-                  return [prev[1], newVal];
-                })
-              }
-              value={selectedIds[0] || ""}
-            >
-              <option value="">-- Нападение --</option>
-              {allItems.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
+          <select
+            onChange={(e) =>
+              setSelectedIds((prev) => {
+                const newVal = Number(e.target.value);
+                if (!newVal) return prev;
+                if (prev.includes(newVal)) return prev;
+                if (prev.length === 0) return [newVal];
+                if (prev.length === 1) return [...prev, newVal];
+                return [prev[1], newVal];
+              })
+            }
+            value={selectedIds[0] || ""}
+          >
+            <option value="">-- Нападение --</option>
+            {allItems.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
 
-            <select
-              onChange={(e) =>
-                setSelectedIds((prev) => {
-                  const newVal = Number(e.target.value);
-                  if (!newVal) return prev;
-                  if (prev.includes(newVal)) return prev;
-                  if (prev.length === 0) return [newVal];
-                  if (prev.length === 1) return [...prev, newVal];
-                  return [prev[0], newVal];
-                })
-              }
-              value={selectedIds[1] || ""}
-            >
-              <option value="">-- Защита --</option>
-              {allItems.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
+          <select
+            onChange={(e) =>
+              setSelectedIds((prev) => {
+                const newVal = Number(e.target.value);
+                if (!newVal) return prev;
+                if (prev.includes(newVal)) return prev;
+                if (prev.length === 0) return [newVal];
+                if (prev.length === 1) return [...prev, newVal];
+                return [prev[0], newVal];
+              })
+            }
+            value={selectedIds[1] || ""}
+          >
+            <option value="">-- Защита --</option>
+            {allItems.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
 
-            <input
-              type="text"
-              placeholder="Счет, например: 6-4, 4-6, 10-8"
-              value={matchScore}
-              onChange={(e) => setMatchScore(e.target.value)}
-            />
+          <input
+            type="text"
+            placeholder="Счет, например: 6-4, 4-6, 10-8"
+            value={matchScore}
+            onChange={(e) => setMatchScore(e.target.value)}
+          />
 
-            <button onClick={handleAddMatch}>Добавить</button>
-          </div>
+          <button onClick={handleAddMatch}>Добавить</button>
         </div>
       </div>
+
 
       {/* --- контент вкладок --- */}
       <div className="tab-content">
