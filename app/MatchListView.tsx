@@ -2,23 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { MatchRepository } from "./repositories/MatchRepository";
+import { Match } from "./models/Match";
 import "./MatchListView.css";
 
-interface MatchSummary {
-  id: number;
-  type: "single" | "double";
-  date: Date;
-  sets: [number, number][];
-}
-
 export function MatchListView() {
-  const [matches, setMatches] = useState<MatchSummary[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const list = await MatchRepository.loadAllMatches();
+      const list = await MatchRepository.loadAll();
       setMatches(list);
       setLoading(false);
     }
@@ -27,7 +21,7 @@ export function MatchListView() {
 
   const handleDelete = async (id: number) => {
     if (!confirm(`Удалить матч #${id}?`)) return;
-    await MatchRepository.deleteMatch(id);
+    await MatchRepository.deleteMatch(matches.filter((m) => m.id !== id)[0]);
     setMatches(matches.filter((m) => m.id !== id));
   };
 
@@ -50,7 +44,7 @@ export function MatchListView() {
         </thead>
         <tbody>
           {matches.map((m) => {
-            const setsWon = m.sets.reduce<[number, number]>(
+            const setsWon = m.scores.reduce<[number, number]>(
               ([w1, w2], [s1, s2]) => [
                 w1 + (s1 > s2 ? 1 : 0),
                 w2 + (s2 > s1 ? 1 : 0),
