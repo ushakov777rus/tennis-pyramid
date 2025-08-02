@@ -14,8 +14,10 @@ export class TournamentsRepository {
       return [];
     }
 
+    console.log("TournamentsRepository::LoadAll:", data);
+
     return (data ?? []).map(
-      (row: any) =>
+      (row: Tournament) =>
         new Tournament(
           Number(row.id),
           row.name,
@@ -144,21 +146,6 @@ export class TournamentsRepository {
       });
     });
   }
-
-  /** Добавить матч в турнир 
-  static async addMatch(
-    tournamentId: number,
-    match_date: string | null,
-    tournament_type: "single" | "double"
-  ) {
-    const { error } = await supabase.from("matches").insert({
-      date: match_date,
-      match_type: tournament_type,
-      tournament_id: tournamentId,
-    });
-
-    if (error) console.error("Ошибка добавления матча:", error);
-  }*/
 
   /** Добавить игрока */
   static async addPlayer(
