@@ -13,6 +13,7 @@ import { Participant } from "@/app/models/Participant";
 import { PyramidView } from "./PyramidView";
 import { MatchHistoryModal } from "./MatchHistoryModal";
 import { MatchHistoryView } from "./MatchHistoryView";
+import { formatDate } from "@/app/components/Utils"
 
 import "./Page.css";
 
@@ -26,8 +27,10 @@ export default function TournamentPage() {
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [allTeams, setAllTeams] = useState<{ id: number; name: string }[]>([]);
   const [activeTab, setActiveTab] = useState<"pyramid" | "matches">("pyramid");
+  
+  const today = new Date().toISOString().split("T")[0];
+  const [matchDate, setMatchDate] = useState<string>(today);
 
-  const [matchDate, setMatchDate] = useState<string>("");
   const [matchScore, setMatchScore] = useState<string>("");
 
   // теперь один массив для выбора
