@@ -97,60 +97,58 @@ static async loadParticipants(tournamentId: number): Promise<Participant[]> {
     return [];
   }
 
-console.error("Data:", data);
+  return (data as unknown as any[]).map((row): Participant => {
+    let player: Player | undefined;
+    let team: Team | undefined;
 
-return (data as unknown as any[]).map((row): Participant => {
-  let player: Player | undefined;
-  let team: Team | undefined;
-
-  // --- игрок ---
-  if (row.players) {
-    player = new Player({
-      id: row.players.id,
-      name: row.players.name,
-      ntrp: row.players.ntrp,
-      phone: row.players.phone,
-      sex: row.players.sex,
-    });
-  }
-
-  // --- команда ---
-  if (row.teams && row.teams.length > 0) {
-    const t = row.teams[0]; // первая команда
-
-    const teamPlayer1 = t.player1
-      ? new Player({
-          id: t.player1.id,
-          name: t.player1.name,
-          ntrp: t.player1.ntrp,
-          phone: t.player1.phone,
-          sex: t.player1.sex,
-        })
-      : undefined;
-
-    const teamPlayer2 = t.player2
-      ? new Player({
-          id: t.player2.id,
-          name: t.player2.name,
-          ntrp: t.player2.ntrp,
-          phone: t.player2.phone,
-          sex: t.player2.sex,
-        })
-      : undefined;
-
-    if (teamPlayer1 && teamPlayer2) {
-      team = new Team(t.id, t.name, teamPlayer1, teamPlayer2);
+    // --- игрок ---
+    if (row.players) {
+      player = new Player({
+        id: row.players.id,
+        name: row.players.name,
+        ntrp: row.players.ntrp,
+        phone: row.players.phone,
+        sex: row.players.sex,
+      });
     }
-  }
 
-  return new Participant({
-    id: row.id,
-    level: row.level,
-    position: row.position,
-    player,
-    team,
+    // --- команда ---
+    if (row.teams && row.teams.length > 0) {
+      const t = row.teams[0]; // первая команда
+
+      const teamPlayer1 = t.player1
+        ? new Player({
+            id: t.player1.id,
+            name: t.player1.name,
+            ntrp: t.player1.ntrp,
+            phone: t.player1.phone,
+            sex: t.player1.sex,
+          })
+        : undefined;
+
+      const teamPlayer2 = t.player2
+        ? new Player({
+            id: t.player2.id,
+            name: t.player2.name,
+            ntrp: t.player2.ntrp,
+            phone: t.player2.phone,
+            sex: t.player2.sex,
+          })
+        : undefined;
+
+      if (teamPlayer1 && teamPlayer2) {
+        team = new Team(t.id, t.name, teamPlayer1, teamPlayer2);
+      }
+    }
+
+    return new Participant({
+      id: row.id,
+      level: row.level,
+      position: row.position,
+      player,
+      team,
+    });
   });
-});
 }
 
   /** Добавить игрока */
