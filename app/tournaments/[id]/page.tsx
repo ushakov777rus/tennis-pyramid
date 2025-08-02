@@ -28,9 +28,10 @@ export default function TournamentPage() {
   const [activeTab, setActiveTab] = useState<"pyramid" | "matches">("pyramid");
 
   const [matchDate, setMatchDate] = useState<string>("");
-  const [participant1Id, setParticipant1Id] = useState<number | null>(null);
-  const [participant2Id, setParticipant2Id] = useState<number | null>(null);
   const [matchScore, setMatchScore] = useState<string>("");
+
+  // теперь один массив для выбора
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyPlayerId, setHistoryPlayerId] = useState<number | null>(null);
@@ -59,8 +60,9 @@ export default function TournamentPage() {
   }, [tournamentId]);
 
   const handleAddMatch = async () => {
-    if (!participant1Id || !participant2Id || !matchDate || !tournament) {
-      alert("Заполни все поля");
+    if (!tournament) return;
+    if (selectedIds.length < 2 || !matchDate) {
+      alert("Выбери двух игроков и дату матча");
       return;
     }
 
@@ -69,8 +71,8 @@ export default function TournamentPage() {
         .split(",")
         .map((set) => set.trim().split("-").map(Number)) as [number, number][];
 
-      const team1 = [participant1Id];
-      const team2 = [participant2Id];
+      const team1 = [selectedIds[0]];
+      const team2 = [selectedIds[1]];
 
       await MatchRepository.addMatch(
         new Date(matchDate),
@@ -83,8 +85,7 @@ export default function TournamentPage() {
 
       setMatchDate("");
       setMatchScore("");
-      setParticipant1Id(null);
-      setParticipant2Id(null);
+      setSelectedIds([]);
 
       const m = await MatchRepository.loadMatches(tournamentId);
       setMatches(m);
@@ -140,83 +141,83 @@ export default function TournamentPage() {
             Матчи
           </button>
 
-          
-          
-            <input
-              type="date"
-              value={matchDate}
-              onChange={(e) => setMatchDate(e.target.value)}
-            />
-          
+          <input
+            type="date"
+            value={matchDate}
+            onChange={(e) => setMatchDate(e.target.value)}
+          />
 
-          
-            <select
-              onChange={(e) => setParticipant1Id(Number(e.target.value))}
-              value={participant1Id || ""}
-            >
-              <option value="">-- Нападение --</option>
-              {allItems.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          
+          <select
+            onChange={(e) =>
+              setSelectedIds((prev) => {
+                const newVal = Number(e.target.value);
+                if (!newVal) return prev;
+                if (prev.includes(newVal)) return prev;
+                if (prev.length === 0) return [newVal];
+                if (prev.length === 1) return [...prev, newVal];
+                return [prev[1], newVal];
+              })
+            }
+            value={selectedIds[0] || ""}
+          >
+            <option value="">-- Нападение --</option>
+            {allItems.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
 
-          
-            <select
-              onChange={(e) => setParticipant2Id(Number(e.target.value))}
-              value={participant2Id || ""}
-            >
-              <option value="">-- Защита --</option>
-              {allItems.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          
+          <select
+            onChange={(e) =>
+              setSelectedIds((prev) => {
+                const newVal = Number(e.target.value);
+                if (!newVal) return prev;
+                if (prev.includes(newVal)) return prev;
+                if (prev.length === 0) return [newVal];
+                if (prev.length === 1) return [...prev, newVal];
+                return [prev[0], newVal];
+              })
+            }
+            value={selectedIds[1] || ""}
+          >
+            <option value="">-- Защита --</option>
+            {allItems.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
 
-          
-            <input
-              type="text"
-              placeholder="Счет, например: 6-4, 4-6, 10-8"
-              value={matchScore}
-              onChange={(e) => setMatchScore(e.target.value)}
-            />
-          
+          <input
+            type="text"
+            placeholder="Счет, например: 6-4, 4-6, 10-8"
+            value={matchScore}
+            onChange={(e) => setMatchScore(e.target.value)}
+          />
 
           <button onClick={handleAddMatch}>Добавить</button>
-
-          
-
         </div>
       </div>
 
       {/* --- контент вкладок --- */}
       <div className="tab-content">
         {activeTab === "pyramid" && (
-          <div>
-            <PyramidView
-              participants={participants}
-              selectedId={participant1Id}
-              onSelect={setParticipant1Id}
-              onShowHistory={(id) => {
-                if (id !== undefined) {
-                  setHistoryPlayerId(id);
-                  setHistoryOpen(true);
-                }
-              }}
-              matches={matches}
-            />
-          </div>
+          <PyramidView
+            participants={participants}
+            selectedIds={selectedIds}
+            onSelect={setSelectedIds}
+            onShowHistory={(id) => {
+              if (id !== undefined) {
+                setHistoryPlayerId(id);
+                setHistoryOpen(true);
+              }
+            }}
+            matches={matches}
+          />
         )}
 
-        {activeTab === "matches" && (
-          <div>
-            <MatchHistoryView matches={matches} />
-          </div>
-        )}
+        {activeTab === "matches" && <MatchHistoryView matches={matches} />}
       </div>
 
       {/* модалка истории */}

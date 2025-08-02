@@ -1,20 +1,26 @@
+"use client";
+
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
-import "./PyramidView.css"
+import "./PyramidView.css";
 
 type PyramidViewProps = {
   participants: Participant[];
-  onSelect: (id: number) => void;
-  selectedId: number | null;
+  onSelect: (ids: number[]) => void;
+  selectedIds: number[];
   onShowHistory?: (id?: number) => void;
   matches: Match[];
 };
 
-function getPlayerStatusIcon(participantId: number, match: Match): { icon: string, className: string } {
+function getPlayerStatusIcon(
+  participantId: number,
+  match: Match
+): { icon: string; className: string } {
   const winnerId = match.getWinnerId();
   const isWinner = winnerId === participantId;
 
-  const isAttacker = match.player1?.id === participantId || match.team1?.id === participantId;
+  const isAttacker =
+    match.player1?.id === participantId || match.team1?.id === participantId;
 
   if (isWinner && isAttacker) return { icon: "↑", className: "winner-attacker" };
   if (isWinner && !isAttacker) return { icon: "✖", className: "winner-defender" };
@@ -25,7 +31,7 @@ function getPlayerStatusIcon(participantId: number, match: Match): { icon: strin
 export function PyramidView({
   participants,
   onSelect,
-  selectedId,
+  selectedIds,
   onShowHistory,
   matches,
 }: PyramidViewProps) {
@@ -62,22 +68,43 @@ export function PyramidView({
     return winnerId === id ? "winner" : "loser";
   };
 
+  const handleClick = (id: number) => {
+    let newSelection: number[] = [];
+
+    if (selectedIds.includes(id)) {
+      // снять выбор
+      newSelection = selectedIds.filter((x) => x !== id);
+    } else if (selectedIds.length === 0) {
+      newSelection = [id];
+    } else if (selectedIds.length === 1) {
+      newSelection = [selectedIds[0], id];
+    } else if (selectedIds.length === 2) {
+      // заменить первого новым
+      newSelection = [selectedIds[1], id];
+    }
+
+    onSelect(newSelection);
+  };
+
   return (
     <div className="pyramid-container">
       {Object.entries(levels).map(([level, players]) => {
-        // ✅ сортировка игроков по позиции
         const sortedPlayers = [...players].sort(
           (a, b) => (a.position ?? 0) - (b.position ?? 0)
         );
 
         return (
-          <div key={level} className="pyramid-row" data-level={`Уровень ${level}`}>
+          <div
+            key={level}
+            className="pyramid-row"
+            data-level={`Уровень ${level}`}
+          >
             {sortedPlayers.map((p) => {
               const statusClass = getPlayerClass(p);
               const id = p.player?.id ?? p.team?.id;
 
               const playerMatches = matches.filter(
-                m =>
+                (m) =>
                   m.player1?.id === id ||
                   m.player2?.id === id ||
                   m.team1?.id === id ||
@@ -98,8 +125,10 @@ export function PyramidView({
               return (
                 <div
                   key={p.id}
-                  className={`pyramid-player ${selectedId === p.id ? "selected" : ""} ${statusClass}`}
-                  onClick={() => onSelect(p.id)}
+                  className={`pyramid-player ${
+                    selectedIds.includes(id ?? -1) ? "selected" : ""
+                  } ${statusClass}`}
+                  onClick={() => id && handleClick(id)}
                 >
                   {daysWithoutGames !== null && (
                     <div className="days-counter">{daysWithoutGames}д</div>
@@ -114,16 +143,16 @@ export function PyramidView({
                   <div className="player-name">
                     {(p.splitName ?? []).map((line, i) => {
                       let statusIcon = "";
-                      let statusClass = "";
+                      let iconClass = "";
 
                       if (lastMatch && id) {
                         const status = getPlayerStatusIcon(id, lastMatch);
                         statusIcon = status.icon;
-                        statusClass = status.className;
+                        iconClass = status.className;
                       }
 
                       return (
-                        <div key={i} className={`player-line ${statusClass}`}>
+                        <div key={i} className={`player-line ${iconClass}`}>
                           {line}
                           {i === 1 && statusIcon && (
                             <span className="status-icon">{statusIcon}</span>
