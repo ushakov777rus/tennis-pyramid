@@ -131,7 +131,7 @@ h2 {
 }
 
 
-.tabs {
+.tabs, .add-match-controls {
   display: flex;
   flex-wrap: wrap;            /* ✅ перенос элементов */
   justify-content: center;    /* ✅ центрирование */
@@ -141,8 +141,9 @@ h2 {
 }
 
 .tabs button,
-.tabs input,
-.tabs select {
+.add-match-controls button,
+.add-match-controls input,
+.add-match-controls select {
   height: 40px;               /* ✅ одинаковая высота */
   padding: 0 12px;
   border: 1px solid #ccc;
@@ -160,14 +161,20 @@ h2 {
   border-color: #0070f3;
 }
 
-.tabs input[type="text"],
-.tabs input[type="date"],
-.tabs select {
+.add-match-controls input[type="text"],
+.add-match-controls input[type="date"],
+.add-match-controls select {
   background: #fff;
 }
 
-.tabs input[type="date"]{
+.add-match-controls input[type="date"]{
   min-width: 140px;
+  max-width: 160px;
+}
+
+.add-match-controls input[type="text"]{
+  min-width: 100px;
+  max-width: 120px;
 }
 
 

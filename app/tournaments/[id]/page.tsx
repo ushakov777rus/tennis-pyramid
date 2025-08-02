@@ -173,7 +173,9 @@ const handleAddMatch = async () => {
           >
             Матчи
           </button>
+        </div>
 
+        <div className="add-match-controls">
           <input
             type="date"
             value={matchDate}
@@ -224,7 +226,7 @@ const handleAddMatch = async () => {
 
           <input
             type="text"
-            placeholder="Счет, например: 6-4, 4-6, 10-8"
+            placeholder="6-4, 4-6, 11-8"
             value={matchScore}
             onChange={(e) => setMatchScore(e.target.value)}
           />
