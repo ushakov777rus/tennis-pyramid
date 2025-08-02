@@ -60,7 +60,7 @@ export function PlayerListView() {
             <th>Уровень</th>
             <th>Игры</th>
             <th>Победы</th>
-            <th>Winrate %</th> {/* ⬅️ новая колонка */}
+            <th>Winrate %</th>
             <th>Действия</th>
           </tr>
         </thead>

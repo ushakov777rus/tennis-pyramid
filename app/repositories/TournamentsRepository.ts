@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabaseClient";
 import { Tournament } from "@/app/models/Tournament";
-import { Participant } from "@/app/models/Participant";
+import { Participant, ParticipantBase, ParticipantRow } from "@/app/models/Participant";
 import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
 
@@ -14,7 +14,7 @@ export class TournamentsRepository {
       return [];
     }
 
-    console.log("TournamentsRepository::LoadAll:", error);
+    console.log("TournamentsRepository::LoadAll:", data);
 
     return (data ?? []).map(
       (row: Tournament) =>
@@ -57,7 +57,7 @@ export class TournamentsRepository {
   /** Создать турнир */
   static async create(params: {
     name: string;
-    tournament_type: "single" | "double" | "pyramid" | "roundrobin";
+    tournament_type: "single" | "double";
     start_date: string | null;
     end_date: string | null;
     status: "draft" | "ongoing" | "finished";
@@ -77,75 +77,62 @@ export class TournamentsRepository {
   }
 
   /** Загрузить участников турнира */
-  static async loadParticipants(
-    tournamentId: number
-  ): Promise<Participant[]> {
-    const { data, error } = await supabase
-      .from("tournament_participants")
-      .select(`
+static async loadParticipants(tournamentId: number): Promise<Participant[]> {
+  const { data, error } = await supabase
+    .from("tournament_participants")
+    .select(`
+      id,
+      level,
+      position,
+      players ( id, name, ntrp, phone, sex ),
+      teams (
         id,
-        level,
-        position,
-        players ( id, name, ntrp, phone, sex ),
-        teams (
-          id,
-          name,
-          player1:players!teams_player1_id_fkey ( id, name, ntrp, phone, sex ),
-          player2:players!teams_player2_id_fkey ( id, name, ntrp, phone, sex )
-        )
-      `)
-      .eq("tournament_id", tournamentId);
+        name,
+        player1:players!teams_player1_id_fkey ( id, name, ntrp, phone, sex ),
+        player2:players!teams_player2_id_fkey ( id, name, ntrp, phone, sex )
+      )
+    `)
+    .eq("tournament_id", tournamentId);
 
-    if (error) {
-      console.error("Ошибка загрузки участников для турнира:", tournamentId, error);
-      return [];
+  if (error) {
+    console.error("Ошибка загрузки участников:", error);
+    return [];
+  }
+
+  return (data as ParticipantRow).map((row) => {
+    let player: Player | undefined;
+    let team: Team | undefined;
+
+    if (row.players) {
+      player = new Player({
+        id: row.players.id,
+        name: row.players.name,
+        ntrp: row.players.ntrp,
+        phone: row.players.phone,
+        sex: row.players.sex,
+      });
     }
 
-    return (data ?? []).map((row: any) => {
-      let player: Player | undefined;
-      let team: Team | undefined;
+    if (row.teams && row.teams.length > 0) {
+      const t = row.teams[0];
 
-      if (row.players) {
-        player = new Player({
-          id: row.players.id,
-          name: row.players.name,
-          ntrp: row.players.ntrp,
-          phone: row.players.phone,
-          sex: row.players.sex,
-        });
+      if (t.player1?.[0] && t.player2?.[0]) {
+        const teamPlayer1 = new Player(t.player1[0]);
+        const teamPlayer2 = new Player(t.player2[0]);
+
+        team = new Team(t.id, t.name, teamPlayer1, teamPlayer2);
       }
+    }
 
-      if (row.teams) {
-        const t = row.teams as {
-          id: number;
-          name: string;
-          team_players: { players: Player }[];
-        };
-
-        const teamPlayers =
-          (t.team_players ?? []).map(
-            (tp) =>
-              new Player({
-                id: tp.players.id,
-                name: tp.players.name,
-                ntrp: tp.players.ntrp,
-                phone: tp.players.phone,
-                sex: tp.players.sex,
-              })
-          ) ?? [];
-
-        team = new Team(t.id, t.name, teamPlayers[0], teamPlayers[1]);
-      }
-
-      return new Participant({
-        id: row.id,
-        level: row.level,
-        position: row.position,
-        player,
-        team,
-      });
+    return new Participant({
+      id: row.id,
+      level: row.level,
+      position: row.position,
+      player,
+      team,
     });
-  }
+  });
+}
 
   /** Добавить игрока */
   static async addPlayer(
