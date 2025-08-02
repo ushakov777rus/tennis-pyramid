@@ -64,41 +64,46 @@ export default function TournamentPage() {
     load();
   }, [tournamentId]);
 
-  const handleAddMatch = async () => {
-    if (!tournament) return;
-    if (selectedIds.length < 2 || !matchDate) {
-      alert("Выбери двух игроков и дату матча");
-      return;
-    }
+const handleAddMatch = async () => {
+  if (!tournament) return;
+  if (selectedIds.length < 2 || !matchDate) {
+    alert("Выбери двух игроков и дату матча");
+    return;
+  }
 
-    try {
-      const scores = matchScore
-        .split(",")
-        .map((set) => set.trim().split("-").map(Number)) as [number, number][];
+  try {
+    const scores = matchScore
+      .split(",")
+      .map((set) => set.trim().split("-").map(Number)) as [number, number][];
 
-      const team1 = [selectedIds[0]];
-      const team2 = [selectedIds[1]];
+    const team1 = [selectedIds[0]];
+    const team2 = [selectedIds[1]];
 
-      await MatchRepository.addMatch(
-        new Date(matchDate),
-        tournament.tournament_type,
-        scores,
-        team1,
-        team2,
-        tournament.id
-      );
+    await MatchRepository.addMatch(
+      new Date(matchDate),
+      tournament.tournament_type,
+      scores,
+      team1,
+      team2,
+      tournament.id
+    );
 
-      setMatchDate("");
-      setMatchScore("");
-      setSelectedIds([]);
+    // 👉 сбрасываем поля
+    setMatchDate(today);  // снова текущая дата
+    setMatchScore("");
+    setSelectedIds([]);
 
-      const m = await MatchRepository.loadMatches(tournamentId);
-      setMatches(m);
-    } catch (err) {
-      console.error("Ошибка при добавлении матча:", err);
-      alert("Не удалось добавить матч");
-    }
-  };
+    // 👉 перезагружаем матчи и участников
+    const m = await MatchRepository.loadMatches(tournamentId);
+    setMatches(m);
+
+    const parts = await TournamentsRepository.loadParticipants(tournamentId);
+    setParticipants(parts);
+  } catch (err) {
+    console.error("Ошибка при добавлении матча:", err);
+    alert("Не удалось добавить матч");
+  }
+};
 
   const handleEditMatchSave = async (updatedMatch: Match) => {
     try {
