@@ -14,7 +14,7 @@ export class TournamentsRepository {
       return [];
     }
 
-    console.log("TournamentsRepository::LoadAll:", data);
+    console.log("TournamentsRepository::LoadAll:", error);
 
     return (data ?? []).map(
       (row: Tournament) =>
@@ -119,7 +119,7 @@ export class TournamentsRepository {
         const t = row.teams as {
           id: number;
           name: string;
-          team_players: { players: any }[];
+          team_players: { players: Player }[];
         };
 
         const teamPlayers =

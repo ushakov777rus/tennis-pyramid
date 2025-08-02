@@ -18,7 +18,7 @@ export class Participant {
 
   get displayName(): string {
     if (this.player) return this.player.name;
-    if (this.team) return this.team.teamName;
+    if (this.team) return this.team.name;
     return "Без имени";
   }
 
