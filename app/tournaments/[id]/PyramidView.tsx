@@ -62,13 +62,6 @@ export function PyramidView({
     return winnerId === id ? "winner" : "loser";
   };
 
-
-
-
-
-
-
-
   return (
     <div className="pyramid-container">
       {Object.entries(levels).map(([level, players]) => {

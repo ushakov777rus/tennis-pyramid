@@ -1,6 +1,7 @@
 "use client";
 
 import { Match } from "@/app/models/Match";
+import { formatDate } from "@/app/components/Utils";
 import "./MatchHistoryModal.css";
 import { useState } from "react";
 
@@ -12,15 +13,6 @@ type MatchHistoryModalProps = {
   onEditMatch?: (match: Match) => void;
   onDeleteMatch?: (match: Match) => void;
 };
-
-export function formatDate(date: Date): string {
-  if (!date) return "";
-  return date.toLocaleDateString("ru-RU", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}
 
 export function MatchHistoryModal({
   isOpen,

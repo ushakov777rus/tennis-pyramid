@@ -12,6 +12,7 @@ import { Match } from "@/app/models/Match";
 import { Participant } from "@/app/models/Participant";
 import { PyramidView } from "./PyramidView";
 import { MatchHistoryModal } from "./MatchHistoryModal";
+import { MatchHistoryView } from "./MatchHistoryView";
 
 import "./Page.css";
 
@@ -140,14 +141,15 @@ export default function TournamentPage() {
           </button>
 
           
-            Дата:
+          
             <input
               type="date"
               value={matchDate}
               onChange={(e) => setMatchDate(e.target.value)}
             />
+          
 
-          <label>
+          
             <select
               onChange={(e) => setParticipant1Id(Number(e.target.value))}
               value={participant1Id || ""}
@@ -159,9 +161,9 @@ export default function TournamentPage() {
                 </option>
               ))}
             </select>
-          </label>
+          
 
-          <label>
+          
             <select
               onChange={(e) => setParticipant2Id(Number(e.target.value))}
               value={participant2Id || ""}
@@ -173,16 +175,16 @@ export default function TournamentPage() {
                 </option>
               ))}
             </select>
-          </label>
+          
 
-          <label>
+          
             <input
               type="text"
               placeholder="Счет, например: 6-4, 4-6, 10-8"
               value={matchScore}
               onChange={(e) => setMatchScore(e.target.value)}
             />
-          </label>
+          
 
           <button onClick={handleAddMatch}>Добавить</button>
 
@@ -197,8 +199,8 @@ export default function TournamentPage() {
           <div>
             <PyramidView
               participants={participants}
-              selectedId={null}
-              onSelect={() => {}}
+              selectedId={participant1Id}
+              onSelect={setParticipant1Id}
               onShowHistory={(id) => {
                 if (id !== undefined) {
                   setHistoryPlayerId(id);
@@ -212,30 +214,7 @@ export default function TournamentPage() {
 
         {activeTab === "matches" && (
           <div>
-            {matches.length === 0 ? (
-              <p>Матчей пока нет</p>
-            ) : (
-              <table className="matches-table">
-                <thead>
-                  <tr>
-                    <th>Дата</th>
-                    <th>Игрок 1</th>
-                    <th>Игрок 2</th>
-                    <th>Счёт</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {matches.map((m) => (
-                    <tr key={m.id}>
-                      <td>{m.date.toDateString()}</td>
-                      <td>{m.player1?.name || m.team1?.name || "??"}</td>
-                      <td>{m.player2?.name || m.team2?.name || "??"}</td>
-                      <td>{m.scores || "-"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+            <MatchHistoryView matches={matches} />
           </div>
         )}
       </div>

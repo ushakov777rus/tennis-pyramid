@@ -163,25 +163,5 @@ h2 {
   color: white;
 }
 
-.add-match-form {
-  border: 1px solid #ddd;
-  padding: 12px;
-  border-radius: 6px;
-  background: #fafafa;
-  min-width: 260px;
-}
-
-.add-match-form label {
-  display: block;
-  margin-bottom: 8px;
-}
-
-.add-match-form input,
-.add-match-form select {
-  width: 100%;
-  padding: 4px;
-  margin-top: 2px;
-}
-
 
 
