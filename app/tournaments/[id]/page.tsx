@@ -36,6 +36,8 @@ export default function TournamentPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyPlayerId, setHistoryPlayerId] = useState<number | null>(null);
 
+  const [editingMatch, setEditingMatch] = useState<Match | null>(null);
+
   useEffect(() => {
     async function load() {
       if (!tournamentId) return;
@@ -92,6 +94,29 @@ export default function TournamentPage() {
     } catch (err) {
       console.error("Ошибка при добавлении матча:", err);
       alert("Не удалось добавить матч");
+    }
+  };
+
+  const handleEditMatchSave = async (updatedMatch: Match) => {
+    try {
+      await MatchRepository.updateMatch(updatedMatch);
+      const m = await MatchRepository.loadMatches(tournamentId);
+      setMatches(m);
+      setEditingMatch(null);
+    } catch (err) {
+      console.error("Ошибка при обновлении матча:", err);
+      alert("Не удалось обновить матч");
+    }
+  };
+
+  const handleDeleteMatch = async (match: Match) => {
+    try {
+      await MatchRepository.deleteMatch(match);
+      const m = await MatchRepository.loadMatches(tournamentId);
+      setMatches(m);
+    } catch (err) {
+      console.error("Ошибка при удалении матча:", err);
+      alert("Не удалось удалить матч");
     }
   };
 
@@ -217,7 +242,21 @@ export default function TournamentPage() {
           />
         )}
 
-        {activeTab === "matches" && <MatchHistoryView matches={matches} />}
+        {activeTab === "matches" && (
+          <MatchHistoryView
+            matches={matches}
+            onEditMatch={(updated) => {
+              // тут обновляем через MatchRepository
+              console.log("Редактирование:", updated);
+              MatchRepository.updateMatch(updated);
+            }}
+            onDeleteMatch={(m) => {
+              // тут удаляем через MatchRepository
+              console.log("Удаление:", m);
+              MatchRepository.deleteMatch(m);
+            }}
+          />
+        )}
       </div>
 
       {/* модалка истории */}
@@ -226,8 +265,8 @@ export default function TournamentPage() {
         onClose={() => setHistoryOpen(false)}
         matches={matches}
         playerId={historyPlayerId}
-        onEditMatch={() => {}}
-        onDeleteMatch={() => {}}
+        onEditMatch={(m) => handleEditMatchSave(m)}        // ✅ передали
+        onDeleteMatch={(m) => handleDeleteMatch(m)}             // ✅ передали
       />
     </div>
   );
