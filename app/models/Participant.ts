@@ -60,7 +60,7 @@ export type ParticipantRow = {
     ntrp: string;
     phone: string;
     sex: string;
-  }[]; // <-- объект, не массив
+  }; // <-- объект, не массив
   teams?: {
     id: number;
     name: string;

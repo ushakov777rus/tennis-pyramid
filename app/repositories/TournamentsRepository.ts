@@ -14,8 +14,6 @@ export class TournamentsRepository {
       return [];
     }
 
-    console.log("TournamentsRepository::LoadAll:", data);
-
     return (data ?? []).map(
       (row: Tournament) =>
         new Tournament(
@@ -99,39 +97,60 @@ static async loadParticipants(tournamentId: number): Promise<Participant[]> {
     return [];
   }
 
-  return (data as ParticipantRow).map((row) => {
-    let player: Player | undefined;
-    let team: Team | undefined;
+console.error("Data:", data);
 
-    if (row.players) {
-      player = new Player({
-        id: row.players.id,
-        name: row.players.name,
-        ntrp: row.players.ntrp,
-        phone: row.players.phone,
-        sex: row.players.sex,
-      });
-    }
+return (data as unknown as any[]).map((row): Participant => {
+  let player: Player | undefined;
+  let team: Team | undefined;
 
-    if (row.teams && row.teams.length > 0) {
-      const t = row.teams[0];
-
-      if (t.player1?.[0] && t.player2?.[0]) {
-        const teamPlayer1 = new Player(t.player1[0]);
-        const teamPlayer2 = new Player(t.player2[0]);
-
-        team = new Team(t.id, t.name, teamPlayer1, teamPlayer2);
-      }
-    }
-
-    return new Participant({
-      id: row.id,
-      level: row.level,
-      position: row.position,
-      player,
-      team,
+  // --- игрок ---
+  if (row.players) {
+    player = new Player({
+      id: row.players.id,
+      name: row.players.name,
+      ntrp: row.players.ntrp,
+      phone: row.players.phone,
+      sex: row.players.sex,
     });
+  }
+
+  // --- команда ---
+  if (row.teams && row.teams.length > 0) {
+    const t = row.teams[0]; // первая команда
+
+    const teamPlayer1 = t.player1
+      ? new Player({
+          id: t.player1.id,
+          name: t.player1.name,
+          ntrp: t.player1.ntrp,
+          phone: t.player1.phone,
+          sex: t.player1.sex,
+        })
+      : undefined;
+
+    const teamPlayer2 = t.player2
+      ? new Player({
+          id: t.player2.id,
+          name: t.player2.name,
+          ntrp: t.player2.ntrp,
+          phone: t.player2.phone,
+          sex: t.player2.sex,
+        })
+      : undefined;
+
+    if (teamPlayer1 && teamPlayer2) {
+      team = new Team(t.id, t.name, teamPlayer1, teamPlayer2);
+    }
+  }
+
+  return new Participant({
+    id: row.id,
+    level: row.level,
+    position: row.position,
+    player,
+    team,
   });
+});
 }
 
   /** Добавить игрока */
