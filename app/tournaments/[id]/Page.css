@@ -25,13 +25,14 @@ h2 {
 
 .tournament-card {
   max-width: 800px;
-  margin: 0 auto 20px auto; /* авто по бокам для центрирования */
+  margin: 0 auto 5px auto; /* авто по бокам для центрирования */
   border: 1px solid #ccc;
-  padding: 16px;
+  padding: 0px;
   background-color: #f9f9f9;
 }
 
 .tournament-header {
+  margin: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -60,6 +61,11 @@ h2 {
 .tournament-details p {
   margin: 5px 0;
 }
+
+.tournament-details {
+  margin: 20px;
+}
+
 
 .participant-list {
   list-style: none;
@@ -131,7 +137,38 @@ h2 {
 }
 
 
-.tabs, .add-match-controls {
+
+
+.tabs {
+  display: flex;
+  justify-content: center;   /* центрируем */
+  align-items: stretch;
+  gap: 5px;                  /* ✅ расстояние между табами */
+  margin: 0 auto 20px auto;  /* центрирование блока */
+  max-width: 800px;          /* ограничиваем ширину */
+}
+
+.tabs button {
+  flex: 1;                   /* кнопки делят ширину поровну */
+  height: 40px;
+  border: 1px solid #ccc;
+  border-radius: 4px;        /* чтобы кнопки были с округлением */
+  background: #f5f5f5;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.tabs button.active {
+  background: #0070f3;
+  color: white;
+  font-weight: bold;
+}
+
+
+
+
+.add-match-controls {
   display: flex;
   flex-wrap: wrap;            /* ✅ перенос элементов */
   justify-content: center;    /* ✅ центрирование */
@@ -140,7 +177,6 @@ h2 {
   margin-bottom: 20px;
 }
 
-.tabs button,
 .add-match-controls button,
 .add-match-controls input,
 .add-match-controls select {
@@ -153,12 +189,6 @@ h2 {
   line-height: 1.2;
   cursor: pointer;
   box-sizing: border-box;
-}
-
-.tabs button.active {
-  background: #0070f3;
-  color: white;
-  border-color: #0070f3;
 }
 
 .add-match-controls input[type="text"],

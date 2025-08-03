@@ -13,6 +13,7 @@ import { Participant } from "@/app/models/Participant";
 import { PyramidView } from "./PyramidView";
 import { MatchHistoryModal } from "./MatchHistoryModal";
 import { MatchHistoryView } from "./MatchHistoryView";
+import { ParticipantsView } from "./ParticipantsView";
 import { formatDate } from "@/app/components/Utils"
 
 import "./Page.css";
@@ -26,7 +27,7 @@ export default function TournamentPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [allTeams, setAllTeams] = useState<{ id: number; name: string }[]>([]);
-  const [activeTab, setActiveTab] = useState<"pyramid" | "matches">("pyramid");
+  const [activeTab, setActiveTab] = useState<"pyramid" | "matches" | "participants">("pyramid");
   
   const today = new Date().toISOString().split("T")[0];
   const [matchDate, setMatchDate] = useState<string>(today);
@@ -173,6 +174,12 @@ const handleAddMatch = async () => {
           >
             Матчи
           </button>
+          <button
+            className={activeTab === "participants" ? "active" : ""}
+            onClick={() => setActiveTab("participants")}
+          >
+            Участники
+          </button>
         </div>
 
         <div className="add-match-controls">
@@ -268,6 +275,12 @@ const handleAddMatch = async () => {
             }}
           />
         )}
+
+        {activeTab === "participants" && (
+          <ParticipantsView/>
+        )}
+
+
       </div>
 
       {/* модалка истории */}
