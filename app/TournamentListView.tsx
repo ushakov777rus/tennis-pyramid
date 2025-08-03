@@ -4,11 +4,10 @@ import { Tournament } from "./models/Tournament";
 
 import { useEffect, useState } from "react";
 import { TournamentsRepository } from "./repositories/TournamentsRepository";
-import "./TournamentListView.css";
 import { useRouter } from "next/navigation";
-import {AdminOnly, PlayerOnly} from "./components/RoleGuard"
+import { AdminOnly } from "./components/RoleGuard"
 
-
+import "./TournamentListView.css";
 
 export function TournamentListView() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
