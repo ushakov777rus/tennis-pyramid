@@ -1,49 +1,25 @@
 "use client";
 
-import { useState } from "react";
-import { MatchListView } from "./MatchListView";
-import { PlayerListView } from "./PlayerListView";
-import { TournamentListView } from "./TournamentListView";
-import { UserBadge } from "./components/UserBadge";
+import Link from "next/link";
 import "./MainPage.css";
 
-export default function MainPage() {
-  const [activeTab, setActiveTab] =
-    useState<"matches" | "players" | "tournaments">("tournaments");
-
+export default function HeroSection() {
   return (
-    <main className="main-container">
-      <UserBadge /> {/* ← наш бейджик сверху слева */}
-      <h1>Панель управления</h1>
-
-      <div className="tabs">
-        <button
-          className={activeTab === "tournaments" ? "tab active" : "tab"}
-          onClick={() => setActiveTab("tournaments")}
-        >
-          Турниры
-        </button>
-
-        <button
-          className={activeTab === "matches" ? "tab active" : "tab"}
-          onClick={() => setActiveTab("matches")}
-        >
-          Одиночные матчи
-        </button>
-
-        <button
-          className={activeTab === "players" ? "tab active" : "tab"}
-          onClick={() => setActiveTab("players")}
-        >
-          Игроки
-        </button>
+    <section className="hero">
+      <div className="hero-overlay">
+        <nav className="hero-nav">
+          <Link href="/tournaments">Турниры</Link>
+          <Link href="/rating">Рейтинг</Link>
+          <Link href="/matches">Матчи</Link>
+          <button className="login-btn">Войти</button>
+        </nav>
+        <div className="hero-content">
+          <h1>Турниры по пирамиде</h1>
+          <Link href="/tournaments" className="hero-btn">
+            Турниры
+          </Link>
+        </div>
       </div>
-
-      <div className="tab-content">
-        {activeTab === "tournaments" && <TournamentListView />}
-        {activeTab === "matches" && <MatchListView />}
-        {activeTab === "players" && <PlayerListView />}     
-      </div>
-    </main>
+    </section>
   );
 }

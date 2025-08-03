@@ -1,32 +1,102 @@
-.main-container {
-  max-width: 900px;
-  margin: 20px auto;
-  font-family: Arial, sans-serif;
-}
-
-.tabs {
+.hero {
+  position: relative;
+  width: 100%;
+  min-height: 100vh; /* вместо фиксированной высоты */
+  background: url("/main.png") no-repeat center center/cover;
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.tab {
-  padding: 10px 20px;
-  background: #eee;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  border-radius: 4px 4px 0 0;
-}
-
-.tab.active {
-  background: #3498db;
+  flex-direction: column;
   color: white;
-  border-bottom: 2px solid #2980b9;
 }
 
-.tab-content {
+/* полупрозрачная подложка */
+.hero-overlay {
+  background: rgba(0, 0, 0, 0.4);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* навигация */
+.hero-nav {
+  max-width: 1200px;       /* ограничиваем ширину */
+  margin: 0 auto;          /* центрируем */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 20px;
-  border: 1px solid #ccc;
-  border-top: none;
-  background: #fafafa;
+  font-size: 16px;
+  width: 100%;
+}
+
+.hero-nav-left {
+  display: flex;
+  gap: 20px;
+}
+
+.hero-nav a {
+  text-decoration: none;
+  color: white;
+  font-weight: 500;
+}
+
+.login-btn {
+  background: #0057ff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* контент */
+.hero-content {
+  flex: 1;
+  max-width: 800px;
+  margin: 0 auto;           /* центрируем */
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.hero-content h1 {
+  font-size: 48px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.hero-btn {
+  background: #0070f3;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 18px;
+  color: white;
+  text-decoration: none;
+  display: inline-block;
+  transition: background 0.3s;
+  margin-top: 20px;
+}
+
+.hero-btn:hover {
+  background: #0057c2;
+}
+
+/* 📱 Мобильная адаптация */
+@media (max-width: 768px) {
+  .hero-content h1 {
+    font-size: 32px;
+  }
+
+  .hero-btn {
+    font-size: 16px;
+    padding: 10px 20px;
+  }
+
+  .hero-nav {
+    flex-direction: column;
+    gap: 10px;
+  }
 }

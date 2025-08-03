@@ -1,15 +1,18 @@
 "use client";
 
-import { Tournament } from "./models/Tournament";
-
 import { useEffect, useState } from "react";
-import { TournamentsRepository } from "./repositories/TournamentsRepository";
 import { useRouter } from "next/navigation";
-import { AdminOnly } from "./components/RoleGuard"
 
-import "./TournamentListView.css";
+import { AdminOnly } from "@/app/components/RoleGuard"
 
-export function TournamentListView() {
+import { Tournament } from "@/app/models/Tournament";
+
+import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
+
+
+import "./page.css";
+
+export default function TournamentListView() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState<"single" | "double">("single");

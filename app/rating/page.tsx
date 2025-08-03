@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PlayersRepository } from "./repositories/PlayersRepository";
-import { MatchRepository } from "./repositories/MatchRepository";
-import { Player } from "./models/Player";
-import { Match } from "./models/Match";
-import "./PlayerListView.css";
+import { PlayersRepository } from "@/app/repositories/PlayersRepository";
+import { MatchRepository } from "@/app/repositories/MatchRepository";
+import { Player } from "@/app/models/Player";
+import { Match } from "@/app/models/Match";
+import "./page.css";
 
-export function PlayerListView() {
+export default function PlayerListView() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [newPlayer, setNewPlayer] = useState<Partial<Player>>({ name: "" });
   const [editId, setEditId] = useState<number | null>(null);
