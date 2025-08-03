@@ -6,6 +6,9 @@ import { useEffect, useState } from "react";
 import { TournamentsRepository } from "./repositories/TournamentsRepository";
 import "./TournamentListView.css";
 import { useRouter } from "next/navigation";
+import {AdminOnly, PlayerOnly} from "./components/RoleGuard"
+
+
 
 export function TournamentListView() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -48,44 +51,47 @@ export function TournamentListView() {
       <h2>Турниры</h2>
 
       {/* Создание турнира */}
+      <AdminOnly>
       <div className="add-tournament">
         <h3>Создать турнир</h3>
 
-        <div className="tournament-form-row">
-          <input
-            type="text"
-            placeholder="Название турнира"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            className="field name"
-          />
+          <div className="tournament-form-row">
+            <input
+              type="text"
+              placeholder="Название турнира"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              className="field name"
+            />
 
-          <select
-            value={newType}
-            onChange={(e) => setNewType(e.target.value as "single" | "double")}
-            className="field type"
-          >
-            <option value="single">Одиночный</option>
-            <option value="double">Парный</option>
-          </select>
+            <select
+              value={newType}
+              onChange={(e) => setNewType(e.target.value as "single" | "double")}
+              className="field type"
+            >
+              <option value="single">Одиночный</option>
+              <option value="double">Парный</option>
+            </select>
 
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="field date-start"
-          />
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="field date-start"
+            />
 
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="field date-end"
-          />
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="field date-end"
+            />
+          </div>
+
+          <button onClick={createTournament}>Создать</button>
         </div>
-
-        <button onClick={createTournament}>Создать</button>
-      </div>
+      </AdminOnly>
+      
 
       {/* Список турниров в виде карточек */}
       <div className="tournament-list">

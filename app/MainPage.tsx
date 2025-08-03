@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MatchListView } from "./MatchListView";
 import { PlayerListView } from "./PlayerListView";
 import { TournamentListView } from "./TournamentListView";
+import { UserBadge } from "./components/UserBadge";
 import "./MainPage.css";
 
 export default function MainPage() {
@@ -12,6 +13,7 @@ export default function MainPage() {
 
   return (
     <main className="main-container">
+      <UserBadge /> {/* ← наш бейджик сверху слева */}
       <h1>Панель управления</h1>
 
       <div className="tabs">
