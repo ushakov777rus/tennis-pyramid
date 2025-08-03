@@ -39,6 +39,10 @@ export function UserBadge() {
     router.push("/login");
   }
 
+  function handleRegister() {
+    router.push("/register"); // страница регистрации
+  }
+
   return (
     <div
       style={{
@@ -62,9 +66,14 @@ export function UserBadge() {
           </button>
         </>
       ) : (
-        <button onClick={handleLogin} style={{ fontSize: "12px" }}>
-          Войти
-        </button>
+        <>
+          <button onClick={handleLogin} style={{ fontSize: "12px" }}>
+            Войти
+          </button>
+          <button onClick={handleRegister} style={{ fontSize: "12px" }}>
+            Регистрация
+          </button>
+        </>
       )}
     </div>
   );
