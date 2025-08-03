@@ -25,6 +25,8 @@ export default function LoginPage() {
       return;
     }
 
+    console.log("Вы залогинены как: ",data.role);
+
     // ✅ Проверяем роль и редиректим
     if (data.role === "site_admin") {
       router.push("/");

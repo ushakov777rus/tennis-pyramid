@@ -1,25 +1,35 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
+
+import { LoginModal } from "@/app/login/LoginModal";
+import { GuestOnly, LoggedIn} from "@/app/components/RoleGuard"
+import { UserBadge } from "@/app/components/UserBadge"
+
 import "./MainPage.css";
 
 export default function HeroSection() {
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+
   return (
     <section className="hero">
       <div className="hero-overlay">
         <nav className="hero-nav">
-          <Link href="/tournaments">Турниры</Link>
-          <Link href="/rating">Рейтинг</Link>
-          <Link href="/matches">Матчи</Link>
-          <button className="login-btn">Войти</button>
+          <a href="/tournaments">Турниры</a>
+          <a href="/rating">Рейтинг</a>
+          <a href="/matches">Матчи</a>
+          <UserBadge></UserBadge>
         </nav>
         <div className="hero-content">
           <h1>Турниры по пирамиде</h1>
-          <Link href="/tournaments" className="hero-btn">
+          <a href="/tournaments" className="hero-btn">
             Турниры
-          </Link>
+          </a>
         </div>
       </div>
+
+      {/* модалка */}
+      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </section>
   );
 }

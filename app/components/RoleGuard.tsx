@@ -14,13 +14,21 @@ type RoleGuardProps = {
 };
 
 export function RoleGuard({ allowed, children }: RoleGuardProps) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | { role: "guest" } | null>(null);
 
   useEffect(() => {
     async function loadUser() {
-      const res = await fetch("/api/me");
-      const data = await res.json();
-      if (data.loggedIn) setUser(data.user);
+      try {
+        const res = await fetch("/api/me");
+        const data = await res.json();
+        if (data.loggedIn) {
+          setUser(data.user);
+        } else {
+          setUser({ role: "guest" }); // если не залогинен — гость
+        }
+      } catch {
+        setUser({ role: "guest" }); // fallback — гость
+      }
     }
     loadUser();
   }, []);
@@ -44,4 +52,14 @@ export const AdminOnly = ({ children }: { children: ReactNode }) => (
 
 export const PlayerOnly = ({ children }: { children: ReactNode }) => (
   <RoleGuard allowed={["player"]}>{children}</RoleGuard>
+);
+
+export const GuestOnly = ({ children }: { children: ReactNode }) => (
+  <RoleGuard allowed={["guest"]}>{children}</RoleGuard>
+);
+
+export const LoggedIn = ({ children }: { children: ReactNode }) => (
+  <RoleGuard allowed={["site_admin", "tournament_admin", "player"]}>
+    {children}
+  </RoleGuard>
 );

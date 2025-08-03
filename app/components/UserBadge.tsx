@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import "./UserBadge.css";
 
 type User = {
   id: number;
@@ -32,7 +33,7 @@ export function UserBadge() {
 
   async function handleLogout() {
     await fetch("/api/logout", { method: "POST" });
-    router.push("/login");
+    router.push("/");
   }
 
   function handleLogin() {
@@ -40,37 +41,24 @@ export function UserBadge() {
   }
 
   function handleRegister() {
-    router.push("/register"); // страница регистрации
+    router.push("/register");
   }
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: "10px",
-        left: "10px",
-        background: "#eee",
-        padding: "6px 12px",
-        borderRadius: "6px",
-        fontSize: "14px",
-        display: "flex",
-        alignItems: "center",
-        gap: "10px",
-      }}
-    >
+    <div className="user-badge">
       {user ? (
         <>
-          👤 {user.name} ({user.role})
-          <button onClick={handleLogout} style={{ fontSize: "12px" }}>
+          <span className="user-info">👤 {user.name} ({user.role})</span>
+          <button onClick={handleLogout} className="login-btn">
             Выйти
           </button>
         </>
       ) : (
         <>
-          <button onClick={handleLogin} style={{ fontSize: "12px" }}>
+          <button onClick={handleLogin} className="login-btn">
             Войти
           </button>
-          <button onClick={handleRegister} style={{ fontSize: "12px" }}>
+          <button onClick={handleRegister} className="login-btn">
             Регистрация
           </button>
         </>

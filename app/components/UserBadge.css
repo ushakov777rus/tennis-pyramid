@@ -1,0 +1,31 @@
+.user-badge {
+  position: fixed;
+  top: 10px;
+  right: 10px; /* переносим в правый верхний угол */
+  background: transparent; /* прозрачный фон */
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #333;
+}
+
+.user-info {
+  font-weight: 500;
+}
+
+.user-btn {
+  font-size: 12px;
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.user-btn:hover {
+  background: #f0f0f0;
+}
