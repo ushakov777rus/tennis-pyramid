@@ -16,6 +16,22 @@
 }
 
 .available-player-row {
-    display: flex;
-    gap: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 5px 0;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.available-player-row:hover {
+  border-color: #ccc;
+}
+
+.available-player-row.selected {
+  background: #e6f3ff;      /* голубая подсветка */
+  border-color: #3399ff;    /* синяя рамка */
 }

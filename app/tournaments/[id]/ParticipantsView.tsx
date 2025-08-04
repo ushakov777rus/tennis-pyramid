@@ -138,30 +138,37 @@ export function ParticipantsView() {
             {availablePlayers.length === 0 ? (
               <p>Нет свободных игроков</p>
             ) : (
-                <ul className="players-list">
-                {availablePlayers.map((p) => (
-                    <div key={p.id} className="available-player-row">
-                        <div>
-                            <input
-                                type="checkbox"
-                                checked={selectedPlayers.includes(p)}
-                                onChange={(e) => {
-                                if (e.target.checked) {
-                                    setSelectedPlayers((prev) =>
-                                    prev.length < 2 ? [...prev, p] : prev
-                                    );
-                                } else {
-                                    setSelectedPlayers((prev) =>
-                                    prev.filter((id) => id !== p)
-                                    );
-                                }
-                                }}
-                            />
-                        </div>
-                        <div>{p.name}</div>
+            <ul className="players-list">
+            {availablePlayers.map((p) => {
+                const isSelected = selectedPlayers.includes(p);
+                return (
+                <li
+                    key={p.id}
+                    className={`available-player-row ${isSelected ? "selected" : ""}`}
+                    onClick={() => {
+                    setSelectedPlayers((prev) => {
+                        if (isSelected) {
+                        return prev.filter((id) => id !== p);
+                        } else {
+                        return prev.length < 2 ? [...prev, p] : prev;
+                        }
+                    });
+                    }}
+                >
+                    <div>
+                    <input
+                    type="checkbox"
+                    checked={isSelected}
+                    readOnly
+                    />
                     </div>
-                ))}
-                </ul>
+                    <div>
+                    <span>{p.name.replace(/\s+/g, " ")}</span>
+                    </div>
+                </li>
+                );
+            })}
+            </ul>
             )}
             {selectedPlayers.length === 2 && (
               <button onClick={createTeam} style={{ marginTop: "10px" }}>
