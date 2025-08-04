@@ -1,0 +1,21 @@
+.players-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.players-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;       /* расстояние между чекбоксом и именем */
+  margin: 5px 0;
+}
+
+.players-list input[type="checkbox"] {
+  margin: 0;      /* убираем дефолтные отступы */
+}
+
+.available-player-row {
+    display: flex;
+    gap: 20px;
+}

@@ -12,6 +12,8 @@ import { Participant } from "@/app/models/Participant";
 import { Tournament } from "@/app/models/Tournament";
 import { Team } from "@/app/models/Team";
 
+import "./ParticipantsView.css"
+
 export function ParticipantsView() {
   const params = useParams<{ id: string }>();
   const tournamentId = Number(params?.id);
@@ -136,30 +138,30 @@ export function ParticipantsView() {
             {availablePlayers.length === 0 ? (
               <p>Нет свободных игроков</p>
             ) : (
-              <ul>
+                <ul className="players-list">
                 {availablePlayers.map((p) => (
-                  <li key={p.id}>
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={selectedPlayers.includes(p)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedPlayers((prev) =>
-                              prev.length < 2 ? [...prev, p] : prev
-                            );
-                          } else {
-                            setSelectedPlayers((prev) =>
-                              prev.filter((id) => id !== p)
-                            );
-                          }
-                        }}
-                      />{" "}
-                      {p.name}
-                    </label>
-                  </li>
+                    <div key={p.id} className="available-player-row">
+                        <div>
+                            <input
+                                type="checkbox"
+                                checked={selectedPlayers.includes(p)}
+                                onChange={(e) => {
+                                if (e.target.checked) {
+                                    setSelectedPlayers((prev) =>
+                                    prev.length < 2 ? [...prev, p] : prev
+                                    );
+                                } else {
+                                    setSelectedPlayers((prev) =>
+                                    prev.filter((id) => id !== p)
+                                    );
+                                }
+                                }}
+                            />
+                        </div>
+                        <div>{p.name}</div>
+                    </div>
                 ))}
-              </ul>
+                </ul>
             )}
             {selectedPlayers.length === 2 && (
               <button onClick={createTeam} style={{ marginTop: "10px" }}>
