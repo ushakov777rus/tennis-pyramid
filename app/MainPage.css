@@ -21,11 +21,12 @@
   max-width: 1200px;       /* ограничиваем ширину */
   margin: 0 auto;          /* центрируем */
   display: flex;
-  justify-content: space-between;
+  justify-content: start;
   align-items: center;
   padding: 20px;
   font-size: 16px;
   width: 100%;
+  gap: 100px;
 }
 
 .hero-nav-left {
