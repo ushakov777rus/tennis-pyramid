@@ -3,6 +3,8 @@ import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
 
 export class TeamsRepository {
+
+  /* Загружаем все команды*/
   static async loadAll(): Promise<Team[]> {
     const { data, error } = await supabase
       .from("teams")
@@ -19,29 +21,12 @@ export class TeamsRepository {
       return [];
     }
 
-    return (
-      data?.map((t) => {
-        const player1 = 
-          new Player({
-              id: t.player1[0].id,
-              name: t.player1[0].name,
-              phone: t.player1[0].phone,
-              sex: t.player1[0].sex,
-              ntrp: t.player1[0].ntrp,
-            });
+    return (data ?? []).map((row: any) => {
+      const player1 = new Player(row.player1);
+      const player2 = new Player(row.player2);
 
-        const player2 = 
-          new Player({
-              id: t.player2[0].id,
-              name: t.player2[0].name,
-              phone: t.player2[0].phone,
-              sex: t.player2[0].sex,
-              ntrp: t.player2[0].ntrp,
-            });
-
-        return new Team(t.id, t.name, player1, player2);
+        return new Team(row.id, row.name, player1, player2);
       }) ?? []
-    );
   }
 
   static async create(name: string, player1Id?: number, player2Id?: number): Promise<void> {

@@ -28,7 +28,7 @@ export class TournamentsRepository {
   }
 
   /** Получить турнир по ID */
-  static async getTournamentById(id: string): Promise<Tournament | null> {
+  static async getTournamentById(id: number): Promise<Tournament | null> {
     const { data, error } = await supabase
       .from("tournaments")
       .select("*")
@@ -113,8 +113,8 @@ static async loadParticipants(tournamentId: number): Promise<Participant[]> {
     }
 
     // --- команда ---
-    if (row.teams && row.teams.length > 0) {
-      const t = row.teams[0]; // первая команда
+    if (row.teams) {
+      const t = row.teams; // первая команда
 
       const teamPlayer1 = t.player1
         ? new Player({

@@ -29,3 +29,14 @@
 .user-btn:hover {
   background: #f0f0f0;
 }
+
+.login-btn {
+  background: #0057ff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
