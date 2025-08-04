@@ -138,37 +138,41 @@ export function ParticipantsView() {
             {availablePlayers.length === 0 ? (
               <p>Нет свободных игроков</p>
             ) : (
-            <ul className="players-list">
-            {availablePlayers.map((p) => {
-                const isSelected = selectedPlayers.includes(p);
-                return (
-                <li
-                    key={p.id}
-                    className={`available-player-row ${isSelected ? "selected" : ""}`}
-                    onClick={() => {
-                    setSelectedPlayers((prev) => {
-                        if (isSelected) {
-                        return prev.filter((id) => id !== p);
-                        } else {
-                        return prev.length < 2 ? [...prev, p] : prev;
-                        }
-                    });
-                    }}
-                >
-                    <div>
-                    <input
-                    type="checkbox"
-                    checked={isSelected}
-                    readOnly
-                    />
+                <ul className="players-list">
+                {availablePlayers.map((p) => {
+                    const isSelected = selectedPlayers.includes(p);
+
+                    // индекс выбранного игрока в массиве
+                    const selectedIndex = selectedPlayers.findIndex(sp => sp.id === p.id);
+
+                    return (
+                    <div key={p.id}>
+                        <li
+                        className={`available-player-row ${isSelected ? "selected" : ""}`}
+                        onClick={() => {
+                            setSelectedPlayers((prev) => {
+                            if (isSelected) {
+                                return prev.filter((id) => id !== p);
+                            } else {
+                                return prev.length < 2 ? [...prev, p] : prev;
+                            }
+                            });
+                        }}
+                        >
+                        <div><input type="checkbox" checked={isSelected} readOnly /></div>
+                        <div><span>{p.name.replace(/\s+/g, " ")}</span></div>
+                        </li>
+
+                        {/* если это второй выбранный игрок → показываем кнопку сразу под ним */}
+                        {selectedIndex === 1 && (
+                        <div >
+                            <button className="add-team-btn" onClick={createTeam}>👥 Создать пару</button>
+                        </div>
+                        )}
                     </div>
-                    <div>
-                    <span>{p.name.replace(/\s+/g, " ")}</span>
-                    </div>
-                </li>
-                );
-            })}
-            </ul>
+                    );
+                })}
+                </ul>
             )}
             {selectedPlayers.length === 2 && (
               <button onClick={createTeam} style={{ marginTop: "10px" }}>

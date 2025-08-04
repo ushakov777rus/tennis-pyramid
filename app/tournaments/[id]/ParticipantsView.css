@@ -35,3 +35,12 @@
   background: #e6f3ff;      /* голубая подсветка */
   border-color: #3399ff;    /* синяя рамка */
 }
+
+.add-team-btn {
+  background: #e6ffed;      /* голубая подсветка */
+  border-color: #46fa58;    /* синяя рамка */
+  border-radius: 6px;
+
+    display: flex;
+  align-items: center;
+}
