@@ -16,7 +16,7 @@ h2 {
 }
 
 .tournament-top {
-  position: sticky;
+  /*position: sticky;*/
   top: 0;
   z-index: 100; /* чтобы было поверх таблицы */
   background-color: #fff; /* фон обязателен, иначе будет просвечивать */
@@ -169,6 +169,14 @@ h2 {
 
 
 .add-match-controls {
+  position: sticky;   /* ✅ закрепляем */
+  top: 0;             /* фиксируем к верхушке окна */
+  background: #fff;   /* белый фон, чтобы перекрывать */
+  z-index: 100;       /* поверх таблицы */
+  padding: 10px;      /* чтобы визуально отделялось */
+  border-bottom: 1px solid #ddd;
+
+
   display: flex;
   flex-wrap: wrap;            /* ✅ перенос элементов */
   justify-content: center;    /* ✅ центрирование */

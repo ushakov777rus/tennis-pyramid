@@ -181,7 +181,7 @@ const handleAddMatch = async () => {
             Участники
           </button>
         </div>
-
+        </div>
         <div className="add-match-controls">
           <input
             type="date"
@@ -240,7 +240,7 @@ const handleAddMatch = async () => {
 
           <button onClick={handleAddMatch}>Добавить</button>
         </div>
-      </div>
+      
 
 
       {/* --- контент вкладок --- */}
