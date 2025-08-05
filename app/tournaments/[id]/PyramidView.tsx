@@ -151,11 +151,11 @@ export function PyramidView({
           <div className="days-counter">{daysWithoutGames}д</div>
         )}
 
-        {p.level && p.position && (
-          <div className="player-position">
-            {p.level} - {p.position}
-          </div>
-        )}
+        <div className="player-position">
+          {p.level && p.position
+            ? `${p.level} - ${p.position}`
+            : "Z"}
+        </div>
 
         <div className="player-name">
           {(p.splitName ?? []).map((line, i) => {
