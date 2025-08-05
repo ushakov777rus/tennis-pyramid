@@ -11,7 +11,6 @@
 }
 
 .tournament-top {
-  /*position: sticky;*/
   top: 0;
   z-index: 100; /* чтобы было поверх таблицы */
   background-color: #fff; /* фон обязателен, иначе будет просвечивать */
@@ -160,12 +159,9 @@
   font-weight: bold;
 }
 
-
-
-
 .add-match-controls {
   position: sticky;   /* ✅ закрепляем */
-  top: 0;             /* фиксируем к верхушке окна */
+  top: 50px;             /* фиксируем к верхушке окна */
   background: #fff;   /* белый фон, чтобы перекрывать */
   z-index: 100;       /* поверх таблицы */
   padding: 10px;      /* чтобы визуально отделялось */
