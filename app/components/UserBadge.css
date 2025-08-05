@@ -1,7 +1,7 @@
 .user-badge {
   position: fixed;
-  top: 10px;
-  right: 10px; /* переносим в правый верхний угол */
+  top: 0px;
+  right: 0px; /* переносим в правый верхний угол */
   background: transparent; /* прозрачный фон */
   padding: 6px 12px;
   border-radius: 6px;
@@ -10,6 +10,16 @@
   align-items: center;
   gap: 10px;
   color: #333;
+}
+
+.user-badge-btn {
+  background: #4b0082; /* indigo */;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
 }
 
 .user-info {
@@ -28,15 +38,5 @@
 
 .user-btn:hover {
   background: #f0f0f0;
-}
-
-.login-btn {
-  background: #0057ff;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  color: white;
-  cursor: pointer;
-  font-size: 14px;
 }
 

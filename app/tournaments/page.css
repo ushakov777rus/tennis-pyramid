@@ -1,7 +1,6 @@
 .tournament-container {
-  width: 100%;
+  width: 96%;
   margin: 0 auto;
-  padding: 24px;
   font-family: Arial, sans-serif;
   color: #333;
 }
@@ -168,37 +167,31 @@
 
 .tournament-form-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: wrap; /* теперь строки будут переноситься */
   gap: 10px;
   margin-bottom: 16px;
-}
-
-.field {
-  padding: 8px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  width: 100%;
   box-sizing: border-box;
 }
 
-/* Распределение ширины по умолчанию (широкий экран) */
+.field {
+  flex: 1 1 auto; /* равномерно занимают доступное пространство */
+  min-width: 120px; /* можно меньше, чтобы помещалось */
+  max-width: 100%;  /* не дают вылезти за пределы */
+  box-sizing: border-box;
+}
+
 .field.name {
-  flex: 3 1 0%;
-  min-width: 200px;
-  order: 1;
+  flex: 3 1 200px;   /* тянется, но может ужаться до 200px */
 }
 
 .field.type {
-  flex: 1 1 0%;
-  min-width: 100px;
-  order: 4; /* переносится последней */
+  flex: 1 1 100px;
 }
 
 .field.date-start,
 .field.date-end {
-  flex: 1 1 0%;
-  min-width: 120px;
-  order: 2;
+  flex: 1 1 120px;
 }
 
 /* Смещение окончания за начальной */
@@ -221,14 +214,15 @@
 @media (max-width: 600px) {
   .field.name {
     flex: 1 1 100%;
+    min-width: 100%;
   }
 
   .field.date-start,
   .field.date-end {
-    flex: 1 1 48%;
+    flex: 1 1 48%; /* занимают половину строки рядом */
   }
 
   .field.type {
-    flex: 1 1 100%;
+    flex: 1 1 100%; /* переносим вниз */
   }
 }

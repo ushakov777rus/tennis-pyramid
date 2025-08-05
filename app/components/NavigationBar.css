@@ -1,35 +1,86 @@
-/* навигация */
+/* === Базовые стили === */
 .hero-nav {
-  margin: 0 auto;          /* центрируем */
   display: flex;
-  justify-content: start;
+  justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  font-size: 16px;
-  width: 100%;
-  gap: 100px;
-  background: rgb(206, 245, 30);
+  padding: 10px 16px;
+  background: #ccff66; /* цвет как у теннисного мяча */
+  position: relative;
+  z-index: 1000;
 }
 
 .hero-nav a {
   text-decoration: none;
-  color: #4b0082; /* indigo */
   font-weight: 500;
+  color: #4b0082; /* indigo */
 }
 
-/* 📱 Мобильная адаптация */
+/* Ссылки */
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-right {
+  margin-left: auto;
+}
+
+/* === Гамбургер === */
+.burger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 1100; /* чтобы было кликабельно поверх меню */
+}
+
+.burger span {
+  display: block;
+  width: 25px;
+  height: 3px;
+  background: #111;
+  transition: 0.3s;
+}
+
+/* Анимация крестика */
+.burger.open span:nth-child(1) {
+  transform: rotate(45deg) translateY(8px);
+}
+.burger.open span:nth-child(2) {
+  opacity: 0;
+}
+.burger.open span:nth-child(3) {
+  transform: rotate(-45deg) translateY(-8px);
+}
+
+/* === 📱 Мобильная адаптация === */
 @media (max-width: 768px) {
-  .hero-content h1 {
-    font-size: 32px;
+  .burger {
+    display: flex;
   }
 
-  .hero-btn {
-    font-size: 16px;
-    padding: 10px 20px;
-  }
-
-  .hero-nav {
+  .nav-links {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
     flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: #ccff66;
+    overflow: hidden;
+
+    /* Анимация раскрытия */
+    max-height: 0;
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .nav-links.active {
+    max-height: 300px; /* достаточно для 4–6 ссылок */
+    opacity: 1;
   }
 }

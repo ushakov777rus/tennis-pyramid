@@ -33,6 +33,7 @@ export function UserBadge() {
 
   async function handleLogout() {
     await fetch("/api/logout", { method: "POST" });
+    setUser(null);
     router.push("/");
   }
 
@@ -49,16 +50,16 @@ export function UserBadge() {
       {user ? (
         <>
           <span className="user-info">👤 {user.name} ({user.role})</span>
-          <button onClick={handleLogout} className="login-btn">
+          <button onClick={handleLogout} className="user-badge-btn">
             Выйти
           </button>
         </>
       ) : (
         <>
-          <button onClick={handleLogin} className="login-btn">
+          <button onClick={handleLogin} className="user-badge-btn">
             Войти
           </button>
-          <button onClick={handleRegister} className="login-btn">
+          <button onClick={handleRegister} className="user-badge-btn">
             Регистрация
           </button>
         </>
