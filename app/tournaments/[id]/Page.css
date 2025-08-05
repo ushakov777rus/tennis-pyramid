@@ -185,6 +185,10 @@ h2 {
   margin-bottom: 20px;
 }
 
+.add-match-controls-participants {
+  
+}
+
 .add-match-controls button,
 .add-match-controls input,
 .add-match-controls select {
@@ -199,22 +203,23 @@ h2 {
   box-sizing: border-box;
 }
 
+.add-match-controls button,
+.add-match-controls input {
+  width: 140px;
+  margin: 5px;
+}
+
+.add-match-controls select {
+  width: 150px;
+  margin: 5px;
+}
+
+
 .add-match-controls input[type="text"],
 .add-match-controls input[type="date"],
 .add-match-controls select {
   background: #fff;
 }
-
-.add-match-controls input[type="date"]{
-  min-width: 120px;
-  max-width: 140px;
-}
-
-.add-match-controls input[type="text"]{
-  min-width: 80px;
-  max-width: 100px;
-}
-
 
 .tabs button:hover {
   background: #e0e0e0;

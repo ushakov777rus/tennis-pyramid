@@ -182,6 +182,10 @@ const handleAddMatch = async () => {
           </button>
         </div>
         </div>
+
+        {/* ---------------------------------------------------- */}
+        {/* --- добавление матча ------------------------------- */}
+        {/* ---------------------------------------------------- */}
         <div className="add-match-controls">
           <input
             type="date"
@@ -189,47 +193,49 @@ const handleAddMatch = async () => {
             onChange={(e) => setMatchDate(e.target.value)}
           />
           
-          <select
-            onChange={(e) =>
-              setSelectedIds((prev) => {
-                const newVal = Number(e.target.value);
-                if (!newVal) return prev;
-                if (prev.includes(newVal)) return prev;
-                if (prev.length === 0) return [newVal];
-                if (prev.length === 1) return [...prev, newVal];
-                return [prev[1], newVal];
-              })
-            }
-            value={selectedIds[0] || ""}
-          >
-            <option value="">-- Нападение --</option>
-            {allItems.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
+          <div className="add-match-controls-participants">
+            <select
+              onChange={(e) =>
+                setSelectedIds((prev) => {
+                  const newVal = Number(e.target.value);
+                  if (!newVal) return prev;
+                  if (prev.includes(newVal)) return prev;
+                  if (prev.length === 0) return [newVal];
+                  if (prev.length === 1) return [...prev, newVal];
+                  return [prev[1], newVal];
+                })
+              }
+              value={selectedIds[0] || ""}
+            >
+              <option value="">-- Нападение --</option>
+              {allItems.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
 
-          <select
-            onChange={(e) =>
-              setSelectedIds((prev) => {
-                const newVal = Number(e.target.value);
-                if (!newVal) return prev;
-                if (prev.includes(newVal)) return prev;
-                if (prev.length === 0) return [newVal];
-                if (prev.length === 1) return [...prev, newVal];
-                return [prev[0], newVal];
-              })
-            }
-            value={selectedIds[1] || ""}
-          >
-            <option value="">-- Защита --</option>
-            {allItems.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
+            <select
+              onChange={(e) =>
+                setSelectedIds((prev) => {
+                  const newVal = Number(e.target.value);
+                  if (!newVal) return prev;
+                  if (prev.includes(newVal)) return prev;
+                  if (prev.length === 0) return [newVal];
+                  if (prev.length === 1) return [...prev, newVal];
+                  return [prev[0], newVal];
+                })
+              }
+              value={selectedIds[1] || ""}
+            >
+              <option value="">-- Защита --</option>
+              {allItems.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <input
             type="text"

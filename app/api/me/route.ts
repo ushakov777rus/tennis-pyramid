@@ -4,8 +4,8 @@ import { supabase } from "@/lib/supabaseClient";
 
 export async function GET() {
   // в 15.4.2 cookies() синхронная!
-  const cookieStore = cookies();
-  const userId = (await cookieStore).get("userId")?.value;
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("userId")?.value;
 
   if (!userId) {
     return NextResponse.json({ loggedIn: false });
