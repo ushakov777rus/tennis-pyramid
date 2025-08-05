@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
 import "./PyramidView.css";
@@ -35,6 +36,8 @@ export function PyramidView({
   onShowHistory,
   matches,
 }: PyramidViewProps) {
+  const [invalidId, setInvalidId] = useState<number | null>(null);
+
   const levels: Record<number, Participant[]> = {};
   for (let i = 1; i <= 15; i++) {
     levels[i] = [];
@@ -45,7 +48,6 @@ export function PyramidView({
     levels[lvl].push(p);
   });
 
-  // Проверка: можно ли атакующему вызвать защитника
   const canChallenge = (attacker: Participant, defender: Participant): boolean => {
     if (!attacker.level || !attacker.position || !defender.level || !defender.position) {
       return false;
@@ -56,7 +58,7 @@ export function PyramidView({
       return defender.position < attacker.position;
     }
 
-    // можно вызывать уровень выше (без позиции ограничения)
+    // можно вызывать уровень выше
     if (defender.level === attacker.level - 1) {
       return true;
     }
@@ -101,7 +103,9 @@ export function PyramidView({
       if (attacker && canChallenge(attacker, participant)) {
         newSelection = [selectedIds[0], id];
       } else {
-        // если нельзя — просто подсветка, без выбора
+        // если нельзя → дергаем карточку
+        setInvalidId(id);
+        setTimeout(() => setInvalidId(null), 500);
         return;
       }
     } else if (selectedIds.length === 2) {
@@ -143,23 +147,12 @@ export function PyramidView({
                 daysWithoutGames = Math.floor(diffMs / (1000 * 60 * 60 * 24));
               }
 
-              // проверка доступности вызова
-              let invalidChallenge = false;
-              if (selectedIds.length === 1 && id) {
-                const attacker = participants.find(
-                  (pp) => (pp.player?.id ?? pp.team?.id) === selectedIds[0]
-                );
-                if (attacker && !canChallenge(attacker, p)) {
-                  invalidChallenge = true;
-                }
-              }
-
               return (
                 <div
                   key={p.id}
                   className={`pyramid-player ${
                     selectedIds.includes(id ?? -1) ? "selected" : ""
-                  } ${statusClass}`}
+                  } ${statusClass} ${invalidId === id ? "shake" : ""}`}
                   onClick={() => id && handleClick(id, p)}
                 >
                   {daysWithoutGames !== null && (

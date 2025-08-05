@@ -129,9 +129,17 @@
   background: #005bb5;
 }
 
-.invalid-challenge {
-  border: 2px solid red;
-  background-color: rgba(255, 0, 0, 0.1);
+@keyframes shake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+  100% { transform: translateX(0); }
+}
+
+.shake {
+  animation: shake 0.5s;
 }
 
 /* 📱 Адаптация под мобильные экраны */
