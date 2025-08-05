@@ -178,6 +178,21 @@
   100% { opacity: 0; }
 }
 
+.drag-handle {
+  cursor: grab;
+  font-size: 16px;
+  margin-right: 5px;
+  user-select: none;
+  display: inline-block;
+}
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.player-bottom-line {
+  display: flex;
+}
+
 /* 📱 Адаптация под мобильные экраны */
 @media (max-width: 600px) {
   .pyramid-player {

@@ -1,9 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
+import { supabase } from "@/lib/supabaseClient";
 import "./PyramidView.css";
+
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
 
 type PyramidViewProps = {
   participants: Participant[];
@@ -37,36 +45,52 @@ export function PyramidView({
   matches,
 }: PyramidViewProps) {
   const [invalidId, setInvalidId] = useState<number | null>(null);
+  const [localParticipants, setLocalParticipants] = useState<Participant[]>(participants);
 
-  const levels: Record<number, Participant[]> = {};
-  for (let i = 1; i <= 15; i++) {
-    levels[i] = [];
-  }
+  // синхронизируем state, если пришли новые participants сверху
+  useEffect(() => {
+    setLocalParticipants(participants);
+  }, [participants]);
 
-  const bench: Participant[] = [];
+  // 🔥 drag-end handler
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
 
-  participants.forEach((p) => {
-    if (!p.level) {
-      bench.push(p);
-    } else {
-      levels[p.level].push(p);
+    const destLevel = Number(result.destination.droppableId);
+    const draggedId = Number(result.draggableId);
+
+    const updated = [...localParticipants];
+    const dragged = updated.find((p) => p.id === draggedId);
+    if (!dragged) return;
+
+    // bench = 999
+    dragged.level = destLevel === 999 ? undefined : destLevel;
+    dragged.position = result.destination.index + 1;
+
+    // пересобираем позиции внутри уровня
+    const sameLevelPlayers = updated
+      .filter((p) => p.level === dragged.level)
+      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+
+    sameLevelPlayers.forEach((p, i) => {
+      p.position = i + 1;
+    });
+
+    // обновляем UI
+    setLocalParticipants([...updated]);
+
+    // сохраняем в БД
+    const { error } = await supabase
+      .from("tournament_participants")
+      .update({
+        level: dragged.level ?? null,
+        position: dragged.position,
+      })
+      .eq("id", dragged.id);
+
+    if (error) {
+      console.error("Ошибка обновления:", error);
     }
-  });
-
-  const canChallenge = (attacker: Participant, defender: Participant): boolean => {
-    if (!attacker.level || !attacker.position || !defender.level || !defender.position) {
-      return false;
-    }
-
-    if (attacker.level === defender.level) {
-      return defender.position < attacker.position;
-    }
-
-    if (defender.level === attacker.level - 1) {
-      return true;
-    }
-
-    return false;
   };
 
   const getPlayerClass = (participant: Participant): string => {
@@ -90,137 +114,194 @@ export function PyramidView({
     return lastMatch.getWinnerId() === id ? "winner" : "loser";
   };
 
-  const handleClick = (id: number, participant: Participant) => {
-    let newSelection: number[] = [];
+const canChallenge = (attacker: Participant, defender: Participant): boolean => {
+  if (!attacker.level || !attacker.position || !defender.level || !defender.position) {
+    return false;
+  }
 
-    if (selectedIds.includes(id)) {
-      newSelection = selectedIds.filter((x) => x !== id);
-    } else if (selectedIds.length === 0) {
-      newSelection = [id];
-    } else if (selectedIds.length === 1) {
-      const attacker = participants.find(
-        (p) => (p.player?.id ?? p.team?.id) === selectedIds[0]
-      );
-      if (attacker && canChallenge(attacker, participant)) {
-        newSelection = [selectedIds[0], id];
-      } else {
-        setInvalidId(id);
-        setTimeout(() => setInvalidId(null), 1500);
-        return;
-      }
-    } else if (selectedIds.length === 2) {
-      newSelection = [selectedIds[1], id];
-    }
+  if (attacker.level === defender.level) {
+    return defender.position < attacker.position; // можно вызвать только "левее"
+  }
 
-    onSelect(newSelection);
-  };
+  if (defender.level === attacker.level - 1) {
+    return true; // можно вызвать игрока уровнем выше
+  }
 
-  // отдельная функция для карточки игрока
-  const renderPlayerCard = (p: Participant) => {
-    const id = p.player?.id ?? p.team?.id;
-    const statusClass = getPlayerClass(p);
+  return false;
+};
 
-    const playerMatches = matches.filter(
-      (m) =>
-        m.player1?.id === id ||
-        m.player2?.id === id ||
-        m.team1?.id === id ||
-        m.team2?.id === id
+const handleClick = (id: number, participant: Participant) => {
+  let newSelection: number[] = [];
+
+  if (selectedIds.includes(id)) {
+    newSelection = selectedIds.filter((x) => x !== id);
+  } else if (selectedIds.length === 0) {
+    newSelection = [id];
+  } else if (selectedIds.length === 1) {
+    const attacker = localParticipants.find(
+      (p) => (p.player?.id ?? p.team?.id) === selectedIds[0]
     );
-
-    const lastMatch = playerMatches.sort(
-      (a, b) => b.date.getTime() - a.date.getTime()
-    )[0];
-
-    let daysWithoutGames: number | null = null;
-    if (lastMatch) {
-      const now = new Date();
-      const diffMs = now.getTime() - lastMatch.date.getTime();
-      daysWithoutGames = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (attacker && canChallenge(attacker, participant)) {
+      newSelection = [selectedIds[0], id];
+    } else {
+      setInvalidId(id);
+      setTimeout(() => setInvalidId(null), 1500);
+      return;
     }
+  } else if (selectedIds.length === 2) {
+    newSelection = [selectedIds[1], id];
+  }
 
-    return (
-      <div
-        key={p.id}
-        className={`pyramid-player ${
-          selectedIds.includes(id ?? -1) ? "selected" : ""
-        } ${statusClass} ${invalidId === id ? "shake" : ""}`}
-        onClick={() => id && handleClick(id, p)}
-      >
-        {daysWithoutGames !== null && (
-          <div className="days-counter">{daysWithoutGames}д</div>
-        )}
+  onSelect(newSelection);
+};
 
-        <div className="player-position">
-          {p.level && p.position
-            ? `${p.level} - ${p.position}`
-            : "Z"}
-        </div>
+  // карточка игрока
+const renderPlayerCard = (p: Participant, index: number) => {
+  const id = p.player?.id ?? p.team?.id;
+  const statusClass = getPlayerClass(p);
 
-        <div className="player-name">
-          {(p.splitName ?? []).map((line, i) => {
-            let statusIcon = "";
-            let iconClass = "";
+  const playerMatches = matches.filter(
+    (m) =>
+      m.player1?.id === id ||
+      m.player2?.id === id ||
+      m.team1?.id === id ||
+      m.team2?.id === id
+  );
 
-            if (lastMatch && id) {
-              const status = getPlayerStatusIcon(id, lastMatch);
-              statusIcon = status.icon;
-              iconClass = status.className;
-            }
+  const lastMatch = playerMatches.sort(
+    (a, b) => b.date.getTime() - a.date.getTime()
+  )[0];
 
-            return (
-              <div key={i} className={`player-line ${iconClass}`}>
-                {line}
-                {i === 1 && statusIcon && (
-                  <span className="status-icon">{statusIcon}</span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="player-ntrp">{p.ntrp ? p.ntrp : "?"}</div>
-
-        {onShowHistory && (
-          <button
-            className="history-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onShowHistory(p.player?.id ?? p.team?.id);
-            }}
-          >
-            📜
-          </button>
-        )}
-
-        {invalidId === id && (
-          <div className="invalid-tooltip">Нельзя вызвать этого игрока</div>
-        )}
-      </div>
-    );
-  };
+  let daysWithoutGames: number | null = null;
+  if (lastMatch) {
+    const now = new Date();
+    const diffMs = now.getTime() - lastMatch.date.getTime();
+    daysWithoutGames = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  }
 
   return (
-    <div className="pyramid-container">
-      {/* Пирамида */}
-      {Object.entries(levels).map(([level, players]) => {
-        const sortedPlayers = [...players].sort(
-          (a, b) => (a.position ?? 0) - (b.position ?? 0)
-        );
+    <Draggable key={p.id} draggableId={String(p.id)} index={index}>
+      {(provided) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}   // только позиционирование
+          className={`pyramid-player ${
+            selectedIds.includes(id ?? -1) ? "selected" : ""
+          } ${statusClass} ${invalidId === id ? "shake" : ""}`}
+          onClick={() => id && handleClick(id, p)}  // ✅ клик работает
+        >
+          {daysWithoutGames !== null && (
+            <div className="days-counter">{daysWithoutGames}д</div>
+          )}
 
-        return (
-          <div key={level} className="pyramid-row" data-level={`Уровень ${level}`}>
-            {sortedPlayers.map(renderPlayerCard)}
+          <div className="player-position">
+            {p.level && p.position ? `${p.level} - ${p.position}` : "Z"}
           </div>
-        );
-      })}
 
-      {/* Скамейка */}
-      {bench.length > 0 && (
-        <div className="pyramid-row bench-row" data-level="Скамейка">
-          {bench.map(renderPlayerCard)}
+          <div className="player-name">
+            {(p.splitName ?? []).map((line, i) => {
+              let statusIcon = "";
+              let iconClass = "";
+
+              if (lastMatch && id) {
+                const status = getPlayerStatusIcon(id, lastMatch);
+                statusIcon = status.icon;
+                iconClass = status.className;
+              }
+
+              return (
+                <div key={i} className={`player-line ${iconClass}`}>
+                  {line}
+                  {i === 1 && statusIcon && (
+                    <span className="status-icon">{statusIcon}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div className="player-bottom-line">
+            {/* 🔥 drag-handle — только за этот блок можно тянуть */}
+            <div className="drag-handle" {...provided.dragHandleProps}>
+              ⠿
+            </div>
+
+            <div className="player-ntrp">{p.ntrp ? p.ntrp : "?"}</div>
+
+            {onShowHistory && (
+              <button
+                className="history-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onShowHistory(p.player?.id ?? p.team?.id);
+                }}
+              >
+                📜
+              </button>
+            )}
+          </div>
+
+          {invalidId === id && (
+            <div className="invalid-tooltip">Нельзя вызвать этого игрока</div>
+          )}
+          
         </div>
       )}
-    </div>
+    </Draggable>
+  );
+};
+
+  // группировка по уровням + bench
+  const levels: Record<number, Participant[]> = {};
+  for (let i = 1; i <= 15; i++) {
+    levels[i] = [];
+  }
+  const bench: Participant[] = [];
+
+  localParticipants.forEach((p) => {
+    if (!p.level) {
+      bench.push(p);
+    } else {
+      levels[p.level].push(p);
+    }
+  });
+
+  return (
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="pyramid-container">
+        {/* Уровни */}
+        {Object.entries(levels).map(([level, players]) => (
+          <Droppable droppableId={level} direction="horizontal" key={level}>
+            {(provided) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className="pyramid-row"
+                data-level={`Уровень ${level}`}
+              >
+                {[...players]
+                  .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+                  .map((p, i) => renderPlayerCard(p, i))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        ))}
+
+        {/* Скамейка */}
+        <Droppable droppableId="999" direction="horizontal">
+          {(provided) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className="pyramid-row bench-row"
+              data-level="Скамейка"
+            >
+              {bench.map((p, i) => renderPlayerCard(p, i))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </div>
+    </DragDropContext>
   );
 }
