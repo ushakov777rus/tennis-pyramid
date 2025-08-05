@@ -150,7 +150,7 @@ const handleAddMatch = async () => {
                 {tournament.status === "draft"
                   ? "Черновик"
                   : tournament.status === "ongoing"
-                  ? "В процессе"
+                  ? "Идет"
                   : "Завершен"}
               </span>
             </div>

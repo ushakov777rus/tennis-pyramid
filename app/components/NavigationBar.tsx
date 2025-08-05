@@ -8,7 +8,7 @@ export function NavigationBar() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="hero-nav">
+    <nav className="menu-bar">
       {/* Левая часть: логотип / бургер */}
       <div className="nav-left">
         <button

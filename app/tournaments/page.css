@@ -7,6 +7,8 @@
 
 .tournament-container h2 {
   margin-bottom: 20px;
+  margin-top: 20px;
+  text-align: center;
 }
 
 /* --- Форма создания турнира --- */
@@ -20,7 +22,7 @@
 
 .add-tournament h3 {
   margin-bottom: 15px;
-  font-size: 18px;
+  font-size: 14px;
 }
 
 .add-tournament label {
@@ -32,9 +34,9 @@
 .add-tournament input,
 .add-tournament select {
   width: 100%;
-  padding: 8px;
-  margin-top: 4px;
-  margin-bottom: 16px;
+  padding: 5px;
+  margin-top: 5px;
+  margin-bottom: 0px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 14px;
@@ -66,8 +68,14 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   background: #fff;
-  padding: 16px;
+  padding: 4px 4px 8px 8px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.tournament-status {
+  display: flex;
+  justify-content: right;
+  margin-bottom: 5px;
 }
 
 .tournament-header {
@@ -87,6 +95,7 @@
   font-size: 12px;
   font-weight: bold;
   color: white;
+  width: 60px;
 }
 
 .status.draft {
@@ -94,11 +103,11 @@
 }
 
 .status.ongoing {
-  background-color: #f39c12;
+  background-color: #6fa502;
 }
 
 .status.finished {
-  background-color: #27ae60;
+  background-color: #f74003;
 }
 
 .tournament-details {

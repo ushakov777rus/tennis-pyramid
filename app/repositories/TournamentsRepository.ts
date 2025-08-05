@@ -7,7 +7,10 @@ import { Team } from "@/app/models/Team";
 export class TournamentsRepository {
   /** Загрузить все турниры */
   static async loadAll(): Promise<Tournament[]> {
-    const { data, error } = await supabase.from("tournaments").select("*");
+    const { data, error } = await supabase
+      .from("tournaments")
+      .select("*")
+      .order("start_date", { ascending: true }); // true = по возрастанию, false = по убыванию
 
     if (error) {
       console.error("Ошибка загрузки турниров:", error);

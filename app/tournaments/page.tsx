@@ -105,8 +105,7 @@ export default function TournamentListView() {
         <div className="tournament-list">
           {tournaments.map((t) => (
             <div key={t.id} className="tournament-card">
-              <div className="tournament-header">
-                <h3>{t.name}</h3>
+              <div className="tournament-status">  
                 <span
                   className={`status ${
                     t.status === "finished"
@@ -119,9 +118,12 @@ export default function TournamentListView() {
                   {t.status === "draft"
                     ? "Черновик"
                     : t.status === "ongoing"
-                    ? "В процессе"
+                    ? "Идет"
                     : "Завершен"}
                 </span>
+              </div>
+              <div className="tournament-header">
+                <h3>{t.name}</h3>
               </div>
 
               <div className="tournament-details">

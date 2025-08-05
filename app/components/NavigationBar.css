@@ -1,18 +1,21 @@
 /* === Базовые стили === */
-.hero-nav {
+.menu-bar {
+  position: sticky;   /* ✅ закрепляем */
+  top: 0;             /* фиксируем к верхушке окна */
+  background: #fff;   /* белый фон, чтобы перекрывать */
+  z-index: 100;       /* поверх таблицы */
+
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
+  padding: 15px 16px;
   background: #ccff66; /* цвет как у теннисного мяча */
-  position: relative;
-  z-index: 1000;
 }
 
-.hero-nav a {
+.menu-bar a {
   text-decoration: none;
   font-weight: 500;
-  color: #4b0082; /* indigo */
+  color: #333; /* indigo */
 }
 
 /* Ссылки */
