@@ -1,44 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/app/components/UserContext";
+
+import { useState } from "react";
+import { LoginModal } from "@/app/login/LoginModal";
 import "./UserBadge.css";
 
-type User = {
-  id: number;
-  name: string;
-  role: string;
-};
-
 export function UserBadge() {
-  const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
+  const { user, setUser } = useUser();
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
-  useEffect(() => {
-    async function loadUser() {
-      try {
-        const res = await fetch("/api/me");
-        const data = await res.json();
-        if (data.loggedIn) {
-          setUser(data.user);
-        } else {
-          setUser(null);
-        }
-      } catch (err) {
-        console.error("Ошибка загрузки user:", err);
-      }
-    }
-    loadUser();
-  }, []);
+  console.log("UserBadge render, user =", user);
 
   async function handleLogout() {
     await fetch("/api/logout", { method: "POST" });
     setUser(null);
     router.push("/");
-  }
-
-  function handleLogin() {
-    router.push("/login");
   }
 
   function handleRegister() {
@@ -56,9 +35,10 @@ export function UserBadge() {
         </>
       ) : (
         <>
-          <button onClick={handleLogin} className="user-badge-btn">
+          <button className="user-badge-btn" onClick={() => setIsLoginOpen(true)}>
             Войти
           </button>
+          <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
           <button onClick={handleRegister} className="user-badge-btn">
             Регистрация
           </button>

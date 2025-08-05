@@ -6,9 +6,9 @@ export async function POST(req: Request) {
 
   const { data, error } = await supabase
     .from("users")
-    .select("*")
+    .select("id, name, role") // ⚠️ пароль возвращать не надо
     .eq("name", name)
-    .eq("password", password) // ⚠️ для MVP plain-text пароль
+    .eq("password", password) // для MVP plain-text пароль
     .single();
 
   if (error || !data) {
@@ -18,10 +18,20 @@ export async function POST(req: Request) {
     );
   }
 
-  // создаём ответ
-  const res = NextResponse.json({ message: "ok", role: data.role });
+  // формируем объект пользователя
+  const user = {
+    id: data.id,
+    name: data.name,
+    role: data.role,
+  };
 
-  // устанавливаем cookie через response.cookies
+  // создаём ответ с user
+  const res = NextResponse.json({
+    message: "ok",
+    user,
+  });
+
+  // сохраняем userId в cookie
   res.cookies.set("userId", String(data.id), {
     httpOnly: true,
     path: "/",
