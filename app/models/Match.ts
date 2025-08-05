@@ -54,14 +54,25 @@ export class Match {
   }
 
   getWinnerId(): number {
-    const [total1, total2] = this.getTotalScore();
-    const id1 = this.player1?.id ?? this.team1?.id;
-    const id2 = this.player2?.id ?? this.team2?.id;
+    let sets1 = 0;
+    let sets2 = 0;
 
-    if (total1 > total2) {
-      if (id1 !== undefined) return id1;
+    for (const [s1, s2] of this.scores) {
+      if (s1 > s2) {
+        sets1++;
+      } else if (s2 > s1) {
+        sets2++;
+      }
+      // если равные (например, 6–6 без тайбрейка) — сет не засчитывается
     }
-    if (id2 !== undefined) return id2;
+
+    if (sets1 > sets2) {
+      if (this.player1)
+        return this.player1?.id; // первый — победитель
+    }
+      
+    if (this.player2)
+      return this.player2?.id; // первый — победитель
 
     return 0;
   }
