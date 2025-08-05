@@ -67,7 +67,6 @@ export function MatchHistoryModal({
       m.team1,
       m.team2
     );
-    console.log("onEditMatch:", onEditMatch);
 
     onEditMatch?.(updated);
     setEditingId(null);

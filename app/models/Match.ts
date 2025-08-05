@@ -72,15 +72,22 @@ export class Match {
   }
 
   static getWinnerId(scores: [number, number][], id1: number, id2: number): [number, number] {
-    const [total1, total2] = scores.reduce<[number, number]>(
-      ([sum1, sum2], [s1, s2]) => [sum1 + s1, sum2 + s2],
-      [0, 0]
-    );
+    let sets1 = 0;
+    let sets2 = 0;
 
-    if (total1 > total2) {
-      return [id1, id2];
+    for (const [s1, s2] of scores) {
+      if (s1 > s2) {
+        sets1++;
+      } else if (s2 > s1) {
+        sets2++;
+      }
+      // если равные (например, 6–6 без тайбрейка) — сет не засчитывается
     }
-    return [id2, id1];
 
+    if (sets1 > sets2) {
+      return [id1, id2]; // первый — победитель
+    } else {
+      return [id2, id1]; // второй — победитель
+    }
   }
 }
