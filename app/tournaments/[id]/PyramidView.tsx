@@ -45,6 +45,25 @@ export function PyramidView({
     levels[lvl].push(p);
   });
 
+  // Проверка: можно ли атакующему вызвать защитника
+  const canChallenge = (attacker: Participant, defender: Participant): boolean => {
+    if (!attacker.level || !attacker.position || !defender.level || !defender.position) {
+      return false;
+    }
+
+    // можно вызывать на том же уровне, но только левее
+    if (attacker.level === defender.level) {
+      return defender.position < attacker.position;
+    }
+
+    // можно вызывать уровень выше (без позиции ограничения)
+    if (defender.level === attacker.level - 1) {
+      return true;
+    }
+
+    return false;
+  };
+
   const getPlayerClass = (participant: Participant): string => {
     const id = participant.player?.id ?? participant.team?.id;
     if (!id) return "";
@@ -68,18 +87,24 @@ export function PyramidView({
     return winnerId === id ? "winner" : "loser";
   };
 
-  const handleClick = (id: number) => {
+  const handleClick = (id: number, participant: Participant) => {
     let newSelection: number[] = [];
 
     if (selectedIds.includes(id)) {
-      // снять выбор
       newSelection = selectedIds.filter((x) => x !== id);
     } else if (selectedIds.length === 0) {
       newSelection = [id];
     } else if (selectedIds.length === 1) {
-      newSelection = [selectedIds[0], id];
+      const attacker = participants.find(
+        (p) => (p.player?.id ?? p.team?.id) === selectedIds[0]
+      );
+      if (attacker && canChallenge(attacker, participant)) {
+        newSelection = [selectedIds[0], id];
+      } else {
+        // если нельзя — просто подсветка, без выбора
+        return;
+      }
     } else if (selectedIds.length === 2) {
-      // заменить первого новым
       newSelection = [selectedIds[1], id];
     }
 
@@ -94,11 +119,7 @@ export function PyramidView({
         );
 
         return (
-          <div
-            key={level}
-            className="pyramid-row"
-            data-level={`Уровень ${level}`}
-          >
+          <div key={level} className="pyramid-row" data-level={`Уровень ${level}`}>
             {sortedPlayers.map((p) => {
               const statusClass = getPlayerClass(p);
               const id = p.player?.id ?? p.team?.id;
@@ -122,13 +143,24 @@ export function PyramidView({
                 daysWithoutGames = Math.floor(diffMs / (1000 * 60 * 60 * 24));
               }
 
+              // проверка доступности вызова
+              let invalidChallenge = false;
+              if (selectedIds.length === 1 && id) {
+                const attacker = participants.find(
+                  (pp) => (pp.player?.id ?? pp.team?.id) === selectedIds[0]
+                );
+                if (attacker && !canChallenge(attacker, p)) {
+                  invalidChallenge = true;
+                }
+              }
+
               return (
                 <div
                   key={p.id}
                   className={`pyramid-player ${
                     selectedIds.includes(id ?? -1) ? "selected" : ""
                   } ${statusClass}`}
-                  onClick={() => id && handleClick(id)}
+                  onClick={() => id && handleClick(id, p)}
                 >
                   {daysWithoutGames !== null && (
                     <div className="days-counter">{daysWithoutGames}д</div>

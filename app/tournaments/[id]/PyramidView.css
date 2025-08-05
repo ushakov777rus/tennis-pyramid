@@ -129,6 +129,10 @@
   background: #005bb5;
 }
 
+.invalid-challenge {
+  border: 2px solid red;
+  background-color: rgba(255, 0, 0, 0.1);
+}
 
 /* 📱 Адаптация под мобильные экраны */
 @media (max-width: 600px) {
