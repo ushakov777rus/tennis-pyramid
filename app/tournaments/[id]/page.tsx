@@ -2,19 +2,23 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { TournamentsRepository } from "../../repositories/TournamentsRepository";
-import { PlayersRepository } from "../../repositories/PlayersRepository";
-import { TeamsRepository } from "../../repositories/TeamsRepository";
-import { MatchRepository } from "../../repositories/MatchRepository";
+
 import { Tournament } from "@/app/models/Tournament";
 import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
 import { Participant } from "@/app/models/Participant";
+
+import { NavigationBar } from "@/app/components/NavigationBar";
+
+import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
+import { PlayersRepository } from "@/app/repositories/PlayersRepository";
+import { TeamsRepository } from "@/app/repositories/TeamsRepository";
+import { MatchRepository } from "@/app/repositories/MatchRepository";
+
 import { PyramidView } from "./PyramidView";
 import { MatchHistoryModal } from "./MatchHistoryModal";
 import { MatchHistoryView } from "./MatchHistoryView";
 import { ParticipantsView } from "./ParticipantsView";
-import { formatDate } from "@/app/components/Utils"
 
 import "./Page.css";
 
@@ -134,170 +138,173 @@ const handleAddMatch = async () => {
   const allItems = tournament.tournament_type === "single" ? allPlayers : allTeams;
 
   return (
-    <div className="container">
-      {/* --- карточка турнира --- */}
-      <div className="tournament-top">
-        <div className="tournament-card">
-          <div className="tournament-header">
-            <h1>{tournament.name}</h1>
-            <span className={`status ${tournament.status}`}>
-              {tournament.status === "draft"
-                ? "Черновик"
-                : tournament.status === "ongoing"
-                ? "В процессе"
-                : "Завершен"}
-            </span>
+    <div className="base-container">
+      <NavigationBar />
+      <div className="container">
+        {/* --- карточка турнира --- */}
+        <div className="tournament-top">
+          <div className="tournament-card">
+            <div className="tournament-header">
+              <h1>{tournament.name}</h1>
+              <span className={`status ${tournament.status}`}>
+                {tournament.status === "draft"
+                  ? "Черновик"
+                  : tournament.status === "ongoing"
+                  ? "В процессе"
+                  : "Завершен"}
+              </span>
+            </div>
+
+            <div className="tournament-details">
+              <p>
+                🏆 Тип:{" "}
+                {tournament.tournament_type === "single" ? "Одиночный" : "Парный"}
+              </p>
+              <p>
+                📅 {tournament.start_date} → {tournament.end_date || "?"}
+              </p>
+            </div>
           </div>
 
-          <div className="tournament-details">
-            <p>
-              🏆 Тип:{" "}
-              {tournament.tournament_type === "single" ? "Одиночный" : "Парный"}
-            </p>
-            <p>
-              📅 {tournament.start_date} → {tournament.end_date || "?"}
-            </p>
-          </div>
-        </div>
-
-        {/* --- блок вкладки + форма добавления матча справа --- */}
-        <div className="tabs">
-          <button
-            className={activeTab === "pyramid" ? "active" : ""}
-            onClick={() => setActiveTab("pyramid")}
-          >
-            Пирамида
-          </button>
-          <button
-            className={activeTab === "matches" ? "active" : ""}
-            onClick={() => setActiveTab("matches")}
-          >
-            Матчи
-          </button>
-          <button
-            className={activeTab === "participants" ? "active" : ""}
-            onClick={() => setActiveTab("participants")}
-          >
-            Участники
-          </button>
-        </div>
-        </div>
-
-        {/* ---------------------------------------------------- */}
-        {/* --- добавление матча ------------------------------- */}
-        {/* ---------------------------------------------------- */}
-        <div className="add-match-controls">
-          <input
-            type="date"
-            value={matchDate}
-            onChange={(e) => setMatchDate(e.target.value)}
-          />
-          
-          <div className="add-match-controls-participants">
-            <select
-              onChange={(e) =>
-                setSelectedIds((prev) => {
-                  const newVal = Number(e.target.value);
-                  if (!newVal) return prev;
-                  if (prev.includes(newVal)) return prev;
-                  if (prev.length === 0) return [newVal];
-                  if (prev.length === 1) return [...prev, newVal];
-                  return [prev[1], newVal];
-                })
-              }
-              value={selectedIds[0] || ""}
+          {/* --- блок вкладки + форма добавления матча справа --- */}
+          <div className="tabs">
+            <button
+              className={activeTab === "pyramid" ? "active" : ""}
+              onClick={() => setActiveTab("pyramid")}
             >
-              <option value="">-- Нападение --</option>
-              {allItems.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-
-            <select
-              onChange={(e) =>
-                setSelectedIds((prev) => {
-                  const newVal = Number(e.target.value);
-                  if (!newVal) return prev;
-                  if (prev.includes(newVal)) return prev;
-                  if (prev.length === 0) return [newVal];
-                  if (prev.length === 1) return [...prev, newVal];
-                  return [prev[0], newVal];
-                })
-              }
-              value={selectedIds[1] || ""}
+              Пирамида
+            </button>
+            <button
+              className={activeTab === "matches" ? "active" : ""}
+              onClick={() => setActiveTab("matches")}
             >
-              <option value="">-- Защита --</option>
-              {allItems.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
+              Матчи
+            </button>
+            <button
+              className={activeTab === "participants" ? "active" : ""}
+              onClick={() => setActiveTab("participants")}
+            >
+              Участники
+            </button>
+          </div>
           </div>
 
-          <input
-            type="text"
-            placeholder="6-4, 4-6, 11-8"
-            value={matchScore}
-            onChange={(e) => setMatchScore(e.target.value)}
-          />
+          {/* ---------------------------------------------------- */}
+          {/* --- добавление матча ------------------------------- */}
+          {/* ---------------------------------------------------- */}
+          <div className="add-match-controls">
+            <input
+              type="date"
+              value={matchDate}
+              onChange={(e) => setMatchDate(e.target.value)}
+            />
+            
+            <div className="add-match-controls-participants">
+              <select
+                onChange={(e) =>
+                  setSelectedIds((prev) => {
+                    const newVal = Number(e.target.value);
+                    if (!newVal) return prev;
+                    if (prev.includes(newVal)) return prev;
+                    if (prev.length === 0) return [newVal];
+                    if (prev.length === 1) return [...prev, newVal];
+                    return [prev[1], newVal];
+                  })
+                }
+                value={selectedIds[0] || ""}
+              >
+                <option value="">-- Нападение --</option>
+                {allItems.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
 
-          <button onClick={handleAddMatch}>Добавить</button>
+              <select
+                onChange={(e) =>
+                  setSelectedIds((prev) => {
+                    const newVal = Number(e.target.value);
+                    if (!newVal) return prev;
+                    if (prev.includes(newVal)) return prev;
+                    if (prev.length === 0) return [newVal];
+                    if (prev.length === 1) return [...prev, newVal];
+                    return [prev[0], newVal];
+                  })
+                }
+                value={selectedIds[1] || ""}
+              >
+                <option value="">-- Защита --</option>
+                {allItems.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <input
+              type="text"
+              placeholder="6-4, 4-6, 11-8"
+              value={matchScore}
+              onChange={(e) => setMatchScore(e.target.value)}
+            />
+
+            <button onClick={handleAddMatch}>Добавить</button>
+          </div>
+        
+
+
+        {/* --- контент вкладок --- */}
+        <div className="tab-content">
+          {activeTab === "pyramid" && (
+            <PyramidView
+              participants={participants}
+              selectedIds={selectedIds}
+              onSelect={setSelectedIds}
+              onShowHistory={(id) => {
+                if (id !== undefined) {
+                  setHistoryPlayerId(id);
+                  setHistoryOpen(true);
+                }
+              }}
+              matches={matches}
+            />
+          )}
+
+          {activeTab === "matches" && (
+            <MatchHistoryView
+              matches={matches}
+              onEditMatch={(updated) => {
+                // тут обновляем через MatchRepository
+                console.log("Редактирование:", updated);
+                MatchRepository.updateMatch(updated);
+              }}
+              onDeleteMatch={(m) => {
+                // тут удаляем через MatchRepository
+                console.log("Удаление:", m);
+                MatchRepository.deleteMatch(m);
+              }}
+            />
+          )}
+
+          {activeTab === "participants" && (
+            <ParticipantsView/>
+          )}
+
+
         </div>
-      
 
-
-      {/* --- контент вкладок --- */}
-      <div className="tab-content">
-        {activeTab === "pyramid" && (
-          <PyramidView
-            participants={participants}
-            selectedIds={selectedIds}
-            onSelect={setSelectedIds}
-            onShowHistory={(id) => {
-              if (id !== undefined) {
-                setHistoryPlayerId(id);
-                setHistoryOpen(true);
-              }
-            }}
-            matches={matches}
-          />
-        )}
-
-        {activeTab === "matches" && (
-          <MatchHistoryView
-            matches={matches}
-            onEditMatch={(updated) => {
-              // тут обновляем через MatchRepository
-              console.log("Редактирование:", updated);
-              MatchRepository.updateMatch(updated);
-            }}
-            onDeleteMatch={(m) => {
-              // тут удаляем через MatchRepository
-              console.log("Удаление:", m);
-              MatchRepository.deleteMatch(m);
-            }}
-          />
-        )}
-
-        {activeTab === "participants" && (
-          <ParticipantsView/>
-        )}
-
-
+        {/* модалка истории */}
+        <MatchHistoryModal
+          isOpen={historyOpen}
+          onClose={() => setHistoryOpen(false)}
+          matches={matches}
+          playerId={historyPlayerId}
+          onEditMatch={(m) => handleEditMatchSave(m)}        // ✅ передали
+          onDeleteMatch={(m) => handleDeleteMatch(m)}             // ✅ передали
+        />
       </div>
-
-      {/* модалка истории */}
-      <MatchHistoryModal
-        isOpen={historyOpen}
-        onClose={() => setHistoryOpen(false)}
-        matches={matches}
-        playerId={historyPlayerId}
-        onEditMatch={(m) => handleEditMatchSave(m)}        // ✅ передали
-        onDeleteMatch={(m) => handleDeleteMatch(m)}             // ✅ передали
-      />
     </div>
   );
 }

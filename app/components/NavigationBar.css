@@ -1,0 +1,35 @@
+/* навигация */
+.hero-nav {
+  margin: 0 auto;          /* центрируем */
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  padding: 20px;
+  font-size: 16px;
+  width: 100%;
+  gap: 100px;
+  background: rgb(206, 245, 30);
+}
+
+.hero-nav a {
+  text-decoration: none;
+  color: #4b0082; /* indigo */
+  font-weight: 500;
+}
+
+/* 📱 Мобильная адаптация */
+@media (max-width: 768px) {
+  .hero-content h1 {
+    font-size: 32px;
+  }
+
+  .hero-btn {
+    font-size: 16px;
+    padding: 10px 20px;
+  }
+
+  .hero-nav {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

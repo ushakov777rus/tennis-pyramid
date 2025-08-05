@@ -1,11 +1,11 @@
 .hero {
-  position: relative;
+  position: fixed;
   width: 100%;
   min-height: 100vh; /* вместо фиксированной высоты */
-  background: url("/main.png") no-repeat center center/cover;
   display: flex;
   flex-direction: column;
   color: white;
+  background: url("/main.png") no-repeat center center/cover;
 }
 
 /* полупрозрачная подложка */
@@ -16,29 +16,7 @@
   flex-direction: column;
 }
 
-/* навигация */
-.hero-nav {
-  max-width: 1200px;       /* ограничиваем ширину */
-  margin: 0 auto;          /* центрируем */
-  display: flex;
-  justify-content: start;
-  align-items: center;
-  padding: 20px;
-  font-size: 16px;
-  width: 100%;
-  gap: 100px;
-}
 
-.hero-nav-left {
-  display: flex;
-  gap: 20px;
-}
-
-.hero-nav a {
-  text-decoration: none;
-  color: white;
-  font-weight: 500;
-}
 
 .login-btn {
   background: #0057ff;
@@ -83,21 +61,4 @@
 
 .hero-btn:hover {
   background: #0057c2;
-}
-
-/* 📱 Мобильная адаптация */
-@media (max-width: 768px) {
-  .hero-content h1 {
-    font-size: 32px;
-  }
-
-  .hero-btn {
-    font-size: 16px;
-    padding: 10px 20px;
-  }
-
-  .hero-nav {
-    flex-direction: column;
-    gap: 10px;
-  }
 }

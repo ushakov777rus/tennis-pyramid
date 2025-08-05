@@ -104,6 +104,8 @@
   font-size: 12px;
   color: #666;
   margin-top: 2px;
+  flex: 1;
+  max-width: 60%;
 }
 
 .player-position {
@@ -204,10 +206,6 @@
 
   .player-name {
     font-size: 12px;      /* было 14px */
-  }
-
-  .player-ntrp {
-    font-size: 11px;      /* было 12px */
   }
 
   .player-position {
