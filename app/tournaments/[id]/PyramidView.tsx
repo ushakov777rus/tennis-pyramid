@@ -1,9 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
+
+import { AdminOnly } from "@/app/components/RoleGuard"
+
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
-import { supabase } from "@/lib/supabaseClient";
+
 import "./PyramidView.css";
 
 import {
@@ -12,6 +16,7 @@ import {
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
+import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 
 type PyramidViewProps = {
   participants: Participant[];
@@ -65,7 +70,7 @@ export function PyramidView({
 
     // bench = 999
     dragged.level = destLevel === 999 ? undefined : destLevel;
-    dragged.position = result.destination.index + 1;
+    dragged.position = result.destination.index;
 
     // пересобираем позиции внутри уровня
     const sameLevelPlayers = updated
@@ -80,17 +85,8 @@ export function PyramidView({
     setLocalParticipants([...updated]);
 
     // сохраняем в БД
-    const { error } = await supabase
-      .from("tournament_participants")
-      .update({
-        level: dragged.level ?? null,
-        position: dragged.position,
-      })
-      .eq("id", dragged.id);
-
-    if (error) {
-      console.error("Ошибка обновления:", error);
-    }
+    TournamentsRepository.updatePosition(dragged);
+    TournamentsRepository.updatePositions(updated);
   };
 
   const getPlayerClass = (participant: Participant): string => {
@@ -221,10 +217,11 @@ const renderPlayerCard = (p: Participant, index: number) => {
           </div>
           <div className="player-bottom-line">
             {/* 🔥 drag-handle — только за этот блок можно тянуть */}
+            
             <div className="drag-handle" {...provided.dragHandleProps}>
               ⠿
             </div>
-
+            
             <div className="player-ntrp">{p.ntrp ? p.ntrp : "?"}</div>
 
             {onShowHistory && (

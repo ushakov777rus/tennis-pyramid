@@ -185,4 +185,37 @@ static async loadParticipants(tournamentId: number): Promise<Participant[]> {
 
     if (error) console.error("Ошибка удаления участника:", error);
   }
+
+  static async updatePosition(part: Participant) {
+      const { error } = await supabase
+      .from("tournament_participants")
+      .update({
+        level: part.level ?? null,
+        position: part.position,
+      })
+      .eq("id", part.id);
+
+    if (error) {
+      console.error("Ошибка обновления:", error);
+    }
+  }
+
+  static async updatePositions(parts: Participant[]) {
+    if (parts.length === 0) return;
+
+    // формируем массив объектов для апдейта
+    const updates = parts.map((p) => ({
+      id: p.id,
+      level: p.level ?? null,
+      position: p.position,
+    }));
+
+    const { error } = await supabase
+      .from("tournament_participants")
+      .upsert(updates, { onConflict: "id" }); // 🔥 обновление по id
+
+    if (error) {
+      console.error("Ошибка массового обновления:", error);
+    }
+  }
 }
