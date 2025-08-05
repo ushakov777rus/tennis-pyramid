@@ -47,7 +47,7 @@ export function ParticipantsView() {
   }
 
   async function addToTournament(playerId: number) {
-    await TournamentsRepository.addPlayer(tournamentId, playerId, 15);
+    await TournamentsRepository.addPlayer(tournamentId, playerId);
     await loadData();
   }
 

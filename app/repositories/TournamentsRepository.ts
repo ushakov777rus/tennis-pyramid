@@ -154,12 +154,11 @@ static async loadParticipants(tournamentId: number): Promise<Participant[]> {
   /** Добавить игрока */
   static async addPlayer(
     tournamentId: number,
-    playerId: number,
-    level: number
+    playerId: number
   ) {
     const { error } = await supabase
       .from("tournament_participants")
-      .insert({ tournament_id: tournamentId, player_id: playerId, level });
+      .insert({ tournament_id: tournamentId, player_id: playerId });
 
     if (error) console.error("Ошибка добавления игрока:", error);
   }
