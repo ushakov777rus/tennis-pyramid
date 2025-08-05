@@ -1,18 +1,13 @@
-.container {
-  max-width: 95%;
-  margin: 40px auto;
-  padding: 20px;
+.tournament-container {
+  width: 96%;
+  margin: 0 auto;
   font-family: Arial, sans-serif;
 }
 
-h1 {
-  font-size: 28px;
+.tournament-container h1 {
   margin-bottom: 20px;
-}
-
-h2 {
-  font-size: 22px;
-  margin-top: 30px;
+  margin-top: 20px;
+  text-align: center;
 }
 
 .tournament-top {
@@ -31,10 +26,10 @@ h2 {
   background-color: #f9f9f9;
 }
 
-.tournament-header {
-  margin: 20px;
+.tournament-status {
+  margin: 4px;
   display: flex;
-  justify-content: space-between;
+  justify-content: end;
   align-items: center;
 }
 

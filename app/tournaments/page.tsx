@@ -54,9 +54,9 @@ export default function TournamentListView() {
   return (
     <div className="base-container">
       <NavigationBar />
-      <div className="tournament-container">
+      <div className="tournaments-container">
         
-        <h2>Турниры</h2>
+        <h1>Турниры</h1>
 
         {/* Создание турнира */}
         <AdminOnly>
@@ -115,11 +115,7 @@ export default function TournamentListView() {
                       : "draft"
                   }`}
                 >
-                  {t.status === "draft"
-                    ? "Черновик"
-                    : t.status === "ongoing"
-                    ? "Идет"
-                    : "Завершен"}
+                  { t.getStatus() }
                 </span>
               </div>
               <div className="tournament-header">

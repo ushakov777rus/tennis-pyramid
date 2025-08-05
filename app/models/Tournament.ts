@@ -50,4 +50,12 @@ export class Tournament {
   isFinished(): boolean {
     return this.status === "finished";
   }
+
+  getStatus(): string {
+    return this.status === "draft"
+      ? "Черновик"
+      : this.status === "ongoing"
+      ? "Идет"
+      : "Завершен";
+  }
 }

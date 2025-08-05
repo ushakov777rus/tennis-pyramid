@@ -140,18 +140,14 @@ const handleAddMatch = async () => {
   return (
     <div className="base-container">
       <NavigationBar />
-      <div className="container">
+      <div className="tournament-container">
+        <h1>{tournament.name}</h1>
         {/* --- карточка турнира --- */}
         <div className="tournament-top">
           <div className="tournament-card">
-            <div className="tournament-header">
-              <h1>{tournament.name}</h1>
+            <div className="tournament-status">
               <span className={`status ${tournament.status}`}>
-                {tournament.status === "draft"
-                  ? "Черновик"
-                  : tournament.status === "ongoing"
-                  ? "Идет"
-                  : "Завершен"}
+                {tournament.getStatus()}
               </span>
             </div>
 
