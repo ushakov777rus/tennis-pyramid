@@ -142,6 +142,42 @@
   animation: shake 0.5s;
 }
 
+
+.invalid-tooltip {
+  position: absolute;
+  bottom: 100%; /* теперь тултип появляется над карточкой */
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f44336;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 20;
+  margin-bottom: 6px; /* отступ от карточки */
+  animation: fadeInOut 1.5s ease forwards;
+}
+
+/* стрелочка */
+.invalid-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%; /* стрелка снизу тултипа */
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #f44336 transparent transparent transparent;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 /* 📱 Адаптация под мобильные экраны */
 @media (max-width: 600px) {
   .pyramid-player {

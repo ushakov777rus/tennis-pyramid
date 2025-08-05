@@ -53,12 +53,10 @@ export function PyramidView({
       return false;
     }
 
-    // можно вызывать на том же уровне, но только левее
     if (attacker.level === defender.level) {
       return defender.position < attacker.position;
     }
 
-    // можно вызывать уровень выше
     if (defender.level === attacker.level - 1) {
       return true;
     }
@@ -103,9 +101,8 @@ export function PyramidView({
       if (attacker && canChallenge(attacker, participant)) {
         newSelection = [selectedIds[0], id];
       } else {
-        // если нельзя → дергаем карточку
         setInvalidId(id);
-        setTimeout(() => setInvalidId(null), 500);
+        setTimeout(() => setInvalidId(null), 1500);
         return;
       }
     } else if (selectedIds.length === 2) {
@@ -199,6 +196,10 @@ export function PyramidView({
                     >
                       📜
                     </button>
+                  )}
+
+                  {invalidId === id && (
+                    <div className="invalid-tooltip">Нельзя вызвать этого игрока</div>
                   )}
                 </div>
               );
