@@ -35,7 +35,7 @@
 .status {
   padding: 4px 8px;
   border-radius: 5px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
   color: white;
 }
@@ -57,7 +57,8 @@
 }
 
 .tournament-details {
-  margin: 20px;
+  margin: 10px;
+  font-size: 14px;
 }
 
 
@@ -179,8 +180,8 @@
 .add-match-controls button,
 .add-match-controls input,
 .add-match-controls select {
-  height: 40px;               /* ✅ одинаковая высота */
-  padding: 0 12px;
+  height: 30px;               /* ✅ одинаковая высота */
+  padding: 0 4px;
   border: 1px solid #ccc;
   border-radius: 4px;
   background: #f5f5f5;

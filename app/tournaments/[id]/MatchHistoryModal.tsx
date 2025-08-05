@@ -75,7 +75,7 @@ export function MatchHistoryModal({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-window" onClick={(e) => e.stopPropagation()}>
+      <div className="match-history-modal" onClick={(e) => e.stopPropagation()}>
         <h3>История матчей {playerName ? `— ${playerName}` : ""}</h3>
 
         {playerMatches.length === 0 ? (
@@ -86,7 +86,6 @@ export function MatchHistoryModal({
               <tr>
                 <th>Дата</th>
                 <th>Соперник</th>
-                <th>Результат</th>
                 <th>Счёт</th>
                 <th>Действия</th>
               </tr>
@@ -113,7 +112,6 @@ export function MatchHistoryModal({
                       )}
                     </td>
                     <td>{opponentName}</td>
-                    <td>{isWinner ? "Победа" : "Поражение"}</td>
                     <td>
                       {isEditing ? (
                         <input
