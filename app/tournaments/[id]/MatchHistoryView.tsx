@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
+
 import { Match } from "@/app/models/Match";
 import { formatDate } from "@/app/components/Utils";
-import "./MatchHistoryView.css";
-import { useState } from "react";
+
+import "./MatchHistory.css";
 
 type MatchHistoryViewProps = {
   matches: Match[];
@@ -58,7 +60,7 @@ export function MatchHistoryView({
   };
 
   return (
-    <table className="matches-table">
+    <table className="history-table" >
       <thead>
         <tr>
           <th>Дата</th>
@@ -71,6 +73,7 @@ export function MatchHistoryView({
       <tbody>
         {sortedMatches.map((m) => {
           const isEditing = editingId === m.id;
+
 
           return (
             <tr key={m.id}>
@@ -85,8 +88,8 @@ export function MatchHistoryView({
                   formatDate(m.date)
                 )}
               </td>
-              <td>{m.player1?.name || m.team1?.name || "??"}</td>
-              <td>{m.player2?.name || m.team2?.name || "??"}</td>
+              <td className={m.getWinnerId() === m.player1?.id ? "win" : "loss"}>{m.player1?.name || m.team1?.name || "??"}</td>
+              <td className={m.getWinnerId() === m.player2?.id ? "win" : "loss"}>{m.player2?.name || m.team2?.name || "??"}</td>
               <td>
                 {isEditing ? (
                   <input

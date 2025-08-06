@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
+
 import { Match } from "@/app/models/Match";
 import { formatDate } from "@/app/components/Utils";
-import "./MatchHistoryModal.css";
-import { useState } from "react";
+
+import "./MatchHistory.css";
+
 
 type MatchHistoryModalProps = {
   isOpen: boolean;

@@ -42,11 +42,13 @@
   background: #f5f5f5;
 }
 
-.history-table tr.win {
+.history-table tr.win,
+.history-table td.win {
   background: #e6ffe6; /* зелёный фон побед */
 }
 
-.history-table tr.loss {
+.history-table tr.loss,
+.history-table td.loss {
   background: #ffe6e6; /* красный фон поражений */
 }
 
