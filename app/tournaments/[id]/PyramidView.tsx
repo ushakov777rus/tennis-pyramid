@@ -131,16 +131,14 @@ const canChallenge = (attacker: Participant, defender: Participant): boolean => 
 const handleClick = (id: number, participant: Participant) => {
   let newSelection: number[] = [];
 
-    // 🔥 проверка: если это залогиненный player и он пытается снять себя — запрещаем
-    if (
-      user?.role === "player" &&
-      selectedIds.length > 0 &&
-      selectedIds[0] === id
-    ) {
-      return; // 👈 выходим, не даём снять выделение
-    }
-
-    console.log("handleClick:",selectedIds, id);
+  // 🔥 проверка: если это залогиненный player и он пытается снять себя — запрещаем
+  if (
+    user?.role === "player" &&
+    selectedIds.length > 0 &&
+    selectedIds[0] === id
+  ) {
+    return; // 👈 выходим, не даём снять выделение
+  }
 
   if (selectedIds.includes(id)) {
     newSelection = selectedIds.filter((x) => x !== id);
@@ -150,6 +148,7 @@ const handleClick = (id: number, participant: Participant) => {
     const attacker = localParticipants.find(
       (p) => (p.player?.id ?? p.team?.id) === selectedIds[0]
     );
+
     if (attacker && canChallenge(attacker, participant)) {
       newSelection = [selectedIds[0], id];
     } else {
