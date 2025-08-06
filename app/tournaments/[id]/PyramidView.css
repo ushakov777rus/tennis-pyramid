@@ -48,6 +48,7 @@
   overflow-x: auto; /* добавляем горизонтальный скролл при необходимости */
   padding: 8px 8px; /* чтобы не прилипало к краям */
   box-sizing: border-box;
+  font-family: Arial, sans-serif;
 }
 
 .pyramid-row {

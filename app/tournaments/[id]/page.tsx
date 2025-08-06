@@ -156,12 +156,6 @@ const handleAddMatch = async () => {
         {/* --- карточка турнира --- */}
         <div className="tournament-top">
           <div className="tournament-card">
-            <div className="tournament-status">
-              <span className={`status ${tournament.status}`}>
-                {tournament.getStatus()}
-              </span>
-            </div>
-
             <div className="tournament-details">
               <p>
                 🏆 Тип:{" "}
@@ -170,6 +164,11 @@ const handleAddMatch = async () => {
               <p>
                 📅 {tournament.start_date} → {tournament.end_date || "?"}
               </p>
+            </div>
+            <div className="tournament-status">
+              <span className={`status ${tournament.status}`}>
+                {tournament.getStatus()}
+              </span>
             </div>
           </div>
 

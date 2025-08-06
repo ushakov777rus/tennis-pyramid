@@ -14,7 +14,6 @@
   top: 0;
   z-index: 100; /* чтобы было поверх таблицы */
   background-color: #fff; /* фон обязателен, иначе будет просвечивать */
-  padding: 10px 0;
 }
 
 .tournament-card {
@@ -23,6 +22,8 @@
   border: 1px solid #ccc;
   padding: 0px;
   background-color: #f9f9f9;
+  display: flex;
+  justify-content: space-between;
 }
 
 .tournament-status {
@@ -189,6 +190,7 @@
   line-height: 1.2;
   cursor: pointer;
   box-sizing: border-box;
+  font-family: Arial, sans-serif;
 }
 
 .add-match-controls button,
