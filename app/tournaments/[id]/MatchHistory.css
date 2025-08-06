@@ -29,6 +29,8 @@
   border-collapse: collapse;
   margin-bottom: 15px;
   font-size: 12px;
+  max-width: 800px;
+  margin: 0 auto 5px;
 }
 
 .history-table th,

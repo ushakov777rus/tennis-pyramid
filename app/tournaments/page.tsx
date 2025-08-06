@@ -143,12 +143,14 @@ export default function TournamentListView() {
                   }}>
                   Просмотр
                 </button>
-                <button
-                  className="btn-delete"
-                  onClick={() => deleteTournament(t.id)}
-                >
-                  Удалить
-                </button>
+                <AdminOnly>
+                  <button
+                    className="btn-delete"
+                    onClick={() => deleteTournament(t.id)}
+                  >
+                    Удалить
+                  </button>
+                </AdminOnly>
               </div>
             </div>
           ))}

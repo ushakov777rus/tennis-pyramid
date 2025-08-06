@@ -24,11 +24,15 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   async function handleLogin() {
     setError("");
 
+console.log("async function handleLogin() 1");
+
     const res = await fetch("/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, password }),
     });
+
+    console.log("async function handleLogin() 2");
 
     const data = await res.json();
     console.log("Ответ от /api/login:", data);

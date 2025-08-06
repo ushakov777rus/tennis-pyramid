@@ -12,8 +12,6 @@ export function UserBadge() {
   const { user, setUser } = useUser();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
-  console.log("UserBadge render, user =", user);
-
   async function handleLogout() {
     await fetch("/api/logout", { method: "POST" });
     setUser(null);
@@ -28,7 +26,7 @@ export function UserBadge() {
     <div className="user-badge">
       {user ? (
         <>
-          <span className="user-info">👤 {user.name} ({user.role})</span>
+          <span className="user-info">👤 {user.name}</span>
           <button onClick={handleLogout} className="user-badge-btn">
             Выйти
           </button>

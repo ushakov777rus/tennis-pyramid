@@ -9,6 +9,7 @@ import { Match } from "@/app/models/Match";
 import { Participant } from "@/app/models/Participant";
 
 import { NavigationBar } from "@/app/components/NavigationBar";
+import { useUser } from "@/app/components/UserContext"; // 👈 добавляем
 
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 import { PlayersRepository } from "@/app/repositories/PlayersRepository";
@@ -45,6 +46,16 @@ export default function TournamentPage() {
   const [historyPlayerId, setHistoryPlayerId] = useState<number | null>(null);
 
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
+
+  const { user } = useUser(); // 👈 получаем юзера
+
+  // если игрок залогинен — фиксируем его как selectedIds[0]
+  useEffect(() => {
+    console.log("useEffect(() => {", user, "}")
+    if (user?.role == "player" && user.player_id) {
+      setSelectedIds([user.player_id]); // ставим игрока первым
+    }
+  }, [user]);
 
   useEffect(() => {
     async function load() {
@@ -198,14 +209,15 @@ const handleAddMatch = async () => {
             
             <div className="add-match-controls-participants">
               <select
+                disabled={user?.role == "player" && !!user?.player_id} // 👈 если есть player — нельзя менять
                 onChange={(e) =>
                   setSelectedIds((prev) => {
                     const newVal = Number(e.target.value);
                     if (!newVal) return prev;
                     if (prev.includes(newVal)) return prev;
                     if (prev.length === 0) return [newVal];
-                    if (prev.length === 1) return [...prev, newVal];
-                    return [prev[1], newVal];
+                    if (prev.length === 1) return [newVal, prev[1]];
+                    return [newVal, prev[1]];
                   })
                 }
                 value={selectedIds[0] || ""}

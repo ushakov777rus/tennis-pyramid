@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabaseClient";
+
+import { useUser } from "@/app/components/UserContext";  // 👈 добавить
 
 import { AdminOnly } from "@/app/components/RoleGuard"
 
@@ -49,6 +50,7 @@ export function PyramidView({
   onShowHistory,
   matches,
 }: PyramidViewProps) {
+  const { user } = useUser(); // 👈 получаем залогиненного юзера
   const [invalidId, setInvalidId] = useState<number | null>(null);
   const [localParticipants, setLocalParticipants] = useState<Participant[]>(participants);
 
@@ -129,6 +131,17 @@ const canChallenge = (attacker: Participant, defender: Participant): boolean => 
 const handleClick = (id: number, participant: Participant) => {
   let newSelection: number[] = [];
 
+    // 🔥 проверка: если это залогиненный player и он пытается снять себя — запрещаем
+    if (
+      user?.role === "player" &&
+      selectedIds.length > 0 &&
+      selectedIds[0] === id
+    ) {
+      return; // 👈 выходим, не даём снять выделение
+    }
+
+    console.log("handleClick:",selectedIds, id);
+
   if (selectedIds.includes(id)) {
     newSelection = selectedIds.filter((x) => x !== id);
   } else if (selectedIds.length === 0) {
@@ -145,7 +158,14 @@ const handleClick = (id: number, participant: Participant) => {
       return;
     }
   } else if (selectedIds.length === 2) {
-    newSelection = [selectedIds[1], id];
+    if (
+      user?.role === "player"
+    ){
+      newSelection = [selectedIds[0], id];
+    }
+    else {
+      newSelection = [selectedIds[1], id];
+    }
   }
 
   onSelect(newSelection);

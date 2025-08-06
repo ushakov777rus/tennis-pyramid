@@ -14,7 +14,20 @@ export async function GET() {
   // запрос в Supabase
   const { data, error } = await supabase
     .from("users")
-    .select("id, name, role")
+    .select(
+      `
+        id,
+        name,
+        role,
+        players (
+          id,
+          name,
+          phone,
+          sex,
+          ntrp
+        )
+      `
+    )
     .eq("id", userId)
     .single();
 
@@ -24,8 +37,9 @@ export async function GET() {
 
   const user = {
     id: data.id,
-    name: data.name,
+    name: data.players.length > 0 ? data.players[0].name : data.name,
     role: data.role,
+    player_id: data.players.length > 0 ? data.players[0].id : null
   };
 
   return NextResponse.json({
