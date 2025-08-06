@@ -188,6 +188,7 @@ const handleAddMatch = async () => {
           {/* ---------------------------------------------------- */}
           {/* --- добавление матча ------------------------------- */}
           {/* ---------------------------------------------------- */}
+          {activeTab !== "participants" && (
           <div className="add-match-controls">
             <input
               type="date"
@@ -248,7 +249,7 @@ const handleAddMatch = async () => {
 
             <button onClick={handleAddMatch}>Добавить</button>
           </div>
-        
+          )}
 
 
         {/* --- контент вкладок --- */}

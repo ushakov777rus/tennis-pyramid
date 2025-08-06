@@ -95,41 +95,41 @@ export function ParticipantsView() {
   return (
     <div style={{ display: "flex", gap: "40px", marginTop: "20px" }}>
       {tournament.tournament_type === "single" ? (
-        <>
-          {/* Игроки вне турнира */}
-          <div>
-            <h3>Доступные игроки</h3>
-            {availablePlayers.length === 0 ? (
-              <p>Все игроки уже в турнире</p>
-            ) : (
-              <ul>
-                {availablePlayers.map((p) => (
-                  <li key={p.id}>
-                    {p.name}{" "}
-                    <button onClick={() => addToTournament(p.id)}>➕ Добавить</button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+        <table className="participants-table">
+          <thead>
+            <tr>
+              <th colSpan={2}>Доступные игроки</th>
+              <th colSpan={2}>Участники турнира</th>
+            </tr>
+          </thead>
+          <tbody>
+            {/* Ряды в таблице */}
+            {Array.from({ length: Math.max(availablePlayers.length, participants.length) }).map((_, i) => {
+              const avail = availablePlayers[i];
+              const part = participants[i];
 
-          {/* Игроки в турнире */}
-          <div>
-            <h3>Участники турнира</h3>
-            {participants.length === 0 ? (
-              <p>Пока нет участников</p>
-            ) : (
-              <ul>
-                {participants.map((p) => (
-                  <li key={p.id}>
-                    {p.player?.name ?? `Игрок #${p.player?.id}`}{" "}
-                    <button onClick={() => removeFromTournament(p.id)}>❌ Убрать</button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </>
+              return (
+                <tr key={i}>
+                  {/* Доступные */}
+                  <td>{avail?.name ?? ""}</td>
+                  <td>
+                    {avail && (
+                      <button onClick={() => addToTournament(avail.id)}>➕</button>
+                    )}
+                  </td>
+
+                  {/* Участники */}
+                  <td>{part?.player?.name ?? ""}</td>
+                  <td>
+                    {part && (
+                      <button onClick={() => removeFromTournament(part.id)}>❌</button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       ) : (
         <>
           {/* Доступные игроки */}

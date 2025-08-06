@@ -1,3 +1,21 @@
+.participants-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+  font-size: 12px;
+}
+
+.participants-table th,
+.participants-table td {
+  border: 1px solid #ddd;
+  padding: 4px;
+  text-align: center;
+}
+
+.participants-table th {
+  background: #f5f5f5;
+}
+
 .players-list {
   list-style: none;
   padding: 0;
