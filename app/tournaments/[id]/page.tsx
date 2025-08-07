@@ -54,6 +54,8 @@ export default function TournamentPage() {
     console.log("useEffect(() => {", user, "}")
     if (user?.role == "player" && user.player_id) {
       setSelectedIds([user.player_id]); // ставим игрока первым
+    } else if (user?.role == undefined) {
+      setSelectedIds([]);
     }
   }, [user]);
 
@@ -208,7 +210,7 @@ const handleAddMatch = async () => {
             
             <div className="add-match-controls-participants">
               <select
-                disabled={user?.role == "player" && !!user?.player_id} // 👈 если есть player — нельзя менять
+                disabled={user?.role == undefined || user?.role == "player" && !!user?.player_id} // 👈 если есть player — нельзя менять
                 onChange={(e) =>
                   setSelectedIds((prev) => {
                     const newVal = Number(e.target.value);
@@ -230,6 +232,7 @@ const handleAddMatch = async () => {
               </select>
 
               <select
+                disabled={user?.role == undefined} 
                 onChange={(e) =>
                   setSelectedIds((prev) => {
                     const newVal = Number(e.target.value);

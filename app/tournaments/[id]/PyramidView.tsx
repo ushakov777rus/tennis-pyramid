@@ -131,6 +131,12 @@ const canChallenge = (attacker: Participant, defender: Participant): boolean => 
 const handleClick = (id: number, participant: Participant) => {
   let newSelection: number[] = [];
 
+  if (
+    user?.role === undefined
+  ) {
+    return; // 👈 выходим, не даём снять выделение
+  }
+
   // 🔥 проверка: если это залогиненный player и он пытается снять себя — запрещаем
   if (
     user?.role === "player" &&
@@ -160,7 +166,17 @@ const handleClick = (id: number, participant: Participant) => {
     if (
       user?.role === "player"
     ){
-      newSelection = [selectedIds[0], id];
+      const attacker = localParticipants.find(
+        (p) => (p.player?.id ?? p.team?.id) === selectedIds[0]
+      );
+
+      if (attacker && canChallenge(attacker, participant)) {
+        newSelection = [selectedIds[0], id];
+      } else {
+        setInvalidId(id);
+        setTimeout(() => setInvalidId(null), 1500);
+        return;
+      }
     }
     else {
       newSelection = [selectedIds[1], id];

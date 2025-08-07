@@ -1,0 +1,78 @@
+:root {
+  /* 🌐 Основные */
+  --background: #FFFFFF;
+  --text-main: #222222;
+  --text-secondary: #888888;
+  --menu-bg: #B9E529; /* ярко-зеленый (теннисный мяч) */
+
+  /* 🟩 Зелёные кнопки (основные действия) */
+  --green-main: #6ABF2E;      /* rgb(106, 191, 46) */
+  --green-bg: #E8FCD9;        /* rgb(232, 252, 217) */
+  --green-hover: #4E9A20;     /* rgb(78, 154, 32) */
+
+  /* 🟪 Фиолетовые кнопки (аутентификация) */
+  --purple-main: #8A2BE2;     /* rgb(138, 43, 226) */
+  --purple-bg: #EEE1FF;       /* rgb(238, 225, 255) */
+  --purple-hover: #6F00FF;    /* rgb(111, 0, 255) */
+
+  /* 🔴 Красные (удаление) */
+  --red-main: #E63946;        /* rgb(230, 57, 70) */
+  --red-hover: #FFCDD2;       /* rgb(255, 205, 210) */
+
+  /* 🟠 Оранжевые (редактирование) */
+  --orange-main: #FF9F1C;     /* rgb(255, 159, 28) */
+  --orange-hover: #FFE0B2;    /* rgb(255, 224, 178) */
+}
+
+/* 🎨 Общие стили кнопок */
+button {
+  font-family: inherit;
+  font-size: 16px;
+  padding: 10px 18px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+/* 🟩 Основные действия */
+.btn-green {
+  background: var(--green-bg);
+  color: var(--green-main);
+  border: 2px solid var(--green-main);
+}
+.btn-green:hover {
+  background: var(--green-hover);
+  color: #fff;
+}
+
+/* 🟪 Войти / Регистрация */
+.btn-purple {
+  background: var(--purple-bg);
+  color: var(--purple-main);
+  border: 2px solid var(--purple-main);
+}
+.btn-purple:hover {
+  background: var(--purple-hover);
+  color: #fff;
+}
+
+/* 🔴 Удалить */
+.btn-red {
+  background: var(--red-main);
+  color: #fff;
+}
+.btn-red:hover {
+  background: var(--red-hover);
+  color: var(--red-main);
+}
+
+/* 🟠 Редактировать */
+.btn-orange {
+  background: var(--orange-main);
+  color: #fff;
+}
+.btn-orange:hover {
+  background: var(--orange-hover);
+  color: var(--orange-main);
+}

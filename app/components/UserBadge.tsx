@@ -15,7 +15,7 @@ export function UserBadge() {
   async function handleLogout() {
     await fetch("/api/logout", { method: "POST" });
     setUser(null);
-    router.push("/");
+    
   }
 
   function handleRegister() {
