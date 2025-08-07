@@ -58,42 +58,41 @@ export default function TournamentListView() {
       <div className="page-content-container">
         {/* Создание турнира */}
         <AdminOnly>
-        <div className="card">
-            <div className="tournament-form-row">
-              <input
-                type="text"
-                placeholder="Название турнира"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                className="card-input"
-              />
+          <div className="card">
+            <input
+              type="text"
+              placeholder="Название турнира"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              className="card-input card-input-add-tournament"
+            />
 
-              <select
-                value={newType}
-                onChange={(e) => setNewType(e.target.value as "single" | "double")}
-                className="card-input card-input-add-tournament"
-              >
-                <option value="single">Одиночный</option>
-                <option value="double">Парный</option>
-              </select>
+            <select
+              value={newType}
+              onChange={(e) => setNewType(e.target.value as "single" | "double")}
+              className="card-input card-input-add-tournament"
+            >
+              <option value="single">Одиночный</option>
+              <option value="double">Парный</option>
+            </select>
 
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="card-input card-input-add-tournament"
-              />
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="card-input card-input-add-tournament"
+            />
 
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="card-input card-input-add-tournament"
-              />
-            </div>
-
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="card-input card-input-add-tournament"
+            />
+          
             <button onClick={createTournament} className="card-btn card-btn-act">Создать</button>
           </div>
+
         </AdminOnly>
         
 

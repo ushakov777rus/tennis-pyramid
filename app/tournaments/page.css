@@ -110,7 +110,7 @@
   margin-top: 12px;
   font-size: 14px;
   line-height: 1.5;
-  color: #444;
+  
 }
 
 .tournament-actions {
@@ -194,8 +194,10 @@
 }
 
 .card-input-add-tournament {
-  max-width: 250px;
+  max-width: 170px;
+  margin-right: 5px;
 }
+
 
 /* Мягкий responsive */
 @media (max-width: 600px) {
