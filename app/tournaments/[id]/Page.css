@@ -134,26 +134,26 @@
 
 
 
-
+/*
 .tabs {
   display: flex;
-  justify-content: center;   /* центрируем */
+  justify-content: center;
   align-items: stretch;
-  gap: 5px;                  /* ✅ расстояние между табами */
-  margin: 0 auto 20px auto;  /* центрирование блока */
-  max-width: 800px;          /* ограничиваем ширину */
+  gap: 5px;               
+  margin: 0 auto 20px auto;
+  max-width: 800px;        
 }
 
 .tabs button {
-  flex: 1;                   /* кнопки делят ширину поровну */
+  flex: 1;                 
   height: 40px;
   border: 1px solid #ccc;
-  border-radius: 4px;        /* чтобы кнопки были с округлением */
+  border-radius: 4px;      
   background: #f5f5f5;
   font-size: 14px;
   cursor: pointer;
   transition: background 0.2s;
-}
+}*/
 
 .tabs button.active {
   background: #0070f3;
@@ -219,4 +219,22 @@
   background: #005bb5;
 }
 
+
+
+
+.card-input-add-match {
+  max-width: 170px;
+  margin-right: 5px;
+}
+
+.card-tabs {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 5px;
+}
+
+.tabs-button {
+  flex: 1;
+}
 

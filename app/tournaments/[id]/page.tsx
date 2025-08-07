@@ -151,13 +151,15 @@ const handleAddMatch = async () => {
   const allItems = tournament.tournament_type === "single" ? allPlayers : allTeams;
 
   return (
-    <div className="base-container">
+    <div className="page-container">
       <NavigationBar />
-      <div className="tournament-container">
-        <h1>{tournament.name}</h1>
+
+      <h1 className="page-title">{tournament.name}</h1>
+
+      <div className="page-content-container">
+        
         {/* --- карточка турнира --- */}
-        <div className="tournament-top">
-          <div className="tournament-card">
+          <div className="card">
             <div className="tournament-details">
               <p>
                 🏆 Тип:{" "}
@@ -174,94 +176,98 @@ const handleAddMatch = async () => {
             </div>
           </div>
 
+          {/* ---------------------------------------------------- */}
           {/* --- блок вкладки + форма добавления матча справа --- */}
-          <div className="tabs">
+          {/* ---------------------------------------------------- */}
+          <div className="card card-tabs">
             <button
-              className={activeTab === "pyramid" ? "active" : ""}
+              className={activeTab === "pyramid" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
               onClick={() => setActiveTab("pyramid")}
             >
               Пирамида
             </button>
             <button
-              className={activeTab === "matches" ? "active" : ""}
+              className={activeTab === "matches" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
               onClick={() => setActiveTab("matches")}
             >
               Матчи
             </button>
             <button
-              className={activeTab === "participants" ? "active" : ""}
+              className={activeTab === "participants" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
               onClick={() => setActiveTab("participants")}
             >
               Участники
             </button>
           </div>
-          </div>
-
+          
           {/* ---------------------------------------------------- */}
           {/* --- добавление матча ------------------------------- */}
           {/* ---------------------------------------------------- */}
           {activeTab !== "participants" && (
-          <div className="add-match-controls">
+          <div className="card">
+        
+            <select
+              disabled={user?.role == undefined || user?.role == "player" && !!user?.player_id} // 👈 если есть player — нельзя менять
+              onChange={(e) =>
+                setSelectedIds((prev) => {
+                  const newVal = Number(e.target.value);
+                  if (!newVal) return prev;
+                  if (prev.includes(newVal)) return prev;
+                  if (prev.length === 0) return [newVal];
+                  if (prev.length === 1) return [newVal, prev[1]];
+                  return [newVal, prev[1]];
+                })
+              }
+              value={selectedIds[0] || ""}
+              className="card-input card-input-add-match"
+            >
+              <option value="">-- Нападение --</option>
+              {allItems.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              disabled={user?.role == undefined} 
+              onChange={(e) =>
+                setSelectedIds((prev) => {
+                  const newVal = Number(e.target.value);
+                  if (!newVal) return prev;
+                  if (prev.includes(newVal)) return prev;
+                  if (prev.length === 0) return [newVal];
+                  if (prev.length === 1) return [...prev, newVal];
+                  return [prev[0], newVal];
+                })
+              }
+              value={selectedIds[1] || ""}
+              className="card-input card-input-add-match"
+            >
+              <option value="">-- Защита --</option>
+              {allItems.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+
             <input
               type="date"
               value={matchDate}
               onChange={(e) => setMatchDate(e.target.value)}
+              className="card-input card-input-add-match"
             />
-            
-            <div className="add-match-controls-participants">
-              <select
-                disabled={user?.role == undefined || user?.role == "player" && !!user?.player_id} // 👈 если есть player — нельзя менять
-                onChange={(e) =>
-                  setSelectedIds((prev) => {
-                    const newVal = Number(e.target.value);
-                    if (!newVal) return prev;
-                    if (prev.includes(newVal)) return prev;
-                    if (prev.length === 0) return [newVal];
-                    if (prev.length === 1) return [newVal, prev[1]];
-                    return [newVal, prev[1]];
-                  })
-                }
-                value={selectedIds[0] || ""}
-              >
-                <option value="">-- Нападение --</option>
-                {allItems.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                disabled={user?.role == undefined} 
-                onChange={(e) =>
-                  setSelectedIds((prev) => {
-                    const newVal = Number(e.target.value);
-                    if (!newVal) return prev;
-                    if (prev.includes(newVal)) return prev;
-                    if (prev.length === 0) return [newVal];
-                    if (prev.length === 1) return [...prev, newVal];
-                    return [prev[0], newVal];
-                  })
-                }
-                value={selectedIds[1] || ""}
-              >
-                <option value="">-- Защита --</option>
-                {allItems.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </div>
 
             <input
               type="text"
               placeholder="6-4, 4-6, 11-8"
               value={matchScore}
               onChange={(e) => setMatchScore(e.target.value)}
+              className="card-input card-input-add-match"
             />
 
-            <button onClick={handleAddMatch}>Добавить</button>
+            <button onClick={handleAddMatch} className="card-btn card-btn-act">Добавить</button>
           </div>
           )}
 
@@ -288,7 +294,6 @@ const handleAddMatch = async () => {
               matches={matches}
               onEditMatch={(updated) => {
                 // тут обновляем через MatchRepository
-                console.log("Редактирование:", updated);
                 MatchRepository.updateMatch(updated);
               }}
               onDeleteMatch={(m) => {

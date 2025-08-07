@@ -60,7 +60,7 @@
   border: 1px solid #ccc; /* рамка для уровня */
   border-radius: 8px;
   margin-bottom: 8px;
-  background: #fafafa; /* легкий фон, чтобы выделялось */
+  background: #1b1e22;
   position: relative;
   width:100%;
 }
