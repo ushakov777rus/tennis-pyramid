@@ -9,7 +9,7 @@ export function NavigationBar() {
 
   return (
       <header className="header">
-        <div className="logo">ЛИГАТЕН</div>
+        <div className="logo">ХЗ</div>
         <nav className="nav">
           <a href="/">Главная</a>
           <a href="/tournaments">Турниры</a>

@@ -12,20 +12,22 @@ import "./globals.css"
 
 export default function HomePage() {
   return (
-    <div className="home-container">
+    <div className="page-container">
       <NavigationBar />
 
+      <h1 className="page-title">Теннисные турниры</h1>
+
       <main className="main">
-        <h1 className="main-title">Теннисные турниры</h1>
+        
 
         <section className="section">
           <h2 className="section-title">Идущие турниры</h2>
           <div className="card-grid">
             {[1, 2, 3].map((i) => (
-              <div className="card" key={i}>
+              <div className="card card-250px" key={i}>
                 <div className="card-icon">🏆</div>
                 <div className="card-date">MM/DD 00:00</div>
-                <button className="card-btn">Подробнее</button>
+                <button className="card-btn card-btn-act">Подробнее</button>
               </div>
             ))}
           </div>
@@ -35,10 +37,10 @@ export default function HomePage() {
           <h2 className="section-title">Ближайшие матчи</h2>
           <div className="card-grid">
             {[1, 2, 3].map((i) => (
-              <div className="card" key={i}>
+              <div className="card card-250px" key={i}>
                 <div className="card-icon">🎾 + 🎾</div>
                 <div className="card-date">MM/DD 00:00</div>
-                <button className="card-btn">Подробнее</button>
+                <button className="card-btn card-btn-act">Подробнее</button>
               </div>
             ))}
           </div>
@@ -48,10 +50,10 @@ export default function HomePage() {
           <h2 className="section-title">Топ игроков</h2>
           <div className="card-grid">
             {[1, 2, 3].map((i) => (
-              <div className="card" key={i}>
+              <div className="card card-250px" key={i}>
                 <div className="card-avatar">🏅</div>
                 <div className="card-name">Player Nickname</div>
-                <button className="card-btn">Подробнее</button>
+                <button className="card-btn card-btn-act">Подробнее</button>
               </div>
             ))}
           </div>

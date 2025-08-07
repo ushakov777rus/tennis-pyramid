@@ -15,10 +15,16 @@
 /* --- Форма создания турнира --- */
 .add-tournament {
   padding: 20px;
-  border: 1px solid #ddd;
-  background-color: #f9f9f9;
+  
   margin-bottom: 30px;
-  border-radius: 8px;
+  
+  background: #1b1e22;
+  border-radius: 16px;
+  padding: 20px;
+  width: 100%;
+  
+  text-align: center;
+  box-shadow: 0 0 10px rgba(166, 255, 0, 0.1);
 }
 
 .add-tournament h3 {
@@ -113,28 +119,6 @@
   justify-content: space-between;
 }
 
-.tournament-actions button {
-  padding: 8px 12px;
-  font-size: 14px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.tournament-actions button:first-child {
-  background-color: #3498db;
-  color: white;
-}
-
-.tournament-actions .btn-delete {
-  background-color: #e74c3c;
-  color: white;
-}
-
-.tournament-actions button:hover {
-  opacity: 0.9;
-}
-
 .add-tournament .row {
   display: flex;
   gap: 10px;
@@ -207,6 +191,10 @@
   border-radius: 4px;
   font-weight: bold;
   cursor: pointer;
+}
+
+.card-input-add-tournament {
+  max-width: 250px;
 }
 
 /* Мягкий responsive */

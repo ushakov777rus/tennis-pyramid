@@ -50,30 +50,28 @@ export default function TournamentListView() {
   };
 
   return (
-    <div className="home-container">
+    <div className="page-container">      
       <NavigationBar />
-      <div className="tournaments-container">
-        
-        <h1>Турниры</h1>
 
+      <h1 className="page-title">Турниры</h1>
+
+      <div className="page-content-container">
         {/* Создание турнира */}
         <AdminOnly>
-        <div className="add-tournament">
-          <h3>Создать турнир</h3>
-
+        <div className="card">
             <div className="tournament-form-row">
               <input
                 type="text"
                 placeholder="Название турнира"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                className="field name"
+                className="card-input"
               />
 
               <select
                 value={newType}
                 onChange={(e) => setNewType(e.target.value as "single" | "double")}
-                className="field type"
+                className="card-input card-input-add-tournament"
               >
                 <option value="single">Одиночный</option>
                 <option value="double">Парный</option>
@@ -83,26 +81,26 @@ export default function TournamentListView() {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="field date-start"
+                className="card-input card-input-add-tournament"
               />
 
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="field date-end"
+                className="card-input card-input-add-tournament"
               />
             </div>
 
-            <button onClick={createTournament}>Создать</button>
+            <button onClick={createTournament} className="card-btn card-btn-act">Создать</button>
           </div>
         </AdminOnly>
         
 
         {/* Список турниров в виде карточек */}
-        <div className="tournament-list">
+        <div className="card-grid">
           {tournaments.map((t) => (
-            <div key={t.id} className="tournament-card">
+            <div key={t.id} className="card card-250px">
               <div className="tournament-status">  
                 <span
                   className={`status ${
@@ -134,16 +132,14 @@ export default function TournamentListView() {
               </div>
 
               <div className="tournament-actions">
-                <button onClick={() => 
-                  {
-                    console.log("router.push(`Значение t.id: `)", t.id, "тип ", typeof t.id);
+                <button className="card-btn card-btn-act" onClick={() => {
                     router.push(`/tournaments/${t.id}`);
                   }}>
                   Просмотр
                 </button>
                 <AdminOnly>
                   <button
-                    className="btn-delete"
+                    className="card-btn card-btn-del"
                     onClick={() => deleteTournament(t.id)}
                   >
                     Удалить
