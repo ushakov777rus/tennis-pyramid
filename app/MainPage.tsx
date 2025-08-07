@@ -10,25 +10,53 @@ import "./MainPage.css";
 import "./globals.css"
 
 
-export default function HeroSection() {
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-
+export default function HomePage() {
   return (
-    <div className="base-container">
+    <div className="home-container">
       <NavigationBar />
-      <section className="hero">        
-        <div className="hero-overlay">
-          <div className="hero-content">
-            <h1>Турниры по пирамиде</h1>
-            <a href="/tournaments" className="hero-btn">
-              Турниры
-            </a>
-          </div>
-        </div>
 
-        {/* модалка */}
-        <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-      </section>
+      <main className="main">
+        <h1 className="main-title">Теннисные турниры</h1>
+
+        <section className="section">
+          <h2 className="section-title">Идущие турниры</h2>
+          <div className="card-grid">
+            {[1, 2, 3].map((i) => (
+              <div className="card" key={i}>
+                <div className="card-icon">🏆</div>
+                <div className="card-date">MM/DD 00:00</div>
+                <button className="card-btn">Подробнее</button>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="section">
+          <h2 className="section-title">Ближайшие матчи</h2>
+          <div className="card-grid">
+            {[1, 2, 3].map((i) => (
+              <div className="card" key={i}>
+                <div className="card-icon">🎾 + 🎾</div>
+                <div className="card-date">MM/DD 00:00</div>
+                <button className="card-btn">Подробнее</button>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="section">
+          <h2 className="section-title">Топ игроков</h2>
+          <div className="card-grid">
+            {[1, 2, 3].map((i) => (
+              <div className="card" key={i}>
+                <div className="card-avatar">🏅</div>
+                <div className="card-name">Player Nickname</div>
+                <button className="card-btn">Подробнее</button>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

@@ -1,50 +1,35 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
-
-type User = {
-  id: number;
-  role: string;
-  name: string;
-};
+import { ReactNode } from "react";
+import { useUser } from "@/app/components/UserContext";
 
 type RoleGuardProps = {
-  allowed: string[]; // роли, которым разрешено
+  allowed: string[]; // допустимые роли
   children: ReactNode;
 };
 
 export function RoleGuard({ allowed, children }: RoleGuardProps) {
-  const [user, setUser] = useState<User | { role: "guest" } | null>(null);
+  const { user } = useUser();
 
-  useEffect(() => {
-    async function loadUser() {
-      try {
-        const res = await fetch("/api/me");
-        const data = await res.json();
-        if (data.loggedIn) {
-          setUser(data.user);
-        } else {
-          setUser({ role: "guest" }); // если не залогинен — гость
-        }
-      } catch {
-        setUser({ role: "guest" }); // fallback — гость
-      }
-    }
-    loadUser();
-  }, []);
+  // Пока user не загружен — ничего не показываем
+  if (user === null) return null;
 
-  if (!user) return null; // пока грузим — ничего не показываем
+  const role = user?.role || "guest";
 
-  return allowed.includes(user.role) ? <>{children}</> : null;
+  return allowed.includes(role) ? <>{children}</> : null;
 }
+
+// Компоненты-обёртки
 
 export const SiteAdminOnly = ({ children }: { children: ReactNode }) => (
   <RoleGuard allowed={["site_admin"]}>{children}</RoleGuard>
 );
 
-export const TournamentAdminOnly = ({ children }: { children: ReactNode }) => (
-  <RoleGuard allowed={["tournament_admin"]}>{children}</RoleGuard>
-);
+export const TournamentAdminOnly = ({
+  children,
+}: {
+  children: ReactNode;
+}) => <RoleGuard allowed={["tournament_admin"]}>{children}</RoleGuard>;
 
 export const AdminOnly = ({ children }: { children: ReactNode }) => (
   <RoleGuard allowed={["site_admin", "tournament_admin"]}>{children}</RoleGuard>

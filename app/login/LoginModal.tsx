@@ -24,38 +24,27 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   async function handleLogin() {
     setError("");
 
-console.log("async function handleLogin() 1");
-
     const res = await fetch("/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, password }),
     });
 
-    console.log("async function handleLogin() 2");
-
     const data = await res.json();
-    console.log("Ответ от /api/login:", data);
 
     if (!res.ok) {
       setError(data.error || "Ошибка входа");
       return;
     }
 
-    console.log("Вы залогинены как: ", data.role);
-
-    // ✅ редирект по роли
-    router.push("/");
-
     setUser(data.user); // ✅ обновляем глобально
-    console.log("После setUser, user =", data.user)
     onClose(); // закрыть модалку
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2>Вход</h2>
+    <div className="login-modal-overlay" onClick={onClose}>
+      <div className="login-modal-content" onClick={(e) => e.stopPropagation()}>
+        <h2 className="login-title">Вход</h2>
 
         <input
           type="text"
@@ -73,16 +62,22 @@ console.log("async function handleLogin() 1");
           className="login-input"
         />
 
-        <button onClick={handleLogin} className="login-btn">
+        <button onClick={handleLogin} className="login-submit-btn">
           Войти
         </button>
 
         {error && <p style={{ color: "red" }}>{error}</p>}
 
-        <button onClick={onClose} className="close-btn">
+        <button onClick={onClose} className="login-close-btn">
           ✖
         </button>
+        <p className="login-footer">Нет аккаунта? <a href="#">Зарегистрируйтесь</a></p>
       </div>
     </div>
   );
 }
+
+
+
+
+

@@ -37,9 +37,6 @@ export function UserBadge() {
             Войти
           </button>
           <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-          <button onClick={handleRegister} className="user-badge-btn">
-            Регистрация
-          </button>
         </>
       )}
     </div>

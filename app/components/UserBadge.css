@@ -1,5 +1,5 @@
 .user-badge {
-  position: fixed;
+  position: relative;
   top: 0px;
   right: 0px; /* переносим в правый верхний угол */
   background: transparent; /* прозрачный фон */
@@ -10,20 +10,22 @@
   align-items: center;
   gap: 10px;
   color: #333;
+  align-self: center;
 }
 
 .user-badge-btn {
-  background: #8A2BE2; /* indigo */;
+  background: #ccff66;
   border: none;
   padding: 8px 14px;
   border-radius: 6px;
-  color: white;
+  color: black;
   cursor: pointer;
   font-size: 14px;
 }
 
 .user-info {
   font-weight: 500;
+  color: #ccc;
 }
 
 .user-btn {

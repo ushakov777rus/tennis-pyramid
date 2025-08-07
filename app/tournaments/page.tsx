@@ -10,10 +10,8 @@ import { NavigationBar } from "@/app/components/NavigationBar";
 
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 
-
-
-
 import "./page.css";
+import "@/app/MainPage.css";
 
 export default function TournamentListView() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -52,7 +50,7 @@ export default function TournamentListView() {
   };
 
   return (
-    <div className="base-container">
+    <div className="home-container">
       <NavigationBar />
       <div className="tournaments-container">
         
