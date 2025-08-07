@@ -307,7 +307,7 @@ const renderPlayerCard = (p: Participant, index: number) => {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className="pyramid-row"
+                className="card pyramid-row"
                 data-level={`Уровень ${level}`}
               >
                 {[...players]
