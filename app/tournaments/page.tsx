@@ -92,7 +92,6 @@ export default function TournamentListView() {
           
             <button onClick={createTournament} className="card-btn card-btn-act">Создать</button>
           </div>
-
         </AdminOnly>
         
 

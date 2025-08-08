@@ -22,6 +22,8 @@ import { MatchHistoryModal } from "./MatchHistoryModal";
 import { MatchHistoryView } from "@/app/components/MatchHistoryView";
 import { ParticipantsView } from "./ParticipantsView";
 
+import { calcTopPlayers } from "@/app/utils/calcTopPlayers";
+
 import "./Page.css";
 import { LoggedIn } from "@/app/components/RoleGuard";
 
@@ -54,6 +56,12 @@ export default function TournamentPage() {
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
 
   const { user } = useUser(); // 👈 получаем юзера
+
+  const { mostPlayed, mostWins } = calcTopPlayers(matches);
+
+console.log("Больше всего сыграл:", mostPlayed?.player.name, mostPlayed?.games);
+console.log("Больше всего побед:", mostWins?.player.name, mostWins?.wins);
+
 
   // если игрок залогинен — фиксируем его как selectedIds[0]
   useEffect(() => {
@@ -169,6 +177,8 @@ const handleAddMatch = async () => {
           tournament={tournament} 
           participantsCount={participants.length} 
           matchesCount={matches.length}
+          mostMatches={mostPlayed?.player}
+          mostWins={mostWins?.player}
         />
 
           {/* ---------------------------------------------------- */}
