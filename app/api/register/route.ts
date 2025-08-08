@@ -1,37 +1,69 @@
+// app/api/register-player/route.ts
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@supabase/supabase-js";
+//import bcrypt from "bcryptjs";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // серверный ключ
+);
 
 export async function POST(req: Request) {
   try {
-    const { name, password } = await req.json();
+    const { fullName, nickname, password } = await req.json();
 
-    if (!name || !password) {
-      return NextResponse.json(
-        { error: "Имя и пароль обязательны" },
-        { status: 400 }
-      );
+    // Валидация
+    if (!fullName || typeof fullName !== "string" || !fullName.trim()) {
+      return NextResponse.json({ error: "Укажите имя и фамилию" }, { status: 400 });
+    }
+    if (!password || typeof password !== "string" || password.length < 6) {
+      return NextResponse.json({ error: "Пароль должен быть не короче 6 символов" }, { status: 400 });
+    }
+    if (nickname && typeof nickname !== "string") {
+      return NextResponse.json({ error: "Некорректный никнейм" }, { status: 400 });
     }
 
-    // создаём пользователя
+    // Проверка дубликата никнейма (если задан)
+    if (nickname && nickname.trim()) {
+      const { data: exists, error: existsErr } = await supabase
+        .from("players")
+        .select("id")
+        .eq("nickname", nickname.trim())
+        .maybeSingle();
+
+      if (existsErr) {
+        return NextResponse.json({ error: "Ошибка проверки никнейма" }, { status: 500 });
+      }
+      if (exists) {
+        return NextResponse.json({ error: "Никнейм уже занят" }, { status: 409 });
+      }
+    }
+
+    // Хеш пароля
+    //const passwordHash = await bcrypt.hash(password, 10);
+
+    // Вставка игрока
     const { data, error } = await supabase
-      .from("users")
-      .insert([{ name, password, role: "player" }]) // ⚠️ пока plaintext
-      .select()
+      .from("players")
+      .insert({
+        name: fullName.trim(),
+        nickname: nickname?.trim() || null,
+        password_hash: password,
+      })
+      .select("id, name, nickname")
       .single();
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      );
+      // нарушение unique по nickname обычно вернет 409
+      return NextResponse.json({ error: "Не удалось создать игрока" }, { status: 500 });
     }
 
-    return NextResponse.json({ message: "ok", user: data });
-  } catch (err) {
-    console.error("Ошибка регистрации:", err);
+    // Возвращаем то, что ожидает твой UserContext
     return NextResponse.json(
-      { error: "Ошибка сервера" },
-      { status: 500 }
+      { user: { id: data.id, name: data.name, nickname: data.nickname, role: "player" } },
+      { status: 201 }
     );
+  } catch {
+    return NextResponse.json({ error: "Некорректный запрос" }, { status: 400 });
   }
 }

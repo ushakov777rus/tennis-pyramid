@@ -2,17 +2,20 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
 import { useUser } from "@/app/components/UserContext";
-
 import "./LoginModal.css";
 
 type LoginModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  onSwitchToRegister?: () => void; // есть в типе
 };
 
-export function LoginModal({ isOpen, onClose }: LoginModalProps) {
+export function LoginModal({
+  isOpen,
+  onClose,
+  onSwitchToRegister,       // <-- деструктурируем
+}: LoginModalProps) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -37,8 +40,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       return;
     }
 
-    setUser(data.user); // ✅ обновляем глобально
-    onClose(); // закрыть модалку
+    setUser(data.user);
+    onClose();
   }
 
   return (
@@ -71,13 +74,20 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         <button onClick={onClose} className="login-close-btn">
           ✖
         </button>
-        <p className="login-footer">Нет аккаунта? <a href="#">Зарегистрируйтесь</a></p>
+
+        <p className="login-footer">
+          Нет аккаунта?{" "}
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              onSwitchToRegister?.(); // теперь доступен
+            }}
+          >
+            Зарегистрируйтесь
+          </a>
+        </p>
       </div>
     </div>
   );
 }
-
-
-
-
-

@@ -61,11 +61,9 @@ export default function PlayerListView() {
         <thead>
           <tr>
             <th>Имя</th>
-            <th>Телефон</th>
-            <th>Пол</th>
-            <th>Уровень</th>
-            <th>Игры</th>
-            <th>Победы</th>
+            <th>NTRP</th>
+            <th>И</th>
+            <th>П</th>
             <th>Winrate %</th>
             <th>Действия</th>
           </tr>
@@ -84,23 +82,6 @@ export default function PlayerListView() {
                 <td>
                   <input
                     type="text"
-                    value={editData.phone || ""}
-                    onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
-                  />
-                </td>
-                <td>
-                  <select
-                    value={editData.sex || ""}
-                    onChange={(e) => setEditData({ ...editData, sex: e.target.value })}
-                  >
-                    <option value="">–</option>
-                    <option value="Муж">Муж</option>
-                    <option value="Жен">Жен</option>
-                  </select>
-                </td>
-                <td>
-                  <input
-                    type="text"
                     value={editData.ntrp || ""}
                     onChange={(e) => setEditData({ ...editData, ntrp: e.target.value })}
                   />
@@ -113,8 +94,6 @@ export default function PlayerListView() {
             ) : (
               <tr key={p.id}>
                 <td>{p.name}</td>
-                <td>{p.phone || "-"}</td>
-                <td>{p.sex || "-"}</td>
                 <td>{p.ntrp || "-"}</td>
                 <td>{stats[p.id]?.matches || 0}</td>
                 <td>{stats[p.id]?.wins || 0}</td>
@@ -139,24 +118,6 @@ export default function PlayerListView() {
                 value={newPlayer.name || ""}
                 onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
               />
-            </td>
-            <td>
-              <input
-                type="text"
-                placeholder="Телефон"
-                value={newPlayer.phone || ""}
-                onChange={(e) => setNewPlayer({ ...newPlayer, phone: e.target.value })}
-              />
-            </td>
-            <td>
-              <select
-                value={newPlayer.sex || ""}
-                onChange={(e) => setNewPlayer({ ...newPlayer, sex: e.target.value })}
-              >
-                <option value="">–</option>
-                <option value="Муж">Муж</option>
-                <option value="Жен">Жен</option>
-              </select>
             </td>
             <td>
               <input

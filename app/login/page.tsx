@@ -56,7 +56,7 @@ export default function LoginPage() {
       />
 
       <button onClick={handleLogin} style={{ width: "100%" }}>
-        Войти
+        Войти111
       </button>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
