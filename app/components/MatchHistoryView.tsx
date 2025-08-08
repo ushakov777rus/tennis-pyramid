@@ -1,32 +1,30 @@
 "use client";
 
 import { useState } from "react";
-
 import { Match } from "@/app/models/Match";
 import { formatDate } from "@/app/components/Utils";
-
 import "@/app/components/MatchHistory.css";
 
 type MatchHistoryViewProps = {
   matches: Match[];
   onEditMatch?: (match: Match) => void;
   onDeleteMatch?: (match: Match) => void;
+  showTournament?: boolean; // <-- добавили
 };
 
 export function MatchHistoryView({
   matches,
   onEditMatch,
   onDeleteMatch,
+  showTournament = false,
 }: MatchHistoryViewProps) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editDate, setEditDate] = useState<string>("");
   const [editScore, setEditScore] = useState<string>("");
 
-  if (matches.length === 0) {
-    return <p>Матчей пока нет</p>;
-  }
+  if (matches.length === 0) return <p>Матчей пока нет</p>;
 
-  // сортировка (новые → старые)
+  // новые → старые
   const sortedMatches = [...matches].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
@@ -60,10 +58,11 @@ export function MatchHistoryView({
   };
 
   return (
-    <table className="history-table" >
-      <thead className="history-table-head" >
+    <table className="history-table">
+      <thead className="history-table-head">
         <tr>
           <th>Дата</th>
+          {showTournament && <th>Турнир</th>}
           <th>Игрок 1</th>
           <th>Игрок 2</th>
           <th>Счёт</th>
@@ -73,7 +72,7 @@ export function MatchHistoryView({
       <tbody>
         {sortedMatches.map((m) => {
           const isEditing = editingId === m.id;
-
+          const winnerId = m.getWinnerId();
 
           return (
             <tr key={m.id}>
@@ -88,8 +87,20 @@ export function MatchHistoryView({
                   formatDate(m.date)
                 )}
               </td>
-              <td className={m.getWinnerId() === m.player1?.id ? "win" : "loss"}>{m.player1?.name || m.team1?.name || "??"}</td>
-              <td className={m.getWinnerId() === m.player2?.id ? "win" : "loss"}>{m.player2?.name || m.team2?.name || "??"}</td>
+
+              {showTournament && (
+                <td className="tournament-cell">
+                  {m.tournament?.name ?? "—"}
+                </td>
+              )}
+
+              <td className={winnerId === m.player1?.id ? "win" : "loss"}>
+                {m.player1?.name || m.team1?.name || "??"}
+              </td>
+              <td className={winnerId === m.player2?.id ? "win" : "loss"}>
+                {m.player2?.name || m.team2?.name || "??"}
+              </td>
+
               <td>
                 {isEditing ? (
                   <input
@@ -102,6 +113,7 @@ export function MatchHistoryView({
                   m.formatResult()
                 )}
               </td>
+
               <td>
                 {isEditing ? (
                   <>

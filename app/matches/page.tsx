@@ -46,6 +46,7 @@ export default function MatchListView() {
 
             <MatchHistoryView
               matches={matches}
+              showTournament={true}
               onEditMatch={(updated) => {
                 // тут обновляем через MatchRepository
                 MatchRepository.updateMatch(updated);
