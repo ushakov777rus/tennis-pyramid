@@ -96,6 +96,18 @@ table {
   max-width: 280px;
 }
 
+.card-80px {
+  max-width: 80px;
+}
+
+.card-all {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #cf6;
+  cursor: pointer;
+}
+
 /* Добавляем анимации и плавность */
 .card {
   transition: all 0.2s ease-in-out;

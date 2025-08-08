@@ -3,14 +3,19 @@
 import { useState } from "react";
 
 import { LoginModal } from "@/app/login/LoginModal";
+import { useRouter } from "next/navigation";
 
 import { NavigationBar } from "@/app/components/NavigationBar";
+
+
 
 import "./MainPage.css";
 import "./globals.css"
 
 
 export default function HomePage() {
+  const router = useRouter();
+
   return (
     <div className="page-container">
       <NavigationBar />
@@ -30,6 +35,9 @@ export default function HomePage() {
                 <button className="card-btn card-btn-act">Подробнее</button>
               </div>
             ))}
+            <div className="card card-80px card-all" onClick={() => router.push("/tournaments")}>
+              Все
+            </div>
           </div>
         </section>
 
@@ -43,6 +51,9 @@ export default function HomePage() {
                 <button className="card-btn card-btn-act">Подробнее</button>
               </div>
             ))}
+            <div className="card card-80px card-all" onClick={() => router.push("/matches")}>
+              Все
+            </div>
           </div>
         </section>
 
@@ -56,6 +67,9 @@ export default function HomePage() {
                 <button className="card-btn card-btn-act">Подробнее</button>
               </div>
             ))}
+            <div className="card card-80px card-all" onClick={() => router.push("/rating")}>
+              Все
+            </div>
           </div>
         </section>
       </main>
