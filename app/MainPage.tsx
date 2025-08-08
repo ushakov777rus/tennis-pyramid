@@ -17,6 +17,9 @@ export default function HomePage() {
   useEffect(() => {
     (async () => {
       try {
+        
+  alert(`${window.innerWidth} × ${window.innerHeight}`);
+
         const list = await TournamentsRepository.loadAll(); // <- готовый метод
         setOngoing(list.slice(0, 3));
       } finally {

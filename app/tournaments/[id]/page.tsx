@@ -23,7 +23,11 @@ import { MatchHistoryView } from "@/app/components/MatchHistoryView";
 import { ParticipantsView } from "./ParticipantsView";
 
 import "./Page.css";
-import { AdminOnly, LoggedIn } from "@/app/components/RoleGuard";
+import { LoggedIn } from "@/app/components/RoleGuard";
+
+import { ViewportDebug } from "@/app/components/ViewportDebug";
+
+
 
 export default function TournamentPage() {
   const params = useParams<{ id: string }>();
@@ -195,7 +199,9 @@ const handleAddMatch = async () => {
           {/* --- добавление матча ------------------------------- */}
           {/* ---------------------------------------------------- */}
           {activeTab !== "participants" && (
+            
           <LoggedIn>
+          <ViewportDebug />
           <div className="card">
         
             <select
