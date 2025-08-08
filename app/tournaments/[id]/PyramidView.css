@@ -37,16 +37,14 @@
   border-radius: 4px;
 }
 
-
-
 .pyramid-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
   width: 100%;
-  overflow-x: auto; /* добавляем горизонтальный скролл при необходимости */
-  padding: 8px 8px; /* чтобы не прилипало к краям */
+  /*overflow-x: auto;  добавляем горизонтальный скролл при необходимости */
+  padding-top: 20px; /* чтобы не прилипало к краям */
   box-sizing: border-box;
 }
 

@@ -282,7 +282,7 @@ const handleAddMatch = async () => {
 
 
         {/* --- контент вкладок --- */}
-        <div className="tab-content">
+        <div>
           {activeTab === "pyramid" && (
             <PyramidView
               participants={participants}
