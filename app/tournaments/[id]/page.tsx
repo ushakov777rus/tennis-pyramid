@@ -22,6 +22,7 @@ import { MatchHistoryView } from "@/app/components/MatchHistoryView";
 import { ParticipantsView } from "./ParticipantsView";
 
 import "./Page.css";
+import { AdminOnly, LoggedIn } from "@/app/components/RoleGuard";
 
 export default function TournamentPage() {
   const params = useParams<{ id: string }>();
@@ -204,6 +205,7 @@ const handleAddMatch = async () => {
           {/* --- добавление матча ------------------------------- */}
           {/* ---------------------------------------------------- */}
           {activeTab !== "participants" && (
+          <LoggedIn>
           <div className="card">
         
             <select
@@ -269,6 +271,7 @@ const handleAddMatch = async () => {
 
             <button onClick={handleAddMatch} className="card-btn card-btn-act">Добавить</button>
           </div>
+          </LoggedIn>
           )}
 
 

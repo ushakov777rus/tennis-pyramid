@@ -20,6 +20,8 @@ export function RegisterModal({
   const { setUser } = useUser();
 
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [ntrp, setNTRP] = useState("");
   const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
@@ -33,16 +35,17 @@ export function RegisterModal({
 
     if (!fullName.trim()) return setError("Укажите имя и фамилию");
     if (!password) return setError("Введите пароль");
-    if (password.length < 6) return setError("Пароль должен быть не короче 6 символов");
     if (password !== password2) return setError("Пароли не совпадают");
 
     try {
       setPending(true);
-      const res = await fetch("/api/register-player", {
+      const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fullName: fullName.trim(),
+          phone: phone,
+          ntrp: ntrp,
           nickname: nickname.trim() || null,
           password,
         }),
@@ -71,14 +74,28 @@ export function RegisterModal({
 
         <input
           type="text"
-          placeholder="Имя и фамилия"
+          placeholder="Фамилия и Имя"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           className="login-input"
         />
         <input
           type="text"
-          placeholder="Никнейм (опционально)"
+          placeholder="Телефон"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="login-input"
+        />
+        <input
+          type="text"
+          placeholder="NTRP"
+          value={ntrp}
+          onChange={(e) => setNTRP(e.target.value)}
+          className="login-input"
+        />
+        <input
+          type="text"
+          placeholder="Никнейм (для входа)"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
           className="login-input"

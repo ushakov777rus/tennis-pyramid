@@ -1,12 +1,8 @@
 // app/api/register-player/route.ts
+import { supabase } from "@/lib/supabaseClient";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-//import bcrypt from "bcryptjs";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // серверный ключ
-);
+// import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
   try {
@@ -16,9 +12,9 @@ export async function POST(req: Request) {
     if (!fullName || typeof fullName !== "string" || !fullName.trim()) {
       return NextResponse.json({ error: "Укажите имя и фамилию" }, { status: 400 });
     }
-    if (!password || typeof password !== "string" || password.length < 6) {
-      return NextResponse.json({ error: "Пароль должен быть не короче 6 символов" }, { status: 400 });
-    }
+//    if (!password || typeof password !== "string" || password.length < 6) {
+//      return NextResponse.json({ error: "Пароль должен быть не короче 6 символов" }, { status: 400 });
+//    }
     if (nickname && typeof nickname !== "string") {
       return NextResponse.json({ error: "Некорректный никнейм" }, { status: 400 });
     }
@@ -26,9 +22,9 @@ export async function POST(req: Request) {
     // Проверка дубликата никнейма (если задан)
     if (nickname && nickname.trim()) {
       const { data: exists, error: existsErr } = await supabase
-        .from("players")
+        .from("users")
         .select("id")
-        .eq("nickname", nickname.trim())
+        .eq("name", nickname.trim())
         .maybeSingle();
 
       if (existsErr) {
@@ -39,28 +35,41 @@ export async function POST(req: Request) {
       }
     }
 
-    // Хеш пароля
-    //const passwordHash = await bcrypt.hash(password, 10);
+    // Хеш пароля (если надо)
+    // const passwordHash = await bcrypt.hash(password, 10);
 
-    // Вставка игрока
-    const { data, error } = await supabase
+    // Создаём пользователя
+    const { data: newUser, error: uerror } = await supabase
+      .from("users")
+      .insert({
+        name: nickname?.trim() || fullName.trim(), // если нет никнейма — используем ФИО
+        role: "player",
+        password: password, // пароль в открытом виде (лучше захешировать)
+      })
+      .select("id, name, role")
+      .single();
+
+    if (uerror || !newUser) {
+      return NextResponse.json({ error: "Не удалось создать пользователя" }, { status: 500 });
+    }
+
+    // Создаём игрока, привязанного к users.id
+    const { data: newPlayer, error: perror } = await supabase
       .from("players")
       .insert({
         name: fullName.trim(),
-        nickname: nickname?.trim() || null,
-        password_hash: password,
+        user_id: newUser.id, // вот здесь теперь вставляем id пользователя
       })
-      .select("id, name, nickname")
+      .select("id, name")
       .single();
 
-    if (error) {
-      // нарушение unique по nickname обычно вернет 409
+    if (perror || !newPlayer) {
       return NextResponse.json({ error: "Не удалось создать игрока" }, { status: 500 });
     }
 
-    // Возвращаем то, что ожидает твой UserContext
+    // Возвращаем объект пользователя в формате, который ожидает UserContext
     return NextResponse.json(
-      { user: { id: data.id, name: data.name, nickname: data.nickname, role: "player" } },
+      { user: { id: newUser.id, name: newUser.name, role: "player" } },
       { status: 201 }
     );
   } catch {
