@@ -60,6 +60,19 @@ body {
   color: #fff;
 }
 
+.page-title {
+  font-size: 34px;
+  margin-bottom: 20px;
+  color: #ccff66;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 28px;
+  }
+}
+
 /* Контейнер */
 .page-container {
   max-width: 1000px;

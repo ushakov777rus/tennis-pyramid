@@ -5,6 +5,7 @@ import { PlayersRepository } from "@/app/repositories/PlayersRepository";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
+import { NavigationBar } from "@/app/components/NavigationBar";
 import "./page.css";
 
 export default function PlayerListView() {
@@ -49,8 +50,13 @@ export default function PlayerListView() {
   };
 
   return (
-    <div className="player-list-container">
-      <h2>Список игроков</h2>
+    <div className="page-container">
+      <NavigationBar />
+
+      <h1 className="page-title">Рейтинг игроков</h1>
+
+      <div className="page-content-container">
+
       <table className="player-table">
         <thead>
           <tr>
@@ -167,5 +173,7 @@ export default function PlayerListView() {
         </tbody>
       </table>
     </div>
+    </div>
+    
   );
 }
