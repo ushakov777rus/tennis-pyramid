@@ -8,7 +8,6 @@ import { Tournament } from "@/app/models/Tournament";
 import { formatDate } from "@/app/components/Utils"; // если есть
 
 import "./MainPage.css";
-import "./globals.css";
 
 export default function HomePage() {
   const router = useRouter();

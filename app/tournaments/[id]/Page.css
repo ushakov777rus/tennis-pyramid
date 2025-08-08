@@ -1,7 +1,6 @@
 .tournament-container {
   width: 96%;
   margin: 0 auto;
-  font-family: Arial, sans-serif;
 }
 
 .tournament-container h1 {
@@ -163,7 +162,6 @@
   line-height: 1.2;
   cursor: pointer;
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
 }
 
 .add-match-controls button,

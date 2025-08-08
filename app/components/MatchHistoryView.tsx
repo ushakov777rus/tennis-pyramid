@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Match } from "@/app/models/Match";
 import { formatDate } from "@/app/components/Utils";
 
-import "./MatchHistory.css";
+import "@/app/components/MatchHistory.css";
 
 type MatchHistoryViewProps = {
   matches: Match[];

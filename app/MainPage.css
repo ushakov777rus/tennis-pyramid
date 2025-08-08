@@ -1,29 +1,4 @@
 /* Общая тема */
-body {
-  background: #0d0f10;
-  font-family: 'Segoe UI', sans-serif;
-  margin: 0;
-  color: #fff;
-}
-
-/* Хедер */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
-}
-
-.nav a {
-  color: #ccc;
-  margin: 0 12px;
-  text-decoration: none;
-}
-
-.nav a:hover {
-  color: #fff;
-}
-
 .cta-btn {
   background: #a6ff00;
   color: #000;
@@ -80,12 +55,6 @@ body {
 
 /* ✅ Адаптивность для мобилок */
 @media (max-width: 768px) {
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
   .page-title {
     font-size: 28px;
   }

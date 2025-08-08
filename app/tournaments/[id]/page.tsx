@@ -18,7 +18,7 @@ import { MatchRepository } from "@/app/repositories/MatchRepository";
 
 import { PyramidView } from "./PyramidView";
 import { MatchHistoryModal } from "./MatchHistoryModal";
-import { MatchHistoryView } from "./MatchHistoryView";
+import { MatchHistoryView } from "@/app/components/MatchHistoryView";
 import { ParticipantsView } from "./ParticipantsView";
 
 import "./Page.css";

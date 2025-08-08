@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+
 import { UserBadge } from "@/app/components/UserBadge";
+
 import "./NavigationBar.css";
 
 export function NavigationBar() {

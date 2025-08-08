@@ -22,36 +22,6 @@
   margin-left: auto;
 }
 
-/* === Гамбургер === */
-.burger {
-  display: none;
-  flex-direction: column;
-  gap: 5px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  z-index: 1100; /* чтобы было кликабельно поверх меню */
-}
-
-.burger span {
-  display: block;
-  width: 25px;
-  height: 3px;
-  background: #111;
-  transition: 0.3s;
-}
-
-/* Анимация крестика */
-.burger.open span:nth-child(1) {
-  transform: rotate(45deg) translateY(8px);
-}
-.burger.open span:nth-child(2) {
-  opacity: 0;
-}
-.burger.open span:nth-child(3) {
-  transform: rotate(-45deg) translateY(-8px);
-}
-
 .logo {
   font-weight: bold;
   font-size: 20px;
@@ -59,16 +29,42 @@
   align-self: center;
 }
 
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-self: center;
+}
+
+.nav a {
+  color: #ccc;
+  margin: 0 12px;
+  text-decoration: none;
+}
+
+.nav a:hover {
+  color: #fff;
+}
+
+/* Хедер */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
 
 /* === 📱 Мобильная адаптация === */
 @media (max-width: 768px) {
-  .burger {
-    display: flex;
-  }
-
   .nav {
     display: flex;
     flex-wrap: wrap;
     align-self: center;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
 }

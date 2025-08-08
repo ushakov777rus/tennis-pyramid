@@ -50,7 +50,7 @@ export default function TournamentListView() {
   };
 
   return (
-    <div className="page-container">      
+    <div className="page-container">
       <NavigationBar />
 
       <h1 className="page-title">Турниры</h1>
