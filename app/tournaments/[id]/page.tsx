@@ -37,6 +37,7 @@ export default function TournamentPage() {
 
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [maxLevel, setMaxLevel] = useState<number | 15>(15);
   const [matches, setMatches] = useState<Match[]>([]);
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [allTeams, setAllTeams] = useState<{ id: number; name: string }[]>([]);
@@ -59,10 +60,6 @@ export default function TournamentPage() {
 
   const { mostPlayed, mostWins } = calcTopPlayers(matches);
 
-console.log("Больше всего сыграл:", mostPlayed?.player.name, mostPlayed?.games);
-console.log("Больше всего побед:", mostWins?.player.name, mostWins?.wins);
-
-
   // если игрок залогинен — фиксируем его как selectedIds[0]
   useEffect(() => {
     console.log("useEffect(() => {", user, "}")
@@ -83,6 +80,9 @@ console.log("Больше всего побед:", mostWins?.player.name, mostWi
 
       const parts = await TournamentsRepository.loadParticipants(tournamentId);
       setParticipants(parts);
+ 
+      if (!parts?.length) return 0;
+        setMaxLevel(parts.reduce((max, p) => Math.max(max, p.level ?? 0), 0));
 
       const m = await MatchRepository.loadMatches(tournamentId);
       setMatches(m);
@@ -95,6 +95,7 @@ console.log("Больше всего побед:", mostWins?.player.name, mostWi
     }
     load();
   }, [tournamentId]);
+  
 
 const handleAddMatch = async () => {
   if (!tournament) return;
@@ -286,6 +287,7 @@ const handleAddMatch = async () => {
           {activeTab === "pyramid" && (
             <PyramidView
               participants={participants}
+              maxLevel={maxLevel}
               selectedIds={selectedIds}
               onSelect={setSelectedIds}
               onShowHistory={(id) => {

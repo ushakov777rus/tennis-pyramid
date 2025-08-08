@@ -21,6 +21,7 @@ import { TournamentsRepository } from "@/app/repositories/TournamentsRepository"
 
 type PyramidViewProps = {
   participants: Participant[];
+  maxLevel: number | 15;
   onSelect: (ids: number[]) => void;
   selectedIds: number[];
   onShowHistory?: (id?: number) => void;
@@ -45,6 +46,7 @@ function getPlayerStatusIcon(
 
 export function PyramidView({
   participants,
+  maxLevel,
   onSelect,
   selectedIds,
   onShowHistory,
@@ -113,8 +115,13 @@ export function PyramidView({
   };
 
 const canChallenge = (attacker: Participant, defender: Participant): boolean => {
-  if (!attacker.level || !attacker.position || !defender.level || !defender.position) {
+  if (!defender.level || !defender.position) {
     return false;
+  }
+  console.log("canChallenge",attacker,defender,maxLevel);
+
+  if (!attacker.level || !attacker.position) {
+    return defender.level >= maxLevel-1; 
   }
 
   if (attacker.level === defender.level) {
