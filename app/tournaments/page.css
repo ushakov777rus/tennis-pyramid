@@ -79,33 +79,6 @@
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
-.tournament-status {
-  display: flex;
-  justify-content: right;
-  margin-bottom: 5px;
-}
-
-.status {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: bold;
-  color: white;
-  width: 60px;
-}
-
-.status.draft {
-  background-color: #666;
-}
-
-.status.ongoing {
-  background-color: #6fa502;
-}
-
-.status.finished {
-  background-color: #f74003;
-}
-
 .tournament-details {
   margin-top: 12px;
   font-size: 14px;

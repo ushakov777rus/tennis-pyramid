@@ -55,6 +55,8 @@ export class TournamentsRepository {
       : null;
   }
 
+  
+
   /** Создать турнир */
   static async create(params: {
     name: string;

@@ -186,3 +186,38 @@ button,
   box-sizing: border-box;
   font-family: math;
 }
+
+/*.tournament-status {
+  display: flex;
+  justify-content: right;
+  margin-bottom: 5px;
+}*/
+
+.tournament-status {
+  margin: 4px;
+  display: flex;
+  justify-content: end;
+  align-items: center;
+}
+
+.status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  width: 60px;
+}
+
+.status.draft {
+  background-color: #666;
+}
+
+.status.ongoing {
+  background-color: #6fa502;
+}
+
+.status.finished {
+  background-color: #f74003;
+}
+
