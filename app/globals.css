@@ -217,12 +217,6 @@ button,
   box-sizing: border-box;
 }
 
-/*.tournament-status {
-  display: flex;
-  justify-content: right;
-  margin-bottom: 5px;
-}*/
-
 .tournament-status {
   margin: 4px;
   display: flex;

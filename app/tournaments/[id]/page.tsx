@@ -9,6 +9,7 @@ import { Match } from "@/app/models/Match";
 import { Participant } from "@/app/models/Participant";
 
 import { NavigationBar } from "@/app/components/NavigationBar";
+import { TournamentCard } from "@/app/components/TournamentCard";
 import { useUser } from "@/app/components/UserContext"; // 👈 добавляем
 
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
@@ -160,22 +161,11 @@ const handleAddMatch = async () => {
       <div className="page-content-container">
         
         {/* --- карточка турнира --- */}
-          <div className="card">
-            <div className="tournament-details">
-              <p>
-                🏆 Тип:{" "}
-                {tournament.tournament_type === "single" ? "Одиночный" : "Парный"}
-              </p>
-              <p>
-                📅 {tournament.start_date} → {tournament.end_date || "?"}
-              </p>
-            </div>
-            <div className="tournament-status">
-              <span className={`status ${tournament.status}`}>
-                {tournament.getStatus()}
-              </span>
-            </div>
-          </div>
+        <TournamentCard 
+          tournament={tournament} 
+          participantsCount={participants.length} 
+          matchesCount={matches.length}
+        />
 
           {/* ---------------------------------------------------- */}
           {/* --- блок вкладки + форма добавления матча справа --- */}
