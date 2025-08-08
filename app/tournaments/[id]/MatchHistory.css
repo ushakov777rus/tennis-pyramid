@@ -29,8 +29,12 @@
   border-collapse: collapse;
   margin-bottom: 15px;
   font-size: 12px;
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto 5px;
+}
+
+.history-table-thead {
+  background: #444;
 }
 
 .history-table th,
@@ -46,12 +50,14 @@
 
 .history-table tr.win,
 .history-table td.win {
-  background: #e6ffe6; /* зелёный фон побед */
+  background: #d4f8d4; /* зелёный фон побед */
+  color: #222;
 }
 
 .history-table tr.loss,
 .history-table td.loss {
-  background: #ffe6e6; /* красный фон поражений */
+  background: #f8d4d4; /* красный фон поражений */
+  color: #222;
 }
 
 .close-btn {

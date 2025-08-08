@@ -88,6 +88,8 @@ table {
   text-align: center;
   box-shadow: 0 0 10px rgba(166, 255, 0, 0.1);
   box-sizing: border-box;
+
+  color: #ccc;
 }
 
 .card-250px {
@@ -170,4 +172,5 @@ button,
   color: #fff;
   font-size: 15px;
   box-sizing: border-box;
+  font-family: math;
 }

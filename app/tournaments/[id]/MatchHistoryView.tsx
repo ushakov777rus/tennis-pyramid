@@ -61,7 +61,7 @@ export function MatchHistoryView({
 
   return (
     <table className="history-table" >
-      <thead>
+      <thead className="history-table-head" >
         <tr>
           <th>Дата</th>
           <th>Игрок 1</th>
