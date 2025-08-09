@@ -41,7 +41,7 @@ export default function HomePage() {
             ))}
 
             {!loading && ongoing.map(t => (
-              <div className="card card-250px" key={t.id}>
+              <div className="card card-250px card-with-status" key={t.id}>
                 <div className="tournament-status">  
                   <span
                     className={`status ${

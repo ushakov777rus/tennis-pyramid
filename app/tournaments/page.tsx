@@ -98,7 +98,7 @@ export default function TournamentListView() {
         {/* Список турниров в виде карточек */}
         <div className="card-grid">
           {tournaments.map((t) => (
-            <div key={t.id} className="card card-250px">
+            <div key={t.id} className="card card-250px  card-with-status">
               <div className="tournament-status">  
                 <span
                   className={`status ${
