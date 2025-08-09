@@ -197,3 +197,12 @@
   flex: 1;
 }
 
+
+@media (max-width: 480px) {
+.card-input-add-match {
+  max-width: 170px;
+  margin-right: 5px;
+}
+}
+
+

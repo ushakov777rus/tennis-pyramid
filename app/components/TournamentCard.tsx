@@ -12,11 +12,13 @@ type Props = {
   participantsCount: number;
   matchesCount: number;
   mostMatches: Player | undefined;
+  mostMatchesCnt: number;
   mostWins: Player | undefined;
+  mostWinsCnt: number;
   rightSlot?: React.ReactNode; // опционально: можно передать любые действия справа
 };
 
-export function TournamentCard({ tournament, participantsCount, matchesCount, mostMatches, mostWins, rightSlot }: Props) {
+export function TournamentCard({ tournament, participantsCount, matchesCount, mostMatches, mostMatchesCnt, mostWins, mostWinsCnt, rightSlot }: Props) {
   return (
     <div className="card card-with-status">
       <div className="tournament-status" style={{ minWidth: 80, display: "flex", justifyContent: "flex-end" }}>
@@ -54,12 +56,12 @@ export function TournamentCard({ tournament, participantsCount, matchesCount, mo
             <tr>
               <td>🎾</td>
               <td>Сыграл больше всех игр:</td> 
-              <td>{mostMatches?.name}</td>
+              <td>{mostMatches?.name} ({mostMatchesCnt})</td>
             </tr>
             <tr>
               <td>🎾</td>
               <td>Больше всего выиграл:</td> 
-              <td>{mostWins?.name}</td>
+              <td>{mostWins?.name} ({mostWinsCnt})</td>
             </tr>
           </tbody>
         </table>
