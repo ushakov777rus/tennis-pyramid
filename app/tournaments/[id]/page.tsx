@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 
 import { Tournament } from "@/app/models/Tournament";
@@ -10,7 +10,7 @@ import { Participant } from "@/app/models/Participant";
 
 import { NavigationBar } from "@/app/components/NavigationBar";
 import { TournamentCard } from "@/app/components/TournamentCard";
-import { useUser } from "@/app/components/UserContext"; // 👈 добавляем
+import { useUser } from "@/app/components/UserContext";
 
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 import { PlayersRepository } from "@/app/repositories/PlayersRepository";
@@ -26,10 +26,11 @@ import { calcTopPlayers } from "@/app/utils/calcTopPlayers";
 
 import "./Page.css";
 import { LoggedIn } from "@/app/components/RoleGuard";
-
 import { ViewportDebug } from "@/app/components/ViewportDebug";
 
-
+// ⬇⬇⬇ ДОБАВЛЕНО: наш кастомный селект
+import { CustomSelect } from "@/app/components/CustomSelect"; // <-- скорректируй путь при необходимости
+import "@/app/components/CustomSelect.css";
 
 export default function TournamentPage() {
   const params = useParams<{ id: string }>();
@@ -42,13 +43,12 @@ export default function TournamentPage() {
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [allTeams, setAllTeams] = useState<{ id: number; name: string }[]>([]);
   const [activeTab, setActiveTab] = useState<"pyramid" | "matches" | "participants">("pyramid");
-  
+
   const today = new Date().toISOString().split("T")[0];
   const [matchDate, setMatchDate] = useState<string>(today);
-
   const [matchScore, setMatchScore] = useState<string>("");
 
-  // теперь один массив для выбора
+  // единый массив выбранных id: [нападающий, защитник]
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -56,13 +56,12 @@ export default function TournamentPage() {
 
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
 
-  const { user } = useUser(); // 👈 получаем юзера
+  const { user } = useUser();
 
   const { mostPlayed, mostWins } = calcTopPlayers(matches);
 
   // если игрок залогинен — фиксируем его как selectedIds[0]
   useEffect(() => {
-    console.log("useEffect(() => {", user, "}")
     if (user?.role == "player" && user.player_id) {
       setSelectedIds([user.player_id]); // ставим игрока первым
     } else if (user?.role == undefined) {
@@ -80,9 +79,9 @@ export default function TournamentPage() {
 
       const parts = await TournamentsRepository.loadParticipants(tournamentId);
       setParticipants(parts);
- 
-      if (!parts?.length) return 0;
-        setMaxLevel(parts.reduce((max, p) => Math.max(max, p.level ?? 0), 0));
+
+      if (!parts?.length) return;
+      setMaxLevel(parts.reduce((max, p) => Math.max(max, p.level ?? 0), 0));
 
       const m = await MatchRepository.loadMatches(tournamentId);
       setMatches(m);
@@ -95,48 +94,58 @@ export default function TournamentPage() {
     }
     load();
   }, [tournamentId]);
-  
 
-const handleAddMatch = async () => {
-  if (!tournament) return;
-  if (selectedIds.length < 2 || !matchDate) {
-    alert("Выбери двух игроков и дату матча");
-    return;
-  }
+  // ⬇⬇⬇ Готовим список опций для CustomSelect
+  const allItems = tournament?.tournament_type === "single" ? allPlayers : allTeams;
 
-  try {
-    const scores = matchScore
-      .split(",")
-      .map((set) => set.trim().split("-").map(Number)) as [number, number][];
+  const options = useMemo(
+    () =>
+      allItems.map((item) => ({
+        value: item.id,
+        label: (item as Player).name ?? (item as { id: number; name: string }).name,
+      })),
+    [allItems]
+  );
 
-    const team1 = [selectedIds[0]];
-    const team2 = [selectedIds[1]];
+  const handleAddMatch = async () => {
+    if (!tournament) return;
+    if (selectedIds.length < 2 || !matchDate) {
+      alert("Выбери двух игроков и дату матча");
+      return;
+    }
 
-    await MatchRepository.addMatch(
-      new Date(matchDate),
-      tournament.tournament_type,
-      scores,
-      team1,
-      team2,
-      tournament.id
-    );
+    try {
+      const scores = matchScore
+        .split(",")
+        .map((set) => set.trim().split("-").map(Number)) as [number, number][];
 
-    // 👉 сбрасываем поля
-    setMatchDate(today);  // снова текущая дата
-    setMatchScore("");
-    setSelectedIds([]);
+      const team1 = [selectedIds[0]];
+      const team2 = [selectedIds[1]];
 
-    // 👉 перезагружаем матчи и участников
-    const m = await MatchRepository.loadMatches(tournamentId);
-    setMatches(m);
+      await MatchRepository.addMatch(
+        new Date(matchDate),
+        tournament.tournament_type,
+        scores,
+        team1,
+        team2,
+        tournament.id
+      );
 
-    const parts = await TournamentsRepository.loadParticipants(tournamentId);
-    setParticipants(parts);
-  } catch (err) {
-    console.error("Ошибка при добавлении матча:", err);
-    alert("Не удалось добавить матч");
-  }
-};
+      // сброс полей
+      setMatchDate(today);
+      setMatchScore("");
+      setSelectedIds(user?.role == "player" && user.player_id ? [user.player_id] : []);
+
+      // перезагрузка
+      const m = await MatchRepository.loadMatches(tournamentId);
+      setMatches(m);
+      const parts = await TournamentsRepository.loadParticipants(tournamentId);
+      setParticipants(parts);
+    } catch (err) {
+      console.error("Ошибка при добавлении матча:", err);
+      alert("Не удалось добавить матч");
+    }
+  };
 
   const handleEditMatchSave = async (updatedMatch: Match) => {
     try {
@@ -163,7 +172,9 @@ const handleAddMatch = async () => {
 
   if (!tournament) return <p>Загрузка...</p>;
 
-  const allItems = tournament.tournament_type === "single" ? allPlayers : allTeams;
+  // ⬇⬇⬇ Условия блокировки (как у вас было с <select>)
+  const isAnon = user?.role == undefined;
+  const isPlayerWithFixedAttacker = user?.role == "player" && !!user?.player_id;
 
   return (
     <div className="page-container">
@@ -172,115 +183,99 @@ const handleAddMatch = async () => {
       <h1 className="page-title">{tournament.name}</h1>
 
       <div className="page-content-container">
-        
-        {/* --- карточка турнира --- */}
-        <TournamentCard 
-          tournament={tournament} 
-          participantsCount={participants.length} 
+        <TournamentCard
+          tournament={tournament}
+          participantsCount={participants.length}
           matchesCount={matches.length}
           mostMatches={mostPlayed?.player}
           mostWins={mostWins?.player}
         />
 
-          {/* ---------------------------------------------------- */}
-          {/* --- блок вкладки + форма добавления матча справа --- */}
-          {/* ---------------------------------------------------- */}
-          <div className="card card-tabs">
-            <button
-              className={activeTab === "pyramid" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
-              onClick={() => setActiveTab("pyramid")}
-            >
-              Пирамида
-            </button>
-            <button
-              className={activeTab === "matches" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
-              onClick={() => setActiveTab("matches")}
-            >
-              Матчи
-            </button>
-            <button
-              className={activeTab === "participants" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
-              onClick={() => setActiveTab("participants")}
-            >
-              Участники
-            </button>
-          </div>
-          
-          {/* ---------------------------------------------------- */}
-          {/* --- добавление матча ------------------------------- */}
-          {/* ---------------------------------------------------- */}
-          {activeTab !== "participants" && (
-            
+        <div className="card card-tabs">
+          <button
+            className={activeTab === "pyramid" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
+            onClick={() => setActiveTab("pyramid")}
+          >
+            Пирамида
+          </button>
+          <button
+            className={activeTab === "matches" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
+            onClick={() => setActiveTab("matches")}
+          >
+            Матчи
+          </button>
+          <button
+            className={activeTab === "participants" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
+            onClick={() => setActiveTab("participants")}
+          >
+            Участники
+          </button>
+        </div>
+
+        {/* --- добавление матча --- */}
+        {activeTab !== "participants" && (
           <LoggedIn>
-          <ViewportDebug />
-          <div className="card">
-        
-            <select
-              disabled={user?.role == undefined || user?.role == "player" && !!user?.player_id} // 👈 если есть player — нельзя менять
-              onChange={(e) =>
-                setSelectedIds((prev) => {
-                  const newVal = Number(e.target.value);
-                  if (!newVal) return prev;
-                  if (prev.includes(newVal)) return prev;
-                  if (prev.length === 0) return [newVal];
-                  if (prev.length === 1) return [newVal, prev[1]];
-                  return [newVal, prev[1]];
-                })
-              }
-              value={selectedIds[0] || ""}
-              className="card-input card-input-add-match"
-            >
-              <option value="">-- Нападение --</option>
-              {allItems.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
+            <ViewportDebug />
+            <div className="card card-tabs card-tabs-wrap">
+              {/* ⬇⬇⬇ КАСТОМНЫЙ SELECT — Нападение */}
+              <CustomSelect
+                className="card-input card-input-add-match"
+                options={options}
+                value={selectedIds[0] ?? null}
+                placeholder="-- Нападение --"
+                disabled={isAnon || isPlayerWithFixedAttacker} // если игрок, нельзя менять нападающего
+                onChange={(val) => {
+                  const newVal = Number(val);
+                  setSelectedIds((prev) => {
+                    if (!newVal) return prev;
+                    if (prev.includes(newVal)) return prev;
+                    if (prev.length === 0) return [newVal];
+                    if (prev.length === 1) return [newVal, prev[1]];
+                    return [newVal, prev[1]];
+                  });
+                }}
+              />
 
-            <select
-              disabled={user?.role == undefined} 
-              onChange={(e) =>
-                setSelectedIds((prev) => {
-                  const newVal = Number(e.target.value);
-                  if (!newVal) return prev;
-                  if (prev.includes(newVal)) return prev;
-                  if (prev.length === 0) return [newVal];
-                  if (prev.length === 1) return [...prev, newVal];
-                  return [prev[0], newVal];
-                })
-              }
-              value={selectedIds[1] || ""}
-              className="card-input card-input-add-match"
-            >
-              <option value="">-- Защита --</option>
-              {allItems.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
+              {/* ⬇⬇⬇ КАСТОМНЫЙ SELECT — Защита */}
+              <CustomSelect
+                className="card-input card-input-add-match"
+                options={options}
+                value={selectedIds[1] ?? null}
+                placeholder="-- Защита --"
+                disabled={isAnon}
+                onChange={(val) => {
+                  const newVal = Number(val);
+                  setSelectedIds((prev) => {
+                    if (!newVal) return prev;
+                    if (prev.includes(newVal)) return prev;
+                    if (prev.length === 0) return [newVal];
+                    if (prev.length === 1) return [...prev, newVal];
+                    return [prev[0], newVal];
+                  });
+                }}
+              />
 
-            <input
-              type="date"
-              value={matchDate}
-              onChange={(e) => setMatchDate(e.target.value)}
-              className="card-input card-input-add-match"
-            />
+              <input
+                type="date"
+                value={matchDate}
+                onChange={(e) => setMatchDate(e.target.value)}
+                className="card-input card-input-add-match"
+              />
 
-            <input
-              type="text"
-              placeholder="6-4, 4-6, 11-8"
-              value={matchScore}
-              onChange={(e) => setMatchScore(e.target.value)}
-              className="card-input card-input-add-match"
-            />
+              <input
+                type="text"
+                placeholder="6-4, 4-6, 11-8"
+                value={matchScore}
+                onChange={(e) => setMatchScore(e.target.value)}
+                className="card-input card-input-add-match"
+              />
 
-            <button onClick={handleAddMatch} className="card-btn card-btn-act">Добавить</button>
-          </div>
+              <button onClick={handleAddMatch} className="card-btn card-btn-act">
+                Добавить
+              </button>
+            </div>
           </LoggedIn>
-          )}
-
+        )}
 
         {/* --- контент вкладок --- */}
         <div>
@@ -304,22 +299,15 @@ const handleAddMatch = async () => {
             <MatchHistoryView
               matches={matches}
               onEditMatch={(updated) => {
-                // тут обновляем через MatchRepository
                 MatchRepository.updateMatch(updated);
               }}
               onDeleteMatch={(m) => {
-                // тут удаляем через MatchRepository
-                console.log("Удаление:", m);
                 MatchRepository.deleteMatch(m);
               }}
             />
           )}
 
-          {activeTab === "participants" && (
-            <ParticipantsView/>
-          )}
-
-
+          {activeTab === "participants" && <ParticipantsView />}
         </div>
 
         {/* модалка истории */}
@@ -328,8 +316,8 @@ const handleAddMatch = async () => {
           onClose={() => setHistoryOpen(false)}
           matches={matches}
           playerId={historyPlayerId}
-          onEditMatch={(m) => handleEditMatchSave(m)}        // ✅ передали
-          onDeleteMatch={(m) => handleDeleteMatch(m)}             // ✅ передали
+          onEditMatch={(m) => handleEditMatchSave(m)}
+          onDeleteMatch={(m) => handleDeleteMatch(m)}
         />
       </div>
     </div>

@@ -176,15 +176,8 @@
   background: #e0e0e0;
 }
 
-.tabs button.active:hover {
-  background: #005bb5;
-}
-
-
-
-
 .card-input-add-match {
-  max-width: 200px;
+  max-width: 190px;
   margin-right: 5px;
 }
 
@@ -194,6 +187,11 @@
   align-items: stretch;
   gap: 5px;
 }
+
+.card-tabs-wrap {
+  flex-wrap: wrap;
+}
+
 
 .tabs-button {
   flex: 1;

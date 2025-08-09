@@ -1,0 +1,116 @@
+/* Контейнер */
+.cs-select {
+  position: relative;
+  width: 280px;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-size: 14px;
+}
+
+/* Триггер */
+.cs-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 38px;
+  padding: 8px 10px;
+  cursor: pointer;
+  outline: none;
+  transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
+}
+
+.cs-trigger:hover {
+  border-color: #a3aab5;
+}
+
+.cs-select.is-open .cs-trigger {
+  border-color: #6b7280;
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+}
+
+.cs-select.is-disabled .cs-trigger {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.cs-value.is-placeholder {
+  color: #9ca3af;
+}
+
+.cs-caret {
+  margin-left: 8px;
+  transform: translateY(1px);
+}
+
+/* Дропдаун */
+.cs-dropdown {
+  position: absolute;
+  z-index: 9999;
+  left: 0; right: 0;
+  margin-top: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.08);
+  overflow: auto;
+  padding: 6px;
+  animation: cs-fade-in .12s ease;
+}
+
+@keyframes cs-fade-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Опция */
+.cs-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: background .12s ease, color .12s ease;
+}
+
+.cs-option:hover {
+  background: #f3f4f6;
+}
+
+.cs-option.is-active {
+  background: #eef2ff; /* легкий подсвет активной */
+}
+
+.cs-option.is-selected .cs-option-label {
+  font-weight: 600;
+}
+
+.cs-option.is-disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.cs-check {
+  margin-left: 6px;
+}
+
+/* Узкие экраны */
+@media (max-width: 480px) {
+  .cs-select { width: 100%; }
+  .cs-trigger { min-height: 32px; }
+  .cs-option { padding: 10px 12px; }
+}
+
+/* подними контекст карточки, когда внутри открыт селект */
+.card-tabs-wrap:has(.cs-select.is-open) {
+  position: relative;
+  z-index: 10;
+}
+
+/* базово: позиционирование и высокий слой для меню */
+.cs-select { position: relative; }
+.cs-dropdown {
+  position: absolute;
+  z-index: 1000; /* внутри поднятой карточки этого хватит */
+}
