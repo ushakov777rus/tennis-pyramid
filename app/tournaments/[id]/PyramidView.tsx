@@ -277,6 +277,7 @@ const renderPlayerCard = (p: Participant, index: number) => {
                 📜
               </button>
             )}
+            
           </div>
 
           {invalidId === id && (

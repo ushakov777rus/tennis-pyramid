@@ -30,6 +30,7 @@ export function MatchHistoryModal({
   const [editScore, setEditScore] = useState<string>("");
 
   if (!isOpen || playerId === null) return null;
+  console.log("Show history");
 
   // Фильтруем только матчи игрока
   const playerMatches = matches.filter(

@@ -1,3 +1,29 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.match-history-modal {
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  width: 96%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.match-history-modal h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
 /* Контейнер */
 .history-wrap {
   width: 100%;
