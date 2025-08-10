@@ -38,7 +38,7 @@
   padding: 10px 12px;
   border-bottom: 1px solid #2a2a2a;
   vertical-align: middle;
-  white-space: nowrap;
+  
 }
 
 .history-table tbody tr:hover {
@@ -213,4 +213,16 @@ tr.editing { background: rgba(166, 255, 0, 0.05); }
   .row-actions { opacity: 1; }
   .score-readonly { gap: 6px; }
   .inline-input { max-width: 100%; }
+}
+
+@media (max-width: 720px) {
+  .date-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    /* чтобы переносы работали внутри */
+    white-space: normal;
+  }
+  /* если было правило .show-sm-only { display: inline-block; } — можно оставить */
+  .date-cell .tournament-badge { display: block; }
 }

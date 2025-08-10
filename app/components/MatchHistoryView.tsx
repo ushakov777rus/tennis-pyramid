@@ -104,7 +104,7 @@ export function MatchHistoryView({
             return (
               <tr key={m.id} className={isEditing ? "editing" : ""}>
                 {/* Дата */}
-                <td>
+                <td className="date-cell">
                   {isEditing ? (
                     <input
                       type="date"
@@ -199,7 +199,7 @@ export function MatchHistoryView({
                       {/* ховер-тулбар (десктоп) + кнопка меню (мобил) */}
                       <div className="row-actions">
                         <button
-                          className="icon-btn"
+                          className="icon-btn hide-sm"
                           onClick={() => startEditing(m)}
                           aria-label="Редактировать"
                           title="Редактировать"
@@ -211,7 +211,7 @@ export function MatchHistoryView({
                           </svg>
                         </button>
                         <button
-                          className="icon-btn danger"
+                          className="icon-btn hide-sm danger"
                           onClick={() => confirmDelete(m)}
                           aria-label="Удалить"
                           title="Удалить"

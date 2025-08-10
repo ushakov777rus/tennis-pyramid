@@ -93,10 +93,10 @@ export function ParticipantsView() {
   const tournamentTeams = participants.filter((p) => p.team);
 
   return (
-    <div style={{ display: "flex", gap: "40px", marginTop: "20px" }}>
+    <div className="history-wrap">
       {tournament.tournament_type === "single" ? (
-        <table className="participants-table">
-          <thead>
+      <table className="history-table">
+        <thead className="history-table-head">
             <tr>
               <th colSpan={2}>Доступные игроки</th>
               <th colSpan={2}>Участники турнира</th>

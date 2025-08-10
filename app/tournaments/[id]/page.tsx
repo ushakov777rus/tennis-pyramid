@@ -20,7 +20,7 @@ import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { PyramidView } from "./PyramidView";
 import { MatchHistoryModal } from "./MatchHistoryModal";
 import { MatchHistoryView } from "@/app/components/MatchHistoryView";
-import { ParticipantsView } from "./ParticipantsView";
+import { ParticipantsView } from "@/app/components/ParticipantsView";
 
 import { calcTopPlayers } from "@/app/utils/calcTopPlayers";
 
