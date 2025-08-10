@@ -45,6 +45,7 @@ export default function MatchListView() {
       <div className="page-content-container">
 
             <MatchHistoryView
+              player={null}
               matches={matches}
               showTournament={true}
               onEditMatch={(updated) => {
