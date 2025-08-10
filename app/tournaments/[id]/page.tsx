@@ -24,7 +24,7 @@ import { ParticipantsView } from "@/app/components/ParticipantsView";
 
 import { calcTopPlayers } from "@/app/utils/calcTopPlayers";
 
-import "./page.css";
+import "./Page.css";
 import { LoggedIn } from "@/app/components/RoleGuard";
 import { ViewportDebug } from "@/app/components/ViewportDebug";
 
