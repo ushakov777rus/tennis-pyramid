@@ -19,7 +19,12 @@
   max-width: 800px;        /* ограничение по ширине */
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   color: #ccc;             /* чтобы текст был читаем */
+
+   /* Ограничение высоты и скролл */
+  max-height: 80vh;
+  overflow-y: auto;
 }
+
 
 .match-history-modal h3 {
   margin-top: 0;
