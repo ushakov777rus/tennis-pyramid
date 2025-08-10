@@ -17,14 +17,14 @@ import { PlayersRepository } from "@/app/repositories/PlayersRepository";
 import { TeamsRepository } from "@/app/repositories/TeamsRepository";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 
-import { PyramidView } from "./PyramidView";
+import { PyramidView } from "@/app/components/PyramidView";
 import { MatchHistoryModal } from "@/app/components/MatchHistoryModal";
 import { MatchHistoryView } from "@/app/components/MatchHistoryView";
 import { ParticipantsView } from "@/app/components/ParticipantsView";
 
 import { calcTopPlayers } from "@/app/utils/calcTopPlayers";
 
-import "./Page.css";
+import "./page.css";
 import { LoggedIn } from "@/app/components/RoleGuard";
 import { ViewportDebug } from "@/app/components/ViewportDebug";
 

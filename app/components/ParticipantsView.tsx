@@ -95,41 +95,69 @@ export function ParticipantsView() {
   return (
     <div className="history-wrap">
       {tournament.tournament_type === "single" ? (
-      <table className="history-table">
-        <thead className="history-table-head">
-            <tr>
-              <th colSpan={2}>Доступные игроки</th>
-              <th colSpan={2}>Участники турнира</th>
-            </tr>
-          </thead>
-          <tbody>
-            {/* Ряды в таблице */}
-            {Array.from({ length: Math.max(availablePlayers.length, participants.length) }).map((_, i) => {
-              const avail = availablePlayers[i];
-              const part = participants[i];
+  <table className="history-table">
+    <thead className="history-table-head">
+      <tr>
+        <th colSpan={2}>Доступные игроки</th>
+        <th colSpan={2}>Участники турнира</th>
+      </tr>
+    </thead>
+    <tbody>
+      {Array.from({ length: Math.max(availablePlayers.length, participants.length) }).map((_, i) => {
+        const avail = availablePlayers[i];
+        const part = participants[i];
 
-              return (
-                <tr key={i}>
-                  {/* Доступные */}
-                  <td>{avail?.name ?? ""}</td>
-                  <td>
-                    {avail && (
-                      <button onClick={() => addToTournament(avail.id)}>➕</button>
-                    )}
-                  </td>
+        return (
+          <tr key={i}>
+            {/* Доступные */}
+            <td>
+              {avail ? <span className="chip">{avail.name}</span> : ""}
+            </td>
+            <td className="score-col">
+              {avail && (
+                <div className="row-actions">
+                  <button
+                    className="icon-btn"
+                    onClick={() => addToTournament(avail.id)}
+                    title="Добавить в турнир"
+                    aria-label="Добавить в турнир"
+                  >
+                    {/* plus */}
+                    <svg width="18" height="18" viewBox="0 0 24 24">
+                      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </td>
 
-                  {/* Участники */}
-                  <td>{part?.player?.name ?? ""}</td>
-                  <td>
-                    {part && (
-                      <button onClick={() => removeFromTournament(part.id)}>❌</button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+            {/* Участники */}
+            <td>
+              {part?.player ? <span className="chip">{part.player.name}</span> : ""}
+            </td>
+            <td className="score-col">
+              {part && (
+                <div className="row-actions">
+                  <button
+                    className="icon-btn danger"
+                    onClick={() => removeFromTournament(part.id)}
+                    title="Убрать из турнира"
+                    aria-label="Убрать из турнира"
+                  >
+                    {/* trash */}
+                    <svg width="18" height="18" viewBox="0 0 24 24">
+                      <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+
       ) : (
         <>
           {/* Доступные игроки */}

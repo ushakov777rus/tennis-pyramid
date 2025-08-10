@@ -1,66 +1,38 @@
-.participants-table {
-  width: 100%;
-  max-width: 900px;
-  border-collapse: collapse;
-  margin-bottom: 15px;
-  font-size: 12px;
-  margin: 0 auto 5px;
-}
+/* Списки и строки — тёмный стиль как в истории матчей */
+.players-list, .teams-list { list-style: none; margin: 0; padding: 0; }
 
-.participants-table th,
-.participants-table td {
-  border: 1px solid #ddd;
-  padding: 4px;
-  text-align: center;
+.available-player-row, .team-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 10px 12px; border-bottom: 1px solid #2a2a2a;
+  background: #1b1b1b; color: #ccc; cursor: pointer;
 }
-
-.participants-table th {
-  background: #444;
+.available-player-row:hover, .team-row:hover {
+  background: rgba(166, 255, 0, 0.05);
 }
-
-.players-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.players-list li {
-  display: flex;
-  align-items: center;
-  gap: 8px;       /* расстояние между чекбоксом и именем */
-  margin: 5px 0;
-}
-
-.players-list input[type="checkbox"] {
-  margin: 0;      /* убираем дефолтные отступы */
-}
-
-.available-player-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 5px 0;
-  padding: 6px 10px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
-}
-
-.available-player-row:hover {
-  border-color: #ccc;
-}
-
 .available-player-row.selected {
-  background: #e6f3ff;      /* голубая подсветка */
-  border-color: #3399ff;    /* синяя рамка */
+  background: rgba(166, 255, 0, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(166, 255, 0, 0.25);
 }
 
-.add-team-btn {
-  background: #e6ffed;      /* голубая подсветка */
-  border-color: #46fa58;    /* синяя рамка */
-  border-radius: 6px;
+.row-left { display: flex; align-items: center; gap: 10px; }
+.name { color: #ccc; }
+.plus { color: #777; }
 
-    display: flex;
-  align-items: center;
+/* Появление кнопок как у матчей */
+.players-list .row-actions, .teams-list .row-actions {
+  display: inline-flex; gap: 4px; opacity: 0; transition: opacity .15s ease;
 }
+.available-player-row:hover .row-actions, .team-row:hover .row-actions {
+  opacity: 1;
+}
+
+/* Кнопка «создать пару» снизу — в зелёном стиле */
+.add-team-btn, .cta-btn {
+  background: rgba(166,255,0,0.15);
+  border: 1px solid rgba(166,255,0,0.4);
+  color: #a6ff00;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+.add-team-btn:hover, .cta-btn:hover { background: rgba(166,255,0,0.25); }
