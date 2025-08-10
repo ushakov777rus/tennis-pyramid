@@ -12,7 +12,7 @@
 }
 
 .match-history-modal {
-  background: white;
+  background: none;
   padding: 10px;
   border-radius: 8px;
   width: 96%;
@@ -110,6 +110,11 @@
   font-weight: 600;
 }
 .vs { color: #777; }
+
+.chip-margin-bottom {
+  margin-bottom: 10px;
+  font-size: 12px;
+}
 
 /* Счёт + действия */
 .score-col {

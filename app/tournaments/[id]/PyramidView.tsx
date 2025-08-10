@@ -24,7 +24,7 @@ type PyramidViewProps = {
   maxLevel: number | 15;
   onSelect: (ids: number[]) => void;
   selectedIds: number[];
-  onShowHistory?: (id?: number) => void;
+  onShowHistory?: (participant?: Participant) => void;
   matches: Match[];
 };
 
@@ -271,7 +271,7 @@ const renderPlayerCard = (p: Participant, index: number) => {
                 className="history-btn"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onShowHistory(p.player?.id ?? p.team?.id);
+                  onShowHistory(p);
                 }}
               >
                 📜

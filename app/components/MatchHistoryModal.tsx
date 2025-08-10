@@ -2,8 +2,12 @@
 
 import { useState } from "react";
 
+import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
-import { formatDate } from "@/app/components/Utils";
+
+import { MatchHistoryView } from "@/app/components/MatchHistoryView";
+
+import { MatchRepository } from "@/app/repositories/MatchRepository"
 
 import "@/app/components/MatchHistory.css";
 
@@ -12,7 +16,7 @@ type MatchHistoryModalProps = {
   isOpen: boolean;
   onClose: () => void;
   matches: Match[];
-  playerId: number | null;
+  player: Player;
   onEditMatch?: (match: Match) => void;
   onDeleteMatch?: (match: Match) => void;
 };
@@ -21,7 +25,7 @@ export function MatchHistoryModal({
   isOpen,
   onClose,
   matches,
-  playerId,
+  player,
   onEditMatch,
   onDeleteMatch,
 }: MatchHistoryModalProps) {
@@ -29,12 +33,12 @@ export function MatchHistoryModal({
   const [editDate, setEditDate] = useState<string>("");
   const [editScore, setEditScore] = useState<string>("");
 
-  if (!isOpen || playerId === null) return null;
+  if (!isOpen || player === null) return null;
   console.log("Show history");
 
   // Фильтруем только матчи игрока
   const playerMatches = matches.filter(
-    (m) => m.player1?.id === playerId || m.player2?.id === playerId
+    (m) => m.player1?.id === player?.id || m.player2?.id === player.id
   );
 
   // Сортировка (новые → старые)
@@ -44,7 +48,7 @@ export function MatchHistoryModal({
 
   // Определяем имя игрока
   const playerName =
-    playerMatches[0]?.player1?.id === playerId
+    playerMatches[0]?.player1?.id === player.id
       ? playerMatches[0]?.player1?.name
       : playerMatches[0]?.player2?.name;
 
@@ -79,75 +83,25 @@ export function MatchHistoryModal({
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="match-history-modal" onClick={(e) => e.stopPropagation()}>
-        <h3>История матчей {playerName ? `— ${playerName}` : ""}</h3>
+        <MatchHistoryView
+          player={player}
+          matches={matches}
+          showTournament={true}
+          onEditMatch={(updated) => {
+            // тут обновляем через MatchRepository
+            MatchRepository.updateMatch(updated);
+          }}
+          onDeleteMatch={(m) => {
+            // тут удаляем через MatchRepository
+            console.log("Удаление:", m);
+            MatchRepository.deleteMatch(m);
+          }}
+        />
 
-        {playerMatches.length === 0 ? (
-          <p>Нет матчей</p>
-        ) : (
-          <table className="history-table">
-            <thead>
-              <tr>
-                <th>Дата</th>
-                <th>Соперник</th>
-                <th>Счёт</th>
-                <th>Действия</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedMatches.map((m) => {
-                const isWinner = m.getWinnerId() === playerId;
-                const opponentName =
-                  m.player1?.id === playerId ? m.player2?.name : m.player1?.name;
-
-                const isEditing = editingId === m.id;
-
-                return (
-                  <tr key={m.id} className={isWinner ? "win" : "loss"}>
-                    <td>
-                      {isEditing ? (
-                        <input
-                          type="date"
-                          value={editDate}
-                          onChange={(e) => setEditDate(e.target.value)}
-                        />
-                      ) : (
-                        formatDate(m.date)
-                      )}
-                    </td>
-                    <td>{opponentName}</td>
-                    <td>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editScore}
-                          onChange={(e) => setEditScore(e.target.value)}
-                          placeholder="например: 6-4, 4-6, 10-8"
-                        />
-                      ) : (
-                        m.formatResult()
-                      )}
-                    </td>
-                    <td>
-                      {isEditing ? (
-                        <>
-                          <button onClick={() => saveEditing(m)}>💾</button>
-                          <button onClick={() => setEditingId(null)}>🚫</button>
-                        </>
-                      ) : (
-                        <>
-                          <button onClick={() => startEditing(m)}>✏️</button>
-                          <button onClick={() => onDeleteMatch?.(m)}>🗑️</button>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-
-        <button className="close-btn" onClick={onClose}>
+        <button
+          className="card-btn card-btn-act card-btn-margin-top"
+          onClick={onClose}
+        >
           Закрыть
         </button>
       </div>

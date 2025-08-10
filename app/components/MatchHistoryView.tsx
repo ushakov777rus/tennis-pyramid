@@ -1,11 +1,16 @@
 "use client";
 
 import { useState } from "react";
+
+import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
+
 import { formatDate } from "@/app/components/Utils";
+
 import "@/app/components/MatchHistory.css";
 
 type MatchHistoryViewProps = {
+  player: Player | null;                    // Если передаем игрока то историю показыаем только по нему
   matches: Match[];
   onEditMatch?: (match: Match) => void;
   onDeleteMatch?: (match: Match) => void;
@@ -13,6 +18,7 @@ type MatchHistoryViewProps = {
 };
 
 export function MatchHistoryView({
+  player,
   matches,
   onEditMatch,
   onDeleteMatch,
@@ -25,7 +31,13 @@ export function MatchHistoryView({
 
   if (matches.length === 0) return <p className="history-empty">Матчей пока нет</p>;
 
-  const sortedMatches = [...matches].sort(
+    // Фильтруем только матчи игрока
+  const displayMatches = player ?
+    matches.filter(
+      (m) => m.player1?.id === player.id || m.player2?.id === player.id
+    ) : matches;
+
+  const sortedMatches = [...displayMatches].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
@@ -87,6 +99,7 @@ export function MatchHistoryView({
 
   return (
     <div className="history-wrap">
+      { player ? <div className="chip chip-margin-bottom">История матчей {player.name}</div>:""}
       <table className="history-table">
         <thead className="history-table-head">
           <tr>

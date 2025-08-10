@@ -181,7 +181,9 @@ body {
   background: #ec9c9c;
 }
 
-
+.card-btn-margin-top {
+  margin-top: 10px;
+}
 
 .card-btn:hover {
   background: #c0ff4c;

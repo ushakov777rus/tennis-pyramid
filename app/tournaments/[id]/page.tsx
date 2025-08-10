@@ -52,7 +52,7 @@ export default function TournamentPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [historyPlayerId, setHistoryPlayerId] = useState<number | null>(null);
+  const [historyPlayer, setHistoryPlayer] = useState<Player>();
 
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
 
@@ -287,9 +287,9 @@ export default function TournamentPage() {
               maxLevel={maxLevel}
               selectedIds={selectedIds}
               onSelect={setSelectedIds}
-              onShowHistory={(id) => {
-                if (id !== undefined) {
-                  setHistoryPlayerId(id);
+              onShowHistory={(participant) => {
+                if (participant?.player !== undefined) {
+                  setHistoryPlayer(participant?.player);
                   setHistoryOpen(true);
                 }
               }}
@@ -299,6 +299,7 @@ export default function TournamentPage() {
 
           {activeTab === "matches" && (
             <MatchHistoryView
+              player={null}
               matches={matches}
               onEditMatch={(updated) => {
                 MatchRepository.updateMatch(updated);
@@ -313,14 +314,16 @@ export default function TournamentPage() {
         </div>
 
         {/* модалка истории */}
-        <MatchHistoryModal
-          isOpen={historyOpen}
-          onClose={() => setHistoryOpen(false)}
-          matches={matches}
-          playerId={historyPlayerId}
-          onEditMatch={(m) => handleEditMatchSave(m)}
-          onDeleteMatch={(m) => handleDeleteMatch(m)}
-        />
+        {historyPlayer && (
+          <MatchHistoryModal
+            isOpen={historyOpen}
+            onClose={() => setHistoryOpen(false)}
+            matches={matches}
+            player={historyPlayer}
+            onEditMatch={(m) => handleEditMatchSave(m)}
+            onDeleteMatch={(m) => handleDeleteMatch(m)}
+          />
+        )}
       </div>
     </div>
   );
