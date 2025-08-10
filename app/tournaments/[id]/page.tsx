@@ -86,7 +86,7 @@ export default function TournamentPage() {
       const m = await MatchRepository.loadMatches(tournamentId);
       setMatches(m);
 
-      if (t?.tournament_type === "single") {
+      if (t?.isSingle()) {
         setAllPlayers(await PlayersRepository.loadAll());
       } else {
         setAllTeams(await TeamsRepository.loadAll());

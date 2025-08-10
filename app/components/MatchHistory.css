@@ -1,74 +1,216 @@
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
+/* Контейнер */
+.history-wrap {
   width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
+  overflow: auto;
 }
 
-.match-history-modal {
-  background: white;
-  padding: 10px;
-  border-radius: 8px;
-  width: 96%;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+/* Пустое состояние */
+.history-empty {
+  padding: 12px 0;
+  color: #999;
 }
 
-.match-history-modal h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-}
-
+/* Таблица */
 .history-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 15px;
-  font-size: 12px;
-  max-width: 900px;
-  margin: 0 auto 5px;
+  font-size: 14px;
+  background: #1b1b1b;
+  border-radius: 16px;
+  overflow: hidden;
+  color: #ccc;
+  box-shadow: 0 0 10px rgba(166, 255, 0, 0.1); /* зелёная подсветка */
 }
 
-.history-table-head {
-  background: #444;
+.history-table-head th {
+  position: sticky;
+  top: 0;
+  background: #222; /* тёмный хедер */
+  text-align: left;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-bottom: 1px solid #2a2a2a;
+  color: #aaff55; /* мягкий зелёный акцент */
+  z-index: 1;
 }
 
-.history-table th,
 .history-table td {
-  border: 1px solid #ddd;
-  padding: 4px;
-  text-align: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid #2a2a2a;
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
-.history-table th {
-  background: #444;
+.history-table tbody tr:hover {
+  background: rgba(166, 255, 0, 0.05); /* лёгкий зелёный ховер */
 }
 
-.history-table tr.win,
-.history-table td.win {
-  background: #d4f8d4; /* зелёный фон побед */
-  color: #222;
+/* Дата + бейдж турнира */
+.date { color: #ccc; }
+.tournament-badge {
+  margin-top: 4px;
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 12px;
+  background: rgba(166, 255, 0, 0.1);
+  border: 1px solid rgba(166, 255, 0, 0.3);
+  border-radius: 999px;
+  color: #a6ff00;
 }
 
-.history-table tr.loss,
-.history-table td.loss {
-  background: #f8d4d4; /* красный фон поражений */
-  color: #222;
+/* Игроки */
+.players {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #2a2a2a;
+  color: #ccc;
+  border: 1px solid #3a3a3a;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chip.win {
+  background: rgba(166, 255, 0, 0.15);
+  border-color: rgba(166, 255, 0, 0.4);
+  color: #a6ff00;
+  font-weight: 600;
+}
+.vs { color: #777; }
+
+/* Счёт + действия */
+.score-col {
+  width: 1%;
+  white-space: nowrap;
 }
 
-.close-btn {
-  background: #444;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 5px;
+.score-readonly {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.row-actions {
+  display: inline-flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.history-table tbody tr:hover .row-actions,
+.history-table tbody tr:focus-within .row-actions {
+  opacity: 1;
+}
+
+.always-visible { opacity: 1; }
+
+/* Кнопки-иконки */
+.icon-btn {
+  appearance: none;
+  background: #1f1f1f;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 6px;
   cursor: pointer;
+  line-height: 0;
+  color: #ccc;
+}
+.icon-btn:hover {
+  background: rgba(166, 255, 0, 0.15);
+  border-color: rgba(166, 255, 0, 0.4);
+  color: #a6ff00;
+}
+.icon-btn:focus {
+  outline: 2px solid rgba(166, 255, 0, 0.6);
+  outline-offset: 2px;
+}
+.icon-btn.danger:hover {
+  background: rgba(255, 0, 0, 0.1);
+  border-color: rgba(255, 0, 0, 0.3);
+  color: #ff6666;
+}
+.icon-btn.save {
+  background: rgba(166, 255, 0, 0.15);
+  border-color: rgba(166, 255, 0, 0.4);
+  color: #a6ff00;
+}
+.icon-btn.cancel {
+  background: rgba(255, 0, 0, 0.1);
+  border-color: rgba(255, 0, 0, 0.3);
+  color: #ff6666;
 }
 
-.close-btn:hover {
-  background: #222;
+.inline-input {
+  padding: 6px 8px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: #111;
+  color: #ccc;
+  width: 100%;
+  max-width: 260px;
+}
+
+/* Меню для мобилы */
+.menu-wrap { position: relative; }
+.kebab { font-size: 18px; padding: 6px 8px; }
+.menu {
+  position: absolute;
+  right: 0;
+  top: 120%;
+  min-width: 160px;
+  background: #1f1f1f;
+  border: 1px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  padding: 6px;
+  display: grid;
+  gap: 4px;
+  z-index: 5;
+}
+.menu button {
+  text-align: left;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #ccc;
+}
+.menu button:hover {
+  background: rgba(166, 255, 0, 0.15);
+  color: #a6ff00;
+}
+.menu button.danger:hover {
+  background: rgba(255, 0, 0, 0.1);
+  color: #ff6666;
+}
+
+/* Ряд в режиме редактирования */
+tr.editing { background: rgba(166, 255, 0, 0.05); }
+.score-edit-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* Респонсив */
+.hide-sm { display: table-cell; }
+.show-sm-only { display: none; }
+
+@media (max-width: 720px) {
+  .hide-sm { display: none; }
+  .show-sm-only { display: inline-block; }
+  .history-table td { padding: 10px 10px; }
+  .row-actions { opacity: 1; }
+  .score-readonly { gap: 6px; }
+  .inline-input { max-width: 100%; }
 }

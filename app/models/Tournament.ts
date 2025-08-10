@@ -58,4 +58,8 @@ export class Tournament {
       ? "Идет"
       : "Завершен";
   }
+
+  isSingle(): boolean {
+    return this.tournament_type === "single";
+  }
 }

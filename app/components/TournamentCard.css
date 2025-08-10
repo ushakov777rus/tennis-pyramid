@@ -16,11 +16,11 @@
 .tournament-details table td:nth-child(2) {
   text-align: right;
   white-space: nowrap; /* чтобы текст не переносился */
-  padding-right: 20px;  /* чуть отступа от 3-й колонки */
+  padding-right: 10px;  /* чуть отступа от 3-й колонки */
 }
 
 .tournament-details table td:nth-child(1) {
-  padding-right: 10px;  /* чуть отступа от 3-й колонки */
+  padding-right: 5px;  /* чуть отступа от 3-й колонки */
 }
 
 .tournament-details table td:nth-child(3) {
