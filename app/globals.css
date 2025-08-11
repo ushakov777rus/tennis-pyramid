@@ -123,6 +123,17 @@ body {
   color: #ccc;
 }
 
+/* Добавляем анимации и плавность */
+.card {
+  transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+  /*transform: translateY(-5px);*/
+  box-shadow: 0 0 20px rgba(166, 255, 0, 0.3);
+}
+
+
 .card-with-status {
   padding: 5px 5px 10px 10px;
   font-size: 16px;
@@ -142,16 +153,6 @@ body {
   align-items: center;
   color: #cf6;
   cursor: pointer;
-}
-
-/* Добавляем анимации и плавность */
-.card {
-  transition: all 0.2s ease-in-out;
-}
-
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 0 20px rgba(166, 255, 0, 0.3);
 }
 
 /* ✅ Адаптивность для мобилок */

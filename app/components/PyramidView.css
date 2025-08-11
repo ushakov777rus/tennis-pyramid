@@ -221,3 +221,20 @@
     padding: 6px;
   }
 }
+
+
+/* полностью глушим transform/transition у контейнеров во время DnD */
+.dnd-active .card,
+.dnd-active .pyramid-row,
+.dnd-active .bench-row {
+  transform: none !important;
+  transition: none !important;
+  filter: none !important;
+  perspective: none !important;
+}
+
+/* чтобы hover не срабатывал во время перетаскивания */
+.dnd-active .card:hover {
+  transform: none !important;
+  box-shadow: 0 0 10px rgba(166, 255, 0, 0.1) !important;
+}

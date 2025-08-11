@@ -259,7 +259,9 @@ export function PyramidView({
             )}
 
             <div className="player-position">
-              {p.level && p.position ? `${p.level} - ${p.position}` : "Z"}
+              {p.level != null && p.position != null
+                ? `${p.level} - ${p.position}`
+                : `Z - ${p.position ?? "?"}`}
             </div>
 
             <div className="player-name">
@@ -339,7 +341,7 @@ export function PyramidView({
             <div
               ref={provided.innerRef}
               {...provided.droppableProps}
-              className="pyramid-row bench-row"
+              className="card pyramid-row bench-row"
               data-level="Скамейка"
             >
               {byLevel["999"].map((p, i) => renderPlayerCard(p, i))}
