@@ -12,7 +12,60 @@ import { Tournament } from "@/app/models/Tournament";
 import { Team } from "@/app/models/Team";
 import { Match } from "@/app/models/Match";
 
+import "./RatingView.css"
+
 type RatingViewProps = { matches: Match[] };
+
+function BadgeWithTip({ titleText, tooltip }: { titleText: string; tooltip: string }) {
+  const [open, setOpen] = useState(false);
+  const [isTouch, setIsTouch] = useState(false);
+
+  useEffect(() => {
+    const touch =
+      "ontouchstart" in window ||
+      (navigator as any).maxTouchPoints > 0 ||
+      (navigator as any).msMaxTouchPoints > 0;
+    setIsTouch(!!touch);
+  }, []);
+
+  return (
+    <span className="badge-with-tip">
+      {/* На десктопе оставим браузерный title для ховера */}
+      <span className="badge-title" title={isTouch ? undefined : tooltip}>
+        {titleText}
+      </span>
+
+      {/* Кнопка показывается только на тач-устройствах */}
+      {isTouch && (
+        <>
+          <button
+            type="button"
+            className="tip-btn"
+            aria-label="Пояснение"
+            onClick={() => setOpen((v) => !v)}
+          >
+            i
+          </button>
+          {open && (
+            <div className="tip-popover" role="dialog" aria-label="Подсказка">
+              <div className="tip-popover-content">{tooltip}</div>
+              <button
+                type="button"
+                className="tip-close"
+                aria-label="Закрыть"
+                onClick={() => setOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </span>
+  );
+}
+export default BadgeWithTip;
+
 
 export function RatingView({ matches }: RatingViewProps) {
   const params = useParams<{ id: string }>();
@@ -349,14 +402,9 @@ export function RatingView({ matches }: RatingViewProps) {
               row.winners.map((name) => (
                 <tr key={`${idx}-${name}`}>
                   <td>{name}</td>
-                  <td>
-                    <span
-                      className="badge-with-tip"
-                      title={row.tooltip}
-                    >
-                      {row.title}
-                    </span>
-                  </td>
+                    <td>
+                      <BadgeWithTip titleText={row.title} tooltip={row.tooltip} />
+                    </td>
                 </tr>
               ))
             )}

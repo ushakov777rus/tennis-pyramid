@@ -1,0 +1,78 @@
+.badge-with-tip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-title {
+  border-bottom: 1px dashed currentColor;
+}
+
+/* Кнопка i — по умолчанию скрыта */
+.tip-btn {
+  display: none;
+  width: 20px;
+  height: 20px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* На мобильных показываем кнопку */
+@media (max-width: 768px) {
+  .tip-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* На мобильных убираем стандартный title-ховер */
+  .badge-title {
+    border-bottom: none;
+  }
+}
+
+.tip-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1000;
+  min-width: 220px;
+  max-width: 260px;
+  background: #111;
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 12px 8px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+.tip-popover::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 12px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent #111 transparent;
+}
+
+.tip-popover-content {
+  font-size: 13px;
+  line-height: 1.3;
+  padding-right: 18px;
+}
+
+.tip-close {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
