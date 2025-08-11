@@ -30,16 +30,19 @@ type PyramidViewProps = {
 function getPlayerStatusIcon(
   participantId: number,
   match: Match
-): { icon: string; className: string } {
+): { icon: string; className: string; title: string } {
   const winnerId = match.getWinnerId();
   const isWinner = winnerId === participantId;
   const isAttacker =
     match.player1?.id === participantId || match.team1?.id === participantId;
 
-  if (isWinner && isAttacker) return { icon: "↑", className: "winner-attacker" };
-  if (isWinner && !isAttacker) return { icon: "✖", className: "winner-defender" };
-  if (!isWinner && isAttacker) return { icon: "↺", className: "loser-attacker" };
-  return { icon: "↓", className: "loser-defender" };
+  if (isWinner && isAttacker)
+    return { icon: " ↑", className: "winner-attacker", title: "Атаковал и выиграл" };
+  if (isWinner && !isAttacker)
+    return { icon: " ✖", className: "winner-defender", title: "Защищался и выиграл" };
+  if (!isWinner && isAttacker)
+    return { icon: " ↺", className: "loser-attacker", title: "Атаковал и проиграл" };
+  return { icon: " ↓", className: "loser-defender", title: "Защищался и проиграл" };
 }
 
 export function PyramidView({
@@ -264,25 +267,27 @@ export function PyramidView({
                 : `Z - ${p.position ?? "?"}`}
             </div>
 
-            <div className="player-name">
-              {(p.splitName ?? []).map((line, i) => {
-                let statusIcon = "";
-                let iconClass = "";
-                if (lastMatch && id) {
-                  const status = getPlayerStatusIcon(id, lastMatch);
-                  statusIcon = status.icon;
-                  iconClass = status.className;
-                }
-                return (
-                  <div key={i} className={`player-line ${iconClass}`}>
-                    {line}
-                    {i === 1 && statusIcon && (
-                      <span className="status-icon">{statusIcon}</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+<div className="player-name">
+  {(() => {
+    const lines = p.splitName ?? [];
+    const status = lastMatch && id ? getPlayerStatusIcon(id, lastMatch) : null;
+
+    return lines.map((line: string, i: number) => (
+      <div key={i} className={`player-line ${status?.className ?? ""}`}>
+        {line}
+        {i === 1 && status && (
+          <span
+            className="status-icon"
+            title={status.title}
+            aria-label={status.title}
+          >
+            {status.icon}
+          </span>
+        )}
+      </div>
+    ));
+  })()}
+</div>
 
             <div className="player-bottom-line">
               <div className="drag-handle" {...provided.dragHandleProps}>
