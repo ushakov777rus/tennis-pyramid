@@ -147,10 +147,12 @@ export function MatchHistoryView({
                   <div className="players">
                     <span
                       className={
-                        winnerId === (m.player1?.id ?? m.team1?.id)
-                          ? "chip win"
-                          : "chip"
-                      }
+                        !winnerId
+                          ? "chip"
+                          : winnerId === (m.player1?.id ?? m.team1?.id)
+                            ? "chip win"
+                            : "chip"
+                        }
                       title="Сторона 1"
                     >
                       {getSideName(m, 1)}
@@ -158,9 +160,11 @@ export function MatchHistoryView({
                     <span className="vs">—</span>
                     <span
                       className={
-                        winnerId === (m.player2?.id ?? m.team2?.id)
-                          ? "chip win"
-                          : "chip"
+                        !winnerId
+                          ? "chip"
+                          : winnerId === (m.player2?.id ?? m.team2?.id)
+                            ? "chip win"
+                            : "chip"
                       }
                       title="Сторона 2"
                     >

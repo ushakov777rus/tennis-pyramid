@@ -99,10 +99,12 @@ export function PyramidView({
 
     const playerMatches = matches.filter(
       (m) =>
+        m.scores.length && (
         m.player1?.id === id ||
         m.player2?.id === id ||
         m.team1?.id === id ||
         m.team2?.id === id
+        )
     );
 
     if (playerMatches.length === 0) return "";

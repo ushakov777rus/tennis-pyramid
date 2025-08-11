@@ -188,9 +188,9 @@ export default function TournamentPage() {
           participantsCount={participants.length}
           matchesCount={matches.length}
           mostMatches={mostPlayed?.player}
-          mostMatchesCnt={mostPlayed?.games?mostPlayed?.games:0}
+          mostMatchesCnt={mostPlayed?.games ? mostPlayed?.games : 0}
           mostWins={mostWins?.player}
-          mostWinsCnt={mostWins?.wins?mostWins?.wins:0}
+          mostWinsCnt={mostWins?.wins ? mostWins?.wins : 0}
         />
 
         <div className="card card-tabs">

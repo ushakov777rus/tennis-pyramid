@@ -54,6 +54,12 @@ export class Match {
   }
 
   getWinnerId(): number {
+
+    console.log("getWinnerId(): number {", this.scores.length, this.scores);
+    if (this.scores.length === 0) {
+      return 0;
+    }
+
     let sets1 = 0;
     let sets2 = 0;
 
@@ -83,6 +89,10 @@ export class Match {
   }
 
   static getWinnerId(scores: [number, number][], id1: number, id2: number): [number, number] {
+    if (scores.length === 0) {
+      return [0, 0];
+    }
+
     let sets1 = 0;
     let sets2 = 0;
 
