@@ -54,8 +54,6 @@ export class Match {
   }
 
   getWinnerId(): number {
-
-    console.log("getWinnerId(): number {", this.scores.length, this.scores);
     if (this.scores.length === 0) {
       return 0;
     }

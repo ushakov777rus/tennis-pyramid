@@ -233,9 +233,11 @@ export function PyramidView({
         m.team2?.id === id
     );
 
-    const lastMatch = playerMatches.sort(
-      (a, b) => b.date.getTime() - a.date.getTime()
-    )[0];
+    const now = new Date();
+
+    const lastMatch = playerMatches
+      .filter(m => m.date.getTime() <= now.getTime()) // только сыгранные
+      .sort((a, b) => b.date.getTime() - a.date.getTime())[0] || null;
 
     let daysWithoutGames: number | null = null;
     if (lastMatch) {
@@ -257,37 +259,39 @@ export function PyramidView({
             } ${statusClass} ${invalidId === id ? "shake" : ""}`}
             onClick={() => id && handleClick(id, p)}
           >
-            {daysWithoutGames !== null && (
-              <div className="days-counter">{daysWithoutGames}д</div>
-            )}
+            <div className="player-top-line">
+              {daysWithoutGames !== null && (
+                <div className="days-counter">{daysWithoutGames}д</div>
+              )}
 
-            <div className="player-position">
-              {p.level != null && p.position != null
-                ? `${p.level} - ${p.position}`
-                : `Z - ${p.position ?? "?"}`}
+              <div className="player-position">
+                {p.level != null && p.position != null
+                  ? `${p.level} - ${p.position}`
+                  : `Z - ${p.position ?? "?"}`}
+              </div>
             </div>
 
-<div className="player-name">
-  {(() => {
-    const lines = p.splitName ?? [];
-    const status = lastMatch && id ? getPlayerStatusIcon(id, lastMatch) : null;
+            <div className="player-name">
+              {(() => {
+                const lines = p.splitName ?? [];
+                const status = lastMatch && id ? getPlayerStatusIcon(id, lastMatch) : null;
 
-    return lines.map((line: string, i: number) => (
-      <div key={i} className={`player-line ${status?.className ?? ""}`}>
-        {line}
-        {i === 1 && status && (
-          <span
-            className="status-icon"
-            title={status.title}
-            aria-label={status.title}
-          >
-            {status.icon}
-          </span>
-        )}
-      </div>
-    ));
-  })()}
-</div>
+                return lines.map((line: string, i: number) => (
+                  <div key={i} className={`player-line ${status?.className ?? ""}`}>
+                    {line}
+                    {i === 1 && status && (
+                      <span
+                        className="status-icon"
+                        title={status.title}
+                        aria-label={status.title}
+                      >
+                        {status.icon}
+                      </span>
+                    )}
+                  </div>
+                ));
+              })()}
+            </div>
 
             <div className="player-bottom-line">
               <div className="drag-handle" {...provided.dragHandleProps}>

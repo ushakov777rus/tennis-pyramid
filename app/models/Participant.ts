@@ -40,6 +40,12 @@ export class Participant extends ParticipantBase {
     return "Без имени";
   }
 
+  get getId(): number {
+    if (this.player) return this.player.id;
+    if (this.team) return this.team.id;
+    return 0;
+  }
+
   get ntrp(): string | undefined {
     return this.player?.ntrp;
   }

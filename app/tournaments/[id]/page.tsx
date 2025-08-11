@@ -18,6 +18,7 @@ import { TeamsRepository } from "@/app/repositories/TeamsRepository";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 
 import { PyramidView } from "@/app/components/PyramidView";
+import { RatingView } from "@/app/components/RatingView";
 import { MatchHistoryModal } from "@/app/components/MatchHistoryModal";
 import { MatchHistoryView } from "@/app/components/MatchHistoryView";
 import { ParticipantsView } from "@/app/components/ParticipantsView";
@@ -42,7 +43,7 @@ export default function TournamentPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [allTeams, setAllTeams] = useState<{ id: number; name: string }[]>([]);
-  const [activeTab, setActiveTab] = useState<"pyramid" | "matches" | "participants">("pyramid");
+  const [activeTab, setActiveTab] = useState<"pyramid" | "matches" | "participants" | "rating">("pyramid");
 
   const today = new Date().toISOString().split("T")[0];
   const [matchDate, setMatchDate] = useState<string>(today);
@@ -212,10 +213,16 @@ export default function TournamentPage() {
           >
             Участники
           </button>
+          <button
+            className={activeTab === "rating" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
+            onClick={() => setActiveTab("rating")}
+          >
+            Звания
+          </button>
         </div>
 
         {/* --- добавление матча --- */}
-        {activeTab !== "participants" && (
+        {activeTab !== "participants" && activeTab !== "rating" && (
           <LoggedIn>
             <ViewportDebug />
             <div className="card card-tabs card-tabs-wrap">
@@ -311,6 +318,8 @@ export default function TournamentPage() {
           )}
 
           {activeTab === "participants" && <ParticipantsView />}
+          
+          {activeTab === "rating" && <RatingView matches={matches}/>}
         </div>
 
         {/* модалка истории */}
