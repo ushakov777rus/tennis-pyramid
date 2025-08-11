@@ -36,8 +36,6 @@ export function ParticipantsView() {
       TeamsRepository.loadAll(),
     ]);
 
-    console.log("TournamentsRepository.loadParticipants:", tournamentParticipants);
-
     setTournament(t);
     setPlayers(allPlayers);
     setParticipants(tournamentParticipants);

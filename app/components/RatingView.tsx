@@ -192,7 +192,7 @@ export function RatingView({ matches }: RatingViewProps) {
         tot = 0;
       for (const m of pastMatches) {
         if (!tookPart(p.getId, m)) continue;
-        const on1 = isOnSide1(p.getId, m);
+        const on1 = isOnSide1(p.id, m);
         for (const [a, b] of m.scores ?? []) {
           const isTB = (a === 7 && b === 6) || (a === 6 && b === 7);
           if (!isTB) continue;
@@ -235,7 +235,7 @@ export function RatingView({ matches }: RatingViewProps) {
       for (const m of pastMatches) {
         if (!tookPart(p.getId, m)) continue;
         matches++;
-        const on1 = isOnSide1(p.getId, m);
+        const on1 = isOnSide1(p.id, m);
         for (const [a, b] of m.scores ?? []) {
           const my = on1 ? a : b;
           const opp = on1 ? b : a;
