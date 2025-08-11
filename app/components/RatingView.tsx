@@ -156,115 +156,122 @@ export function RatingView({ matches }: RatingViewProps) {
 
     console.log("recentCountByPid:", recentCountByPid);
 
-    // 👑 Гигант-киллер
-    const upsetsByPid = new Map<number, number>();
+    // ⚡ Удачливый нападающий — больше всего побед в роли атакующего
+    const successfulAttacksByPid = new Map<number, number>();
+
     for (const p of participants) {
       let cnt = 0;
-      const myLevel = levelByPid.get(p.id);
-      if (myLevel == null) {
-        upsetsByPid.set(p.id, 0);
-        continue;
-      }
       for (const m of pastMatches) {
         if (!tookPart(p.getId, m)) continue;
-        if (winnerId(m) !== p.getId) continue;
-        const oppId = opponentOf(p.getId, m);
-        if (!oppId) continue;
-        const oppLevel = levelByPid.get(oppId);
-        if (oppLevel == null) continue;
-        if (oppLevel < myLevel) cnt++;
+        if (isOnSide1(p.getId, m) && winnerId(m) === p.getId) {
+          cnt++;
+        }
       }
-      upsetsByPid.set(p.id, cnt);
+      successfulAttacksByPid.set(p.id, cnt);
     }
-    const maxUpsets = Math.max(...upsetsByPid.values(), 0);
-    const giantKillers =
-      maxUpsets > 0
+
+    const maxSuccessfulAttacks = Math.max(...successfulAttacksByPid.values(), 0);
+    const luckyAttackers =
+      maxSuccessfulAttacks > 0
         ? participants
-            .filter((p) => (upsetsByPid.get(p.id) ?? 0) === maxUpsets)
+            .filter((p) => (successfulAttacksByPid.get(p.id) ?? 0) === maxSuccessfulAttacks)
             .map(getName)
         : [];
 
-    // 💔 Король тай-брейков
-    const tbWinsByPid = new Map<number, number>();
-    const tbTotalByPid = new Map<number, number>();
-    for (const p of participants) {
-      let wins = 0,
-        tot = 0;
-      for (const m of pastMatches) {
-        if (!tookPart(p.getId, m)) continue;
-        const on1 = isOnSide1(p.id, m);
-        for (const [a, b] of m.scores ?? []) {
-          const isTB = (a === 7 && b === 6) || (a === 6 && b === 7);
-          if (!isTB) continue;
-          tot++;
-          const my = on1 ? a : b;
-          const opp = on1 ? b : a;
-          if (my === 7 && opp === 6) wins++;
-        }
-      }
-      tbWinsByPid.set(p.id, wins);
-      tbTotalByPid.set(p.id, tot);
-    }
-    const tbCandidates = participants
-      .filter((p) => (tbTotalByPid.get(p.id) ?? 0) >= 3)
-      .map((p) => ({
-        pid: p.id,
-        rate:
-          (tbWinsByPid.get(p.id) ?? 0) /
-          Math.max(1, tbTotalByPid.get(p.id) ?? 1),
-        wins: tbWinsByPid.get(p.id) ?? 0,
-      }));
-    const bestRate =
-      tbCandidates.length > 0
-        ? Math.max(...tbCandidates.map((c) => c.rate))
-        : 0;
-    const tbKings = tbCandidates
-      .filter((c) => Math.abs(c.rate - bestRate) < 1e-9)
-      .sort((a, b) => b.wins - a.wins)
-      .map((c) => getName(participants.find((p) => p.id === c.pid)!));
+    // 🙃 Неудачный нападающий — больше всего поражений в роли атакующего
+    const failedAttacksByPid = new Map<number, number>();
 
-    // 🔋 Железный
-    const ironByPid = new Map<
-      number,
-      { avgLostPerSet: number; sets: number; matches: number }
-    >();
     for (const p of participants) {
-      let lostGames = 0;
-      let sets = 0;
-      let matches = 0;
+      let cnt = 0;
       for (const m of pastMatches) {
         if (!tookPart(p.getId, m)) continue;
-        matches++;
-        const on1 = isOnSide1(p.id, m);
-        for (const [a, b] of m.scores ?? []) {
-          const my = on1 ? a : b;
-          const opp = on1 ? b : a;
-          lostGames += opp;
-          sets++;
+        const onAttack = isOnSide1(p.getId, m);
+        const w = winnerId(m);
+        if (onAttack && w && w !== p.getId) {
+          cnt++;
         }
       }
-      if (matches >= 5 && sets > 0) {
-        ironByPid.set(p.id, {
-          avgLostPerSet: lostGames / sets,
-          sets,
-          matches,
-        });
-      }
+      failedAttacksByPid.set(p.id, cnt);
     }
-    const ironCandidates = Array.from(ironByPid.entries()).map(
-      ([pid, v]) => ({ pid, ...v })
-    );
-    const bestIron =
-      ironCandidates.length > 0
-        ? Math.min(...ironCandidates.map((c) => c.avgLostPerSet))
-        : Infinity;
-    const ironWinners =
-      bestIron !== Infinity
-        ? ironCandidates
-            .filter((c) => Math.abs(c.avgLostPerSet - bestIron) < 1e-9)
-            .sort((a, b) => b.sets - a.sets)
-            .map((c) => getName(participants.find((p) => p.id === c.pid)!))
+
+    const maxFailedAttacks = Math.max(...failedAttacksByPid.values(), 0);
+    const unluckyAttackers =
+      maxFailedAttacks > 0
+        ? participants
+            .filter((p) => (failedAttacksByPid.get(p.id) ?? 0) === maxFailedAttacks)
+            .map(getName)
         : [];
+
+    // 🎢 Трёхсетовый боец — больше всего матчей в 3 сета
+    const threeSetMatchesByPid = new Map<number, number>();
+
+    for (const p of participants) {
+      let cnt = 0;
+      for (const m of pastMatches) {
+        if (!tookPart(p.getId, m)) continue;
+        const setsCount = (m.scores ?? []).length;
+        if (setsCount >= 3) cnt++;
+      }
+      threeSetMatchesByPid.set(p.id, cnt);
+    }
+
+    const maxThreeSet = Math.max(...threeSetMatchesByPid.values(), 0);
+    const threeSetWarriors =
+      maxThreeSet > 0
+        ? participants
+            .filter((p) => (threeSetMatchesByPid.get(p.id) ?? 0) === maxThreeSet)
+            .map(getName)
+        : [];
+
+
+    // 🛡 Железный защитник — больше всего побед в роли защитника (side 2)
+    const defenseWinsByPid = new Map<number, number>();
+
+    for (const p of participants) {
+      let cnt = 0;
+      for (const m of pastMatches) {
+        if (!tookPart(p.getId, m)) continue;
+        const onDefense = !isOnSide1(p.getId, m);
+        if (onDefense && winnerId(m) === p.getId) {
+          cnt++;
+        }
+      }
+      defenseWinsByPid.set(p.id, cnt);
+    }
+
+    const maxDefenseWins = Math.max(...defenseWinsByPid.values(), 0);
+    const ironDefenders =
+      maxDefenseWins > 0
+        ? participants
+            .filter((p) => (defenseWinsByPid.get(p.id) ?? 0) === maxDefenseWins)
+            .map(getName)
+        : [];
+
+    // 🪫 Неудачный защитник — больше всего поражений в защите (side 2)
+    const defenseLossesByPid = new Map<number, number>();
+
+    for (const p of participants) {
+      let cnt = 0;
+      for (const m of pastMatches) {
+        if (!tookPart(p.getId, m)) continue;
+        const onDefense = !isOnSide1(p.getId, m);
+        const w = winnerId(m);
+        if (onDefense && w && w !== p.getId) {
+          cnt++;
+        }
+      }
+      defenseLossesByPid.set(p.id, cnt);
+    }
+
+    const maxDefenseLosses = Math.max(...defenseLossesByPid.values(), 0);
+    const unluckyDefenders =
+      maxDefenseLosses > 0
+        ? participants
+            .filter((p) => (defenseLossesByPid.get(p.id) ?? 0) === maxDefenseLosses)
+            .map(getName)
+        : [];
+
+
 
     const rows: LeadersRow[] = [];
     if (bagelWinners.length)
@@ -285,26 +292,36 @@ export function RatingView({ matches }: RatingViewProps) {
         winners: grinderWinners,
         tooltip: "Больше всего матчей за турнир.",
       });
-    if (giantKillers.length)
+    if (luckyAttackers.length)
       rows.push({
-        title: "👑 Гигант-киллер",
-        winners: giantKillers,
-        tooltip:
-          "Больше всего побед над соперниками выше по пирамиде (меньший уровень).",
+        title: "⚡ Удачливый нападающий",
+        winners: luckyAttackers,
+        tooltip: "Больше всего побед в роли атакующего (игрок на стороне player1/team1 и выиграл матч).",
       });
-    if (tbKings.length)
+    if (unluckyAttackers.length)
       rows.push({
-        title: "💔 Король тай-брейков",
-        winners: tbKings,
+        title: "🙃 Неунывающий драчун",
+        winners: unluckyAttackers,
         tooltip:
-          "Лучший процент побед в сетах 7:6 / 6:7 при минимум 3 тай-брейках.",
+          "Больше всего поражений в роли атакующего (игрок на стороне player1/team1 и проиграл матч).",
       });
-    if (ironWinners.length)
+    if (threeSetWarriors.length)
       rows.push({
-        title: "🔋 Железный",
-        winners: ironWinners,
-        tooltip:
-          "Минимум средних потерянных геймов за сет (учитываются все сеты, минимум 5 матчей).",
+        title: "🎢 Трёхсетовый боец",
+        winners: threeSetWarriors,
+        tooltip: "Больше всего матчей, сыгранных в 3 сета.",
+      });
+    if (ironDefenders.length)
+      rows.push({
+        title: "🛡 Железный защитник",
+        winners: ironDefenders,
+        tooltip: "Больше всего побед, играя в защите (игрок на стороне player2/team2).",
+      });
+    if (unluckyDefenders.length)
+      rows.push({
+        title: "🪫 Неудачный защитник",
+        winners: unluckyDefenders,
+        tooltip: "Больше всего поражений, играя в защите (игрок на стороне player2/team2).",
       });
 
     return rows;
