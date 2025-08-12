@@ -3,10 +3,8 @@
 import { useEffect, useState } from "react";
 
 import { MatchRepository } from "@/app/repositories/MatchRepository";
-
 import { Match } from "@/app/models/Match";
 
-import { AdminOnly } from "@/app/components/RoleGuard"
 import { NavigationBar } from "@/app/components/NavigationBar";
 import { MatchHistoryView } from "@/app/components/MatchHistoryView";
 
@@ -18,19 +16,37 @@ export default function MatchListView() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function load() {
+    (async function load() {
       setLoading(true);
-      const list = await MatchRepository.loadAll();
-      setMatches(list);
-      setLoading(false);
-    }
-    load();
+      try {
+        const list = await MatchRepository.loadAll();
+        setMatches(list);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  const handleDelete = async (id: number) => {
-    if (!confirm(`Удалить матч #${id}?`)) return;
-    await MatchRepository.deleteMatch(matches.filter((m) => m.id !== id)[0]);
-    setMatches(matches.filter((m) => m.id !== id));
+  // ✅ Оптимистичное редактирование
+  const handleEditMatchSave = async (updated: Match) => {
+    try {
+      await MatchRepository.updateMatch(updated);
+      setMatches((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
+    } catch (e) {
+      console.error("Не удалось обновить матч", e);
+      alert("Не удалось обновить матч");
+    }
+  };
+
+  // ✅ Оптимистичное удаление
+  const handleDeleteMatch = async (m: Match) => {
+    try {
+      await MatchRepository.deleteMatch(m);
+      setMatches((prev) => prev.filter((x) => x.id !== m.id));
+    } catch (e) {
+      console.error("Не удалось удалить матч", e);
+      alert("Не удалось удалить матч");
+    }
   };
 
   if (loading) return <p>Загрузка матчей...</p>;
@@ -43,23 +59,14 @@ export default function MatchListView() {
       <h1 className="page-title">Список матчей</h1>
 
       <div className="page-content-container">
-
-            <MatchHistoryView
-              player={null}
-              matches={matches}
-              showTournament={true}
-              onEditMatch={(updated) => {
-                // тут обновляем через MatchRepository
-                MatchRepository.updateMatch(updated);
-              }}
-              onDeleteMatch={(m) => {
-                // тут удаляем через MatchRepository
-                console.log("Удаление:", m);
-                MatchRepository.deleteMatch(m);
-              }}
-            />
-
-    </div>
+        <MatchHistoryView
+          player={null}
+          matches={matches}
+          showTournament={true}
+          onEditMatch={handleEditMatchSave}
+          onDeleteMatch={handleDeleteMatch}
+        />
+      </div>
     </div>
   );
 }

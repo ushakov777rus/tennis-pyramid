@@ -88,13 +88,7 @@ export function MatchHistoryView({
 
   const confirmDelete = (m: Match) => {
     setOpenMenuId(null);
-    if (typeof window !== "undefined") {
-      if (window.confirm("Удалить матч? Это действие необратимо.")) {
-        onDeleteMatch?.(m);
-      }
-    } else {
-      onDeleteMatch?.(m);
-    }
+    onDeleteMatch?.(m);
   };
 
   return (

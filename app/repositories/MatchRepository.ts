@@ -352,6 +352,8 @@ export class MatchRepository {
         .update({
           date: updatedMatch.date.toISOString(),
           scores: updatedMatch.scores,
+          player1_id:updatedMatch.player1?.id,
+          player2_id:updatedMatch.player2?.id,
         })
         .eq("id", updatedMatch.id)
         .select();
