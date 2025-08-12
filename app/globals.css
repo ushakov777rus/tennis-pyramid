@@ -41,6 +41,11 @@ table {
 	border-collapse: collapse;
 	border-spacing: 0;
 }
+
+/* 100% считает padding внутри ширины */
+*, *::before, *::after { box-sizing: border-box; }
+/* не даём странице уехать вправо (временно, пока ищем причину) */
+html, body { max-width: 100%; overflow-x: hidden; }
 /* Конец ресета */
 
 
