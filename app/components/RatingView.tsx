@@ -12,9 +12,14 @@ import { Tournament } from "@/app/models/Tournament";
 import { Team } from "@/app/models/Team";
 import { Match } from "@/app/models/Match";
 
+import { MatchHistoryModal } from "./MatchHistoryModal";
+
 import "./RatingView.css"
 
-type RatingViewProps = { matches: Match[] };
+type RatingViewProps = { 
+  matches: Match[] 
+  onShowHistory?: (participant?: Participant) => void;
+};
 
 function BadgeWithTip({ titleText, tooltip }: { titleText: string; tooltip: string }) {
   const [open, setOpen] = useState(false);
@@ -67,7 +72,7 @@ function BadgeWithTip({ titleText, tooltip }: { titleText: string; tooltip: stri
 export default BadgeWithTip;
 
 
-export function RatingView({ matches }: RatingViewProps) {
+export function RatingView({ matches, onShowHistory }: RatingViewProps) {
   const params = useParams<{ id: string }>();
   const tournamentId = Number(params?.id);
 
@@ -130,7 +135,11 @@ export function RatingView({ matches }: RatingViewProps) {
   );
 
   // ===== лидеры по номинациям =====
-  type LeadersRow = { title: string; winners: string[]; tooltip: string };
+  // было
+// type LeadersRow = { title: string; winners: string[]; tooltip: string };
+
+// стало
+type LeadersRow = { title: string; winners: Participant[]; tooltip: string };
 
   const leaders = useMemo<LeadersRow[]>(() => {
     if (!participants.length) return [];
@@ -157,12 +166,10 @@ export function RatingView({ matches }: RatingViewProps) {
     }
 
     const maxBagels = Math.max(...bagelsByPid.values(), 0);
-    console.log("maxBagels:", maxBagels,bagelsByPid);
     const bagelWinners =
       maxBagels > 0
         ? participants
             .filter((p) => (bagelsByPid.get(p.id) ?? 0) === maxBagels)
-            .map(getName)
         : [];
 
     // 🧱 Стена — вин-стрик
@@ -186,7 +193,6 @@ export function RatingView({ matches }: RatingViewProps) {
       maxStreak > 0
         ? participants
             .filter((p) => (streakByPid.get(p.id) ?? 0) === maxStreak)
-            .map(getName)
         : [];
 
     // 🐝 Гриндер — матчи за 7 дней
@@ -204,10 +210,7 @@ export function RatingView({ matches }: RatingViewProps) {
       maxRecent > 0
         ? participants
             .filter((p) => (recentCountByPid.get(p.id) ?? 0) === maxRecent)
-            .map(getName)
         : [];
-
-    console.log("recentCountByPid:", recentCountByPid);
 
     // ⚡ Удачливый нападающий — больше всего побед в роли атакующего
     const successfulAttacksByPid = new Map<number, number>();
@@ -228,7 +231,6 @@ export function RatingView({ matches }: RatingViewProps) {
       maxSuccessfulAttacks > 0
         ? participants
             .filter((p) => (successfulAttacksByPid.get(p.id) ?? 0) === maxSuccessfulAttacks)
-            .map(getName)
         : [];
 
     // 🙃 Неудачный нападающий — больше всего поражений в роли атакующего
@@ -252,7 +254,6 @@ export function RatingView({ matches }: RatingViewProps) {
       maxFailedAttacks > 0
         ? participants
             .filter((p) => (failedAttacksByPid.get(p.id) ?? 0) === maxFailedAttacks)
-            .map(getName)
         : [];
 
     // 🎢 Трёхсетовый боец — больше всего матчей в 3 сета
@@ -273,7 +274,6 @@ export function RatingView({ matches }: RatingViewProps) {
       maxThreeSet > 0
         ? participants
             .filter((p) => (threeSetMatchesByPid.get(p.id) ?? 0) === maxThreeSet)
-            .map(getName)
         : [];
 
 
@@ -297,7 +297,6 @@ export function RatingView({ matches }: RatingViewProps) {
       maxDefenseWins > 0
         ? participants
             .filter((p) => (defenseWinsByPid.get(p.id) ?? 0) === maxDefenseWins)
-            .map(getName)
         : [];
 
     // 🪫 Неудачный защитник — больше всего поражений в защите (side 2)
@@ -321,7 +320,6 @@ export function RatingView({ matches }: RatingViewProps) {
       maxDefenseLosses > 0
         ? participants
             .filter((p) => (defenseLossesByPid.get(p.id) ?? 0) === maxDefenseLosses)
-            .map(getName)
         : [];
 
 
@@ -397,18 +395,42 @@ export function RatingView({ matches }: RatingViewProps) {
               <th>Титул</th>
             </tr>
           </thead>
-          <tbody>
-            {leaders.map((row, idx) =>
-              row.winners.map((name) => (
-                <tr key={`${idx}-${name}`}>
-                  <td>{name}</td>
-                    <td>
-                      <BadgeWithTip titleText={row.title} tooltip={row.tooltip} />
-                    </td>
-                </tr>
-              ))
-            )}
-          </tbody>
+<tbody>
+  {leaders.map((row, idx) =>
+    row.winners.map((p) => (
+      <tr key={`${row.title}-${p.id}-${idx}`}>
+        <td>
+          <button
+            type="button"
+            className="player-link"
+            onClick={(e) => {
+              e.stopPropagation();
+              // Историю показываем только для одиночных участников (у которых есть p.player)
+              if (p.player) onShowHistory?.(p);
+            }}
+            // Для пар просто делаем некликабельным (или можно подсказку)
+            disabled={!p.player}
+            aria-label={
+              p.player
+                ? `Показать историю матчей: ${getName(p)}`
+                : `${getName(p)} — история доступна только для одиночных игроков`
+            }
+            title={
+              p.player
+                ? "История матчей"
+                : "История доступна только для одиночных игроков"
+            }
+          >
+            {getName(p)}
+          </button>
+        </td>
+        <td>
+          <BadgeWithTip titleText={row.title} tooltip={row.tooltip} />
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
         </table>
       )}
     </div>

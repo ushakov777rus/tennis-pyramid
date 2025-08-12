@@ -319,7 +319,15 @@ export default function TournamentPage() {
 
           {activeTab === "participants" && <ParticipantsView />}
           
-          {activeTab === "rating" && <RatingView matches={matches}/>}
+          {activeTab === "rating" && 
+            <RatingView 
+              onShowHistory={(participant) => {
+                if (participant?.player !== undefined) {
+                  setHistoryPlayer(participant?.player);
+                  setHistoryOpen(true);
+                }
+              }}
+              matches={matches}/>}
         </div>
 
         {/* модалка истории */}
