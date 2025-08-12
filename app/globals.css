@@ -82,7 +82,7 @@ body {
 .page-container {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 30px 20px;
+  padding: 30px 10px;
   background-color: #1f1f1f;
   width: 100%;
 }
@@ -138,10 +138,8 @@ body {
   box-shadow: 0 0 20px rgba(166, 255, 0, 0.3);
 }
 
-
 .card-with-status {
   padding: 5px 5px 10px 10px;
-  font-size: 16px;
 }
 
 .card-250px {
@@ -151,6 +149,11 @@ body {
 .card-80px {
   max-width: 80px;
 }
+
+.card-font-12px {
+  font-size: 12px;
+}
+
 
 .card-all {
   display: flex;
