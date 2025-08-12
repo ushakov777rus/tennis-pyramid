@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState } from "react";
 
 import { UserBadge } from "@/app/components/UserBadge";
@@ -13,10 +15,10 @@ export function NavigationBar() {
       <header className="header">
         <div className="logo">ХЗ</div>
         <nav className="nav">
-          <a href="/">Главная</a>
-          <a href="/tournaments">Турниры</a>
-          <a href="/rating">Рейтинг</a>
-          <a href="/matches">Матчи</a>
+          <Link href="/">Главная</Link>
+          <Link href="/tournaments">Турниры</Link>
+          <Link href="/rating">Рейтинг</Link>
+          <Link href="/matches">Матчи</Link>
         </nav>
         <UserBadge />
       </header>

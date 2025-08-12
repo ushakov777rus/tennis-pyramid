@@ -36,12 +36,18 @@ export default [
       "@next/next": nextPlugin,
     },
     rules: {
-      // Рекомендованные правила хуков
+      // react-hooks и next — как были
       ...reactHooks.configs.recommended.rules,
-      // Эквивалент next/core-web-vitals
       ...nextPlugin.configs["core-web-vitals"].rules,
 
-      // Твои кастомные
+      // Отключаем базовое и включаем TS-вариант (мягче, с игнором _)
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": ["warn", {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }],
+
       "@typescript-eslint/no-explicit-any": "off",
     },
   },
