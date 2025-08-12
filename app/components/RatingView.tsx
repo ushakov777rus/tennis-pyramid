@@ -384,7 +384,6 @@ type LeadersRow = { title: string; winners: Participant[]; tooltip: string };
 
   return (
     <div className="history-wrap">
-      <h3>🏆 Доска почёта турнира</h3>
       {leaders.length === 0 ? (
         <p>Пока нет лидеров — сыграйте ещё немного 😉</p>
       ) : (
