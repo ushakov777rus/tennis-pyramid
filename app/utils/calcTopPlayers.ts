@@ -1,7 +1,6 @@
 // utils/calcTopPlayers.ts
 import { Match } from "@/app/models/Match";
 import { Player } from "@/app/models/Player";
-import { Team } from "@/app/models/Team";
 
 type PlayerStats = {
   player: Player;

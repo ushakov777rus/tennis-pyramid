@@ -1,7 +1,6 @@
 // app/api/register-player/route.ts
 import { supabase } from "@/lib/supabaseClient";
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 // import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {

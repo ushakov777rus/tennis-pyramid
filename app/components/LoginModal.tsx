@@ -16,7 +16,6 @@ export function LoginModal({
   onClose,
   onSwitchToRegister,       // <-- деструктурируем
 }: LoginModalProps) {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
