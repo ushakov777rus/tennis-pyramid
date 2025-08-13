@@ -12,7 +12,10 @@ import { Participant } from "@/app/models/Participant";
 import { Tournament } from "@/app/models/Tournament";
 import { Team } from "@/app/models/Team";
 
-import "./ParticipantsView.css"
+import { TeamsTable } from "@/app/components/TeamsTable";
+
+import "./ParticipantsView.css";
+import { TournamentParticipantsView } from "@/app/components/TournamentParticipantsView";
 
 export function ParticipantsView() {
   const params = useParams<{ id: string }>();
@@ -21,10 +24,14 @@ export function ParticipantsView() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [allTeams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // выбор игроков для создания пары
   const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
+
+  // вкладки для парного турнира
+  const [activeTab, setActiveTab] = useState<"teams" | "parts">("teams");
 
   async function loadData() {
     setLoading(true);
@@ -44,7 +51,11 @@ export function ParticipantsView() {
     setLoading(false);
   }
 
-  async function addToTournament(playerId: number) {
+  useEffect(() => {
+    if (tournamentId) loadData();
+  }, [tournamentId]);
+
+  async function addPlayerToTournament(playerId: number) {
     await TournamentsRepository.addPlayer(tournamentId, playerId);
     await loadData();
   }
@@ -59,6 +70,11 @@ export function ParticipantsView() {
     await loadData();
   }
 
+  async function removeTeam(teamId: number) {
+    await TeamsRepository.delete(teamId);
+    await loadData();
+  }
+
   async function removeTeamFromTournament(participantId: number) {
     await TournamentsRepository.removeParticipant(participantId);
     await loadData();
@@ -66,180 +82,100 @@ export function ParticipantsView() {
 
   async function createTeam() {
     if (selectedPlayers.length !== 2) return;
-    await TeamsRepository.create(selectedPlayers[0].name + " - " + selectedPlayers[1].name, selectedPlayers[0].id, selectedPlayers[1].id); // создаём пару
+    const [p1, p2] = selectedPlayers;
+    await TeamsRepository.create(`${p1.name} - ${p2.name}`, p1.id, p2.id);
     await loadData();
   }
-
-  useEffect(() => {
-    if (tournamentId) loadData();
-  }, [tournamentId]);
 
   if (loading) return <p>Загрузка...</p>;
   if (!tournament) return <p>Турнир не найден</p>;
 
   // одиночки
   const participantIds = new Set(
-    participants.map((p) => p.player?.id).filter(Boolean)
+    participants.map((p) => p.player?.id).filter(Boolean) as number[]
   );
   const availablePlayers = players.filter((p) => !participantIds.has(p.id));
 
   // пары
   const participantTeamIds = new Set(
-    participants.map((p) => p.team?.id).filter(Boolean)
+    participants.map((p) => p.team?.id).filter(Boolean) as number[]
   );
-  const availableTeams = teams.filter((t) => !participantTeamIds.has(t.id));
+
+console.log("allTeams:", allTeams);
+console.log("participantTeamIds:", participantTeamIds);
+
+  const availableTeams = allTeams.filter((t) => !participantTeamIds.has(t.id));
   const tournamentTeams = participants.filter((p) => p.team);
+
+  console.log("availableTeams:", availableTeams);
 
   return (
     <div className="history-wrap">
+
+      {/* Одиночные турниры */}
       {tournament.tournament_type === "single" ? (
-  <table className="history-table">
-    <thead className="history-table-head">
-      <tr>
-        <th colSpan={2}>Доступные игроки</th>
-        <th colSpan={2}>Участники турнира</th>
-      </tr>
-    </thead>
-    <tbody>
-      {Array.from({ length: Math.max(availablePlayers.length, participants.length) }).map((_, i) => {
-        const avail = availablePlayers[i];
-        const part = participants[i];
-
-        return (
-          <tr key={i}>
-            {/* Доступные */}
-            <td>
-              {avail ? <span className="chip">{avail.name}</span> : ""}
-            </td>
-            <td className="score-col">
-              {avail && (
-                <div className="row-actions">
-                  <button
-                    className="icon-btn"
-                    onClick={() => addToTournament(avail.id)}
-                    title="Добавить в турнир"
-                    aria-label="Добавить в турнир"
-                  >
-                    {/* plus */}
-                    <svg width="18" height="18" viewBox="0 0 24 24">
-                      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                  </button>
-                </div>
-              )}
-            </td>
-
-            {/* Участники */}
-            <td>
-              {part?.player ? <span className="chip">{part.player.name}</span> : ""}
-            </td>
-            <td className="score-col">
-              {part && (
-                <div className="row-actions">
-                  <button
-                    className="icon-btn danger"
-                    onClick={() => removeFromTournament(part.id)}
-                    title="Убрать из турнира"
-                    aria-label="Убрать из турнира"
-                  >
-                    {/* trash */}
-                    <svg width="18" height="18" viewBox="0 0 24 24">
-                      <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                </div>
-              )}
-            </td>
-          </tr>
-        );
-      })}
-    </tbody>
-  </table>
-
+        <TournamentParticipantsView
+          availablePlayers={availablePlayers}
+          availableTeams={[]}
+          tournamentParticipants={participants} // массив Player уже в турнире
+          onAddPlayerToTournament={(id) => addPlayerToTournament(id)}
+          onAddTeamToTournament={(id) => addTeamToTournament(id)}
+          onRemoveParticipantFromTournament={(id) => removeFromTournament(id)}
+        />
       ) : (
         <>
-          {/* Доступные игроки */}
-          <div>
-            <h3>Доступные игроки</h3>
-            {availablePlayers.length === 0 ? (
-              <p>Нет свободных игроков</p>
-            ) : (
-                <ul className="players-list">
-                {availablePlayers.map((p) => {
-                    const isSelected = selectedPlayers.includes(p);
-
-                    // индекс выбранного игрока в массиве
-                    const selectedIndex = selectedPlayers.findIndex(sp => sp.id === p.id);
-
-                    return (
-                    <div key={p.id}>
-                        <li
-                        className={`available-player-row ${isSelected ? "selected" : ""}`}
-                        onClick={() => {
-                            setSelectedPlayers((prev) => {
-                            if (isSelected) {
-                                return prev.filter((id) => id !== p);
-                            } else {
-                                return prev.length < 2 ? [...prev, p] : prev;
-                            }
-                            });
-                        }}
-                        >
-                        <div><input type="checkbox" checked={isSelected} readOnly /></div>
-                        <div><span>{p.name.replace(/\s+/g, " ")}</span></div>
-                        </li>
-
-                        {/* если это второй выбранный игрок → показываем кнопку сразу под ним */}
-                        {selectedIndex === 1 && (
-                        <div >
-                            <button className="add-team-btn" onClick={createTeam}>👥 Создать пару</button>
-                        </div>
-                        )}
-                    </div>
-                    );
-                })}
-                </ul>
-            )}
-            {selectedPlayers.length === 2 && (
-              <button onClick={createTeam} style={{ marginTop: "10px" }}>
-                👥 Создать пару
-              </button>
-            )}
+          <div className="card card-tabs">
+            <button
+              className={
+                activeTab === "teams"
+                  ? "card-btn tabs-button card-btn-act"
+                  : "card-btn tabs-button"
+              }
+              onClick={() => setActiveTab("teams")}
+            >
+              Команды
+            </button>
+            <button
+              className={
+                activeTab === "parts"
+                  ? "card-btn tabs-button card-btn-act"
+                  : "card-btn tabs-button"
+              }
+              onClick={() => setActiveTab("parts")}
+            >
+              Участники
+            </button>
           </div>
 
-          {/* Доступные пары */}
           <div>
-            <h3>Доступные пары</h3>
-            {availableTeams.length === 0 ? (
-              <p>Нет доступных пар</p>
-            ) : (
-              <ul>
-                {availableTeams.map((t) => (
-                  <li key={t.id}>
-                    {t.player1?.name} + {t.player2?.name}{" "}
-                    <button onClick={() => addTeamToTournament(t.id)}>
-                      ➕ Добавить пару
-                    </button>
-                  </li>
-                ))}
-              </ul>
+            {/* TAB: Пары (вынесено в отдельный компонент) */}
+            {activeTab === "teams" && (
+              <TeamsTable
+                availablePlayers={availablePlayers}
+                selectedPlayers={selectedPlayers}
+                onTogglePlayer={(p) => {
+                  setSelectedPlayers((prev) => {
+                    const isSel = prev.some((sp) => sp.id === p.id);
+                    if (isSel) return prev.filter((sp) => sp.id !== p.id);
+                    return prev.length < 2 ? [...prev, p] : prev;
+                  });
+                }}
+                onCreateTeam={createTeam}
+                allTeams={allTeams} // если у тебя список Participant — извлеки team
+                onRemoveTeamFromTournament={(teamId) => {removeTeam(teamId);}}
+              />
             )}
-          </div>
 
-          {/* Пары в турнире */}
-          <div>
-            <h3>Пары в турнире</h3>
-            {tournamentTeams.length === 0 ? (
-              <p>Пока нет пар</p>
-            ) : (
-              <ul>
-                {tournamentTeams.map((p) => (
-                  <li key={p.id}>
-                    {p.team?.player1?.name} + {p.team?.player2?.name}{" "}
-                    <button onClick={() => removeTeamFromTournament(p.id)}>❌ Убрать</button>
-                  </li>
-                ))}
-              </ul>
+            {/* TAB: Участники (пары в турнире и добавление доступных) */}
+            {activeTab === "parts" && (
+              <TournamentParticipantsView
+                availablePlayers={[]}
+                availableTeams={availableTeams}
+                tournamentParticipants={participants} // массив Player уже в турнире
+                onAddPlayerToTournament={(id) => addPlayerToTournament(id)}
+                onAddTeamToTournament={(id) => addTeamToTournament(id)}
+                onRemoveParticipantFromTournament={(id) => removeFromTournament(id)}
+              />
             )}
           </div>
         </>

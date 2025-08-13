@@ -149,6 +149,10 @@
 
 .always-visible { opacity: 1; }
 
+.row-actions.always-visible {
+  opacity: 1;
+}
+
 /* Кнопки-иконки */
 .icon-btn {
   appearance: none;
@@ -183,6 +187,10 @@
   background: rgba(255, 0, 0, 0.1);
   border-color: rgba(255, 0, 0, 0.3);
   color: #ff6666;
+}
+.icon-btn.active {
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .inline-input {
@@ -247,7 +255,7 @@ tr.editing { background: rgba(166, 255, 0, 0.05); }
 @media (max-width: 720px) {
   .hide-sm { display: none; }
   .show-sm-only { display: inline-block; }
-  .history-table td { padding: 5px 10px; }
+  .history-table td { padding: 5px 3px; }
   .row-actions { opacity: 1; }
   .score-readonly { gap: 6px; }
   .inline-input { max-width: 100%; }
