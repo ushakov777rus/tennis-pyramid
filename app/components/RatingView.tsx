@@ -68,9 +68,13 @@ function BadgeWithTip({ titleText, tooltip }: { titleText: string; tooltip: stri
 export function RatingView({ matches, onShowHistory }: RatingViewProps) {
   const { loading, tournament, participants } = useTournament();
 
-  // ===== helpers =====
+    // ===== helpers =====
   const now = Date.now();
-  const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+
+  const pastMatches = useMemo(
+    () => (matches ?? []).filter((m) => m?.date && m.date.getTime() <= now),
+    [matches, now]
+  );
 
   const getName = (p: Participant) =>
     p.player
@@ -92,10 +96,6 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
 
   const winnerId = (m: Match) => m.getWinnerId?.();
 
-  const pastMatches = useMemo(
-    () => (matches ?? []).filter((m) => m?.date && m.date.getTime() <= now),
-    [matches, now]
-  );
 
   // было: type LeadersRow = { title: string; winners: string[]; tooltip: string };
   // стало:
@@ -292,7 +292,7 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
       });
 
     return rows;
-  }, [participants, pastMatches, weekAgo]);
+  }, [participants, pastMatches]);
 
   // ===== render =====
   if (loading) return <p>Загрузка…</p>;
