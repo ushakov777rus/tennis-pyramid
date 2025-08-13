@@ -29,11 +29,9 @@ export function MatchHistoryModal({
     // контекст уже ДОЛЖЕН быть выше в дереве
   const { matches: allMatches, updateMatch, deleteMatch } = useTournament();
 
-  if (!isOpen || !player) return null;
-
   const effectiveMatches = useMemo(() => {
     if (matches) return matches;
-    const id = player.id;
+    const id = player?.id;
     return allMatches.filter(
       (m) =>
         m.player1?.id === id ||
@@ -42,6 +40,8 @@ export function MatchHistoryModal({
         m.team2?.id === id
     );
   }, [matches, allMatches, player]);
+
+  if (!isOpen || !player) return null;
 
   const handleEdit = async (updated: Match) => {
     if (onEditMatch) return onEditMatch(updated);
