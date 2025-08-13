@@ -3,9 +3,6 @@
 import { useState } from "react";
 
 import { Player } from "@/app/models/Player";
-import { Participant } from "@/app/models/Participant";
-import { Team } from "@/app/models/Team";
-import { Tournament } from "@/app/models/Tournament";
 
 import { TeamsTable } from "@/app/components/TeamsTable";
 import { TournamentParticipantsView } from "@/app/components/TournamentParticipantsView";
