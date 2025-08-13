@@ -6,7 +6,7 @@ import { Participant } from "@/app/models/Participant";
 
 import "./TeamsTable.css"; // реюз тех же таблиц/кнопок/чипов
 
-type TournamentParticipantsView = {
+type TournamentParticipantsViewProps = {
   // Левая сторона — игроки или команды, которых ещё нет в турнире
   availablePlayers: Player[];
   availableTeams: Team[];
@@ -25,7 +25,7 @@ export function TournamentParticipantsView({
   onAddPlayerToTournament,
   onAddTeamToTournament,
   onRemoveParticipantFromTournament,
-}: TournamentParticipantsView) {
+}: TournamentParticipantsViewProps) {
   const maxRows = Math.max(availablePlayers.length, availableTeams.length, tournamentParticipants.length);
 
   return (
