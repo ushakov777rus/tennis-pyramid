@@ -76,9 +76,8 @@ export default function TournamentPage() {
     async function load() {
       if (!tournamentId) return;
 
-      const allT = await TournamentsRepository.loadAll();
-      const tournament = allT.find((x) => x.id === tournamentId);
-      setTournament(tournament || null);
+      const tnmt = await TournamentsRepository.getTournamentById(tournamentId);
+      setTournament(tnmt || null);
 
       const parts = await TournamentsRepository.loadParticipants(tournamentId);
       setParticipants(parts);

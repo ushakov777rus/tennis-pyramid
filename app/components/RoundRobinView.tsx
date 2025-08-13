@@ -78,8 +78,6 @@ export function RoundRobinView({ participants, matches }: RoundRobinViewProps) {
       .sort((a, b) => a.name.localeCompare(b.name, "ru"));
   }, [participants]);
 
-console.log("parts:", participants);
-
   const rounds = useMemo(() => buildRoundRobin(units), [units]);
 
   const dupes = useMemo(() => alreadyPlayedMap(matches), [matches]);
