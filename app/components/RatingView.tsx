@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 
-import { PlayersRepository } from "@/app/repositories/PlayersRepository";
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 import { TeamsRepository } from "@/app/repositories/TeamsRepository";
 
@@ -11,8 +10,6 @@ import { Participant } from "@/app/models/Participant";
 import { Tournament } from "@/app/models/Tournament";
 import { Team } from "@/app/models/Team";
 import { Match } from "@/app/models/Match";
-
-import { MatchHistoryModal } from "./MatchHistoryModal";
 
 import "./RatingView.css"
 
