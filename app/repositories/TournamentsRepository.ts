@@ -22,6 +22,7 @@ export class TournamentsRepository {
         new Tournament(
           Number(row.id),
           row.name,
+          row.format,
           row.status,
           row.tournament_type,
           row.start_date,
@@ -47,6 +48,7 @@ export class TournamentsRepository {
       ? new Tournament(
           Number(data.id),
           data.name,
+          data.format,
           data.status,
           data.tournament_type,
           data.start_date,

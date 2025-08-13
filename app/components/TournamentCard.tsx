@@ -35,6 +35,11 @@ export function TournamentCard({ tournament, participantsCount, matchesCount, mo
               <td>{tournament.tournament_type === "single" ? "Одиночный" : "Парный"}</td>
             </tr>
             <tr>
+              <td>🏆</td>
+              <td>Формат:</td>  
+              <td>{tournament.format === "pyramid" ? "Пирамида" : "Все со всеми"}</td>
+            </tr>
+            <tr>
               <td>📅</td>
               <td>Даты:</td>
               <td>

@@ -18,6 +18,7 @@ import { TeamsRepository } from "@/app/repositories/TeamsRepository";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 
 import { PyramidView } from "@/app/components/PyramidView";
+import { RoundRobinView } from "@/app/components/RoundRobinView";
 import { RatingView } from "@/app/components/RatingView";
 import { MatchHistoryModal } from "@/app/components/MatchHistoryModal";
 import { MatchHistoryView } from "@/app/components/MatchHistoryView";
@@ -33,6 +34,7 @@ import { ViewportDebug } from "@/app/components/ViewportDebug";
 import { CustomSelect } from "@/app/components/CustomSelect"; // <-- скорректируй путь при необходимости
 import "@/app/components/CustomSelect.css";
 
+
 export default function TournamentPage() {
   const params = useParams<{ id: string }>();
   const tournamentId = parseInt(params?.id ?? "", 10);
@@ -43,7 +45,7 @@ export default function TournamentPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [allTeams, setAllTeams] = useState<{ id: number; name: string }[]>([]);
-  const [activeTab, setActiveTab] = useState<"pyramid" | "matches" | "participants" | "rating">("pyramid");
+  const [activeTab, setActiveTab] = useState<"scheme" | "matches" | "participants" | "rating">("scheme");
 
   const today = new Date().toISOString().split("T")[0];
   const [matchDate, setMatchDate] = useState<string>(today);
@@ -75,8 +77,8 @@ export default function TournamentPage() {
       if (!tournamentId) return;
 
       const allT = await TournamentsRepository.loadAll();
-      const t = allT.find((x) => x.id === tournamentId);
-      setTournament(t || null);
+      const tournament = allT.find((x) => x.id === tournamentId);
+      setTournament(tournament || null);
 
       const parts = await TournamentsRepository.loadParticipants(tournamentId);
       setParticipants(parts);
@@ -87,7 +89,7 @@ export default function TournamentPage() {
       const m = await MatchRepository.loadMatches(tournamentId);
       setMatches(m);
 
-      if (t?.isSingle()) {
+      if (tournament?.isSingle()) {
         setAllPlayers(await PlayersRepository.loadAll());
       } else {
         setAllTeams(await TeamsRepository.loadAll());
@@ -171,6 +173,106 @@ export default function TournamentPage() {
     }
   };
 
+function FormatView({
+  tournament,
+  participants,
+  matches,
+  maxLevel,
+  selectedIds,
+  setSelectedIds,
+  setHistoryPlayer,
+  setHistoryOpen,
+}: {
+  tournament: Tournament;
+  participants: Participant[];
+  matches: Match[];
+  maxLevel: number;
+  selectedIds: number[];
+  setSelectedIds: (ids: number[]) => void;
+  setHistoryPlayer: (p?: Player) => void;
+  setHistoryOpen: (v: boolean) => void;
+}) {
+  const isSingles = tournament.tournament_type === "single";
+  const format = tournament.format ?? "pyramid";
+
+  switch (format) {
+    case "pyramid":
+      return (
+        <PyramidView
+          participants={participants}
+          maxLevel={maxLevel}
+          selectedIds={selectedIds}
+          onSelect={setSelectedIds}
+          onShowHistory={(participant) => {
+            if (participant?.player) {
+              setHistoryPlayer(participant.player);
+              setHistoryOpen(true);
+            }
+          }}
+          matches={matches}
+        />
+      );
+
+    case "round_robin":
+      return (       
+        <RoundRobinView 
+          participants={participants} 
+          matches={matches} />
+      );
+
+/*
+    case "single_elimination":
+      return isSingles ? (
+        <SingleElimSinglesView participants={participants} />
+      ) : (
+        <SingleElimDoublesView participants={participants} />
+      );
+
+    case "double_elimination":
+      return isSingles ? (
+        <DoubleElimSinglesView participants={participants} />
+      ) : (
+        <DoubleElimDoublesView participants={participants} />
+      );
+
+    case "groups_playoff":
+      return isSingles ? (
+        <GroupsPlayoffSinglesView participants={participants} />
+      ) : (
+        <GroupsPlayoffDoublesView participants={participants} />
+      );
+
+    case "swiss":
+      return isSingles ? (
+        <SwissSinglesView participants={participants} rounds={5} />
+      ) : (
+        <SwissDoublesView participants={participants} rounds={5} />
+      );
+*/
+    default:
+      // безопасный фоллбек
+      return (
+        <div style={{ padding: 12 }}>
+          Неизвестный формат «{String(format)}». Показана пирамида по умолчанию.
+          <PyramidView
+            participants={participants}
+            maxLevel={maxLevel}
+            selectedIds={selectedIds}
+            onSelect={setSelectedIds}
+            onShowHistory={(participant) => {
+              if (participant?.player) {
+                setHistoryPlayer(participant.player);
+                setHistoryOpen(true);
+              }
+            }}
+            matches={matches}
+          />
+        </div>
+      );
+  }
+}
+  
+
   if (!tournament) return <p>Загрузка...</p>;
 
   // ⬇⬇⬇ Условия блокировки (как у вас было с <select>)
@@ -196,10 +298,10 @@ export default function TournamentPage() {
 
         <div className="card card-tabs">
           <button
-            className={activeTab === "pyramid" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
-            onClick={() => setActiveTab("pyramid")}
+            className={activeTab === "scheme" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
+            onClick={() => setActiveTab("scheme")}
           >
-            Пирамида
+            Схема
           </button>
           <button
             className={activeTab === "matches" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
@@ -224,7 +326,6 @@ export default function TournamentPage() {
         {/* --- добавление матча --- */}
         {activeTab !== "participants" && activeTab !== "rating" && (
           <LoggedIn>
-            <ViewportDebug />
             <div className="card card-tabs card-tabs-wrap">
               {/* ⬇⬇⬇ КАСТОМНЫЙ SELECT — Нападение */}
               <CustomSelect
@@ -288,19 +389,16 @@ export default function TournamentPage() {
 
         {/* --- контент вкладок --- */}
         <div>
-          {activeTab === "pyramid" && (
-            <PyramidView
+          {activeTab === "scheme" && (
+            <FormatView
+              tournament={tournament}
               participants={participants}
+              matches={matches}
               maxLevel={maxLevel}
               selectedIds={selectedIds}
-              onSelect={setSelectedIds}
-              onShowHistory={(participant) => {
-                if (participant?.player !== undefined) {
-                  setHistoryPlayer(participant?.player);
-                  setHistoryOpen(true);
-                }
-              }}
-              matches={matches}
+              setSelectedIds={setSelectedIds}
+              setHistoryPlayer={setHistoryPlayer}
+              setHistoryOpen={setHistoryOpen}
             />
           )}
 

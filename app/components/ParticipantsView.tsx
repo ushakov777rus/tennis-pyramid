@@ -90,6 +90,8 @@ export function ParticipantsView() {
   if (loading) return <p>Загрузка...</p>;
   if (!tournament) return <p>Турнир не найден</p>;
 
+  console.log("tournament", tournament);
+
   // одиночки
   const participantIds = new Set(
     participants.map((p) => p.player?.id).filter(Boolean) as number[]
@@ -100,9 +102,6 @@ export function ParticipantsView() {
   const participantTeamIds = new Set(
     participants.map((p) => p.team?.id).filter(Boolean) as number[]
   );
-
-console.log("allTeams:", allTeams);
-console.log("participantTeamIds:", participantTeamIds);
 
   const availableTeams = allTeams.filter((t) => !participantTeamIds.has(t.id));
   const tournamentTeams = participants.filter((p) => p.team);
