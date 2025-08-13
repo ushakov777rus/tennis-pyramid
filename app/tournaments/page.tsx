@@ -122,6 +122,10 @@ export default function TournamentListView() {
                   {t.tournament_type === "single" ? "Одиночный" : "Парный"}
                 </p>
                 <p>
+                  🏆 Формат:{" "}
+                  {t.getFormat()}
+                </p>
+                <p>
                   📅{" "}
                   {t.start_date
                     ? `${t.start_date} → ${t.end_date || "?"}`

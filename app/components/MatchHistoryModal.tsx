@@ -26,10 +26,10 @@ export function MatchHistoryModal({
   onEditMatch,
   onDeleteMatch,
 }: MatchHistoryModalProps) {
-  if (!isOpen || !player) return null;
-
-  // контекст уже ДОЛЖЕН быть выше в дереве
+    // контекст уже ДОЛЖЕН быть выше в дереве
   const { matches: allMatches, updateMatch, deleteMatch } = useTournament();
+
+  if (!isOpen || !player) return null;
 
   const effectiveMatches = useMemo(() => {
     if (matches) return matches;

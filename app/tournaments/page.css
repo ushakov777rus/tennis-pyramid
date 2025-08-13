@@ -1,3 +1,16 @@
+.tournament-details {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-size: 12px;
+}
+
+.tournament-details p {
+  
+  padding-bottom: 5px;
+  
+}
+
+
 .tournaments-container {
   width: 96%;
   margin: 0 auto;

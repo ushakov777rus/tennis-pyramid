@@ -197,6 +197,25 @@ export class Tournament {
       : "Завершен";
   }
 
+  getFormat(): string {
+    switch (this.format) {
+      case "pyramid":
+        return "Пирамида (лестница)";
+      case "round_robin":
+        return "Круговой турнир";
+      case "single_elimination":
+        return "Плей-офф (одиночное выбивание)";
+      case "double_elimination":
+        return "Двойное выбивание";
+      case "groups_playoff":
+        return "Группы + плей-офф";
+      case "swiss":
+        return "Швейцарская система";
+      default:
+        return "Неизвестный формат";
+    }
+  }
+
   isSingle(): boolean {
     return this.tournament_type === "single";
   }
