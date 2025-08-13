@@ -89,7 +89,7 @@ export function RoundRobinView({ participants, matches }: RoundRobinViewProps) {
   }, [units.length]);
 
   return (
-    <div className="history-wrap">
+    <div className="roundrobin-wrap">
       <div className="card" style={{ marginBottom: 12 }}>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "baseline" }}>
           <div><strong>Формат:</strong> круговой турнир (каждый с каждым)</div>

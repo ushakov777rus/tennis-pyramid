@@ -11,79 +11,39 @@ export class MatchRepository {
     date: Date,
     type: "single" | "double",
     scores: [number, number][],
-    team1PlayerIds: number[],
-    team2PlayerIds: number[],
+    player1Id: number | null,
+    player2Id: number | null,
+    team1Id: number | null,
+    team2Id: number | null,
     tournamentId: number
   ): Promise<number> {
     console.log("MatchRepository:Add match");
     let newMatchId: number;
 
-    if (type === "single") {
-      // одиночный матч
-      const { data, error } = await supabase
-        .from("matches")
-        .insert([
-          {
-            match_type: type,
-            scores,
-            tournament_id: tournamentId,
-            player1_id: team1PlayerIds[0],
-            player2_id: team2PlayerIds[0],
-            date,
-          },
-        ])
-        .select("id")
-        .single();
+    const { data, error } = await supabase
+      .from("matches")
+      .insert([
+        {
+          match_type: type,
+          scores,
+          tournament_id: tournamentId,
+          player1_id: player1Id,
+          player2_id: player2Id,
+          team1_id: team1Id,
+          team2_id: team2Id,
+          date,
+        },
+      ])
+      .select("id")
+      .single();
 
-      if (error) throw error;
-      newMatchId = data.id;
-    } else {
-      // парный матч → создаём команды с двумя игроками
-      const { data: teams, error: teamErr } = await supabase
-        .from("teams")
-        .insert([
-          {
-            name: "Team 1",
-            player1_id: team1PlayerIds[0] ?? null,
-            player2_id: team1PlayerIds[1] ?? null,
-          },
-          {
-            name: "Team 2",
-            player1_id: team2PlayerIds[0] ?? null,
-            player2_id: team2PlayerIds[1] ?? null,
-          },
-        ])
-        .select();
-
-      if (teamErr) throw teamErr;
-
-      const team1 = teams[0];
-      const team2 = teams[1];
-
-      // создаём матч
-      const { data: match, error: matchErr } = await supabase
-        .from("matches")
-        .insert([
-          {
-            match_type: type,
-            scores,
-            tournament_id: tournamentId,
-            team1_id: team1.id,
-            team2_id: team2.id,
-            date,
-          },
-        ])
-        .select("id")
-        .single();
-
-      if (matchErr) throw matchErr;
-
-      newMatchId = match.id;
-    }
+    if (error) throw error;
+    newMatchId = data.id;
+/*
     console.log("Меняем участников местами: ", team1PlayerIds, team2PlayerIds)
     const matchRes = Match.getWinnerId(scores,team1PlayerIds[0],team2PlayerIds[0]);
     this.processMatchResult(newMatchId, matchRes[0], matchRes[1]);
-    console.log("==MatchRepository:Add match");
+    console.log("==MatchRepository:Add match");*/
     return newMatchId;
   }
 

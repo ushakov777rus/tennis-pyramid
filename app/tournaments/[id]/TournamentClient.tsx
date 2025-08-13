@@ -24,7 +24,6 @@ import "./Page.css";
 import { CustomSelect } from "@/app/components/CustomSelect";
 import "@/app/components/CustomSelect.css";
 
-import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { useTournament } from "./TournamentProvider";
 
 type Tab = "scheme" | "matches" | "participants" | "rating";
@@ -94,7 +93,17 @@ function FormatView({
 }
 
 export default function TournamentClient() {
-  const { tournament, players, participants, teams, matches, reload } = useTournament();
+  const {
+    tournament,
+    players,
+    participants,
+    teams,
+    matches,
+    reload,
+    addMatch,
+    updateMatch,
+    deleteMatch,
+  } = useTournament();
   const { user } = useUser();
 
   const [activeTab, setActiveTab] = useState<Tab>("scheme");
@@ -143,22 +152,34 @@ export default function TournamentClient() {
       const scores = matchScore
         .split(",")
         .map((set) => set.trim().split("-").map(Number)) as [number, number][];
-      const team1 = [selectedIds[0]];
-      const team2 = [selectedIds[1]];
 
-      await MatchRepository.addMatch(
-        new Date(matchDate),
-        tournament.tournament_type,
+        let player1: number | null = null;
+        let player2: number | null = null;
+        let team1: number | null = null;
+        let team2: number | null = null;
+
+        if (tournament.isSingle()) {
+            player1 = selectedIds[0];
+            player2 = selectedIds[1];
+        } else {
+            team1 = selectedIds[0];
+            team2 = selectedIds[1];
+        }
+
+      await addMatch({
+        date: new Date(matchDate),
+        type: tournament.tournament_type,
         scores,
+        player1,
+        player2,
         team1,
         team2,
-        tournament.id
-      );
+        tournamentId: tournament.id,
+      });
 
       setMatchDate(today);
       setMatchScore("");
       setSelectedIds(user?.role === "player" && user.player_id ? [user.player_id] : []);
-
       await reload();
     } catch (err) {
       console.error("Ошибка при добавлении матча:", err);
@@ -168,8 +189,7 @@ export default function TournamentClient() {
 
   const handleEditMatchSave = async (updatedMatch: Match) => {
     try {
-      await MatchRepository.updateMatch(updatedMatch);
-      await reload();
+      await updateMatch(updatedMatch);
     } catch (err) {
       console.error("Ошибка при обновлении матча:", err);
       alert("Не удалось обновить матч");
@@ -178,8 +198,7 @@ export default function TournamentClient() {
 
   const handleDeleteMatch = async (match: Match) => {
     try {
-      await MatchRepository.deleteMatch(match);
-      await reload();
+      await deleteMatch(match);
     } catch (err) {
       console.error("Ошибка при удалении матча:", err);
       alert("Не удалось удалить матч");
@@ -343,8 +362,6 @@ export default function TournamentClient() {
             isOpen={historyOpen}
             onClose={() => setHistoryOpen(false)}
             player={historyPlayer}
-            // можно не передавать matches/onEdit/onDelete — модалка умеет из провайдера,
-            // но если хочешь — оставь:
             matches={matches}
             onEditMatch={(m) => handleEditMatchSave(m)}
             onDeleteMatch={(m) => handleDeleteMatch(m)}

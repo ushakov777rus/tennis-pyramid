@@ -21,15 +21,23 @@ import { TeamsRepository } from "@/app/repositories/TeamsRepository";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 
 type InitialData = {
-  /** Обязателен: ID текущего турнира */
   tournamentId: number;
-
-  /** Необязательно (можно не передавать — провайдер сам загрузит при монтировании) */
   tournament?: Tournament | null;
   players?: Player[];
   participants?: Participant[];
   teams?: Team[];
   matches?: Match[];
+};
+
+type AddMatchArgs = {
+  date: Date;
+  type: Tournament["tournament_type"];
+  scores: [number, number][];
+  player1: number | null;
+  player2: number | null;
+  team1: number | null;
+  team2: number | null;
+  tournamentId: number;
 };
 
 type TournamentContextShape = {
@@ -46,10 +54,11 @@ type TournamentContextShape = {
 
   // действия
   reload: () => Promise<void>;
+  addMatch: (args: AddMatchArgs) => Promise<void>;
   updateMatch: (m: Match) => Promise<void>;
   deleteMatch: (m: Match) => Promise<void>;
 
-  // (опционально пригодится дальше — примеры мутаций участников/команд)
+  // примеры мутаций участников/команд (опционально)
   addPlayerToTournament?: (playerId: number) => Promise<void>;
   removeParticipant?: (participantId: number) => Promise<void>;
   addTeamToTournament?: (teamId: number, maxLevel?: number) => Promise<void>;
@@ -69,18 +78,13 @@ export function TournamentProvider({
 }) {
   const { tournamentId } = initial;
 
-  // единое состояние (источник правды)
   const [loading, setLoading] = useState<boolean>(false);
-  const [tournament, setTournament] = useState<Tournament | null>(
-    initial.tournament ?? null
-  );
+  const [tournament, setTournament] = useState<Tournament | null>(initial.tournament ?? null);
   const [players, setPlayers] = useState<Player[]>(initial.players ?? []);
-  const [participants, setParticipants] = useState<Participant[]>(
-    initial.participants ?? []
-  );
+  const [participants, setParticipants] = useState<Participant[]>(initial.participants ?? []);
   const [teams, setTeams] = useState<Team[]>(initial.teams ?? []);
   const [matches, setMatches] = useState<Match[]>(initial.matches ?? []);
- 
+
   const needInitialFetch =
     !initial.tournament ||
     !initial.players ||
@@ -88,7 +92,6 @@ export function TournamentProvider({
     !initial.teams ||
     !initial.matches;
 
-  /** Полная перезагрузка всех зависимых данных */
   const reload = useCallback(async () => {
     setLoading(true);
     try {
@@ -99,7 +102,6 @@ export function TournamentProvider({
         TeamsRepository.loadAll(),
         MatchRepository.loadMatches(tournamentId),
       ]);
-
       setTournament(t);
       setPlayers(ps);
       setParticipants(parts);
@@ -110,21 +112,41 @@ export function TournamentProvider({
     }
   }, [tournamentId]);
 
-  /** Первая загрузка, если на страницу не передали initial-данные */
   useEffect(() => {
     if (needInitialFetch) {
-      // без await — не блокируем рендер
-      reload();
+      // не блокируем рендер
+      void reload();
     }
   }, [needInitialFetch, reload]);
 
-  // ---- Мутации матчей (под модалку истории) ----
+  // ---- Мутации матчей ----
+  const addMatch = useCallback(
+    async (args: AddMatchArgs) => {
+      setLoading(true);
+      try {
+        await MatchRepository.addMatch(
+          args.date,
+          args.type,
+          args.scores,
+          args.player1,
+          args.player2,
+          args.team1,
+          args.team2,
+          args.tournamentId
+        );
+        await reload();
+      } finally {
+        setLoading(false);
+      }
+    },
+    [reload]
+  );
+
   const updateMatch = useCallback(
     async (m: Match) => {
       setLoading(true);
       try {
         await MatchRepository.updateMatch(m);
-        // Можно сделать оптимистическое обновление тут (по id), но для простоты — полный reload:
         await reload();
       } finally {
         setLoading(false);
@@ -146,7 +168,7 @@ export function TournamentProvider({
     [reload]
   );
 
-  // ---- Примеры доп. мутаций (на будущее/повторное использование) ----
+  // ---- Примеры доп. мутаций ----
   const addPlayerToTournament = useCallback(
     async (playerId: number) => {
       setLoading(true);
@@ -218,13 +240,12 @@ export function TournamentProvider({
       try {
         await TournamentsRepository.updatePositions(next);
         await reload();
-        } finally {
+      } finally {
         setLoading(false);
       }
-    }, 
+    },
     [reload]
   );
-
 
   const value = useMemo<TournamentContextShape>(
     () => ({
@@ -236,6 +257,7 @@ export function TournamentProvider({
       teams,
       matches,
       reload,
+      addMatch,
       updateMatch,
       deleteMatch,
       addPlayerToTournament,
@@ -254,6 +276,7 @@ export function TournamentProvider({
       teams,
       matches,
       reload,
+      addMatch,
       updateMatch,
       deleteMatch,
       addPlayerToTournament,
@@ -261,6 +284,7 @@ export function TournamentProvider({
       addTeamToTournament,
       createTeam,
       removeTeam,
+      updatePositions,
     ]
   );
 
@@ -276,13 +300,3 @@ export function useTournament(): TournamentContextShape {
   if (!ctx) throw new Error("useTournament must be used within TournamentProvider");
   return ctx;
 }
-
-
-
-
-
-
-
-
-
-
