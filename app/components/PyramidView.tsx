@@ -1,22 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
 import { useUser } from "@/app/components/UserContext";
-import { AdminOnly } from "@/app/components/RoleGuard";
-
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
-
 import "./PyramidView.css";
-
 import {
   DragDropContext,
   Droppable,
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
-import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 
 type PyramidViewProps = {
   participants: Participant[];
@@ -25,6 +19,8 @@ type PyramidViewProps = {
   selectedIds: number[];
   onShowHistory?: (participant?: Participant) => void;
   matches: Match[];
+  /** Сохранение пересчитанных позиций — реализует родитель/провайдер */
+  onPositionsChange?: (next: Participant[]) => Promise<void> | void;
 };
 
 function getPlayerStatusIcon(
@@ -52,13 +48,14 @@ export function PyramidView({
   selectedIds,
   onShowHistory,
   matches,
+  onPositionsChange,
 }: PyramidViewProps) {
   const { user } = useUser();
 
   const [invalidId, setInvalidId] = useState<number | null>(null);
   const [localParticipants, setLocalParticipants] = useState<Participant[]>([]);
 
-  // ✅ Нормализуем порядок сразу при загрузке
+  // нормализуем порядок входящих участников
   useEffect(() => {
     const sorted = [...participants].sort((a, b) => {
       const la = a.level ?? Number.POSITIVE_INFINITY;
@@ -77,7 +74,6 @@ export function PyramidView({
     const benchKey = "999";
     byLevel[benchKey] = [];
 
-    // ⚠️ Не сортируем, используем текущий порядок массива
     items.forEach((p) => {
       const key = p.level ? String(p.level) : benchKey;
       byLevel[key].push(p);
@@ -102,21 +98,18 @@ export function PyramidView({
 
     const byLevel = buildByLevel(items);
 
-    // удалить из источника по source.index (линейный порядок: слева-направо, сверху-вниз)
     const srcArr = byLevel[srcLevel];
     const [removed] = srcArr.splice(source.index, 1);
 
-    // вставить в приёмник по destination.index
     const dstArr = byLevel[dstLevel];
     dstArr.splice(destination.index, 0, removed);
 
-    // собрать назад и пересчитать level/position в линейном порядке
     const next: Participant[] = [];
     for (let i = 1; i <= Number(maxLevel); i++) {
       const key = String(i);
       byLevel[key].forEach((p, idx) => {
         p.level = i;
-        p.position = idx + 1; // позиция = индекс в уровне (row-major)
+        p.position = idx + 1;
         next.push(p);
       });
     }
@@ -127,12 +120,8 @@ export function PyramidView({
     });
 
     setLocalParticipants(next);
-
-    try {
-      await TournamentsRepository.updatePositions(next);
-    } catch (e) {
-      console.error("updatePositions failed:", e);
-    }
+    // сохраняет родитель (через провайдер)
+    await onPositionsChange?.(next);
   };
 
   const getPlayerClass = (participant: Participant): string => {
@@ -236,13 +225,12 @@ export function PyramidView({
     const now = new Date();
 
     const lastMatch = playerMatches
-      .filter(m => m.date.getTime() <= now.getTime()) // только сыгранные
+      .filter((m) => m.date.getTime() <= now.getTime())
       .sort((a, b) => b.date.getTime() - a.date.getTime())[0] || null;
 
     let daysWithoutGames: number | null = null;
     if (lastMatch) {
-      const now = new Date();
-      const diffMs = now.getTime() - lastMatch.date.getTime();
+      const diffMs = Date.now() - lastMatch.date.getTime();
       daysWithoutGames = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     }
 
@@ -252,7 +240,6 @@ export function PyramidView({
           <div
             ref={provided.innerRef}
             {...provided.draggableProps}
-            // 👇 критично: применяем inline-стили dnd для корректной позиции во время перетаскивания
             style={provided.draggableProps.style as React.CSSProperties}
             className={`pyramid-player ${
               selectedIds.includes(id ?? -1) ? "selected" : ""
@@ -302,29 +289,15 @@ export function PyramidView({
 
               {onShowHistory && (
                 <button
-                    className="history-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onShowHistory(p);
-                    }}
-                  >
-                    
+                  className="history-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShowHistory(p);
+                  }}
+                >
                   <svg width="14" height="14" viewBox="0 0 24 24">
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    />
-                    <path
-                      d="M12 6v6l4 2"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      fill="none"
-                      strokeLinecap="round"
-                    />
+                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
+                    <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
                   </svg>
                 </button>
               )}
@@ -344,23 +317,21 @@ export function PyramidView({
   return (
     <DragDropContext onDragStart={onDragStart} onDragEnd={handleDragEnd}>
       <div className="pyramid-container">
-        {Array.from({ length: Number(maxLevel) }, (_, i) => String(i + 1)).map(
-          (levelKey) => (
-            <Droppable droppableId={levelKey} direction="horizontal" key={levelKey}>
-              {(provided) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className="card pyramid-row"
-                  data-level={`Уровень ${levelKey}`}
-                >
-                  {byLevel[levelKey].map((p, i) => renderPlayerCard(p, i))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          )
-        )}
+        {Array.from({ length: Number(maxLevel) }, (_, i) => String(i + 1)).map((levelKey) => (
+          <Droppable droppableId={levelKey} direction="horizontal" key={levelKey}>
+            {(provided) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className="card pyramid-row"
+                data-level={`Уровень ${levelKey}`}
+              >
+                {byLevel[levelKey].map((p, i) => renderPlayerCard(p, i))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        ))}
 
         <Droppable droppableId="999" direction="horizontal">
           {(provided) => (

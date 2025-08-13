@@ -55,6 +55,7 @@ type TournamentContextShape = {
   addTeamToTournament?: (teamId: number, maxLevel?: number) => Promise<void>;
   createTeam?: (name: string, p1: number, p2: number) => Promise<void>;
   removeTeam?: (teamId: number) => Promise<void>;
+  updatePositions: (next: Participant[]) => Promise<void>;
 };
 
 const TournamentContext = createContext<TournamentContextShape | null>(null);
@@ -79,7 +80,7 @@ export function TournamentProvider({
   );
   const [teams, setTeams] = useState<Team[]>(initial.teams ?? []);
   const [matches, setMatches] = useState<Match[]>(initial.matches ?? []);
-
+ 
   const needInitialFetch =
     !initial.tournament ||
     !initial.players ||
@@ -211,6 +212,20 @@ export function TournamentProvider({
     [reload]
   );
 
+  const updatePositions = useCallback(
+    async (next: Participant[]) => {
+      setLoading(true);
+      try {
+        await TournamentsRepository.updatePositions(next);
+        await reload();
+        } finally {
+        setLoading(false);
+      }
+    }, 
+    [reload]
+  );
+
+
   const value = useMemo<TournamentContextShape>(
     () => ({
       loading,
@@ -228,6 +243,7 @@ export function TournamentProvider({
       addTeamToTournament,
       createTeam,
       removeTeam,
+      updatePositions,
     }),
     [
       loading,
@@ -260,3 +276,13 @@ export function useTournament(): TournamentContextShape {
   if (!ctx) throw new Error("useTournament must be used within TournamentProvider");
   return ctx;
 }
+
+
+
+
+
+
+
+
+
+
