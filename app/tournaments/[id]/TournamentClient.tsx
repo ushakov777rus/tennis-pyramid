@@ -5,6 +5,7 @@ import { useUser } from "@/app/components/UserContext";
 
 import { Tournament } from "@/app/models/Tournament";
 import { Player } from "@/app/models/Player";
+import { Team } from "@/app/models/Team";
 import { Match } from "@/app/models/Match";
 import { Participant } from "@/app/models/Participant";
 
@@ -123,24 +124,62 @@ export default function TournamentClient() {
   const { mostPlayed, mostWins } = useMemo(() => calcTopPlayers(matches), [matches]);
 
   // закрепляем игрока как нападающего, если он залогинен
-  useEffect(() => {
-    if (user?.role === "player" && user.player_id) {
-      setSelectedIds([user.player_id]);
-    } else if (!user?.role) {
-      setSelectedIds([]);
-    }
-  }, [user]);
+// закрепляем игрока как нападающего, если он залогинен
+useEffect(() => {
+  const isSingle =
+    typeof tournament?.isSingle === "function"
+      ? tournament.isSingle()
+      : tournament?.tournament_type === "single";
 
+  if (user?.role === "player" && user.player_id && isSingle) {
+    const isInTournament = participants.some(
+      (p) => p.player?.id === user.player_id
+    );
+    setSelectedIds(isInTournament ? [user.player_id] : []);
+  } else {
+    setSelectedIds([]);
+  }
+  // ✅ фиксированный по размеру массив зависимостей
+}, [
+  user?.role,
+  user?.player_id,
+  tournament?.tournament_type, // или tournament?.id, если тип не меняется
+  participants,                // можно заменить на participants.length, если нужно реже триггерить
+]);
   // Опции для кастомного селекта
-  const allItems = tournament?.tournament_type === "single" ? players : teams;
-  const options = useMemo(
-    () =>
-      allItems.map((item: any) => ({
-        value: item.id,
-        label: (item as Player).name ?? (item as { id: number; name: string }).name,
-      })),
-    [allItems]
-  );
+// ЗАМЕНИ ЭТО:
+// const allItems = tournament?.isSingle() ? players : teams;
+// const options = useMemo(
+//   () => allItems.map((item: any) => ({
+//     value: item.id,
+//     label: (item as Player).name ?? (item as { id: number; name: string }).name,
+//   })), [allItems]
+// );
+
+// НА ЭТО:
+const selectableItems = useMemo(() => {
+  if (!tournament) return [] as Array<Player | Team>;
+  const isSingle = tournament.isSingle();
+
+  // Берём только участников турнира
+  const items = participants
+    .map((p) => (isSingle ? p.player : p.team))
+    .filter((x): x is Player | Team => !!x);
+
+  // Убираем дубликаты на случай, если модель допускает повтор
+  const uniq = new Map<number, Player | Team>();
+  for (const it of items) uniq.set(it.id, it);
+  return Array.from(uniq.values());
+}, [tournament, participants]);
+
+const options = useMemo(
+  () =>
+    selectableItems.map((item) => ({
+      value: item.id,
+      label: (item as Player).name ?? (item as { id: number; name: string }).name,
+    })),
+  [selectableItems]
+);
 
   const handleAddMatch = async () => {
     if (!tournament) return;
