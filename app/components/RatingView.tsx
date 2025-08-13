@@ -6,8 +6,6 @@ import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
 
 import "./RatingView.css";
-
-// Берём данные из провайдера
 import { useTournament } from "@/app/tournaments/[id]/TournamentProvider";
 
 type RatingViewProps = {
@@ -15,7 +13,7 @@ type RatingViewProps = {
   onShowHistory?: (participant?: Participant) => void;
 };
 
-// Небольшой локальный компонент бейджа с подсказкой
+// локальный бейдж с подсказкой
 function BadgeWithTip({ titleText, tooltip }: { titleText: string; tooltip: string }) {
   const [open, setOpen] = useState(false);
   const [isTouch, setIsTouch] = useState(false);
@@ -30,31 +28,18 @@ function BadgeWithTip({ titleText, tooltip }: { titleText: string; tooltip: stri
 
   return (
     <span className="badge-with-tip">
-      {/* На десктопе оставим браузерный title для ховера */}
       <span className="badge-title" title={isTouch ? undefined : tooltip}>
         {titleText}
       </span>
-
-      {/* Кнопка показывается только на тач-устройствах */}
       {isTouch && (
         <>
-          <button
-            type="button"
-            className="tip-btn"
-            aria-label="Пояснение"
-            onClick={() => setOpen((v) => !v)}
-          >
+          <button type="button" className="tip-btn" aria-label="Пояснение" onClick={() => setOpen((v) => !v)}>
             i
           </button>
           {open && (
             <div className="tip-popover" role="dialog" aria-label="Подсказка">
               <div className="tip-popover-content">{tooltip}</div>
-              <button
-                type="button"
-                className="tip-close"
-                aria-label="Закрыть"
-                onClick={() => setOpen(false)}
-              >
+              <button type="button" className="tip-close" aria-label="Закрыть" onClick={() => setOpen(false)}>
                 ×
               </button>
             </div>
@@ -68,7 +53,7 @@ function BadgeWithTip({ titleText, tooltip }: { titleText: string; tooltip: stri
 export function RatingView({ matches, onShowHistory }: RatingViewProps) {
   const { loading, tournament, participants } = useTournament();
 
-    // ===== helpers =====
+  // ===== helpers =====
   const now = Date.now();
 
   const pastMatches = useMemo(
@@ -96,9 +81,7 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
 
   const winnerId = (m: Match) => m.getWinnerId?.();
 
-
-  // было: type LeadersRow = { title: string; winners: string[]; tooltip: string };
-  // стало:
+  // тип строки лидеров
   type LeadersRow = { title: string; winners: Participant[]; tooltip: string };
 
   const leaders = useMemo<LeadersRow[]>(() => {
@@ -109,8 +92,8 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
     for (const p of participants) {
       let cnt = 0;
       for (const m of pastMatches) {
-        if (!tookPart(p.getId, m)) continue;
-        const on1 = isOnSide1(p.getId, m);
+        if (!tookPart(p.getId, m)) continue; // ← сохраняем getId
+        const on1 = isOnSide1(p.getId, m);   // ← сохраняем getId
         for (const [a, b] of m.scores ?? []) {
           const my = on1 ? a : b;
           const opp = on1 ? b : a;
@@ -126,14 +109,14 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
     const streakByPid = new Map<number, number>();
     for (const p of participants) {
       const ms = pastMatches
-        .filter((m) => tookPart(p.getId, m))
+        .filter((m) => tookPart(p.getId, m)) // ← getId
         .sort((a, b) => a.date.getTime() - b.date.getTime());
       let cur = 0;
       let best = 0;
       for (const m of ms) {
         const w = winnerId(m);
         if (!w) continue;
-        if (w === p.getId) best = Math.max(best, ++cur);
+        if (w === p.getId) best = Math.max(best, ++cur); // ← getId
         else cur = 0;
       }
       streakByPid.set(p.id, best);
@@ -146,20 +129,20 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
     for (const p of participants) {
       let cnt = 0;
       for (const m of pastMatches) {
-        if (tookPart(p.getId, m)) cnt++;
+        if (tookPart(p.getId, m)) cnt++; // ← getId
       }
       recentCountByPid.set(p.id, cnt);
     }
     const maxRecent = Math.max(...recentCountByPid.values(), 0);
     const grinderWinners = maxRecent > 0 ? participants.filter((p) => (recentCountByPid.get(p.id) ?? 0) === maxRecent) : [];
 
-    // ⚡ Удачливый нападающий — больше всего побед, играя на стороне 1 (атака)
+    // ⚡ Удачливый нападающий — победы на стороне 1
     const successfulAttacksByPid = new Map<number, number>();
     for (const p of participants) {
       let cnt = 0;
       for (const m of pastMatches) {
-        if (!tookPart(p.getId, m)) continue;
-        if (isOnSide1(p.getId, m) && winnerId(m) === p.getId) cnt++;
+        if (!tookPart(p.getId, m)) continue; // ← getId
+        if (isOnSide1(p.getId, m) && winnerId(m) === p.getId) cnt++; // ← getId
       }
       successfulAttacksByPid.set(p.id, cnt);
     }
@@ -169,15 +152,15 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
         ? participants.filter((p) => (successfulAttacksByPid.get(p.id) ?? 0) === maxSuccessfulAttacks)
         : [];
 
-    // 🙃 Неудачный нападающий — больше всего поражений на стороне 1
+    // 🙃 Неудачный нападающий — поражения на стороне 1
     const failedAttacksByPid = new Map<number, number>();
     for (const p of participants) {
       let cnt = 0;
       for (const m of pastMatches) {
-        if (!tookPart(p.getId, m)) continue;
-        const onAttack = isOnSide1(p.getId, m);
+        if (!tookPart(p.getId, m)) continue; // ← getId
+        const onAttack = isOnSide1(p.getId, m); // ← getId
         const w = winnerId(m);
-        if (onAttack && w && w !== p.getId) cnt++;
+        if (onAttack && w && w !== p.getId) cnt++; // ← getId
       }
       failedAttacksByPid.set(p.id, cnt);
     }
@@ -187,12 +170,12 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
         ? participants.filter((p) => (failedAttacksByPid.get(p.id) ?? 0) === maxFailedAttacks)
         : [];
 
-    // 🎢 Трёхсетовый боец — больше всего матчей в 3 сета
+    // 🎢 Трёхсетовый боец — матчи в 3+ сета
     const threeSetMatchesByPid = new Map<number, number>();
     for (const p of participants) {
       let cnt = 0;
       for (const m of pastMatches) {
-        if (!tookPart(p.getId, m)) continue;
+        if (!tookPart(p.getId, m)) continue; // ← getId
         const setsCount = (m.scores ?? []).length;
         if (setsCount >= 3) cnt++;
       }
@@ -204,14 +187,14 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
         ? participants.filter((p) => (threeSetMatchesByPid.get(p.id) ?? 0) === maxThreeSet)
         : [];
 
-    // 🛡 Железный защитник — больше всего побед, играя на стороне 2 (защита)
+    // 🛡 Железный защитник — победы на стороне 2
     const defenseWinsByPid = new Map<number, number>();
     for (const p of participants) {
       let cnt = 0;
       for (const m of pastMatches) {
-        if (!tookPart(p.getId, m)) continue;
-        const onDefense = !isOnSide1(p.getId, m);
-        if (onDefense && winnerId(m) === p.getId) cnt++;
+        if (!tookPart(p.getId, m)) continue; // ← getId
+        const onDefense = !isOnSide1(p.getId, m); // ← getId
+        if (onDefense && winnerId(m) === p.getId) cnt++; // ← getId
       }
       defenseWinsByPid.set(p.id, cnt);
     }
@@ -221,15 +204,15 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
         ? participants.filter((p) => (defenseWinsByPid.get(p.id) ?? 0) === maxDefenseWins)
         : [];
 
-    // 🪫 Неудачный защитник — больше всего поражений на стороне 2
+    // 🪫 Неудачный защитник — поражения на стороне 2
     const defenseLossesByPid = new Map<number, number>();
     for (const p of participants) {
       let cnt = 0;
       for (const m of pastMatches) {
-        if (!tookPart(p.getId, m)) continue;
-        const onDefense = !isOnSide1(p.getId, m);
+        if (!tookPart(p.getId, m)) continue; // ← getId
+        const onDefense = !isOnSide1(p.getId, m); // ← getId
         const w = winnerId(m);
-        if (onDefense && w && w !== p.getId) cnt++;
+        if (onDefense && w && w !== p.getId) cnt++; // ← getId
       }
       defenseLossesByPid.set(p.id, cnt);
     }
@@ -241,43 +224,25 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
 
     const rows: LeadersRow[] = [];
     if (bagelWinners.length)
-      rows.push({
-        title: "🥖 Бублик-мастер",
-        winners: bagelWinners,
-        tooltip: "Больше всего сетов, выигранных 6:0.",
-      });
+      rows.push({ title: "🥖 Бублик-мастер", winners: bagelWinners, tooltip: "Больше всего сетов, выигранных 6:0." });
     if (wallWinners.length)
-      rows.push({
-        title: "🧱 Стена",
-        winners: wallWinners,
-        tooltip: "Самая длинная серия побед подряд.",
-      });
+      rows.push({ title: "🧱 Стена", winners: wallWinners, tooltip: "Самая длинная серия побед подряд." });
     if (grinderWinners.length)
-      rows.push({
-        title: "🐝 Гриндер",
-        winners: grinderWinners,
-        tooltip: "Больше всего матчей за последние 7 дней.",
-      });
+      rows.push({ title: "🐝 Гриндер", winners: grinderWinners, tooltip: "Больше всего матчей за последние 7 дней." });
     if (luckyAttackers.length)
       rows.push({
         title: "⚡ Удачливый нападающий",
         winners: luckyAttackers,
-        tooltip:
-          "Больше всего побед в роли атакующего (игрок на стороне player1/team1 и выиграл матч).",
+        tooltip: "Больше всего побед в роли атакующего (игрок на стороне player1/team1 и выиграл матч).",
       });
     if (unluckyAttackers.length)
       rows.push({
         title: "🙃 Неунывающий драчун",
         winners: unluckyAttackers,
-        tooltip:
-          "Больше всего поражений в роли атакующего (игрок на стороне player1/team1 и проиграл матч).",
+        tooltip: "Больше всего поражений в роли атакующего (игрок на стороне player1/team1 и проиграл матч).",
       });
     if (threeSetWarriors.length)
-      rows.push({
-        title: "🎢 Трёхсетовый боец",
-        winners: threeSetWarriors,
-        tooltip: "Больше всего матчей, сыгранных в 3 сета.",
-      });
+      rows.push({ title: "🎢 Трёхсетовый боец", winners: threeSetWarriors, tooltip: "Больше всего матчей в 3 сета." });
     if (ironDefenders.length)
       rows.push({
         title: "🛡 Железный защитник",
@@ -292,7 +257,58 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
       });
 
     return rows;
-  }, [participants, pastMatches]);
+  }, [participants, pastMatches, now]);
+
+  // заранее мемоизируем таблицу (чтобы не звать useMemo внутри JSX)
+  const leadersTable = useMemo(() => {
+    if (leaders.length === 0) {
+      return <p>Пока нет лидеров — сыграйте ещё немного 😉</p>;
+    }
+    return (
+      <table className="history-table">
+        <thead className="history-table-head">
+          <tr>
+            <th>Игрок(и)</th>
+            <th>Титул</th>
+          </tr>
+        </thead>
+        <tbody>
+          {leaders.map((row, idx) =>
+            row.winners.map((p) => (
+              <tr key={`${row.title}-${p.id}-${idx}`}>
+                <td>
+                  <button
+                    type="button"
+                    className="player-link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (p.player) onShowHistory?.(p);
+                    }}
+                    disabled={!p.player}
+                    aria-label={
+                      p.player
+                        ? `Показать историю матчей: ${getName(p)}`
+                        : `${getName(p)} — история доступна только для одиночных игроков`
+                    }
+                    title={
+                      p.player
+                        ? "История матчей"
+                        : "История доступна только для одиночных игроков"
+                    }
+                  >
+                    {getName(p)}
+                  </button>
+                </td>
+                <td>
+                  <BadgeWithTip titleText={row.title} tooltip={row.tooltip} />
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    );
+  }, [leaders, onShowHistory]);
 
   // ===== render =====
   if (loading) return <p>Загрузка…</p>;
@@ -300,57 +316,7 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
 
   return (
     <div className="history-wrap">
-      {participants.length === 0 ? (
-        <p>Пока нет участников.</p>
-      ) : (useMemo(() =>
-        (leaders.length === 0 ? (
-          <p>Пока нет лидеров — сыграйте ещё немного 😉</p>
-        ) : (
-          <table className="history-table">
-            <thead className="history-table-head">
-              <tr>
-                <th>Игрок(и)</th>
-                <th>Титул</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leaders.map((row, idx) =>
-                row.winners.map((p) => (
-                  <tr key={`${row.title}-${p.id}-${idx}`}>
-                    <td>
-                      <button
-                        type="button"
-                        className="player-link"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Историю показываем только для одиночных участников
-                          if (p.player) onShowHistory?.(p);
-                        }}
-                        disabled={!p.player}
-                        aria-label={
-                          p.player
-                            ? `Показать историю матчей: ${getName(p)}`
-                            : `${getName(p)} — история доступна только для одиночных игроков`
-                        }
-                        title={
-                          p.player
-                            ? "История матчей"
-                            : "История доступна только для одиночных игроков"
-                        }
-                      >
-                        {getName(p)}
-                      </button>
-                    </td>
-                    <td>
-                      <BadgeWithTip titleText={row.title} tooltip={row.tooltip} />
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        )), [leaders])
-      )}
+      {participants.length === 0 ? <p>Пока нет участников.</p> : leadersTable}
     </div>
   );
 }
