@@ -188,3 +188,18 @@
     flex: 1 1 100%; /* переносим вниз */
   }
 }
+
+/* page.css или MainPage.css */
+
+.tournaments-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* по умолчанию 1 колонка */
+  gap: 20px;
+}
+
+/* На экранах >= 1024px (десктоп) — 2 колонки */
+@media (min-width: 768px) {
+  .tournaments-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

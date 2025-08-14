@@ -226,4 +226,31 @@ static async loadParticipants(tournamentId: number): Promise<Participant[]> {
       console.error("Ошибка массового обновления:", error);
     }
   }
+
+  static async loadStats(tournamentIds: number[]) {
+    type PRow = { tournament_id: number; participants: number };
+    type MRow = { tournament_id: number; matches: number };
+
+    const [{ data: p, error: pErr }, { data: m, error: mErr }] = await Promise.all([
+      supabase
+        .from("participants_count_by_tournament")
+        .select("tournament_id, participants")
+        .in("tournament_id", tournamentIds),
+      supabase
+        .from("matches_count_by_tournament")
+        .select("tournament_id, matches")
+        .in("tournament_id", tournamentIds),
+    ]);
+
+    if (pErr) console.error(pErr);
+    if (mErr) console.error(mErr);
+
+    const res: Record<number, { participants: number; matches: number }> = {};
+    tournamentIds.forEach((id) => (res[id] = { participants: 0, matches: 0 }));
+
+    (p as PRow[] | null)?.forEach((r) => (res[r.tournament_id].participants = r.participants));
+    (m as MRow[] | null)?.forEach((r) => (res[r.tournament_id].matches = r.matches));
+
+    return res;
+  }
 }

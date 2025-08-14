@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+
 import { useUser } from "@/app/components/UserContext";
 
 import { Tournament } from "@/app/models/Tournament";
@@ -42,6 +44,7 @@ export default function TournamentClient() {
     deleteMatch,
   } = useTournament();
   const { user } = useUser();
+  const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<Tab>("scheme");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -347,10 +350,6 @@ function FormatView({
           tournament={tournament}
           participantsCount={participants.length}
           matchesCount={matches.length}
-          mostMatches={mostPlayed?.player}
-          mostMatchesCnt={mostPlayed?.games ?? 0}
-          mostWins={mostWins?.player}
-          mostWinsCnt={mostWins?.wins ?? 0}
         />
 
         <div className="card card-tabs">

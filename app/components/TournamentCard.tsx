@@ -7,20 +7,25 @@ import { Player } from "@/app/models/Player";
 
 import "./TournamentCard.css"
 
-type Props = {
+type TournamentCardProps = {
   tournament: Tournament;
   participantsCount: number;
   matchesCount: number;
-  mostMatches: Player | undefined;
-  mostMatchesCnt: number;
-  mostWins: Player | undefined;
-  mostWinsCnt: number;
-  rightSlot?: React.ReactNode; // опционально: можно передать любые действия справа
+  onClick?: () => void;
 };
 
-export function TournamentCard({ tournament, participantsCount, matchesCount, rightSlot }: Props) {
+export function TournamentCard({
+  tournament,
+  participantsCount,
+  matchesCount,
+  onClick,
+}: TournamentCardProps) {
   return (
-    <div className="card card-with-status">
+    <div 
+      className={`card card-with-status ${onClick ? "clickable" : ""}`}
+      onClick={onClick}
+      style={{ cursor: onClick ? "pointer" : "default" }}
+   >
       <div className="tournament-status" style={{ minWidth: 80, display: "flex", justifyContent: "flex-end" }}>
         <span className={`status ${tournament.status}`}>
           {tournament.getStatus()}
@@ -61,12 +66,6 @@ export function TournamentCard({ tournament, participantsCount, matchesCount, ri
           </tbody>
         </table>
       </div>
-
-      {rightSlot && (
-        <div style={{ marginTop: 12 }}>
-          {rightSlot}
-        </div>
-      )}
     </div>
   );
 }

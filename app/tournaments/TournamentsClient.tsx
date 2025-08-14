@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 
 import { NavigationBar } from "@/app/components/NavigationBar";
 import { AdminOnly } from "@/app/components/RoleGuard";
+import { TournamentCard } from "@/app/components/TournamentCard";
+
 import { useTournaments } from "@/app/tournaments/TournamentsProvider";
 import { useState } from "react";
 import { Tournament } from "@/app/models/Tournament";
@@ -14,7 +16,7 @@ import "@/app/MainPage.css";
 export function TournamentsClient() {
   const router = useRouter();
 
-  const { tournaments, loading, error, createTournament, deleteTournament } = useTournaments();
+  const { tournaments, loading, error, createTournament, deleteTournament, stats } = useTournaments();
 
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState<"single" | "double">("single");
@@ -24,6 +26,7 @@ export function TournamentsClient() {
   const onCreate = async () => {
     await createTournament({
       name: newName,
+      format: "pyramid", // ДОДЕЛАТЬ
       tournament_type: newType,
       start_date: startDate || null,
       end_date: endDate || null,
@@ -89,46 +92,16 @@ export function TournamentsClient() {
         {loading && <div className="card">Загрузка…</div>}
         {error && <div className="card card-error">Ошибка: {error}</div>}
 
-        <div className="card-grid">
-          {tournaments.map((t: Tournament) => (
-            <div key={t.id} className="card card-250px card-with-status">
-              <div className="tournament-status">
-                <span className={`status ${t.status}`}>
-                  {t.getStatus()}
-                </span>
-              </div>
-
-              <div className="tournament-header">
-                <h3>{t.name}</h3>
-              </div>
-
-              <div className="tournament-details">
-                <p>🏆 Тип: {t.tournament_type === "single" ? "Одиночный" : "Парный"}</p>
-                <p>🏆 Формат: {t.getFormat()}</p>
-                <p>
-                  📅{" "}
-                  {t.start_date
-                    ? `${t.start_date} → ${t.end_date || "?"}`
-                    : "Дата не назначена"}
-                </p>
-              </div>
-
-              <div className="tournament-actions">
-                <button
-                  className="card-btn card-btn-act"
-                  onClick={() => router.push(`/tournaments/${t.id}`)}
-                >
-                  Просмотр
-                </button>
-
-                <AdminOnly>
-                  <button className="card-btn card-btn-del" onClick={() => onDelete(t.id)}>
-                    Удалить
-                  </button>
-                </AdminOnly>
-              </div>
-            </div>
-          ))}
+        <div className="tournaments-grid">
+            {tournaments.map((t: Tournament) => (
+            <TournamentCard
+                key={t.id} // 👈 уникальный ключ
+                tournament={t}
+                participantsCount={stats[t.id]?.participants ?? 0}
+                matchesCount={stats[t.id]?.matches ?? 0}
+                onClick={() => router.push(`/tournaments/${t.id}`)} // 👈 передаем клик
+            />
+            ))}
         </div>
       </div>
     </div>

@@ -1,25 +1,30 @@
+// app/tournaments/TournamentsProvider.tsx
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 import { Tournament } from "@/app/models/Tournament";
 
+type TournamentStats = { participants: number; matches: number };
+
+// 👇 Единый тип для createTournament
 type NewTournamentPayload = {
   name: string;
+  format: "pyramid" | "round_robin" | "single_elimination" | "double_elimination" | "groups_playoff" | "swiss";
   tournament_type: "single" | "double";
   start_date: string | null;
   end_date: string | null;
-  status?: Tournament["status"];
+  status?: Tournament["status"]; // ← опционально
 };
 
 type TournamentsContextValue = {
   tournaments: Tournament[];
   loading: boolean;
   error: string | null;
+  stats: Record<number, TournamentStats>;
 
-  // actions
   refresh: () => Promise<void>;
-  createTournament: (payload: NewTournamentPayload) => Promise<void>;
+  createTournament: (p: NewTournamentPayload) => Promise<void>; // ← используем единый тип
   deleteTournament: (id: number) => Promise<void>;
 };
 
@@ -29,6 +34,17 @@ export function TournamentsProvider({ children }: { children: React.ReactNode })
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<Record<number, TournamentStats>>({});
+
+  const loadStats = useCallback(async (ids: number[]) => {
+    if (!ids.length) { setStats({}); return; }
+    try {
+      const map = await TournamentsRepository.loadStats(ids);
+      setStats(map);
+    } catch (e) {
+      console.error("loadStats error:", e);
+    }
+  }, []);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -36,74 +52,40 @@ export function TournamentsProvider({ children }: { children: React.ReactNode })
     try {
       const list = await TournamentsRepository.loadAll();
       setTournaments(list);
+      void loadStats(list.map(t => t.id));
     } catch (e: any) {
       console.error(e);
       setError(e?.message ?? "Не удалось загрузить турниры");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loadStats]);
 
-  useEffect(() => {
-    refresh();
+  useEffect(() => { void refresh(); }, [refresh]);
+
+  // 👇 status опционален. Дефолт "draft" проставляем здесь.
+  const createTournament = useCallback(async (p: NewTournamentPayload) => {
+    if (!p.name.trim()) return;
+    await TournamentsRepository.create({
+      name: p.name.trim(),
+      format: p.format,
+      tournament_type: p.tournament_type,
+      start_date: p.start_date,
+      end_date: p.end_date,
+      status: p.status ?? "draft", // ← дефолт
+    });
+    await refresh();
   }, [refresh]);
 
-  const createTournament = useCallback(
-    async (payload: NewTournamentPayload) => {
-      if (!payload.name.trim()) return;
+  const deleteTournament = useCallback(async (id: number) => {
+    await TournamentsRepository.delete(id);
+    setTournaments(prev => prev.filter(t => t.id !== id));
+    setStats(prev => { const { [id]: _, ...rest } = prev; return rest; });
+  }, []);
 
-      // оптимистично добавим черновик
-      const tempId = -(Date.now());
-      const optimistic: Tournament = new Tournament(
-        tempId,
-        payload.name.trim(),
-        "round_robin",
-        payload.status ?? "draft",
-        payload.tournament_type,
-        payload.start_date,
-        payload.end_date,
-      );
-
-      setTournaments((prev) => [optimistic, ...prev]);
-      try {
-        await TournamentsRepository.create({
-          name: optimistic.name,
-          tournament_type: optimistic.tournament_type,
-          start_date: optimistic.start_date,
-          end_date: optimistic.end_date,
-          status: optimistic.status,
-          format: optimistic.format
-        });
-        await refresh();
-      } catch (e) {
-        console.error(e);
-        setTournaments((prev) => prev.filter((t) => t.id !== tempId));
-        throw e;
-      }
-    },
-    [refresh]
-  );
-
-  const deleteTournament = useCallback(
-    async (id: number) => {
-      const prev = tournaments;
-      setTournaments((list) => list.filter((t) => t.id !== id));
-      try {
-        await TournamentsRepository.delete(id);
-      } catch (e) {
-        console.error(e);
-        // откат
-        setTournaments(prev);
-        throw e;
-      }
-    },
-    [tournaments]
-  );
-
-  const value = useMemo(
-    () => ({ tournaments, loading, error, refresh, createTournament, deleteTournament }),
-    [tournaments, loading, error, refresh, createTournament, deleteTournament]
-  );
+  const value = useMemo(() => ({
+    tournaments, loading, error, stats, refresh, createTournament, deleteTournament
+  }), [tournaments, loading, error, stats, refresh, createTournament, deleteTournament]);
 
   return <TournamentsContext.Provider value={value}>{children}</TournamentsContext.Provider>;
 }
