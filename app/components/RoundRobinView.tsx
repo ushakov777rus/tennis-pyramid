@@ -14,33 +14,39 @@ type RoundRobinViewProps = {
   onSaveScore?: (aId: number, bId: number, score: string) => Promise<void> | void;
 };
 
-type Unit = { id: number; name: string };
-
-function unitFromParticipant(p: Participant): Unit | null {
-  if (p.player) return { id: p.player.id, name: p.player.name };
-  if (p.team)
-    return {
-      id: p.team.id,
-      name: `${p.team.player1?.name ?? "??"} + ${p.team.player2?.name ?? "??"}`,
-    };
-  return null;
+/** Валидный участник: либо одиночный игрок, либо пара */
+function isValidParticipant(p: Participant | null | undefined): p is Participant {
+  return !!p && (!!p.player || !!p.team);
 }
 
-/** "Circle method" — строим расписание */
-function buildRoundRobin(units: Unit[]): Unit[][][] {
-  const list: (Unit | null)[] = units.map((u) => u);
+/** ID участника для ключей матчей (игрок.id или команда.id) */
+function getUnitId(p: Participant): number {
+  return p.player?.id ?? p.team!.id;
+}
+
+/** Отображаемое имя для сортировки (игрок или "A + B") */
+function getDisplayName(p: Participant): string {
+  if (p.player) return p.player.name;
+  const a = p.team?.player1?.name ?? "??";
+  const b = p.team?.player2?.name ?? "??";
+  return `${a} + ${b}`;
+}
+
+/** Строим расписание (circle method) по целым Participant */
+function buildRoundRobin(units: Participant[]): Participant[][][] {
+  const list: (Participant | null)[] = units.map((u) => u);
   if (list.length % 2 === 1) list.push(null); // BYE
 
   const n = list.length;
   const roundsCount = n - 1;
-  const rounds: Unit[][][] = [];
+  const rounds: Participant[][][] = [];
 
   for (let r = 0; r < roundsCount; r++) {
-    const pairs: Unit[][] = [];
+    const pairs: Participant[][] = [];
     for (let i = 0; i < n / 2; i++) {
       const a = list[i];
       const b = list[n - 1 - i];
-      if (a && b) pairs.push([a, b]); // пары с BYE пропускаем
+      if (a && b) pairs.push([a, b]); // BYE пропускаем
     }
     rounds.push(pairs);
 
@@ -74,23 +80,26 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
-  const units = useMemo(
+  // берём только валидных участников и стабильно сортируем по имени/именам
+  const ordered = useMemo(
     () =>
       participants
-        .map(unitFromParticipant)
-        .filter((u): u is Unit => !!u)
-        .sort((a, b) => a.name.localeCompare(b.name, "ru")),
+        .filter(isValidParticipant)
+        .slice()
+        .sort((a, b) => getDisplayName(a).localeCompare(getDisplayName(b), "ru")),
     [participants]
   );
 
-  const rounds = useMemo(() => buildRoundRobin(units), [units]);
+  const rounds = useMemo(() => buildRoundRobin(ordered), [ordered]);
 
-  const pairKey = (a: number, b: number) => `${Math.min(a, b)}_${Math.max(a, b)}`;
+  // ключ пары (порядок не важен)
+  const pairKey = (aId: number, bId: number) => `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
 
+  // "6:4" или "6-4", разделённые запятой
   function isValidScoreFormat(s: string) {
     const trimmed = s.trim();
     if (!trimmed) return false;
-    const setRe = /^\s*\d+\s*[:-]\s*\d+\s*$/; // "6:4" или "6-4"
+    const setRe = /^\s*\d+\s*[:-]\s*\d+\s*$/;
     return trimmed.split(",").every((part) => setRe.test(part.trim()));
   }
 
@@ -120,6 +129,21 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
     }
   }
 
+  // Рендер имени: одиночка — одна строка; пара — два имени столбиком
+  function NameCell({ p }: { p: Participant }) {
+    if (p.player) {
+      return <span className="name-one-line" title={`ID: ${p.player.id}`}>{p.player.name}</span>;
+    }
+    const a = p.team?.player1?.name ?? "??";
+    const b = p.team?.player2?.name ?? "??";
+    return (
+      <span className="chip name-stack" title={`ID: ${p.team?.id}`}>
+        <span className="name-line">{a}</span>
+        <span className="name-line">{b}</span>
+      </span>
+    );
+  }
+
   return (
     <div className="roundrobin-wrap">
       <div className="rounds-grid">
@@ -132,82 +156,81 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
             <table className="round-table">
               <thead>
                 <tr className="grid-row">
-                  <th>Игрок</th>
+                  <th>Игрок / Пара</th>
                   <th>Счёт</th>
-                  <th>Игрок</th>
+                  <th>Игрок / Пара</th>
                 </tr>
               </thead>
 
               <tbody>
                 {pairs.length > 0 ? (
-                  pairs.map(([a, b], i) => {
-                    const score = getMatchScore(a.id, b.id, matches);
-                    const k = pairKey(a.id, b.id);
+                  pairs.map(([pa, pb], i) => {
+                    const aId = getUnitId(pa);
+                    const bId = getUnitId(pb);
+                    const score = getMatchScore(aId, bId, matches);
+                    const k = pairKey(aId, bId);
                     const isEditing = editingKey === k;
 
                     return (
                       <tr key={i} className={`grid-row ${isEditing ? "editing-row" : ""}`}>
                         <td>
-                          <span className="chip" title={`ID: ${a.id}`}>
-                            {a.name}
-                          </span>
+                          <NameCell p={pa} />
                         </td>
 
-<td className="score-cell">
-  {score ? (
-    <span className="badge">{score}</span>
-  ) : !isEditing ? (
-    <button
-      type="button"
-      className="vs vs-click"
-      onClick={() => startEdit(a.id, b.id, score)}
-      title="Добавить счёт"
-      aria-label="Добавить счёт"
-    >
-      vs
-    </button>
-  ) : (
-    <div className="score-edit-wrap">
-      <input
-        className="input"
-        value={editValue}
-        onChange={(e) => setEditValue(e.target.value)}
-        placeholder="6-4, 4-6, 10-8"
-        autoFocus
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            saveEdit(a.id, b.id);
-          }
-          if (e.key === "Escape") {
-            e.preventDefault();
-            cancelEdit();
-          }
-        }}
-      />
+                        <td className="score-cell">
+                          {score ? (
+                            <span className="badge">{score}</span>
+                          ) : !isEditing ? (
+                            <button
+                              type="button"
+                              className="vs vs-click"
+                              onClick={() => startEdit(aId, bId, score)}
+                              title="Добавить счёт"
+                              aria-label="Добавить счёт"
+                            >
+                              vs
+                            </button>
+                          ) : (
+                            <div className="score-edit-wrap">
+                              <input
+                                className="score-input"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                placeholder="6-4, 4-6, 10-8"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    saveEdit(aId, bId);
+                                  }
+                                  if (e.key === "Escape") {
+                                    e.preventDefault();
+                                    cancelEdit();
+                                  }
+                                }}
+                              />
 
-      <SaveIconButton
-        className="lg"
-        title="Сохранить счёт"
-        aria-label="Сохранить счёт"
-        onClick={() => saveEdit(a.id, b.id)}
-        disabled={saving}
-      />
+                              <SaveIconButton
+                                className="lg"
+                                title="Сохранить счёт"
+                                aria-label="Сохранить счёт"
+                                onClick={() => saveEdit(aId, bId)}
+                                disabled={saving}
+                              />
 
-      <CancelIconButton
-        className="lg"
-        title="Отмена"
-        aria-label="Отмена"
-        onClick={cancelEdit}
-        disabled={saving}
-      />
-    </div>
-  )}
-</td>
+                              <CancelIconButton
+                                className="lg"
+                                title="Отмена"
+                                aria-label="Отмена"
+                                onClick={cancelEdit}
+                                disabled={saving}
+                              />
+                            </div>
+                          )}
+                        </td>
+
                         <td>
-                          <span className="chip" title={`ID: ${b.id}`}>
-                            {b.name}
-                          </span>
+                          <NameCell p={pb} />
                         </td>
                       </tr>
                     );

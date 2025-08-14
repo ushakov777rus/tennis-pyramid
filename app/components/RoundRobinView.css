@@ -31,7 +31,7 @@
 .round-table th,
 .round-table td {
   vertical-align: middle;
-  padding: 6px 8px;
+  padding: 6px 0px;
   border: 0;
 }
 
@@ -117,4 +117,64 @@
   align-items: center;
   gap: 6px;
   justify-content: center;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* Колонки по умолчанию и при редактировании */
+.grid-row {
+  display: grid;
+  grid-template-columns: 37% 26% 37%;
+}
+.editing-row {
+  grid-template-columns: 20% 60% 20%;
+}
+
+/* Одиночка — одна строка, обрезаем с ... */
+.name-one-line {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+/* Пары — две строки друг под другом, каждая строка с усечением */
+.name-stack {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 100%;
+  vertical-align: middle;
+  min-width: 135px;
+}
+.name-stack .name-line {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.score-edit-wrap { display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
+
+.round-table tbody .grid-row + .grid-row > td { border-top: 1px dashed rgba(0,0,0,0.12); }
+.round-table thead .grid-row > th { border-bottom: 1px solid rgba(0,0,0,0.12); }
+.round-table .history-empty { text-align: center; padding: 10px; color: #666; }
+
+.round-table .chip,
+.round-table .badge,
+.round-table .vs {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
 }
