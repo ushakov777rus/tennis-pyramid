@@ -3,8 +3,9 @@
 import { useMemo, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
-import "./PyramidView.css";           // переиспользуем стили чипов/бейджей/карточек
-import "./RoundRobinView.css";        // стили таблицы кругового турнира
+import "./PyramidView.css";           // чипы/бейджи/карточки
+import "./RoundRobinView.css";        // таблица кругового турнира
+import "./TeamsTable.css";            // переиспользуем стиль icon-btn из таблицы команд
 
 type RoundRobinViewProps = {
   participants: Participant[];
@@ -176,6 +177,7 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
                               className="vs vs-click"
                               onClick={() => startEdit(a.id, b.id, score)}
                               title="Добавить счёт"
+                              aria-label="Добавить счёт"
                             >
                               vs
                             </button>
@@ -183,6 +185,7 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
                             // режим редактирования: vs остаётся + инпут и действия
                             <div className="score-edit-wrap">
                               <span className="vs vs-static">vs</span>
+
                               <input
                                 className="score-input"
                                 value={editValue}
@@ -200,21 +203,35 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
                                   }
                                 }}
                               />
+
+                              {/* Сохранить (check-circle) */}
                               <button
                                 type="button"
-                                className="btn-save"
+                                className="icon-btn lg"
                                 onClick={() => saveEdit(a.id, b.id)}
+                                title="Сохранить счёт"
+                                aria-label="Сохранить счёт"
                                 disabled={saving}
                               >
-                                {saving ? "Сохранение..." : "Сохранить"}
+                                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                                  <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
+                                  <path d="M7 12l3 3 7-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
                               </button>
+
+                              {/* Отмена (x-circle) */}
                               <button
                                 type="button"
-                                className="btn-cancel"
+                                className="icon-btn danger lg"
                                 onClick={cancelEdit}
+                                title="Отмена"
+                                aria-label="Отмена"
                                 disabled={saving}
                               >
-                                Отмена
+                                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                                  <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
+                                  <path d="M15 9L9 15M9 9l6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
                               </button>
                             </div>
                           )}
