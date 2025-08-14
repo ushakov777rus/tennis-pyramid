@@ -3,9 +3,10 @@
 import { useMemo, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
-import "./PyramidView.css";           // чипы/бейджи/карточки
-import "./RoundRobinView.css";        // таблица кругового турнира
-import "./TeamsTable.css";            // переиспользуем стиль icon-btn из таблицы команд
+import "./PyramidView.css";    // чипы/бейджи/карточки
+import "./RoundRobinView.css"; // таблица кругового турнира
+import "./TeamsTable.css";     // стиль .icon-btn, .danger, .lg
+import { SaveIconButton, CancelIconButton } from "./IconButtons";
 
 type RoundRobinViewProps = {
   participants: Participant[];
@@ -25,12 +26,7 @@ function unitFromParticipant(p: Participant): Unit | null {
   return null;
 }
 
-/**
- * "Circle method" для составления расписания:
- * - если нечётное число участников — добавляем BYE (null)
- * - раундов: n-1 (при чётном n) или n-1 c BYE (при нечётном)
- * - пары формируются зеркально
- */
+/** "Circle method" — строим расписание */
 function buildRoundRobin(units: Unit[]): Unit[][][] {
   const list: (Unit | null)[] = units.map((u) => u);
   if (list.length % 2 === 1) list.push(null); // BYE
@@ -58,7 +54,7 @@ function buildRoundRobin(units: Unit[]): Unit[][][] {
   return rounds;
 }
 
-/** Ищем матч между двумя участниками и возвращаем отформатированный счёт (например, "6:3, 4:6, 10:8") */
+/** Отформатированный счёт "6:3, 4:6, 10:8" или null, если матча нет */
 function getMatchScore(aId: number, bId: number, matches: Match[]): string | null {
   const match = matches.find((m) => {
     const id1 = m.player1?.id ?? m.team1?.id;
@@ -68,40 +64,37 @@ function getMatchScore(aId: number, bId: number, matches: Match[]): string | nul
   if (!match) return null;
 
   if (match.scores && match.scores.length > 0) {
-    // ожидаем массив сетов [[6,3],[4,6],[10,8]]
     return match.scores.map(([s1, s2]) => `${s1}:${s2}`).join(", ");
   }
   return "—";
 }
 
 export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobinViewProps) {
-  // состояние инлайн-редактирования счёта
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
-  const units = useMemo(() => {
-    return participants
-      .map(unitFromParticipant)
-      .filter((u): u is Unit => !!u)
-      .sort((a, b) => a.name.localeCompare(b.name, "ru"));
-  }, [participants]);
+  const units = useMemo(
+    () =>
+      participants
+        .map(unitFromParticipant)
+        .filter((u): u is Unit => !!u)
+        .sort((a, b) => a.name.localeCompare(b.name, "ru")),
+    [participants]
+  );
 
   const rounds = useMemo(() => buildRoundRobin(units), [units]);
 
-  // ключ пары (порядок не важен)
   const pairKey = (a: number, b: number) => `${Math.min(a, b)}_${Math.max(a, b)}`;
 
-  // допускаем форматы "6:4" и "6-4", перечисленные запятой
   function isValidScoreFormat(s: string) {
     const trimmed = s.trim();
     if (!trimmed) return false;
-    const setRe = /^\s*\d+\s*[:\-]\s*\d+\s*$/;
+    const setRe = /^\s*\d+\s*[:\-]\s*\d+\s*$/; // "6:4" или "6-4"
     return trimmed.split(",").every((part) => setRe.test(part.trim()));
   }
 
   function startEdit(aId: number, bId: number, currentScore: string | null) {
-    // Редактор показываем только когда счёта ещё нет
     const k = pairKey(aId, bId);
     setEditingKey(k);
     setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
@@ -168,10 +161,8 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
 
                         <td className="score-cell">
                           {score ? (
-                            // есть счёт — показываем badge, без редактирования
                             <span className="badge">{score}</span>
                           ) : !isEditing ? (
-                            // нет счёта — показываем vs в прежнем стиле; по клику включаем редактор
                             <button
                               type="button"
                               className="vs vs-click"
@@ -182,7 +173,6 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
                               vs
                             </button>
                           ) : (
-                            // режим редактирования: vs остаётся + инпут и действия
                             <div className="score-edit-wrap">
                               <span className="vs vs-static">vs</span>
 
@@ -204,35 +194,23 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
                                 }}
                               />
 
-                              {/* Сохранить (check-circle) */}
-                              <button
-                                type="button"
-                                className="icon-btn lg"
-                                onClick={() => saveEdit(a.id, b.id)}
+                              {/* Сохранить */}
+                              <SaveIconButton
+                                className="lg"
                                 title="Сохранить счёт"
                                 aria-label="Сохранить счёт"
+                                onClick={() => saveEdit(a.id, b.id)}
                                 disabled={saving}
-                              >
-                                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                                  <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
-                                  <path d="M7 12l3 3 7-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              </button>
+                              />
 
-                              {/* Отмена (x-circle) */}
-                              <button
-                                type="button"
-                                className="icon-btn danger lg"
-                                onClick={cancelEdit}
+                              {/* Отмена */}
+                              <CancelIconButton
+                                className="lg"
                                 title="Отмена"
                                 aria-label="Отмена"
+                                onClick={cancelEdit}
                                 disabled={saving}
-                              >
-                                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                                  <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
-                                  <path d="M15 9L9 15M9 9l6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              </button>
+                              />
                             </div>
                           )}
                         </td>
