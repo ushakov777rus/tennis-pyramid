@@ -4,7 +4,7 @@
 .rounds-grid {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
 /* Заголовок карточки раунда */
@@ -30,7 +30,7 @@
 .round-table td {
   vertical-align: middle;
   padding: 6px 8px;
-  border: 0; /* границы по желанию; можно включить ниже */
+  border: 0;
 }
 
 /* Выравнивание по колонкам */
@@ -43,18 +43,13 @@
 .round-table thead th:nth-child(3),
 .round-table tbody td:nth-child(3) { text-align: right; }
 
-/* Элипсис и запрет переноса для имён игроков */
+/* Эллипсис и запрет переноса для имён игроков */
 .round-table td:nth-child(1),
 .round-table td:nth-child(3) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 0; /* важно для table-layout: fixed */
-}
-
-/* Счёт/VS тоже без переноса, чтобы центр не прыгал */
-.round-table td:nth-child(2) {
-  white-space: nowrap;
 }
 
 /* Разделители строк (по желанию) */
@@ -79,7 +74,7 @@
   .round-table { font-size: 0.95rem; }
 }
 
-/* Если чипы/бейджи слишком широкие — позволим им ужиматься */
+/* Ограничение ширины для чипов/бейджей */
 .round-table .chip,
 .round-table .badge,
 .round-table .vs {
@@ -88,7 +83,79 @@
   vertical-align: middle;
 }
 
-/* Нужна тонкая линия между head и body, если в теме нет */
+/* Низ таблицы */
 .round-table thead th {
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/* ===== Инлайн-редактирование счёта ===== */
+
+/* Центровка ячейки счёта */
+.score-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Кнопка, стилизованная как .vs (для клика) */
+.vs-click {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Когда редактор открыт — статичный vs рядом с инпутом */
+.vs-static {
+  pointer-events: none;
+}
+
+/* Обёртка редактора */
+.score-edit-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+/* Поле ввода счёта */
+.score-input {
+  min-width: 160px;
+  max-width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font: inherit;
+}
+
+/* Кнопки действий */
+.btn-save,
+.btn-cancel {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font: 500 0.95rem/1.1 inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-save {
+  background: #1a7f37;
+  color: #fff;
+  border-color: #166c30;
+}
+
+.btn-save:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.btn-cancel {
+  background: transparent;
+  color: #555;
+  border-color: #cfcfcf;
+}
+
+.btn-cancel:hover {
+  background: rgba(0,0,0,0.03);
 }

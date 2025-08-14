@@ -1,55 +1,53 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
-import "./PyramidView.css"; // переиспользуем стили таблиц/чипов/карточек
-import "./RoundRobinView.css";
-
+import "./PyramidView.css";           // переиспользуем стили чипов/бейджей/карточек
+import "./RoundRobinView.css";        // стили таблицы кругового турнира
 
 type RoundRobinViewProps = {
   participants: Participant[];
-  matches: Match[]; // уже существующие матчи (чтобы подсветить/скрыть дубликаты)
+  matches: Match[]; // уже существующие матчи (чтобы показать счёт)
+  onSaveScore?: (aId: number, bId: number, score: string) => Promise<void> | void; // колбэк сохранения счёта
 };
 
 type Unit = { id: number; name: string };
 
 function unitFromParticipant(p: Participant): Unit | null {
   if (p.player) return { id: p.player.id, name: p.player.name };
-  if (p.team) return {
-    id: p.team.id,
-    name: `${p.team.player1?.name ?? "??"} + ${p.team.player2?.name ?? "??"}`
-  };
+  if (p.team)
+    return {
+      id: p.team.id,
+      name: `${p.team.player1?.name ?? "??"} + ${p.team.player2?.name ?? "??"}`,
+    };
   return null;
 }
 
 /**
- * Классический "circle method"
+ * "Circle method" для составления расписания:
  * - если нечётное число участников — добавляем BYE (null)
- * - раундов: n-1 (если n чётное) или n (если нечётное, с BYE)
- * - в каждом раунде попарно соединяем зеркальные элементы массива
+ * - раундов: n-1 (при чётном n) или n-1 c BYE (при нечётном)
+ * - пары формируются зеркально
  */
 function buildRoundRobin(units: Unit[]): Unit[][][] {
-  const list: (Unit | null)[] = units.map(u => u);
-  const hadOdd = list.length % 2 === 1;
-  if (hadOdd) list.push(null); // BYE
+  const list: (Unit | null)[] = units.map((u) => u);
+  if (list.length % 2 === 1) list.push(null); // BYE
 
   const n = list.length;
-  const roundsCount = n - 1; // при добавленном BYE это и будет нужное число
+  const roundsCount = n - 1;
   const rounds: Unit[][][] = [];
 
-  // фиксируем первый, остальные "вращаются"
   for (let r = 0; r < roundsCount; r++) {
     const pairs: Unit[][] = [];
     for (let i = 0; i < n / 2; i++) {
       const a = list[i];
       const b = list[n - 1 - i];
-      if (a && b) pairs.push([a, b]);
-      // пары с BYE пропускаем
+      if (a && b) pairs.push([a, b]); // пары с BYE пропускаем
     }
     rounds.push(pairs);
 
-    // ротация: [0, 1, 2, 3, 4] -> [0, 4, 1, 2, 3]
+    // ротация: фиксируем 0-й, остальное крутим вправо
     const fixed = list[0];
     const tail = list.slice(1);
     tail.unshift(tail.pop()!);
@@ -59,41 +57,28 @@ function buildRoundRobin(units: Unit[]): Unit[][][] {
   return rounds;
 }
 
-/** Быстрая проверка: матч уже есть в базе? */
-function alreadyPlayedMap(matches: Match[]): Set<string> {
-  const key = (a: number, b: number) => `${Math.min(a, b)}_${Math.max(a, b)}`;
-  const set = new Set<string>();
-  for (const m of matches) {
-    const a = m.player1?.id ?? m.team1?.id;
-    const b = m.player2?.id ?? m.team2?.id;
-    if (a && b) set.add(key(a, b));
-  }
-  return set;
-}
-
+/** Ищем матч между двумя участниками и возвращаем отформатированный счёт (например, "6:3, 4:6, 10:8") */
 function getMatchScore(aId: number, bId: number, matches: Match[]): string | null {
-  const match = matches.find(m => {
+  const match = matches.find((m) => {
     const id1 = m.player1?.id ?? m.team1?.id;
     const id2 = m.player2?.id ?? m.team2?.id;
-    return (
-      (id1 === aId && id2 === bId) ||
-      (id1 === bId && id2 === aId)
-    );
+    return (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
   });
-
   if (!match) return null;
 
-  // Форматируем счёт, например "6:3, 4:6, 10:8"
   if (match.scores && match.scores.length > 0) {
+    // ожидаем массив сетов [[6,3],[4,6],[10,8]]
     return match.scores.map(([s1, s2]) => `${s1}:${s2}`).join(", ");
   }
-
   return "—";
 }
 
+export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobinViewProps) {
+  // состояние инлайн-редактирования счёта
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<string>("");
+  const [saving, setSaving] = useState(false);
 
-export function RoundRobinView({ participants, matches }: RoundRobinViewProps) {
-  // берём только валидные сущности и фиксируем порядок (по имени) — чтобы расписание было детерминированным
   const units = useMemo(() => {
     return participants
       .map(unitFromParticipant)
@@ -103,82 +88,158 @@ export function RoundRobinView({ participants, matches }: RoundRobinViewProps) {
 
   const rounds = useMemo(() => buildRoundRobin(units), [units]);
 
-  const dupes = useMemo(() => alreadyPlayedMap(matches), [matches]);
-  const key = (a: number, b: number) => `${Math.min(a, b)}_${Math.max(a, b)}`;
+  // ключ пары (порядок не важен)
+  const pairKey = (a: number, b: number) => `${Math.min(a, b)}_${Math.max(a, b)}`;
 
-  const totalPlanned = useMemo(() => {
-    const n = units.length;
-    return (n * (n - 1)) / 2; // теория для контроля
-  }, [units.length]);
+  // допускаем форматы "6:4" и "6-4", перечисленные запятой
+  function isValidScoreFormat(s: string) {
+    const trimmed = s.trim();
+    if (!trimmed) return false;
+    const setRe = /^\s*\d+\s*[:\-]\s*\d+\s*$/;
+    return trimmed.split(",").every((part) => setRe.test(part.trim()));
+  }
+
+  function startEdit(aId: number, bId: number, currentScore: string | null) {
+    // Редактор показываем только когда счёта ещё нет
+    const k = pairKey(aId, bId);
+    setEditingKey(k);
+    setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
+  }
+
+  function cancelEdit() {
+    setEditingKey(null);
+    setEditValue("");
+  }
+
+  async function saveEdit(aId: number, bId: number) {
+    if (!isValidScoreFormat(editValue)) {
+      alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"');
+      return;
+    }
+    try {
+      setSaving(true);
+      await onSaveScore?.(aId, bId, editValue.trim());
+      setEditingKey(null);
+      setEditValue("");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="roundrobin-wrap">
-      {/*
-      <div className="card" style={{ marginBottom: 12 }}>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "baseline" }}>
-          <div><strong>Формат:</strong> круговой турнир (каждый с каждым)</div>
-          <div><strong>Участников:</strong> {units.length}</div>
-          <div><strong>Матчей по плану:</strong> {totalPlanned}</div>
-          <div><strong>Раундов:</strong> {rounds.length}</div>
-        </div>
-      </div>
-*/}
-      {/* Сетка раундов */}
-{/* Сетка раундов */}
-<div className="rounds-grid">
-  {rounds.map((pairs, rIndex) => (
-    <div key={rIndex} className="card">
-      <div className="history-table-head">
-        <strong>Раунд {rIndex + 1}</strong>
-      </div>
+      <div className="rounds-grid">
+        {rounds.map((pairs, rIndex) => (
+          <div key={rIndex} className="card">
+            <div className="history-table-head">
+              <strong>Раунд {rIndex + 1}</strong>
+            </div>
 
-      <table className="round-table">
-        <colgroup>
-          <col className="col-left" />
-          <col className="col-score" />
-          <col className="col-right" />
-        </colgroup>
+            <table className="round-table">
+              <colgroup>
+                <col className="col-left" />
+                <col className="col-score" />
+                <col className="col-right" />
+              </colgroup>
 
-        <thead>
-          <tr>
-            <th>Игрок</th>
-            <th>Счёт</th>
-            <th>Игрок</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {pairs.length > 0 ? (
-            pairs.map(([a, b], i) => {
-              const score = getMatchScore(a.id, b.id, matches);
-              return (
-                <tr key={i}>
-                  <td>
-                    <span className="chip" title={`ID: ${a.id}`}>{a.name}</span>
-                  </td>
-                  <td>
-                    <span className={score ? "badge" : "vs"}>
-                      {score || "vs"}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="chip" title={`ID: ${b.id}`}>{b.name}</span>
-                  </td>
+              <thead>
+                <tr>
+                  <th>Игрок</th>
+                  <th>Счёт</th>
+                  <th>Игрок</th>
                 </tr>
-              );
-            })
-          ) : (
-            <tr>
-              <td colSpan={3} className="history-empty">
-                В этом раунде нет пар (BYE).
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-  ))}
-</div>
+              </thead>
+
+              <tbody>
+                {pairs.length > 0 ? (
+                  pairs.map(([a, b], i) => {
+                    const score = getMatchScore(a.id, b.id, matches);
+                    const k = pairKey(a.id, b.id);
+                    const isEditing = editingKey === k;
+
+                    return (
+                      <tr key={i}>
+                        <td>
+                          <span className="chip" title={`ID: ${a.id}`}>
+                            {a.name}
+                          </span>
+                        </td>
+
+                        <td className="score-cell">
+                          {score ? (
+                            // есть счёт — показываем badge, без редактирования
+                            <span className="badge">{score}</span>
+                          ) : !isEditing ? (
+                            // нет счёта — показываем vs в прежнем стиле; по клику включаем редактор
+                            <button
+                              type="button"
+                              className="vs vs-click"
+                              onClick={() => startEdit(a.id, b.id, score)}
+                              title="Добавить счёт"
+                            >
+                              vs
+                            </button>
+                          ) : (
+                            // режим редактирования: vs остаётся + инпут и действия
+                            <div className="score-edit-wrap">
+                              <span className="vs vs-static">vs</span>
+                              <input
+                                className="score-input"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                placeholder="6-4, 4-6, 10-8"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    saveEdit(a.id, b.id);
+                                  }
+                                  if (e.key === "Escape") {
+                                    e.preventDefault();
+                                    cancelEdit();
+                                  }
+                                }}
+                              />
+                              <button
+                                type="button"
+                                className="btn-save"
+                                onClick={() => saveEdit(a.id, b.id)}
+                                disabled={saving}
+                              >
+                                {saving ? "Сохранение..." : "Сохранить"}
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-cancel"
+                                onClick={cancelEdit}
+                                disabled={saving}
+                              >
+                                Отмена
+                              </button>
+                            </div>
+                          )}
+                        </td>
+
+                        <td>
+                          <span className="chip" title={`ID: ${b.id}`}>
+                            {b.name}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="history-empty">
+                      В этом раунде нет пар (BYE).
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

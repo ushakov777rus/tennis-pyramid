@@ -29,70 +29,6 @@ import { useTournament } from "./TournamentProvider";
 
 type Tab = "scheme" | "matches" | "participants" | "rating";
 
-function FormatView({
-  tournament,
-  participants,
-  matches,
-  maxLevel,
-  selectedIds,
-  setSelectedIds,
-  setHistoryPlayer,
-  setHistoryOpen,
-}: {
-  tournament: Tournament;
-  participants: Participant[];
-  matches: Match[];
-  maxLevel: number;
-  selectedIds: number[];
-  setSelectedIds: (ids: number[]) => void;
-  setHistoryPlayer: (p?: Player) => void;
-  setHistoryOpen: (v: boolean) => void;
-}) {
-  const format = tournament.format ?? "pyramid";
-
-  switch (format) {
-    case "pyramid":
-      return (
-        <PyramidView
-          participants={participants}
-          maxLevel={maxLevel}
-          selectedIds={selectedIds}
-          onSelect={setSelectedIds}
-          onShowHistory={(participant) => {
-            if (participant?.player) {
-              setHistoryPlayer(participant.player);
-              setHistoryOpen(true);
-            }
-          }}
-          matches={matches}
-        />
-      );
-
-    case "round_robin":
-      return <RoundRobinView participants={participants} matches={matches} />;
-
-    default:
-      return (
-        <div style={{ padding: 12 }}>
-          Неизвестный формат «{String(format)}». Показана пирамида по умолчанию.
-          <PyramidView
-            participants={participants}
-            maxLevel={maxLevel}
-            selectedIds={selectedIds}
-            onSelect={setSelectedIds}
-            onShowHistory={(participant) => {
-              if (participant?.player) {
-                setHistoryPlayer(participant.player);
-                setHistoryOpen(true);
-              }
-            }}
-            matches={matches}
-          />
-        </div>
-      );
-  }
-}
-
 export default function TournamentClient() {
   const {
     tournament,
@@ -243,6 +179,158 @@ const options = useMemo(
       alert("Не удалось удалить матч");
     }
   };
+
+
+  // Универсальный парсер: "6-4, 4:6, 10-8" -> [[6,4],[4,6],[10,8]]
+  function parseScoreStringFlexible(score: string): [number, number][] {
+    return score
+      .split(",")
+      .map((setStr) => setStr.trim())
+      .filter(Boolean)
+      .map((setStr) => {
+        // принимаем и "-" и ":"
+        const parts = setStr.split(/[-:]/).map((n) => parseInt(n.trim(), 10));
+        if (parts.length !== 2 || parts.some((x) => Number.isNaN(x))) {
+          throw new Error(`Неверный формат сета: "${setStr}" (ожидается "6-4" или "6:4")`);
+        }
+        return [parts[0], parts[1]] as [number, number];
+      });
+  }
+
+  async function handleSaveScore(aId: number, bId: number, score: string) {
+    if (!tournament) return;
+
+    try {
+      const scores = parseScoreStringFlexible(score);
+
+      // ищем существующий матч между aId и bId
+      const existing = matches.find((m) => {
+        const id1 = m.player1?.id ?? m.team1?.id;
+        const id2 = m.player2?.id ?? m.team2?.id;
+        return (
+          (id1 === aId && id2 === bId) ||
+          (id1 === bId && id2 === aId)
+        );
+      });
+
+      // Определяем одно/парный турнир
+      const isSingle = typeof tournament.isSingle === "function"
+        ? tournament.isSingle()
+        : tournament.tournament_type === "single";
+
+      if (existing) {
+        // Обновляем существующий матч
+        const updated = { ...existing, scores } as Match;
+        await updateMatch(updated);
+      } else {
+        // Создаём новый матч на сегодня
+        const todayISO = new Date().toISOString().split("T")[0];
+        const date = new Date(todayISO);
+
+        let player1: number | null = null;
+        let player2: number | null = null;
+        let team1: number | null = null;
+        let team2: number | null = null;
+
+        if (isSingle) {
+          player1 = aId;
+          player2 = bId;
+        } else {
+          team1 = aId;
+          team2 = bId;
+        }
+
+        await addMatch({
+          date,
+          type: tournament.tournament_type,
+          scores,
+          player1,
+          player2,
+          team1,
+          team2,
+          tournamentId: tournament.id,
+        });
+      }
+
+      await reload();
+    } catch (err) {
+      console.error("Ошибка при сохранении счёта:", err);
+      alert(err instanceof Error ? err.message : "Не удалось сохранить счёт");
+    }
+  }
+
+
+function FormatView({
+  tournament,
+  participants,
+  matches,
+  maxLevel,
+  selectedIds,
+  setSelectedIds,
+  setHistoryPlayer,
+  setHistoryOpen,
+}: {
+  tournament: Tournament;
+  participants: Participant[];
+  matches: Match[];
+  maxLevel: number;
+  selectedIds: number[];
+  setSelectedIds: (ids: number[]) => void;
+  setHistoryPlayer: (p?: Player) => void;
+  setHistoryOpen: (v: boolean) => void;
+}) {
+  const format = tournament.format ?? "pyramid";
+
+  switch (format) {
+    case "pyramid":
+      return (
+        <PyramidView
+          participants={participants}
+          maxLevel={maxLevel}
+          selectedIds={selectedIds}
+          onSelect={setSelectedIds}
+          onShowHistory={(participant) => {
+            if (participant?.player) {
+              setHistoryPlayer(participant.player);
+              setHistoryOpen(true);
+            }
+          }}
+          matches={matches}
+        />
+      );
+
+    case "round_robin":
+      return (
+        <RoundRobinView 
+            participants={participants} 
+            matches={matches}
+            onSaveScore={handleSaveScore}
+        />
+      );
+
+    default:
+      return (
+        <div style={{ padding: 12 }}>
+          Неизвестный формат «{String(format)}». Показана пирамида по умолчанию.
+          <PyramidView
+            participants={participants}
+            maxLevel={maxLevel}
+            selectedIds={selectedIds}
+            onSelect={setSelectedIds}
+            onShowHistory={(participant) => {
+              if (participant?.player) {
+                setHistoryPlayer(participant.player);
+                setHistoryOpen(true);
+              }
+            }}
+            matches={matches}
+          />
+        </div>
+      );
+  }
+}
+
+
 
   if (!tournament) return <p>Загрузка...</p>;
 
