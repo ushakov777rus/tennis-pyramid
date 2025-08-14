@@ -219,4 +219,9 @@ export class Tournament {
   isSingle(): boolean {
     return this.tournament_type === "single";
   }
+
+  isRound(): boolean {
+    return this.format === "round_robin";
+  }
+
 }

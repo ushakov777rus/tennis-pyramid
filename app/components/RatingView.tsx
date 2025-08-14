@@ -373,7 +373,7 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
                 <td>
                   <span className="chip" title={`ID: ${s.id}`}>{s.name}</span>
                   {badges && (
-                    <span className="tournament-badge" style={{ marginLeft: 8 }}>
+                    <span className="badge" style={{ marginLeft: 8 }}>
                       {badges}
                     </span>
                   )}

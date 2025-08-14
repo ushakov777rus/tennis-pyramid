@@ -1,0 +1,94 @@
+/* ===== RoundRobinView.css ===== */
+
+/* Сетка карточек раундов */
+.rounds-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+/* Заголовок карточки раунда */
+.history-table-head {
+  padding: 5px 12px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+/* Таблица раунда */
+.round-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* фиксируем ширины колонок по colgroup */
+}
+
+/* Проценты ширины колонок */
+.round-table .col-left  { width: 40%; }
+.round-table .col-score { width: 20%; }
+.round-table .col-right { width: 40%; }
+
+/* Базовые ячейки */
+.round-table th,
+.round-table td {
+  vertical-align: middle;
+  padding: 6px 8px;
+  border: 0; /* границы по желанию; можно включить ниже */
+}
+
+/* Выравнивание по колонкам */
+.round-table thead th:nth-child(1),
+.round-table tbody td:nth-child(1) { text-align: left;  }
+
+.round-table thead th:nth-child(2),
+.round-table tbody td:nth-child(2) { text-align: center; }
+
+.round-table thead th:nth-child(3),
+.round-table tbody td:nth-child(3) { text-align: right; }
+
+/* Элипсис и запрет переноса для имён игроков */
+.round-table td:nth-child(1),
+.round-table td:nth-child(3) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0; /* важно для table-layout: fixed */
+}
+
+/* Счёт/VS тоже без переноса, чтобы центр не прыгал */
+.round-table td:nth-child(2) {
+  white-space: nowrap;
+}
+
+/* Разделители строк (по желанию) */
+.round-table tbody tr + tr td {
+  border-top: 1px dashed rgba(0, 0, 0, 0.12);
+}
+
+/* Пустая строка BYE */
+.round-table .history-empty {
+  text-align: center;
+  padding: 10px;
+  color: #666;
+}
+
+/* Небольшая подсветка строки при ховере (опционально) */
+.round-table tbody tr:hover td {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* Совсем узкие экраны: чуть уменьшаем шрифт */
+@media (max-width: 360px) {
+  .round-table { font-size: 0.95rem; }
+}
+
+/* Если чипы/бейджи слишком широкие — позволим им ужиматься */
+.round-table .chip,
+.round-table .badge,
+.round-table .vs {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+/* Нужна тонкая линия между head и body, если в теме нет */
+.round-table thead th {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}

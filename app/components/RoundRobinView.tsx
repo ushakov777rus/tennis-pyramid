@@ -4,6 +4,8 @@ import { useMemo } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
 import "./PyramidView.css"; // переиспользуем стили таблиц/чипов/карточек
+import "./RoundRobinView.css";
+
 
 type RoundRobinViewProps = {
   participants: Participant[];
@@ -69,6 +71,27 @@ function alreadyPlayedMap(matches: Match[]): Set<string> {
   return set;
 }
 
+function getMatchScore(aId: number, bId: number, matches: Match[]): string | null {
+  const match = matches.find(m => {
+    const id1 = m.player1?.id ?? m.team1?.id;
+    const id2 = m.player2?.id ?? m.team2?.id;
+    return (
+      (id1 === aId && id2 === bId) ||
+      (id1 === bId && id2 === aId)
+    );
+  });
+
+  if (!match) return null;
+
+  // Форматируем счёт, например "6:3, 4:6, 10:8"
+  if (match.scores && match.scores.length > 0) {
+    return match.scores.map(([s1, s2]) => `${s1}:${s2}`).join(", ");
+  }
+
+  return "—";
+}
+
+
 export function RoundRobinView({ participants, matches }: RoundRobinViewProps) {
   // берём только валидные сущности и фиксируем порядок (по имени) — чтобы расписание было детерминированным
   const units = useMemo(() => {
@@ -90,6 +113,7 @@ export function RoundRobinView({ participants, matches }: RoundRobinViewProps) {
 
   return (
     <div className="roundrobin-wrap">
+      {/*
       <div className="card" style={{ marginBottom: 12 }}>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "baseline" }}>
           <div><strong>Формат:</strong> круговой турнир (каждый с каждым)</div>
@@ -98,40 +122,63 @@ export function RoundRobinView({ participants, matches }: RoundRobinViewProps) {
           <div><strong>Раундов:</strong> {rounds.length}</div>
         </div>
       </div>
-
+*/}
       {/* Сетка раундов */}
-      <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
-        {rounds.map((pairs, rIndex) => (
-          <div key={rIndex} className="card">
-            <div className="history-table-head" style={{ padding: "10px 12px", borderBottom: "1px solid #2a2a2a" }}>
-              <strong>Раунд {rIndex + 1}</strong>
-            </div>
-
-            <ul style={{ listStyle: "none", margin: 0, padding: 10 }}>
-              {pairs.map(([a, b], i) => {
-                const isDuplicate = dupes.has(key(a.id, b.id));
-                return (
-                  <li key={i} className="players" style={{ justifyContent: "space-between", padding: "6px 2px" }}>
-                    <span className="chip" title={`ID: ${a.id}`}>{a.name}</span>
-                    <span className="vs">vs</span>
-                    <span className="chip" title={`ID: ${b.id}`}>{b.name}</span>
-
-                    {/* маркер, если такой матч уже существует в matches */}
-                    {isDuplicate && (
-                      <span className="tournament-badge" title="Матч уже есть в истории">
-                        уже сыграно/создано
-                      </span>
-                    )}
-                  </li>
-                );
-              })}
-              {pairs.length === 0 && (
-                <li className="history-empty">В этом раунде нет пар (BYE).</li>
-              )}
-            </ul>
-          </div>
-        ))}
+{/* Сетка раундов */}
+<div className="rounds-grid">
+  {rounds.map((pairs, rIndex) => (
+    <div key={rIndex} className="card">
+      <div className="history-table-head">
+        <strong>Раунд {rIndex + 1}</strong>
       </div>
+
+      <table className="round-table">
+        <colgroup>
+          <col className="col-left" />
+          <col className="col-score" />
+          <col className="col-right" />
+        </colgroup>
+
+        <thead>
+          <tr>
+            <th>Игрок</th>
+            <th>Счёт</th>
+            <th>Игрок</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {pairs.length > 0 ? (
+            pairs.map(([a, b], i) => {
+              const score = getMatchScore(a.id, b.id, matches);
+              return (
+                <tr key={i}>
+                  <td>
+                    <span className="chip" title={`ID: ${a.id}`}>{a.name}</span>
+                  </td>
+                  <td>
+                    <span className={score ? "badge" : "vs"}>
+                      {score || "vs"}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="chip" title={`ID: ${b.id}`}>{b.name}</span>
+                  </td>
+                </tr>
+              );
+            })
+          ) : (
+            <tr>
+              <td colSpan={3} className="history-empty">
+                В этом раунде нет пар (BYE).
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  ))}
+</div>
     </div>
   );
 }

@@ -293,7 +293,7 @@ const options = useMemo(
         </div>
 
         {/* добавление матча (кроме вкладок участники/звания) */}
-        {activeTab !== "participants" && activeTab !== "rating" && (
+        {activeTab !== "participants" && activeTab !== "rating" && !tournament.isRound &&(
           <LoggedIn>
             <div className="card card-tabs card-tabs-wrap">
               {/* Нападение */}

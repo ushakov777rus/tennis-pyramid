@@ -123,7 +123,7 @@ export function MatchHistoryView({
                     <span className="date">{formatDate(m.date)}</span>
                   )}
                   {showTournament && (
-                    <div className="tournament-badge show-sm-only">
+                    <div className="badge show-sm-only">
                       {m.tournament?.name ?? "—"}
                     </div>
                   )}
