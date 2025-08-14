@@ -64,13 +64,13 @@ export default function TournamentListView() {
               placeholder="Название турнира"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              className="card-input card-input-add-tournament"
+              className="input card-input-add-tournament"
             />
 
             <select
               value={newType}
               onChange={(e) => setNewType(e.target.value as "single" | "double")}
-              className="card-input card-input-add-tournament"
+              className="input card-input-add-tournament"
             >
               <option value="single">Одиночный</option>
               <option value="double">Парный</option>
@@ -80,14 +80,14 @@ export default function TournamentListView() {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="card-input card-input-add-tournament"
+              className="input card-input-add-tournament"
             />
 
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="card-input card-input-add-tournament"
+              className="input card-input-add-tournament"
             />
           
             <button onClick={createTournament} className="card-btn card-btn-act">Создать</button>

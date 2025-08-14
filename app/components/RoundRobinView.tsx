@@ -4,14 +4,14 @@ import { useMemo, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
 import "./PyramidView.css";    // чипы/бейджи/карточки
-import "./RoundRobinView.css"; // таблица кругового турнира
+import "./RoundRobinView.css"; // таблица кругового турнира (grid-строки)
 import "./TeamsTable.css";     // стиль .icon-btn, .danger, .lg
 import { SaveIconButton, CancelIconButton } from "./IconButtons";
 
 type RoundRobinViewProps = {
   participants: Participant[];
-  matches: Match[]; // уже существующие матчи (чтобы показать счёт)
-  onSaveScore?: (aId: number, bId: number, score: string) => Promise<void> | void; // колбэк сохранения счёта
+  matches: Match[];
+  onSaveScore?: (aId: number, bId: number, score: string) => Promise<void> | void;
 };
 
 type Unit = { id: number; name: string };
@@ -130,14 +130,8 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
             </div>
 
             <table className="round-table">
-              <colgroup>
-                <col className="col-left" />
-                <col className="col-score" />
-                <col className="col-right" />
-              </colgroup>
-
               <thead>
-                <tr>
+                <tr className="grid-row">
                   <th>Игрок</th>
                   <th>Счёт</th>
                   <th>Игрок</th>
@@ -152,69 +146,64 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
                     const isEditing = editingKey === k;
 
                     return (
-                      <tr key={i}>
+                      <tr key={i} className={`grid-row ${isEditing ? "editing-row" : ""}`}>
                         <td>
                           <span className="chip" title={`ID: ${a.id}`}>
                             {a.name}
                           </span>
                         </td>
 
-                        <td className="score-cell">
-                          {score ? (
-                            <span className="badge">{score}</span>
-                          ) : !isEditing ? (
-                            <button
-                              type="button"
-                              className="vs vs-click"
-                              onClick={() => startEdit(a.id, b.id, score)}
-                              title="Добавить счёт"
-                              aria-label="Добавить счёт"
-                            >
-                              vs
-                            </button>
-                          ) : (
-                            <div className="score-edit-wrap">
-                              <span className="vs vs-static">vs</span>
+<td className="score-cell">
+  {score ? (
+    <span className="badge">{score}</span>
+  ) : !isEditing ? (
+    <button
+      type="button"
+      className="vs vs-click"
+      onClick={() => startEdit(a.id, b.id, score)}
+      title="Добавить счёт"
+      aria-label="Добавить счёт"
+    >
+      vs
+    </button>
+  ) : (
+    <div className="score-edit-wrap">
+      <input
+        className="input"
+        value={editValue}
+        onChange={(e) => setEditValue(e.target.value)}
+        placeholder="6-4, 4-6, 10-8"
+        autoFocus
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            saveEdit(a.id, b.id);
+          }
+          if (e.key === "Escape") {
+            e.preventDefault();
+            cancelEdit();
+          }
+        }}
+      />
 
-                              <input
-                                className="score-input"
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                placeholder="6-4, 4-6, 10-8"
-                                autoFocus
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    e.preventDefault();
-                                    saveEdit(a.id, b.id);
-                                  }
-                                  if (e.key === "Escape") {
-                                    e.preventDefault();
-                                    cancelEdit();
-                                  }
-                                }}
-                              />
+      <SaveIconButton
+        className="lg"
+        title="Сохранить счёт"
+        aria-label="Сохранить счёт"
+        onClick={() => saveEdit(a.id, b.id)}
+        disabled={saving}
+      />
 
-                              {/* Сохранить */}
-                              <SaveIconButton
-                                className="lg"
-                                title="Сохранить счёт"
-                                aria-label="Сохранить счёт"
-                                onClick={() => saveEdit(a.id, b.id)}
-                                disabled={saving}
-                              />
-
-                              {/* Отмена */}
-                              <CancelIconButton
-                                className="lg"
-                                title="Отмена"
-                                aria-label="Отмена"
-                                onClick={cancelEdit}
-                                disabled={saving}
-                              />
-                            </div>
-                          )}
-                        </td>
-
+      <CancelIconButton
+        className="lg"
+        title="Отмена"
+        aria-label="Отмена"
+        onClick={cancelEdit}
+        disabled={saving}
+      />
+    </div>
+  )}
+</td>
                         <td>
                           <span className="chip" title={`ID: ${b.id}`}>
                             {b.name}
@@ -224,7 +213,7 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
                     );
                   })
                 ) : (
-                  <tr>
+                  <tr className="grid-row">
                     <td colSpan={3} className="history-empty">
                       В этом раунде нет пар (BYE).
                     </td>

@@ -386,7 +386,7 @@ function FormatView({
             <div className="card card-tabs card-tabs-wrap">
               {/* Нападение */}
               <CustomSelect
-                className="card-input card-input-add-match"
+                className="input card-input-add-match"
                 options={options}
                 value={selectedIds[0] ?? null}
                 placeholder="-- Нападение --"
@@ -405,7 +405,7 @@ function FormatView({
 
               {/* Защита */}
               <CustomSelect
-                className="card-input card-input-add-match"
+                className="input card-input-add-match"
                 options={options}
                 value={selectedIds[1] ?? null}
                 placeholder="-- Защита --"
@@ -426,7 +426,7 @@ function FormatView({
                 type="date"
                 value={matchDate}
                 onChange={(e) => setMatchDate(e.target.value)}
-                className="card-input card-input-add-match"
+                className="input card-input-add-match"
               />
 
               <input
@@ -434,7 +434,7 @@ function FormatView({
                 placeholder="6-4, 4-6, 11-8"
                 value={matchScore}
                 onChange={(e) => setMatchScore(e.target.value)}
-                className="card-input card-input-add-match"
+                className="input card-input-add-match"
               />
 
               <button onClick={handleAddMatch} className="card-btn card-btn-act">

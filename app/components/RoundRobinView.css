@@ -1,4 +1,4 @@
-/* ===== RoundRobinView.css ===== */
+/* ===== RoundRobinView.css (grid-строки) ===== */
 
 /* Сетка карточек раундов */
 .rounds-grid {
@@ -13,19 +13,21 @@
   border-bottom: 1px solid #2a2a2a;
 }
 
-/* Таблица раунда */
+/* Таблица */
 .round-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed; /* фиксируем ширины колонок по colgroup */
 }
 
-/* Проценты ширины колонок */
-.round-table .col-left  { width: 40%; }
-.round-table .col-score { width: 20%; }
-.round-table .col-right { width: 40%; }
+/* Делаем строки thead/tbody гридом из 3 колонок.
+   По умолчанию: 40% / 20% / 40%,
+   для редактируемой строки: 20% / 60% / 20%. */
+.grid-row {
+  display: grid;
+  grid-template-columns: 40% 20% 40%;
+}
 
-/* Базовые ячейки */
+/* Шапка и тело выравниваем и отступы */
 .round-table th,
 .round-table td {
   vertical-align: middle;
@@ -33,27 +35,21 @@
   border: 0;
 }
 
-/* Выравнивание по колонкам */
-.round-table thead th:nth-child(1),
-.round-table tbody td:nth-child(1) { text-align: left;  }
-
-.round-table thead th:nth-child(2),
-.round-table tbody td:nth-child(2) { text-align: center; }
-
-.round-table thead th:nth-child(3),
-.round-table tbody td:nth-child(3) { text-align: right; }
+/* Выравнивание текста по колонкам */
+.grid-row > :nth-child(1) { text-align: left;  }
+.grid-row > :nth-child(2) { text-align: center; }
+.grid-row > :nth-child(3) { text-align: right; }
 
 /* Эллипсис и запрет переноса для имён игроков */
-.round-table td:nth-child(1),
-.round-table td:nth-child(3) {
+.grid-row > :nth-child(1),
+.grid-row > :nth-child(3) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 0; /* важно для table-layout: fixed */
 }
 
 /* Разделители строк (по желанию) */
-.round-table tbody tr + tr td {
+.round-table tbody .grid-row + .grid-row > td {
   border-top: 1px dashed rgba(0, 0, 0, 0.12);
 }
 
@@ -64,17 +60,17 @@
   color: #666;
 }
 
-/* Небольшая подсветка строки при ховере (опционально) */
-.round-table tbody tr:hover td {
+/* Подсветка при ховере */
+.round-table tbody .grid-row:hover > td {
   background: rgba(0, 0, 0, 0.03);
 }
 
-/* Совсем узкие экраны: чуть уменьшаем шрифт */
+/* Совсем узкие экраны: немного уменьшаем шрифт */
 @media (max-width: 360px) {
   .round-table { font-size: 0.95rem; }
 }
 
-/* Ограничение ширины для чипов/бейджей */
+/* Ограничение ширины для чипов/бейджей/VS */
 .round-table .chip,
 .round-table .badge,
 .round-table .vs {
@@ -83,8 +79,8 @@
   vertical-align: middle;
 }
 
-/* Низ таблицы */
-.round-table thead th {
+/* Нижняя граница шапки */
+.round-table thead .grid-row > th {
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
@@ -94,6 +90,11 @@
 .score-cell {
   text-align: center;
   white-space: nowrap;
+}
+
+/* В режиме редактирования меняем пропорции только у этой строки */
+.editing-row {
+  grid-template-columns: 20% 60% 20%;
 }
 
 /* Кнопка, стилизованная как .vs (для клика) */
@@ -116,46 +117,4 @@
   align-items: center;
   gap: 6px;
   justify-content: center;
-}
-
-/* Поле ввода счёта */
-.score-input {
-  min-width: 160px;
-  max-width: 100%;
-  padding: 6px 8px;
-  border: 1px solid #d0d0d0;
-  border-radius: 6px;
-  font: inherit;
-}
-
-/* Кнопки действий */
-.btn-save,
-.btn-cancel {
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  font: 500 0.95rem/1.1 inherit;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.btn-save {
-  background: #1a7f37;
-  color: #fff;
-  border-color: #166c30;
-}
-
-.btn-save:disabled {
-  opacity: 0.7;
-  cursor: default;
-}
-
-.btn-cancel {
-  background: transparent;
-  color: #555;
-  border-color: #cfcfcf;
-}
-
-.btn-cancel:hover {
-  background: rgba(0,0,0,0.03);
 }

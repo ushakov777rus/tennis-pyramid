@@ -69,6 +69,18 @@ body {
   color: #fff;
 }
 
+.input {
+  width: 100%;
+  padding: 5px;
+  margin-bottom: 5px;
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+
 .page-title {
   font-size: 34px;
   margin-bottom: 20px;
@@ -226,16 +238,7 @@ button,
   margin-bottom: 12px;
 }
 
-.card-input {
-  width: 100%;
-  padding: 5px;
-  margin-bottom: 5px;
-  background: #222;
-  border: 1px solid #333;
-  border-radius: 8px;
-  color: #fff;
-  box-sizing: border-box;
-}
+
 
 .tournament-status {
   margin: 4px;
