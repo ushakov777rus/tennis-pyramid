@@ -66,6 +66,7 @@ export class TournamentsRepository {
     start_date: string | null;
     end_date: string | null;
     status: "draft" | "ongoing" | "finished";
+    format: "pyramid" | "round_robin" | "single_elimination" | "double_elimination" | "groups_playoff" | "swiss";
   }): Promise<void> {
     const { error } = await supabase.from("tournaments").insert([params]);
 

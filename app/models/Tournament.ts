@@ -137,8 +137,8 @@ export class Tournament {
   id: number;
   name: string;
   format: "pyramid" | "round_robin" | "single_elimination" | "double_elimination" | "groups_playoff" | "swiss";
-  start_date?: string | null;
-  end_date?: string | null;
+  start_date: string | null;
+  end_date: string | null;
   status: "draft" | "ongoing" | "finished";
   tournament_type: "single" | "double";
 
@@ -148,8 +148,8 @@ export class Tournament {
     format: "pyramid" | "round_robin" | "single_elimination" | "double_elimination" | "groups_playoff" | "swiss",
     status: "draft" | "ongoing" | "finished",
     tournament_type: "single" | "double",
-    start_date?: string | null,
-    end_date?: string | null,
+    start_date: string | null,
+    end_date: string | null,
   ) {
     this.id = id;
     this.name = name;
