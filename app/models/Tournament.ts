@@ -224,4 +224,8 @@ export class Tournament {
     return this.format === "round_robin";
   }
 
+  isPyramid(): boolean {
+    return this.format === "pyramid";
+  }
+
 }

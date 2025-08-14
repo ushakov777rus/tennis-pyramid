@@ -340,6 +340,8 @@ function FormatView({
   const isAnon = user?.role === undefined;
   const isPlayerWithFixedAttacker = user?.role === "player" && !!user?.player_id;
 
+  console.log("Tournament:", tournament,!tournament.isPyramid);
+
   return (
     <div className="page-container">
       <NavigationBar />
@@ -380,7 +382,7 @@ function FormatView({
         </div>
 
         {/* добавление матча (кроме вкладок участники/звания) */}
-        {activeTab !== "participants" && activeTab !== "rating" && !tournament.isRound &&(
+        {activeTab !== "participants" && activeTab !== "rating" && tournament.isPyramid() && (
           <LoggedIn>
             <div className="card card-tabs card-tabs-wrap">
               {/* Нападение */}

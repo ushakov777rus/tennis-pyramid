@@ -203,3 +203,36 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+
+
+
+.filters-bar {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr; /* мобилка: в столбик */
+  align-items: center;
+}
+
+.filters-bar .input {
+  width: 100%;
+}
+
+.filters-bar .card-btn {
+  justify-self: start;
+}
+
+.filters-bar .filters-meta {
+  font-size: 14px;
+  color: #666;
+}
+
+/* На десктопе раскладываем в ряд */
+@media (min-width: 1024px) {
+  .filters-bar {
+    grid-template-columns: 1.2fr 0.8fr 1fr 0.8fr auto auto;
+  }
+  .filters-bar .card-btn {
+    justify-self: end;
+  }
+}
