@@ -59,6 +59,10 @@ html, body {
   font-family: Arial, sans-serif;
 }
 
+h3 {
+  font-size: 18px; /* или любой нужный размер */
+}
+
 body {
   background: #0d0f10;
   margin: 0;
@@ -94,6 +98,7 @@ body {
     flex-direction: column;
     justify-content: space-between;
     margin: 0 auto;
+    font-size: 14px;
 }
 
 
@@ -143,7 +148,7 @@ body {
 }
 
 .card-250px {
-  max-width: 280px;
+  max-width: 250px;
 }
 
 .card-80px {
@@ -229,7 +234,6 @@ button,
   border: 1px solid #333;
   border-radius: 8px;
   color: #fff;
-  font-size: 15px;
   box-sizing: border-box;
 }
 

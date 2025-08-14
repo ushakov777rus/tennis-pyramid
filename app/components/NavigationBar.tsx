@@ -14,7 +14,7 @@ export function NavigationBar() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <header className="header">
+    <header className="page-menu">
       <div className="logo">
         <Link href="/">
           <Image

@@ -20,7 +20,7 @@ type Props = {
 
 export function TournamentCard({ tournament, participantsCount, matchesCount, mostMatches, mostMatchesCnt, mostWins, mostWinsCnt, rightSlot }: Props) {
   return (
-    <div className="card card-with-status card-font-12px">
+    <div className="card card-with-status">
       <div className="tournament-status" style={{ minWidth: 80, display: "flex", justifyContent: "flex-end" }}>
         <span className={`status ${tournament.status}`}>
           {tournament.getStatus()}

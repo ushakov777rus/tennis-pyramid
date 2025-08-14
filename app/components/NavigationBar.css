@@ -46,11 +46,13 @@
 }
 
 /* Хедер */
-.header {
+.page-menu {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 40px;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 
@@ -62,7 +64,7 @@
     align-self: center;
   }
 
-  .header {
+  .page-menu {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;

@@ -31,7 +31,7 @@ export default function HomePage() {
       <NavigationBar />
       <h1 className="page-title">Теннисные турниры</h1>
 
-      <main className="main">
+      <main className="page-content-container">
         <section className="section">
           <h2 className="section-title">Ближайшие турниры</h2>
 

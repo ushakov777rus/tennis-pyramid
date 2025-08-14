@@ -200,7 +200,7 @@ export class Tournament {
   getFormat(): string {
     switch (this.format) {
       case "pyramid":
-        return "Пирамида (лестница)";
+        return "Пирамида";
       case "round_robin":
         return "Круговой турнир";
       case "single_elimination":
