@@ -90,7 +90,7 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
   function isValidScoreFormat(s: string) {
     const trimmed = s.trim();
     if (!trimmed) return false;
-    const setRe = /^\s*\d+\s*[:\-]\s*\d+\s*$/; // "6:4" или "6-4"
+    const setRe = /^\s*\d+\s*[:-]\s*\d+\s*$/; // "6:4" или "6-4"
     return trimmed.split(",").every((part) => setRe.test(part.trim()));
   }
 
