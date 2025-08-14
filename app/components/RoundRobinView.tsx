@@ -132,7 +132,7 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
   // Рендер имени: одиночка — одна строка; пара — два имени столбиком
   function NameCell({ p }: { p: Participant }) {
     if (p.player) {
-      return <span className="name-one-line" title={`ID: ${p.player.id}`}>{p.player.name}</span>;
+      return <span className="chip name-one-line" title={`ID: ${p.player.id}`}>{p.player.name}</span>;
     }
     const a = p.team?.player1?.name ?? "??";
     const b = p.team?.player2?.name ?? "??";
