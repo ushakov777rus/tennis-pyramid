@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PlayersRepository } from "@/app/repositories/PlayersRepository";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { Player } from "@/app/models/Player";
@@ -89,6 +89,13 @@ export default function PlayerListView() {
     }
   };
 
+  // Фильтрация по значению поля "Имя" из строки добавления
+  const filteredPlayers = useMemo(() => {
+    const q = (newPlayer.name ?? "").trim().toLowerCase();
+    if (!q) return players;
+    return players.filter((p) => p.name.toLowerCase().includes(q));
+  }, [players, newPlayer.name]);
+
   return (
     <div className="page-container">
       <NavigationBar />
@@ -107,17 +114,18 @@ export default function PlayerListView() {
             </tr>
           </thead>
           <tbody>
-            <AdminOnly>
               <tr className="add-row">
                 <td>
+                  {/* Поле одновременно для ввода НОВОГО игрока и фильтра списка */}
                   <input
                     type="text"
                     className="inline-input"
-                    placeholder="Имя"
+                    placeholder="Имя (и поиск)"
                     value={newPlayer.name || ""}
                     onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
                   />
                 </td>
+                <AdminOnly>
                 <td className="hide-sm">
                   <input
                     type="text"
@@ -133,9 +141,18 @@ export default function PlayerListView() {
                     <PlusIconButton onClick={addPlayer} title="Добавить" />
                   </div>
                 </td>
+                </AdminOnly>
               </tr>
-            </AdminOnly>
-            {players.map((p) => {
+            
+            {filteredPlayers.length === 0 && (
+              <tr>
+                <td colSpan={6} style={{ textAlign: "center", opacity: 0.7, padding: 12 }}>
+                  Ничего не найдено
+                </td>
+              </tr>
+            )}
+
+            {filteredPlayers.map((p) => {
               const isEditing = editId === p.id;
               return (
                 <tr key={p.id} className={isEditing ? "editing" : ""}>
@@ -152,7 +169,7 @@ export default function PlayerListView() {
                       <span className="chip">{p.name}</span>
                     )}
                     <div className="show-sm-only" style={{ marginTop: 6 }}>
-                      <span className="badge">{p.ntrp || ""}</span>
+                      <span className="badge ntrp-badge">NTRP: {p.ntrp || "—"}</span>
                     </div>
                   </td>
 
@@ -173,58 +190,54 @@ export default function PlayerListView() {
                   <td>{stats[p.id]?.matches ?? 0}</td>
                   <td>{stats[p.id]?.wins ?? 0}</td>
 
-                  {/* Winrate */}
                   <td>{winrate(p.id)}</td>
 
-                  {/* Действия */}
-                  <AdminOnly>
-                    <td className="score-col">
-                      {isEditing ? (
-                        <div className="row-actions always-visible">
-                          <SaveIconButton onClick={saveEdit} title="Сохранить" aria-label="Сохранить" />
-                          <CancelIconButton onClick={cancelEdit} title="Отмена" aria-label="Отмена" />
-                        </div>
-                      ) : (
-                        <div className="row-actions">
-                          <EditIconButton
-                            className="hide-sm"
-                            onClick={() => startEdit(p)}
-                            title="Редактировать"
+                  <td className="score-col">
+                    {isEditing ? (
+                      <div className="row-actions always-visible">
+                        <SaveIconButton onClick={saveEdit} title="Сохранить" aria-label="Сохранить" />
+                        <CancelIconButton onClick={cancelEdit} title="Отмена" aria-label="Отмена" />
+                      </div>
+                    ) : (
+                      <div className="row-actions">
+                        <EditIconButton
+                          className="hide-sm"
+                          onClick={() => startEdit(p)}
+                          title="Редактировать"
+                        />
+                        <DeleteIconButton
+                          className="hide-sm"
+                          onClick={() => deletePlayer(p.id)}
+                          title="Удалить"
+                        />
+                        <div className="menu-wrap">
+                          <KebabIconButton
+                            className="show-sm-only"
+                            aria-haspopup="true"
+                            aria-expanded={openMenuId === p.id}
+                            onClick={() =>
+                              setOpenMenuId((id) => (id === p.id ? null : p.id))
+                            }
+                            title="Действия"
                           />
-                          <DeleteIconButton
-                            className="hide-sm"
-                            onClick={() => deletePlayer(p.id)}
-                            title="Удалить"
-                          />
-                          <div className="menu-wrap">
-                            <KebabIconButton
-                              className="show-sm-only"
-                              aria-haspopup="true"
-                              aria-expanded={openMenuId === p.id}
-                              onClick={() =>
-                                setOpenMenuId((id) => (id === p.id ? null : p.id))
-                              }
-                              title="Действия"
-                            />
-                            {openMenuId === p.id && (
-                              <div className="menu" role="menu">
-                                <button role="menuitem" onClick={() => startEdit(p)}>
-                                  Редактировать
-                                </button>
-                                <button
-                                  role="menuitem"
-                                  className="danger"
-                                  onClick={() => deletePlayer(p.id)}
-                                >
-                                  Удалить
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                          {openMenuId === p.id && (
+                            <div className="menu" role="menu">
+                              <button role="menuitem" onClick={() => startEdit(p)}>
+                                Редактировать
+                              </button>
+                              <button
+                                role="menuitem"
+                                className="danger"
+                                onClick={() => deletePlayer(p.id)}
+                              >
+                                Удалить
+                              </button>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </td>
-                  </AdminOnly>
+                      </div>
+                    )}
+                  </td>
                 </tr>
               );
             })}
