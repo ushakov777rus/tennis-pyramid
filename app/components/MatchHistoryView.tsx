@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
 
+import { AdminOnly } from "./RoleGuard";
+
 import { formatDate } from "@/app/components/Utils";
 
 import "@/app/components/MatchHistory.css";
@@ -174,6 +176,7 @@ export function MatchHistoryView({
                 </td>
 
                 {/* Счёт + действия */}
+                
                 <td className="score-col">
                   {isEditing ? (
                     <div className="score-edit-wrap">
@@ -199,6 +202,7 @@ export function MatchHistoryView({
                     <div className="score-readonly">
                       <span>{m.formatResult()}</span>
 
+                      <AdminOnly>
                       {/* ховер-тулбар (десктоп) + кнопка меню (мобил) */}
                       <div className="row-actions">
                         <EditIconButton
@@ -248,6 +252,7 @@ export function MatchHistoryView({
                           )}
                         </div>
                       </div>
+                      </AdminOnly>
                     </div>
                   )}
                 </td>

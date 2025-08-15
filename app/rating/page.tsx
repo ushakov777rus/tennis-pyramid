@@ -193,6 +193,7 @@ export default function PlayerListView() {
 
                   <td>{winrate(p.id)}</td>
 
+                  <AdminOnly>
                   <td className="score-col">
                     {isEditing ? (
                       <div className="row-actions always-visible">
@@ -239,6 +240,7 @@ export default function PlayerListView() {
                       </div>
                     )}
                   </td>
+                  </AdminOnly>
                 </tr>
               );
             })}
