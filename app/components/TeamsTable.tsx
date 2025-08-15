@@ -7,6 +7,7 @@ import "./TeamsTable.css";
 
 // ✅ унифицированные кнопки
 import { DeleteIconButton, CreateTeamIconButton, CheckBoxIconButton } from "@/app/components/IconButtons";
+import { AdminOnly } from "./RoleGuard";
 
 type Props = {
   // Левая сторона
@@ -70,6 +71,7 @@ export function TeamsTable({
               {/* Кнопка выбора игрока */}
               <td className="score-col">
                 {player && (
+                  <AdminOnly>
                   <div
                     className={`row-actions ${
                       isSelected ? "always-visible" : ""
@@ -86,6 +88,7 @@ export function TeamsTable({
                     }}
                   />
                   </div>
+                  </AdminOnly>
                 )}
               </td>
 
@@ -98,6 +101,7 @@ export function TeamsTable({
                     } create-inline-wrap`}
                   >
                     {showCreateHere && (
+                      <AdminOnly>
                       <CreateTeamIconButton
                         title="Создать команду из выбранных"
                         onClick={(e) => {
@@ -105,6 +109,7 @@ export function TeamsTable({
                           onCreateTeam();
                         }}
                       />
+                      </AdminOnly>
                     )}
                   </div>
                 )}
@@ -124,6 +129,7 @@ export function TeamsTable({
               {/* Кнопка удаления команды */}
               <td className="score-col">
                 {team && (
+                  <AdminOnly>
                   <div className="row-actions">
                     <DeleteIconButton
                       title="Удалить команду"
@@ -133,6 +139,7 @@ export function TeamsTable({
                       }}
                     />
                   </div>
+                  </AdminOnly>
                 )}
               </td>
             </tr>
