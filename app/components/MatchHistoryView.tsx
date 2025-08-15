@@ -8,6 +8,13 @@ import { Match } from "@/app/models/Match";
 import { formatDate } from "@/app/components/Utils";
 
 import "@/app/components/MatchHistory.css";
+import {
+  SaveIconButton,
+  CancelIconButton,
+  EditIconButton,
+  DeleteIconButton,
+  KebabIconButton,
+} from "@/app/components/IconButtons";
 
 type MatchHistoryViewProps = {
   player: Player | null;                    // Если передаем игрока то историю показыаем только по нему
@@ -31,11 +38,10 @@ export function MatchHistoryView({
 
   if (matches.length === 0) return <p className="history-empty">Матчей пока нет</p>;
 
-    // Фильтруем только матчи игрока
-  const displayMatches = player ?
-    matches.filter(
-      (m) => m.player1?.id === player.id || m.player2?.id === player.id
-    ) : matches;
+  // Фильтруем только матчи игрока
+  const displayMatches = player
+    ? matches.filter((m) => m.player1?.id === player.id || m.player2?.id === player.id)
+    : matches;
 
   const sortedMatches = [...displayMatches].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -93,7 +99,7 @@ export function MatchHistoryView({
 
   return (
     <div className="history-wrap">
-      { player ? <div className="chip chip-margin-bottom">История матчей {player.name}</div>:""}
+      {player ? <div className="chip chip-margin-bottom">История матчей {player.name}</div> : ""}
       <table className="history-table">
         <thead className="history-table-head">
           <tr>
@@ -144,9 +150,9 @@ export function MatchHistoryView({
                         !winnerId
                           ? "chip"
                           : winnerId === (m.player1?.id ?? m.team1?.id)
-                            ? "chip win"
-                            : "chip"
-                        }
+                          ? "chip win"
+                          : "chip"
+                      }
                       title="Сторона 1"
                     >
                       {getSideName(m, 1)}
@@ -157,8 +163,8 @@ export function MatchHistoryView({
                         !winnerId
                           ? "chip"
                           : winnerId === (m.player2?.id ?? m.team2?.id)
-                            ? "chip win"
-                            : "chip"
+                          ? "chip win"
+                          : "chip"
                       }
                       title="Сторона 2"
                     >
@@ -179,28 +185,14 @@ export function MatchHistoryView({
                         className="inline-input"
                       />
                       <div className="row-actions always-visible">
-                        <button
-                          className="icon-btn save"
-                          onClick={() => saveEditing(m)}
-                          aria-label="Сохранить"
+                        <SaveIconButton
                           title="Сохранить"
-                        >
-                          {/* check */}
-                          <svg width="18" height="18" viewBox="0 0 24 24">
-                            <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </button>
-                        <button
-                          className="icon-btn cancel"
-                          onClick={cancelEditing}
-                          aria-label="Отмена"
+                          onClick={() => saveEditing(m)}
+                        />
+                        <CancelIconButton
                           title="Отмена"
-                        >
-                          {/* x */}
-                          <svg width="18" height="18" viewBox="0 0 24 24">
-                            <path d="M18 6L6 18M6 6l12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                          </svg>
-                        </button>
+                          onClick={cancelEditing}
+                        />
                       </div>
                     </div>
                   ) : (
@@ -209,48 +201,32 @@ export function MatchHistoryView({
 
                       {/* ховер-тулбар (десктоп) + кнопка меню (мобил) */}
                       <div className="row-actions">
-                        <button
-                          className="icon-btn hide-sm"
-                          onClick={() => startEditing(m)}
-                          aria-label="Редактировать"
+                        <EditIconButton
                           title="Редактировать"
-                        >
-                          {/* pencil */}
-                          <svg width="18" height="18" viewBox="0 0 24 24">
-                            <path d="M12 20h9" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                            <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </button>
-                        <button
-                          className="icon-btn hide-sm danger"
-                          onClick={() => confirmDelete(m)}
-                          aria-label="Удалить"
+                          className="hide-sm"
+                          onClick={() => startEditing(m)}
+                        />
+                        <DeleteIconButton
                           title="Удалить"
-                        >
-                          {/* trash */}
-                          <svg width="18" height="18" viewBox="0 0 24 24">
-                            <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </button>
+                          className="hide-sm"
+                          onClick={() => confirmDelete(m)}
+                        />
 
                         {/* Kebab для мобилок (и клавиатуры) */}
                         <div className="menu-wrap">
-                          <button
-                            className="icon-btn kebab show-sm-only"
-                            aria-haspopup="true"
-                            aria-expanded={openMenuId === m.id}
+                          <KebabIconButton
+                            title="Действия"
+                            className="kebab show-sm-only"
                             aria-label="Меню строки"
                             onClick={() =>
                               setOpenMenuId((id) => (id === m.id ? null : m.id))
                             }
-                            title="Действия"
-                          >
-                            &#8942;
-                          </button>
+                          />
                           {openMenuId === m.id && (
                             <div
                               className="menu"
                               role="menu"
+                              tabIndex={-1}
                               onBlur={(e) => {
                                 // если фокус ушёл вне меню, закрываем
                                 if (!e.currentTarget.contains(e.relatedTarget as Node)) {

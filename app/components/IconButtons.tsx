@@ -63,9 +63,8 @@ export function SaveIconButton(props: Omit<IconButtonProps, "children">) {
   );
 }
 
-/** Кнопка "Отмена" — круг с крестиком */
+/** Кнопка "Отмена" — круг с крестиком (по умолчанию добавляю .danger) */
 export function CancelIconButton(props: Omit<IconButtonProps, "children">) {
-  // чаще всего её рисуют красной, поэтому добавим модификатор danger по умолчанию
   const merged = cx("danger", props.className);
   return (
     <IconButton {...props} className={merged}>
@@ -79,6 +78,43 @@ export function CancelIconButton(props: Omit<IconButtonProps, "children">) {
           strokeLinecap="round"
           strokeLinejoin="round"
         />
+      </svg>
+    </IconButton>
+  );
+}
+
+/** Кнопка "Редактировать" */
+export function EditIconButton(props: Omit<IconButtonProps, "children">) {
+  return (
+    <IconButton {...props}>
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 20h9" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </IconButton>
+  );
+}
+
+/** Кнопка "Удалить" (добавляю .danger по умолчанию) */
+export function DeleteIconButton(props: Omit<IconButtonProps, "children">) {
+  const merged = cx("danger", props.className);
+  return (
+    <IconButton {...props} className={merged}>
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </IconButton>
+  );
+}
+
+/** Кнопка "Kebab" (⋮) для мобильного меню */
+export function KebabIconButton(props: Omit<IconButtonProps, "children">) {
+  return (
+    <IconButton {...props}>
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="5" r="2" fill="currentColor" />
+        <circle cx="12" cy="12" r="2" fill="currentColor" />
+        <circle cx="12" cy="19" r="2" fill="currentColor" />
       </svg>
     </IconButton>
   );
