@@ -1,6 +1,8 @@
 import { supabase } from "@/lib/supabaseClient";
 import { Tournament } from "@/app/models/Tournament";
+
 import { Participant, ParticipantBase, ParticipantRow } from "@/app/models/Participant";
+import { TournamentStatus, TournamentFormat, TournamentType } from "@/app/models/Tournament";
 import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
 
@@ -62,11 +64,11 @@ export class TournamentsRepository {
   /** Создать турнир */
   static async create(params: {
     name: string;
-    tournament_type: "single" | "double";
+    tournament_type: TournamentType;
     start_date: string | null;
     end_date: string | null;
-    status: "draft" | "ongoing" | "finished";
-    format: "pyramid" | "round_robin" | "single_elimination" | "double_elimination" | "groups_playoff" | "swiss";
+    status: TournamentStatus;
+    format: TournamentFormat;
   }): Promise<void> {
     const { error } = await supabase.from("tournaments").insert([params]);
 

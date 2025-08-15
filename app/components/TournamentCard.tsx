@@ -26,10 +26,16 @@ export function TournamentCard({
       onClick={onClick}
       style={{ cursor: onClick ? "pointer" : "default" }}
    >
-      <div className="tournament-status" style={{ minWidth: 80, display: "flex", justifyContent: "flex-end" }}>
-        <span className={`status ${tournament.status}`}>
-          {tournament.getStatus()}
-        </span>
+      <div className="tournament-header">
+        {onClick ? (
+          <h2>{tournament.name}</h2>
+        ) : null}
+
+        <div className="tournament-status" style={{ minWidth: 80, display: "flex", justifyContent: "flex-end" }}>
+          <span className={`status ${tournament.status}`}>
+            {tournament.getStatus()}
+          </span>
+        </div>
       </div>
       <div className="tournament-details" style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
         <table>
@@ -37,12 +43,12 @@ export function TournamentCard({
             <tr>
               <td>🏆</td>
               <td>Тип:</td>  
-              <td>{tournament.tournament_type === "single" ? "Одиночный" : "Парный"}</td>
+              <td>{tournament.getType()}</td>
             </tr>
             <tr>
               <td>🏆</td>
               <td>Формат:</td>  
-              <td>{tournament.format === "pyramid" ? "Пирамида" : "Все со всеми"}</td>
+              <td>{tournament.getFormat()}</td>
             </tr>
             <tr>
               <td>📅</td>

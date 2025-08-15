@@ -59,6 +59,10 @@ html, body {
   font-family: Arial, sans-serif;
 }
 
+h2 {
+  font-size: 16px; /* или любой нужный размер */
+}
+
 h3 {
   font-size: 18px; /* или любой нужный размер */
 }

@@ -1,155 +1,93 @@
-/*
-Хорошо, давай пройдёмся по каждому формату, который мы включили в поле format, и опишем их правила, логику проведения и основные плюсы/минусы.
+// models/Tournament.ts
 
-⸻
+/** Тип турнира */
+export enum TournamentType {
+  Single = "single",
+  Double = "double",
+}
 
-1. pyramid — пирамида (лестница)
+/** Статус турнира */
+export enum TournamentStatus {
+  Draft = "draft",               // черновик
+  Registration = "registration", // идёт набор
+  Ongoing = "ongoing",           // в процессе
+  Finished = "finished",         // завершён
+}
 
-Суть:
-Игроки располагаются в виде «пирамиды» или «лестницы» (обычно в несколько уровней).
-Игрок ниже в рейтинге может вызвать игрока, стоящего на 1–2 позиции выше.
-При победе они меняются местами. При поражении всё остаётся как есть.
+/** Формат турнира */
+export enum TournamentFormat {
+  Pyramid = "pyramid",
+  RoundRobin = "round_robin",
+  SingleElimination = "single_elimination",
+  DoubleElimination = "double_elimination",
+  GroupsPlayoff = "groups_playoff",
+  Swiss = "swiss",
+}
 
-Правила:
-	•	Все игроки могут играть в любое время, нет фиксированного расписания.
-	•	Ограничения на вызовы (например, нельзя играть с одним и тем же игроком чаще 1 раза в неделю).
-	•	Турнир длится длительное время (от недели до нескольких месяцев).
-	•	Победитель определяется по положению на вершине пирамиды в конце турнира.
+/** Опции для селектов (с первым пунктом «любой …» удобно для фильтров) */
+export const FORMAT_OPTIONS = [
+  { value: "", label: "Любой формат" },
+  { value: TournamentFormat.Pyramid, label: "Пирамида" },
+  { value: TournamentFormat.RoundRobin, label: "Круговой" },
+  { value: TournamentFormat.SingleElimination, label: "Олимпийка" },
+  { value: TournamentFormat.DoubleElimination, label: "Двойная олим." },
+  { value: TournamentFormat.GroupsPlayoff, label: "Группы + плей-офф" },
+  { value: TournamentFormat.Swiss, label: "Швейцарка" },
+] as const;
 
-Плюсы:
-	•	Гибкость по времени, нет сложных сеток.
-	•	Много матчей, каждый мотивирован подняться выше.
+export const TYPE_OPTIONS = [
+  { value: "", label: "Любой тип" },
+  { value: TournamentType.Single, label: "Одиночный" },
+  { value: TournamentType.Double, label: "Парный" },
+] as const;
 
-Минусы:
-	•	Не всегда объективно, кто «сильнейший» — можно избегать сильных соперников.
-	•	Нужно следить за активностью.
+export const STATUS_OPTIONS = [
+  { value: "", label: "Любой статус" },
+  { value: TournamentStatus.Draft, label: "Черновик" },
+  { value: TournamentStatus.Registration, label: "Идёт набор" },
+  { value: TournamentStatus.Ongoing, label: "Идёт" },
+  { value: TournamentStatus.Finished, label: "Завершён" },
+] as const;
 
-⸻
+/** Словари лейблов для UI */
+const FORMAT_LABELS_RU: Record<TournamentFormat, string> = {
+  [TournamentFormat.Pyramid]: "Пирамида",
+  [TournamentFormat.RoundRobin]: "Круговой турнир",
+  [TournamentFormat.SingleElimination]: "Плей-офф (1 вылет)",
+  [TournamentFormat.DoubleElimination]: "Плей-офф (2 вылета)",
+  [TournamentFormat.GroupsPlayoff]: "Группы + плей-офф",
+  [TournamentFormat.Swiss]: "Швейцарская система",
+};
 
-2. round_robin — каждый с каждым
+const STATUS_LABELS_RU: Record<TournamentStatus, string> = {
+  [TournamentStatus.Draft]: "Черновик",
+  [TournamentStatus.Registration]: "Идёт набор",
+  [TournamentStatus.Ongoing]: "Идёт турнир",
+  [TournamentStatus.Finished]: "Завершён",
+};
 
-Суть:
-Каждый участник играет с каждым ровно один или два раза.
-
-Правила:
-	•	Считается победа/ничья/поражение, начисляются очки (обычно 3 за победу, 1 за ничью, 0 за поражение).
-	•	Итоговое место определяется по количеству очков (при равенстве — дополнительные критерии: личные встречи, разница партий, тай-брейк и т.д.).
-	•	При 6 участниках будет 15 матчей (формула n*(n-1)/2).
-
-Плюсы:
-	•	Объективная система — все играют со всеми.
-	•	Победитель всегда определяется по сумме очков.
-
-Минусы:
-	•	Долго при большом числе участников.
-	•	Нужно много времени и площадок.
-
-⸻
-
-3. single_elimination — на вылет (одинарная олимпийка)
-
-Суть:
-Проиграл — вылетел. Победитель проходит в следующий раунд.
-
-Правила:
-	•	Сетка формируется случайно или по посеву.
-	•	Количество участников = степень двойки (8, 16, 32 и т.д.), иначе некоторые получают «bye» (автоматический проход в следующий раунд).
-	•	Финал определяет победителя, матч за 3 место — по желанию.
-
-Плюсы:
-	•	Быстро, просто, зрелищно.
-	•	Подходит для коротких турниров.
-
-Минусы:
-	•	Одно поражение — и всё, нет шансов на реабилитацию.
-	•	Не всегда отражает реальную силу игроков.
-
-⸻
-
-4. double_elimination — на вылет с правом на одно поражение
-
-Суть:
-Игроки остаются в турнире даже после первого поражения, переходя в «нижнюю сетку».
-
-Правила:
-	•	Две сетки: «Winners Bracket» и «Losers Bracket».
-	•	Проигравший в верхней сетке падает в нижнюю.
-	•	Победитель нижней сетки встречается с победителем верхней в гранд-финале. Чтобы выиграть, игрок из нижней должен победить дважды (т.к. у верхнего нет поражений).
-
-Плюсы:
-	•	Более честная система — одно поражение не выбивает.
-	•	Зрелищный гранд-финал.
-
-Минусы:
-	•	Дольше по времени, чем single_elimination.
-	•	Сложнее администрировать.
-
-⸻
-
-5. groups_playoff — групповой этап + плей-офф
-
-Суть:
-Сначала игроки делятся на группы, в каждой — мини-турнир «каждый с каждым», потом лучшие выходят в плей-офф (обычно single_elimination).
-
-Правила:
-	•	Группы формируются случайно или по рейтингу (seeding).
-	•	Из каждой группы выходит 2–4 игрока.
-	•	Плей-офф проходит по олимпийской системе.
-
-Плюсы:
-	•	Гарантировано несколько игр для всех.
-	•	Сильные игроки не вылетают сразу.
-
-Минусы:
-	•	Требует больше времени и площадок.
-	•	Нужно следить за балансом групп.
-
-⸻
-
-6. swiss — швейцарская система
-
-Суть:
-Игроки играют фиксированное число туров (например, 5), но встречаются с соперниками с таким же количеством побед, как у них на данный момент.
-
-Правила:
-	•	Нет вылета — все играют все туры.
-	•	После каждого тура формируется новая пара соперников.
-	•	Победитель определяется по количеству побед, при равенстве — дополнительные критерии.
-
-Плюсы:
-	•	Нет досрочного вылета, но турнир всё равно короткий.
-	•	Сильные быстро встречаются между собой.
-
-Минусы:
-	•	Требует программы для жеребьёвки.
-	•	Не всегда 100% определяет лучшего (нужен тай-брейк).
-
-⸻
-
-Если хочешь, я могу сделать тебе схему-сравнение этих форматов с картинками: как выглядит сетка/структура в каждом случае. Это будет полезно прямо в UI для выбора формата турнира.
-
-Хочешь, подготовлю такую визуализацию?
-*/
-
-
+const TYPE_LABELS_RU: Record<TournamentType, string> = {
+  [TournamentType.Single]: "Одиночный",
+  [TournamentType.Double]: "Парный",
+};
 
 export class Tournament {
   id: number;
   name: string;
-  format: "pyramid" | "round_robin" | "single_elimination" | "double_elimination" | "groups_playoff" | "swiss";
+  format: TournamentFormat;
   start_date: string | null;
   end_date: string | null;
-  status: "draft" | "ongoing" | "finished";
-  tournament_type: "single" | "double";
+  status: TournamentStatus;
+  tournament_type: TournamentType;
 
   constructor(
     id: number,
     name: string,
-    format: "pyramid" | "round_robin" | "single_elimination" | "double_elimination" | "groups_playoff" | "swiss",
-    status: "draft" | "ongoing" | "finished",
-    tournament_type: "single" | "double",
+    format: TournamentFormat,
+    status: TournamentStatus,
+    tournament_type: TournamentType,
     start_date: string | null,
-    end_date: string | null,
+    end_date: string | null
   ) {
     this.id = id;
     this.name = name;
@@ -160,72 +98,101 @@ export class Tournament {
     this.tournament_type = tournament_type;
   }
 
-  // методы управления статусом
+  // ---------- Транзиции статусов ----------
+
+  /** Открыть набор участников (из Draft) */
+  openRegistration() {
+    if (this.status === TournamentStatus.Draft) {
+      this.status = TournamentStatus.Registration;
+      this.start_date = null; // дата турнира ещё не началась
+      this.end_date = null;
+    }
+  }
+
+  /** Старт турнира (из Draft или Registration) */
   start() {
-    if (this.status === "draft") {
-      this.status = "ongoing";
+    if (
+      this.status === TournamentStatus.Draft ||
+      this.status === TournamentStatus.Registration
+    ) {
+      this.status = TournamentStatus.Ongoing;
       this.start_date = new Date().toISOString();
     }
   }
 
+  /** Завершить турнир (из Ongoing) */
   finish() {
-    if (this.status === "ongoing") {
-      this.status = "finished";
+    if (this.status === TournamentStatus.Ongoing) {
+      this.status = TournamentStatus.Finished;
       this.end_date = new Date().toISOString();
     }
   }
 
+  /** Сбросить в черновик */
   resetToDraft() {
-    this.status = "draft";
+    this.status = TournamentStatus.Draft;
     this.start_date = null;
     this.end_date = null;
   }
 
+  // ---------- Boolean-хелперы ----------
+
+  // Статус
+  isDraft(): boolean {
+    return this.status === TournamentStatus.Draft;
+  }
+  isRegistration(): boolean {
+    return this.status === TournamentStatus.Registration;
+  }
   isActive(): boolean {
-    return this.status === "ongoing";
+    return this.status === TournamentStatus.Ongoing;
   }
-
   isFinished(): boolean {
-    return this.status === "finished";
+    return this.status === TournamentStatus.Finished;
   }
 
-  getStatus(): string {
-    return this.status === "draft"
-      ? "Черновик"
-      : this.status === "ongoing"
-      ? "Идет"
-      : "Завершен";
-  }
-
-  getFormat(): string {
-    switch (this.format) {
-      case "pyramid":
-        return "Пирамида";
-      case "round_robin":
-        return "Круговой турнир";
-      case "single_elimination":
-        return "Плей-офф (одиночное выбивание)";
-      case "double_elimination":
-        return "Двойное выбивание";
-      case "groups_playoff":
-        return "Группы + плей-офф";
-      case "swiss":
-        return "Швейцарская система";
-      default:
-        return "Неизвестный формат";
-    }
-  }
-
+  // Тип
   isSingle(): boolean {
-    return this.tournament_type === "single";
+    return this.tournament_type === TournamentType.Single;
+  }
+  isDouble(): boolean {
+    return this.tournament_type === TournamentType.Double;
   }
 
-  isRound(): boolean {
-    return this.format === "round_robin";
-  }
-
+  // Формат
   isPyramid(): boolean {
-    return this.format === "pyramid";
+    return this.format === TournamentFormat.Pyramid;
+  }
+  isRoundRobin(): boolean {
+    return this.format === TournamentFormat.RoundRobin;
+  }
+  isSingleElimination(): boolean {
+    return this.format === TournamentFormat.SingleElimination;
+  }
+  isDoubleElimination(): boolean {
+    return this.format === TournamentFormat.DoubleElimination;
+  }
+  isGroupsPlayoff(): boolean {
+    return this.format === TournamentFormat.GroupsPlayoff;
+  }
+  isSwiss(): boolean {
+    return this.format === TournamentFormat.Swiss;
   }
 
+  // ---------- Геттеры лейблов для UI ----------
+
+  /** RU-лейбл статуса */
+  getStatus(): string {
+    return STATUS_LABELS_RU[this.status] ?? "Неизвестно";
+  }
+
+  /** RU-лейбл формата */
+  getFormat(): string {
+    return FORMAT_LABELS_RU[this.format] ?? "Неизвестный формат";
+  }
+
+  /** RU-лейбл типа турнира */
+  getType(): string {
+    return TYPE_LABELS_RU[this.tournament_type] ?? "Неизвестный тип";
+  }
 }

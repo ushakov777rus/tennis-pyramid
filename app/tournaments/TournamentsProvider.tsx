@@ -2,19 +2,22 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+
+import { Tournament, TournamentStatus, TournamentFormat, TournamentType } from "@/app/models/Tournament";
+
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
-import { Tournament } from "@/app/models/Tournament";
+
 
 type TournamentStats = { participants: number; matches: number };
 
 // 👇 Единый тип для createTournament
 type NewTournamentPayload = {
   name: string;
-  format: "pyramid" | "round_robin" | "single_elimination" | "double_elimination" | "groups_playoff" | "swiss";
-  tournament_type: "single" | "double";
+  format: TournamentFormat;
+  tournament_type: TournamentType;
   start_date: string | null;
   end_date: string | null;
-  status?: Tournament["status"]; // ← опционально
+  status: TournamentStatus; // ← опционально
 };
 
 type TournamentsContextValue = {
@@ -72,7 +75,7 @@ export function TournamentsProvider({ children }: { children: React.ReactNode })
       tournament_type: p.tournament_type,
       start_date: p.start_date,
       end_date: p.end_date,
-      status: p.status ?? "draft", // ← дефолт
+      status: p.status ?? TournamentStatus.Draft, // ← дефолт
     });
     await refresh();
   }, [refresh]);

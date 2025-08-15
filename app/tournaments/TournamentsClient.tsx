@@ -3,6 +3,15 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import {
+  TournamentStatus,
+  TournamentFormat,
+  TournamentType,
+  TYPE_OPTIONS,
+  FORMAT_OPTIONS,
+  STATUS_OPTIONS,
+} from "@/app/models/Tournament";
+
 import { NavigationBar } from "@/app/components/NavigationBar";
 import { AdminOnly } from "@/app/components/RoleGuard";
 import { TournamentCard } from "@/app/components/TournamentCard";
@@ -13,57 +22,43 @@ import { Tournament } from "@/app/models/Tournament";
 import "./page.css";
 import "@/app/MainPage.css";
 
-const FORMAT_OPTIONS = [
-  { value: "", label: "Любой формат" },
-  { value: "pyramid", label: "Пирамида" },
-  { value: "round_robin", label: "Круговой" },
-  { value: "single_elimination", label: "Олимпийка" },
-  { value: "double_elimination", label: "Двойная олим." },
-  { value: "groups_playoff", label: "Группы + плей-офф" },
-  { value: "swiss", label: "Швейцарка" },
-] as const;
-
-const TYPE_OPTIONS = [
-  { value: "", label: "Любой тип" },
-  { value: "single", label: "Одиночный" },
-  { value: "double", label: "Парный" },
-] as const;
-
-const STATUS_OPTIONS = [
-  { value: "", label: "Любой статус" },
-  { value: "draft", label: "Черновик" },
-  { value: "ongoing", label: "Идёт" },
-  { value: "finished", label: "Завершён" },
-] as const;
-
 export function TournamentsClient() {
   const router = useRouter();
   const { tournaments, loading, error, createTournament, deleteTournament, stats } = useTournaments();
 
   // --- создание турнира
   const [newName, setNewName] = useState("");
-  const [newType, setNewType] = useState<"single" | "double">("single");
+  const [newFormat, setNewFormat] = useState<TournamentFormat>(TournamentFormat.Pyramid);
+  const [newType, setNewType] = useState<TournamentType>(TournamentType.Single);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
   // --- фильтры
   const [q, setQ] = useState<string>("");
-  const [fltType, setFltType] = useState<"" | "single" | "double">("");
-  const [fltFormat, setFltFormat] = useState<
-    "" | "pyramid" | "round_robin" | "single_elimination" | "double_elimination" | "groups_playoff" | "swiss"
-  >("");
-  const [fltStatus, setFltStatus] = useState<"" | "draft" | "ongoing" | "finished">("");
+
+  type FilterType = "" | TournamentType;
+  type FilterFormat = "" | TournamentFormat;
+  type FilterStatus = "" | TournamentStatus;
+
+  const [fltType, setFltType] = useState<FilterType>("");
+  const [fltFormat, setFltFormat] = useState<FilterFormat>("");
+  const [fltStatus, setFltStatus] = useState<FilterStatus>("");
 
   const onCreate = async () => {
     await createTournament({
       name: newName,
-      format: "pyramid", // TODO: выбрать из UI при необходимости
+      format: newFormat,
       tournament_type: newType,
       start_date: startDate || null,
       end_date: endDate || null,
-      status: "draft",
+      status: TournamentStatus.Draft, // можно не указывать, если в провайдере дефолт "draft"
     });
-    setNewName(""); setStartDate(""); setEndDate(""); setNewType("single");
+    // Сброс формы
+    setNewName("");
+    setNewFormat(TournamentFormat.Pyramid);
+    setStartDate("");
+    setEndDate("");
+    setNewType(TournamentType.Single);
   };
 
   const onDelete = async (id: number) => {
@@ -104,22 +99,48 @@ export function TournamentsClient() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Поиск по названию…"
-            className="input  card-input-add-tournament"
+            className="input card-input-add-tournament"
           />
 
-          <select className="input card-input-add-tournament" value={fltType} onChange={(e) => setFltType(e.target.value as any)}>
-            {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          <select
+            className="input card-input-add-tournament"
+            value={fltType}
+            onChange={(e) => setFltType(e.target.value as FilterType)}
+          >
+            {TYPE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
           </select>
 
-          <select className="input card-input-add-tournament" value={fltFormat} onChange={(e) => setFltFormat(e.target.value as any)}>
-            {FORMAT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          <select
+            className="input card-input-add-tournament"
+            value={fltFormat}
+            onChange={(e) => setFltFormat(e.target.value as FilterFormat)}
+          >
+            {FORMAT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
           </select>
 
-          <select className="input card-input-add-tournament" value={fltStatus} onChange={(e) => setFltStatus(e.target.value as any)}>
-            {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          <select
+            className="input card-input-add-tournament"
+            value={fltStatus}
+            onChange={(e) => setFltStatus(e.target.value as FilterStatus)}
+          >
+            {STATUS_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
           </select>
 
-          <button className="card-btn card-btn-act" onClick={resetFilters}>Сброс</button>
+          <button className="card-btn card-btn-act" onClick={resetFilters}>
+            Сброс
+          </button>
         </div>
 
         {/* Создание турнира */}
@@ -135,11 +156,25 @@ export function TournamentsClient() {
 
             <select
               value={newType}
-              onChange={(e) => setNewType(e.target.value as "single" | "double")}
+              onChange={(e) => setNewType(e.target.value as TournamentType)}
               className="input card-input-add-tournament"
             >
-              <option value="single">Одиночный</option>
-              <option value="double">Парный</option>
+              {/* можно использовать TYPE_OPTIONS.slice(1), но здесь наглядно */}
+              <option value={TournamentType.Single}>Одиночный</option>
+              <option value={TournamentType.Double}>Парный</option>
+            </select>
+
+            <select
+              value={newFormat}
+              onChange={(e) => setNewFormat(e.target.value as TournamentFormat)}
+              className="input card-input-add-tournament"
+            >
+              {/* для создания — без пункта "Любой формат" */}
+              {FORMAT_OPTIONS.slice(1).map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
             </select>
 
             <input
@@ -156,7 +191,9 @@ export function TournamentsClient() {
               className="input card-input-add-tournament"
             />
 
-            <button onClick={onCreate} className="card-btn card-btn-act">Создать</button>
+            <button onClick={onCreate} className="card-btn card-btn-act">
+              Создать
+            </button>
           </div>
         </AdminOnly>
 
