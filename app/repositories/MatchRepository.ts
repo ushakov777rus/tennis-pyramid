@@ -115,7 +115,7 @@ export class MatchRepository {
             row.tournaments.id,
             row.tournaments.name,
             row.tournaments.format,
-            "draft",
+            row.tournaments.status,
             row.tournaments.tournament_type,
             row.tournaments.start_date,
             row.tournaments.end_date
@@ -205,7 +205,7 @@ export class MatchRepository {
             row.tournaments.id,
             row.tournaments.name,
             row.tournaments.format,
-            "draft",
+            row.tournaments.status,
             row.tournaments.tournament_type,
             row.tournaments.start_date,
             row.tournaments.end_date
@@ -235,7 +235,7 @@ export class MatchRepository {
         scores,
         match_type,
         tournament_id,
-        tournaments ( id, name, format, start_date, end_date, tournament_type ),
+        tournaments ( id, name, format, status, start_date, end_date, tournament_type ),
         player1:players!fk_player1(id, name, ntrp, phone, sex),
         player2:players!fk_player2(id, name, ntrp, phone, sex),
         team1:teams!fk_team1 (
@@ -287,7 +287,7 @@ export class MatchRepository {
           data.tournaments[0].id,
           data.tournaments[0].name,
           data.tournaments[0].format,
-          "draft",
+          data.tournaments[0].status,
           data.tournaments[0].tournament_type,
           data.tournaments[0].start_date,
           data.tournaments[0].end_date
