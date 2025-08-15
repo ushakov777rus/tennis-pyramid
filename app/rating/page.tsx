@@ -102,9 +102,10 @@ export default function PlayerListView() {
             <tr>
               <th>Игрок</th>
               <th className="hide-sm">NTRP</th>
-              <th className="hide-sm">Игры</th>
-              <th className="hide-sm">Победы</th>
-              <th className="score-col">Winrate</th>
+              <th>Игры</th>
+              <th>Победы</th>
+              <th>Winrate</th>
+              <th className="score-col"></th>
             </tr>
           </thead>
           <tbody>
@@ -128,7 +129,7 @@ export default function PlayerListView() {
                     onChange={(e) => setNewPlayer({ ...newPlayer, ntrp: e.target.value })}
                   />
                 </td>
-                <td className="hide-sm" colSpan={2} />
+                <td colSpan={3} />
                 <td className="score-col">
                   <div className="row-actions always-visible">
                     <PlusIconButton onClick={addPlayer} title="Добавить" />
@@ -153,7 +154,7 @@ export default function PlayerListView() {
                       <span className="chip">{p.name}</span>
                     )}
                     <div className="show-sm-only" style={{ marginTop: 6 }}>
-                      <span className="chip">{p.ntrp || "—"}</span>
+                      <span className="badge">{p.ntrp || ""}</span>
                     </div>
                   </td>
 
@@ -171,9 +172,13 @@ export default function PlayerListView() {
                     )}
                   </td>
 
-                  <td className="hide-sm">{stats[p.id]?.matches ?? 0}</td>
-                  <td className="hide-sm">{stats[p.id]?.wins ?? 0}</td>
+                  <td>{stats[p.id]?.matches ?? 0}</td>
+                  <td>{stats[p.id]?.wins ?? 0}</td>
 
+                  {/* Winrate */}
+                  <td>{winrate(p.id)}</td>
+
+                  {/* Действия */}
                   <td className="score-col">
                     {isEditing ? (
                       <div className="row-actions always-visible">
@@ -181,44 +186,41 @@ export default function PlayerListView() {
                         <CancelIconButton onClick={cancelEdit} title="Отмена" aria-label="Отмена" />
                       </div>
                     ) : (
-                      <div className="score-readonly">
-                        <span>{winrate(p.id)}</span>
-                        <div className="row-actions">
-                          <EditIconButton
-                            className="hide-sm"
-                            onClick={() => startEdit(p)}
-                            title="Редактировать"
+                      <div className="row-actions">
+                        <EditIconButton
+                          className="hide-sm"
+                          onClick={() => startEdit(p)}
+                          title="Редактировать"
+                        />
+                        <DeleteIconButton
+                          className="hide-sm"
+                          onClick={() => deletePlayer(p.id)}
+                          title="Удалить"
+                        />
+                        <div className="menu-wrap">
+                          <KebabIconButton
+                            className="show-sm-only"
+                            aria-haspopup="true"
+                            aria-expanded={openMenuId === p.id}
+                            onClick={() =>
+                              setOpenMenuId((id) => (id === p.id ? null : p.id))
+                            }
+                            title="Действия"
                           />
-                          <DeleteIconButton
-                            className="hide-sm"
-                            onClick={() => deletePlayer(p.id)}
-                            title="Удалить"
-                          />
-                          <div className="menu-wrap">
-                            <KebabIconButton
-                              className="show-sm-only"
-                              aria-haspopup="true"
-                              aria-expanded={openMenuId === p.id}
-                              onClick={() =>
-                                setOpenMenuId((id) => (id === p.id ? null : p.id))
-                              }
-                              title="Действия"
-                            />
-                            {openMenuId === p.id && (
-                              <div className="menu" role="menu">
-                                <button role="menuitem" onClick={() => startEdit(p)}>
-                                  Редактировать
-                                </button>
-                                <button
-                                  role="menuitem"
-                                  className="danger"
-                                  onClick={() => deletePlayer(p.id)}
-                                >
-                                  Удалить
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                          {openMenuId === p.id && (
+                            <div className="menu" role="menu">
+                              <button role="menuitem" onClick={() => startEdit(p)}>
+                                Редактировать
+                              </button>
+                              <button
+                                role="menuitem"
+                                className="danger"
+                                onClick={() => deletePlayer(p.id)}
+                              >
+                                Удалить
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
@@ -226,7 +228,6 @@ export default function PlayerListView() {
                 </tr>
               );
             })}
-
           </tbody>
         </table>
       </div>
