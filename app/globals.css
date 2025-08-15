@@ -197,6 +197,7 @@ body {
   border-radius: 10px;
   font-weight: bold;
   cursor: pointer;
+  width: 110px;
 }
 
 .card-btn-act {
