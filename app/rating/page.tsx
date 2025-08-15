@@ -101,6 +101,7 @@ export default function PlayerListView() {
       <NavigationBar />
       <h1 className="page-title">Рейтинг игроков</h1>
 
+      <div className="page-content-container">
       <div className="history-wrap">
         <table className="history-table">
           <thead className="history-table-head">
@@ -243,6 +244,7 @@ export default function PlayerListView() {
             })}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );
