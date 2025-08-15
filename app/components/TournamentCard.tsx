@@ -54,9 +54,11 @@ export function TournamentCard({
               <td>📅</td>
               <td>Даты:</td>
               <td>
-                {tournament.start_date ? formatDate(new Date(tournament.start_date)) : "—"}
-                {" → "}
-                {tournament.end_date ? formatDate(new Date(tournament.end_date)) : "?"}
+                {tournament.start_date
+                  ? formatDate(new Date(tournament.start_date))
+                  : "—"}
+                {tournament.end_date &&
+                  ` → ${formatDate(new Date(tournament.end_date))}`}
               </td>
             </tr>
             <tr>

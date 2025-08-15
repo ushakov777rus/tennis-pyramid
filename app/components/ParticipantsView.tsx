@@ -31,7 +31,7 @@ export function ParticipantsView() {
   const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
 
   // вкладки только для парного турнира
-  const [activeTab, setActiveTab] = useState<"teams" | "parts">("teams");
+  const [activeTab, setActiveTab] = useState<"teams" | "parts">("parts");
 
   if (loading) return <p>Загрузка...</p>;
   if (!tournament) return <p>Турнир не найден</p>;
@@ -80,16 +80,6 @@ export function ParticipantsView() {
           <div className="card card-tabs">
             <button
               className={
-                activeTab === "teams"
-                  ? "card-btn tabs-button card-btn-act"
-                  : "card-btn tabs-button"
-              }
-              onClick={() => setActiveTab("teams")}
-            >
-              Команды
-            </button>
-            <button
-              className={
                 activeTab === "parts"
                   ? "card-btn tabs-button card-btn-act"
                   : "card-btn tabs-button"
@@ -97,6 +87,16 @@ export function ParticipantsView() {
               onClick={() => setActiveTab("parts")}
             >
               Участники
+            </button>
+            <button
+              className={
+                activeTab === "teams"
+                  ? "card-btn tabs-button card-btn-act"
+                  : "card-btn tabs-button"
+              }
+              onClick={() => setActiveTab("teams")}
+            >
+              Команды
             </button>
           </div>
 
