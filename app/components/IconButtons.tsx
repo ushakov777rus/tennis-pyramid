@@ -119,3 +119,75 @@ export function KebabIconButton(props: Omit<IconButtonProps, "children">) {
     </IconButton>
   );
 }
+
+/** Кнопка "Kebab" (⋮) для мобильного меню */
+export function CreateTeamIconButton(props: Omit<IconButtonProps, "children">) {
+  return (
+    <IconButton {...props}>
+      {/* users-plus */}
+      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+        {/* Головы */}
+        <circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
+        <circle cx="16.5" cy="9" r="2.5" fill="none" stroke="currentColor" strokeWidth="2" />
+        {/* Тела */}
+        <path
+          d="M4.5 16c0-2.2 2.6-3.5 4.5-3.5S13.5 13.8 13.5 16v1.5H4.5V16z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M14.5 16.5c0-1.6 1.8-2.6 3-2.6s3 1 3 2.6v1.0"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        {/* Плюсик */}
+        <path
+          d="M19.5 5.2v3.0M18 6.7h3.0"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+    </IconButton>
+  );
+}
+
+type CheckBoxIconButtonProps = Omit<IconButtonProps, "children"> & {
+  isSelected?: boolean;
+};
+
+/** Кнопка чекбокс с галкой */
+export function CheckBoxIconButton({ isSelected, ...rest }: CheckBoxIconButtonProps) {
+  return (
+    <IconButton {...rest}>
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+        <rect
+          x="4"
+          y="4"
+          width="16"
+          height="16"
+          rx="3"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
+        {isSelected && (
+          <path
+            d="M7 12l3 3 7-7"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        )}
+      </svg>
+    </IconButton>
+  );
+}
+
