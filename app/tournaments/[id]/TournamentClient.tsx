@@ -358,29 +358,15 @@ const FormatView = React.memo(function FormatView({
   onShowHistoryPlayer: (p?: Player) => void;
   onSaveScoreRoundRobin: (aId: number, bId: number, score: string) => void;
 }) {
-  const format = tournament.format ?? "pyramid";
+  // ✅ Хук вызывается всегда, неусловно
+  const handleShowHistory = useCallback(
+    (participant?: Participant) => {
+      if (participant?.player) onShowHistoryPlayer(participant.player);
+    },
+    [onShowHistoryPlayer]
+  );
 
-  if (format === "pyramid") {
-    const handleShowHistory = useCallback(
-      (participant?: Participant) => {
-        if (participant?.player) onShowHistoryPlayer(participant.player);
-      },
-      [onShowHistoryPlayer]
-    );
-
-    return (
-      <PyramidView
-        participants={participants}
-        maxLevel={maxLevel}
-        selectedIds={selectedIds}
-        onSelect={onSelect}
-        onShowHistory={handleShowHistory}
-        matches={matches}
-      />
-    );
-  }
-
-  if (format === "round_robin") {
+  if (tournament.isRoundRobin()) {
     return (
       <RoundRobinView
         participants={participants}
@@ -390,19 +376,15 @@ const FormatView = React.memo(function FormatView({
     );
   }
 
+  // "pyramid" и fallback используют один и тот же обработчик
   return (
-    <div style={{ padding: 12 }}>
-      Неизвестный формат «{String(format)}». Показана пирамида по умолчанию.
-      <PyramidView
-        participants={participants}
-        maxLevel={maxLevel}
-        selectedIds={selectedIds}
-        onSelect={onSelect}
-        onShowHistory={(participant) => {
-          if (participant?.player) onShowHistoryPlayer(participant.player);
-        }}
-        matches={matches}
-      />
-    </div>
+    <PyramidView
+      participants={participants}
+      maxLevel={maxLevel}
+      selectedIds={selectedIds}
+      onSelect={onSelect}
+      onShowHistory={handleShowHistory}
+      matches={matches}
+    />
   );
 });
