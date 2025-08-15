@@ -95,8 +95,6 @@ export default function PlayerListView() {
       <h1 className="page-title">Рейтинг игроков</h1>
 
       <div className="history-wrap">
-        <div className="chip chip-margin-bottom">Список игроков</div>
-
         <table className="history-table">
           <thead className="history-table-head">
             <tr>
@@ -179,52 +177,54 @@ export default function PlayerListView() {
                   <td>{winrate(p.id)}</td>
 
                   {/* Действия */}
-                  <td className="score-col">
-                    {isEditing ? (
-                      <div className="row-actions always-visible">
-                        <SaveIconButton onClick={saveEdit} title="Сохранить" aria-label="Сохранить" />
-                        <CancelIconButton onClick={cancelEdit} title="Отмена" aria-label="Отмена" />
-                      </div>
-                    ) : (
-                      <div className="row-actions">
-                        <EditIconButton
-                          className="hide-sm"
-                          onClick={() => startEdit(p)}
-                          title="Редактировать"
-                        />
-                        <DeleteIconButton
-                          className="hide-sm"
-                          onClick={() => deletePlayer(p.id)}
-                          title="Удалить"
-                        />
-                        <div className="menu-wrap">
-                          <KebabIconButton
-                            className="show-sm-only"
-                            aria-haspopup="true"
-                            aria-expanded={openMenuId === p.id}
-                            onClick={() =>
-                              setOpenMenuId((id) => (id === p.id ? null : p.id))
-                            }
-                            title="Действия"
-                          />
-                          {openMenuId === p.id && (
-                            <div className="menu" role="menu">
-                              <button role="menuitem" onClick={() => startEdit(p)}>
-                                Редактировать
-                              </button>
-                              <button
-                                role="menuitem"
-                                className="danger"
-                                onClick={() => deletePlayer(p.id)}
-                              >
-                                Удалить
-                              </button>
-                            </div>
-                          )}
+                  <AdminOnly>
+                    <td className="score-col">
+                      {isEditing ? (
+                        <div className="row-actions always-visible">
+                          <SaveIconButton onClick={saveEdit} title="Сохранить" aria-label="Сохранить" />
+                          <CancelIconButton onClick={cancelEdit} title="Отмена" aria-label="Отмена" />
                         </div>
-                      </div>
-                    )}
-                  </td>
+                      ) : (
+                        <div className="row-actions">
+                          <EditIconButton
+                            className="hide-sm"
+                            onClick={() => startEdit(p)}
+                            title="Редактировать"
+                          />
+                          <DeleteIconButton
+                            className="hide-sm"
+                            onClick={() => deletePlayer(p.id)}
+                            title="Удалить"
+                          />
+                          <div className="menu-wrap">
+                            <KebabIconButton
+                              className="show-sm-only"
+                              aria-haspopup="true"
+                              aria-expanded={openMenuId === p.id}
+                              onClick={() =>
+                                setOpenMenuId((id) => (id === p.id ? null : p.id))
+                              }
+                              title="Действия"
+                            />
+                            {openMenuId === p.id && (
+                              <div className="menu" role="menu">
+                                <button role="menuitem" onClick={() => startEdit(p)}>
+                                  Редактировать
+                                </button>
+                                <button
+                                  role="menuitem"
+                                  className="danger"
+                                  onClick={() => deletePlayer(p.id)}
+                                >
+                                  Удалить
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </td>
+                  </AdminOnly>
                 </tr>
               );
             })}
