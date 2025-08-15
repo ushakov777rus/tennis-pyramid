@@ -17,6 +17,7 @@ import {
 } from "@/app/components/IconButtons";
 
 import "@/app/components/MatchHistory.css";
+import { AdminOnly } from "../components/RoleGuard";
 
 export default function PlayerListView() {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -107,32 +108,34 @@ export default function PlayerListView() {
             </tr>
           </thead>
           <tbody>
-            <tr className="add-row">
-              <td>
-                <input
-                  type="text"
-                  className="inline-input"
-                  placeholder="Имя"
-                  value={newPlayer.name || ""}
-                  onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
-                />
-              </td>
-              <td className="hide-sm">
-                <input
-                  type="text"
-                  className="inline-input"
-                  placeholder="NTRP"
-                  value={newPlayer.ntrp || ""}
-                  onChange={(e) => setNewPlayer({ ...newPlayer, ntrp: e.target.value })}
-                />
-              </td>
-              <td className="hide-sm" colSpan={2} />
-              <td className="score-col">
-                <div className="row-actions always-visible">
-                  <PlusIconButton onClick={addPlayer} title="Добавить" />
-                </div>
-              </td>
-            </tr>
+            <AdminOnly>
+              <tr className="add-row">
+                <td>
+                  <input
+                    type="text"
+                    className="inline-input"
+                    placeholder="Имя"
+                    value={newPlayer.name || ""}
+                    onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
+                  />
+                </td>
+                <td className="hide-sm">
+                  <input
+                    type="text"
+                    className="inline-input"
+                    placeholder="NTRP"
+                    value={newPlayer.ntrp || ""}
+                    onChange={(e) => setNewPlayer({ ...newPlayer, ntrp: e.target.value })}
+                  />
+                </td>
+                <td className="hide-sm" colSpan={2} />
+                <td className="score-col">
+                  <div className="row-actions always-visible">
+                    <PlusIconButton onClick={addPlayer} title="Добавить" />
+                  </div>
+                </td>
+              </tr>
+            </AdminOnly>
             {players.map((p) => {
               const isEditing = editId === p.id;
               return (
