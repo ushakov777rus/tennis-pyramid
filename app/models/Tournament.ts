@@ -44,8 +44,8 @@ export const TYPE_OPTIONS = [
 export const STATUS_OPTIONS = [
   { value: "", label: "Любой статус" },
   { value: TournamentStatus.Draft, label: "Черновик" },
-  { value: TournamentStatus.Registration, label: "Идёт набор" },
-  { value: TournamentStatus.Ongoing, label: "Идёт" },
+  { value: TournamentStatus.Registration, label: "Идет набор" },
+  { value: TournamentStatus.Ongoing, label: "Идет" },
   { value: TournamentStatus.Finished, label: "Завершён" },
 ] as const;
 
@@ -61,8 +61,8 @@ const FORMAT_LABELS_RU: Record<TournamentFormat, string> = {
 
 const STATUS_LABELS_RU: Record<TournamentStatus, string> = {
   [TournamentStatus.Draft]: "Черновик",
-  [TournamentStatus.Registration]: "Идёт набор",
-  [TournamentStatus.Ongoing]: "Идёт турнир",
+  [TournamentStatus.Registration]: "Идет набор",
+  [TournamentStatus.Ongoing]: "Идет",
   [TournamentStatus.Finished]: "Завершён",
 };
 
