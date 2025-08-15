@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { PlusIconButton } from "../components/IconButtons";
+import { PlusIconButton, CancelIconButton } from "../components/IconButtons";
 
 import {
   TournamentStatus,
@@ -140,9 +140,8 @@ export function TournamentsClient() {
             ))}
           </select>
 
-          <button className="card-btn card-btn-act" onClick={resetFilters}>
-            Сброс
-          </button>
+          <CancelIconButton onClick={resetFilters} title="Сброс"/>
+
         </div>
 
         {/* Создание турнира */}
