@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useUser } from "@/app/components/UserContext";
@@ -31,6 +31,85 @@ import { useTournament } from "./TournamentProvider";
 
 type Tab = "scheme" | "matches" | "participants" | "rating";
 
+// ──────────────────────────────────────────────────────────────────────────────
+// ВСПОМОГАТЕЛЬНЫЕ КОМПОНЕНТЫ/ФУНКЦИИ
+// ──────────────────────────────────────────────────────────────────────────────
+
+const todayISO = new Date().toISOString().split("T")[0];
+
+const FormatView = React.memo(function FormatView({
+  tournament,
+  participants,
+  matches,
+  maxLevel,
+  selectedIds,
+  onSelect,
+  onShowHistoryPlayer,
+  onSaveScoreRoundRobin,
+}: {
+  tournament: Tournament;
+  participants: Participant[];
+  matches: Match[];
+  maxLevel: number;
+  selectedIds: number[];
+  onSelect: (ids: number[]) => void;
+  onShowHistoryPlayer: (p?: Player) => void;
+  onSaveScoreRoundRobin: (aId: number, bId: number, score: string) => void;
+}) {
+  const format = tournament.format ?? "pyramid";
+
+  if (format === "pyramid") {
+    const handleShowHistory = useCallback(
+      (participant?: Participant) => {
+        if (participant?.player) onShowHistoryPlayer(participant.player);
+      },
+      [onShowHistoryPlayer]
+    );
+
+    return (
+      <PyramidView
+        participants={participants}
+        maxLevel={maxLevel}
+        selectedIds={selectedIds}
+        onSelect={onSelect}                // setState — стабильная ссылка
+        onShowHistory={handleShowHistory}  // useCallback
+        matches={matches}
+      />
+    );
+  }
+
+  if (format === "round_robin") {
+    return (
+      <RoundRobinView
+        participants={participants}
+        matches={matches}
+        onSaveScore={onSaveScoreRoundRobin}
+      />
+    );
+  }
+
+  // Fallback
+  return (
+    <div style={{ padding: 12 }}>
+      Неизвестный формат «{String(format)}». Показана пирамида по умолчанию.
+      <PyramidView
+        participants={participants}
+        maxLevel={maxLevel}
+        selectedIds={selectedIds}
+        onSelect={onSelect}
+        onShowHistory={(participant) => {
+          if (participant?.player) onShowHistoryPlayer(participant.player);
+        }}
+        matches={matches}
+      />
+    </div>
+  );
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// ОСНОВНОЙ КОМПОНЕНТ
+// ──────────────────────────────────────────────────────────────────────────────
+
 export default function TournamentClient() {
   const {
     tournament,
@@ -43,6 +122,7 @@ export default function TournamentClient() {
     updateMatch,
     deleteMatch,
   } = useTournament();
+
   const { user } = useUser();
   const router = useRouter();
 
@@ -51,98 +131,88 @@ export default function TournamentClient() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyPlayer, setHistoryPlayer] = useState<Player | undefined>(undefined);
 
-  const today = new Date().toISOString().split("T")[0];
-  const [matchDate, setMatchDate] = useState<string>(today);
+  const [matchDate, setMatchDate] = useState<string>(todayISO);
   const [matchScore, setMatchScore] = useState<string>("");
 
+  // Максимальный уровень пирамиды
   const maxLevel = useMemo(
-    () => (participants.length ? participants.reduce((max, p) => Math.max(max, p.level ?? 0), 0) : 15),
+    () =>
+      participants.length
+        ? participants.reduce((max, p) => Math.max(max, p.level ?? 0), 0)
+        : 15,
     [participants]
   );
 
+  // Топы (если где-то используются в будущем)
   const { mostPlayed, mostWins } = useMemo(() => calcTopPlayers(matches), [matches]);
 
-  // закрепляем игрока как нападающего, если он залогинен
-// закрепляем игрока как нападающего, если он залогинен
-useEffect(() => {
-  const isSingle =
-    typeof tournament?.isSingle === "function"
-      ? tournament.isSingle()
-      : tournament?.tournament_type === "single";
+  // Если игрок залогинен и участвует в одиночном турнире, закрепляем его как "нападающего"
+  useEffect(() => {
+    const isSingle =
+      typeof tournament?.isSingle === "function"
+        ? tournament.isSingle()
+        : tournament?.tournament_type === "single";
 
-  if (user?.role === "player" && user.player_id && isSingle) {
-    const isInTournament = participants.some(
-      (p) => p.player?.id === user.player_id
-    );
-    setSelectedIds(isInTournament ? [user.player_id] : []);
-  } else {
-    setSelectedIds([]);
-  }
-  // ✅ фиксированный по размеру массив зависимостей
-}, [
-  user?.role,
-  user?.player_id,
-  tournament?.tournament_type, // или tournament?.id, если тип не меняется
-  participants,                // можно заменить на participants.length, если нужно реже триггерить
-]);
-  // Опции для кастомного селекта
-// ЗАМЕНИ ЭТО:
-// const allItems = tournament?.isSingle() ? players : teams;
-// const options = useMemo(
-//   () => allItems.map((item: any) => ({
-//     value: item.id,
-//     label: (item as Player).name ?? (item as { id: number; name: string }).name,
-//   })), [allItems]
-// );
+    if (user?.role === "player" && user.player_id && isSingle) {
+      const isInTournament = participants.some(
+        (p) => p.player?.id === user.player_id
+      );
+      setSelectedIds(isInTournament ? [user.player_id] : []);
+    } else {
+      setSelectedIds([]);
+    }
+  }, [user?.role, user?.player_id, tournament?.tournament_type, participants]);
 
-// НА ЭТО:
-const selectableItems = useMemo(() => {
-  if (!tournament) return [] as Array<Player | Team>;
-  const isSingle = tournament.isSingle();
+  // Список доступных для выбора игроков/команд — только участники турнира
+  const selectableItems = useMemo(() => {
+    if (!tournament) return [] as Array<Player | Team>;
+    const isSingle = tournament.isSingle();
 
-  // Берём только участников турнира
-  const items = participants
-    .map((p) => (isSingle ? p.player : p.team))
-    .filter((x): x is Player | Team => !!x);
+    const items = participants
+      .map((p) => (isSingle ? p.player : p.team))
+      .filter((x): x is Player | Team => !!x);
 
-  // Убираем дубликаты на случай, если модель допускает повтор
-  const uniq = new Map<number, Player | Team>();
-  for (const it of items) uniq.set(it.id, it);
-  return Array.from(uniq.values());
-}, [tournament, participants]);
+    const uniq = new Map<number, Player | Team>();
+    for (const it of items) uniq.set(it.id, it);
+    return Array.from(uniq.values());
+  }, [tournament, participants]);
 
-const options = useMemo(
-  () =>
-    selectableItems.map((item) => ({
-      value: item.id,
-      label: (item as Player).name ?? (item as { id: number; name: string }).name,
-    })),
-  [selectableItems]
-);
+  const options = useMemo(
+    () =>
+      selectableItems.map((item) => ({
+        value: item.id,
+        label:
+          (item as Player).name ?? (item as { id: number; name: string }).name,
+      })),
+    [selectableItems]
+  );
 
-  const handleAddMatch = async () => {
+  // ────────────────────────────────────────────────────────────────────────────
+  // ХЭНДЛЕРЫ (useCallback, чтобы не трогать лишние ререндеры)
+  // ────────────────────────────────────────────────────────────────────────────
+
+  const handleAddMatch = useCallback(async () => {
     if (!tournament) return;
     if (selectedIds.length < 2 || !matchDate) {
       alert("Выбери двух игроков и дату матча");
       return;
     }
+
     try {
-      const scores = matchScore
-        .split(",")
-        .map((set) => set.trim().split("-").map(Number)) as [number, number][];
+      const scores = Match.parseScoreStringFlexible(matchScore);
 
-        let player1: number | null = null;
-        let player2: number | null = null;
-        let team1: number | null = null;
-        let team2: number | null = null;
+      let player1: number | null = null;
+      let player2: number | null = null;
+      let team1: number | null = null;
+      let team2: number | null = null;
 
-        if (tournament.isSingle()) {
-            player1 = selectedIds[0];
-            player2 = selectedIds[1];
-        } else {
-            team1 = selectedIds[0];
-            team2 = selectedIds[1];
-        }
+      if (tournament.isSingle()) {
+        player1 = selectedIds[0];
+        player2 = selectedIds[1];
+      } else {
+        team1 = selectedIds[0];
+        team2 = selectedIds[1];
+      }
 
       await addMatch({
         date: new Date(matchDate),
@@ -155,7 +225,7 @@ const options = useMemo(
         tournamentId: tournament.id,
       });
 
-      setMatchDate(today);
+      setMatchDate(todayISO);
       setMatchScore("");
       setSelectedIds(user?.role === "player" && user.player_id ? [user.player_id] : []);
       await reload();
@@ -163,184 +233,103 @@ const options = useMemo(
       console.error("Ошибка при добавлении матча:", err);
       alert("Не удалось добавить матч");
     }
-  };
+  }, [tournament, selectedIds, matchDate, matchScore, addMatch, user?.role, user?.player_id, reload]);
 
-  const handleEditMatchSave = async (updatedMatch: Match) => {
-    try {
-      await updateMatch(updatedMatch);
-    } catch (err) {
-      console.error("Ошибка при обновлении матча:", err);
-      alert("Не удалось обновить матч");
-    }
-  };
-
-  const handleDeleteMatch = async (match: Match) => {
-    try {
-      await deleteMatch(match);
-    } catch (err) {
-      console.error("Ошибка при удалении матча:", err);
-      alert("Не удалось удалить матч");
-    }
-  };
-
-
-  // Универсальный парсер: "6-4, 4:6, 10-8" -> [[6,4],[4,6],[10,8]]
-  function parseScoreStringFlexible(score: string): [number, number][] {
-    return score
-      .split(",")
-      .map((setStr) => setStr.trim())
-      .filter(Boolean)
-      .map((setStr) => {
-        // принимаем и "-" и ":"
-        const parts = setStr.split(/[-:]/).map((n) => parseInt(n.trim(), 10));
-        if (parts.length !== 2 || parts.some((x) => Number.isNaN(x))) {
-          throw new Error(`Неверный формат сета: "${setStr}" (ожидается "6-4" или "6:4")`);
-        }
-        return [parts[0], parts[1]] as [number, number];
-      });
-  }
-
-  async function handleSaveScore(aId: number, bId: number, score: string) {
-    if (!tournament) return;
-
-    try {
-      const scores = parseScoreStringFlexible(score);
-
-      // ищем существующий матч между aId и bId
-      const existing = matches.find((m) => {
-        const id1 = m.player1?.id ?? m.team1?.id;
-        const id2 = m.player2?.id ?? m.team2?.id;
-        return (
-          (id1 === aId && id2 === bId) ||
-          (id1 === bId && id2 === aId)
-        );
-      });
-
-      // Определяем одно/парный турнир
-      const isSingle = typeof tournament.isSingle === "function"
-        ? tournament.isSingle()
-        : tournament.tournament_type === "single";
-
-      if (existing) {
-        // Обновляем существующий матч
-        const updated = { ...existing, scores } as Match;
-        await updateMatch(updated);
-      } else {
-        // Создаём новый матч на сегодня
-        const todayISO = new Date().toISOString().split("T")[0];
-        const date = new Date(todayISO);
-
-        let player1: number | null = null;
-        let player2: number | null = null;
-        let team1: number | null = null;
-        let team2: number | null = null;
-
-        if (isSingle) {
-          player1 = aId;
-          player2 = bId;
-        } else {
-          team1 = aId;
-          team2 = bId;
-        }
-
-        await addMatch({
-          date,
-          type: tournament.tournament_type,
-          scores,
-          player1,
-          player2,
-          team1,
-          team2,
-          tournamentId: tournament.id,
-        });
+  const handleEditMatchSave = useCallback(
+    async (updatedMatch: Match) => {
+      try {
+        await updateMatch(updatedMatch);
+      } catch (err) {
+        console.error("Ошибка при обновлении матча:", err);
+        alert("Не удалось обновить матч");
       }
+    },
+    [updateMatch]
+  );
 
-      await reload();
-    } catch (err) {
-      console.error("Ошибка при сохранении счёта:", err);
-      alert(err instanceof Error ? err.message : "Не удалось сохранить счёт");
-    }
-  }
+  const handleDeleteMatch = useCallback(
+    async (match: Match) => {
+      try {
+        await deleteMatch(match);
+      } catch (err) {
+        console.error("Ошибка при удалении матча:", err);
+        alert("Не удалось удалить матч");
+      }
+    },
+    [deleteMatch]
+  );
 
+  // Универсальное сохранение счёта для кругового турнира
+  const handleSaveScore = useCallback(
+    async (aId: number, bId: number, score: string) => {
+      if (!tournament) return;
 
-function FormatView({
-  tournament,
-  participants,
-  matches,
-  maxLevel,
-  selectedIds,
-  setSelectedIds,
-  setHistoryPlayer,
-  setHistoryOpen,
-}: {
-  tournament: Tournament;
-  participants: Participant[];
-  matches: Match[];
-  maxLevel: number;
-  selectedIds: number[];
-  setSelectedIds: (ids: number[]) => void;
-  setHistoryPlayer: (p?: Player) => void;
-  setHistoryOpen: (v: boolean) => void;
-}) {
-  const format = tournament.format ?? "pyramid";
+      try {
+        const scores = Match.parseScoreStringFlexible(score);
 
-  switch (format) {
-    case "pyramid":
-      return (
-        <PyramidView
-          participants={participants}
-          maxLevel={maxLevel}
-          selectedIds={selectedIds}
-          onSelect={setSelectedIds}
-          onShowHistory={(participant) => {
-            if (participant?.player) {
-              setHistoryPlayer(participant.player);
-              setHistoryOpen(true);
-            }
-          }}
-          matches={matches}
-        />
-      );
+        const existing = matches.find((m) => {
+          const id1 = m.player1?.id ?? m.team1?.id;
+          const id2 = m.player2?.id ?? m.team2?.id;
+          return (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
+        });
 
-    case "round_robin":
-      return (
-        <RoundRobinView 
-            participants={participants} 
-            matches={matches}
-            onSaveScore={handleSaveScore}
-        />
-      );
+        const isSingle =
+          typeof tournament.isSingle === "function"
+            ? tournament.isSingle()
+            : tournament.tournament_type === "single";
 
-    default:
-      return (
-        <div style={{ padding: 12 }}>
-          Неизвестный формат «{String(format)}». Показана пирамида по умолчанию.
-          <PyramidView
-            participants={participants}
-            maxLevel={maxLevel}
-            selectedIds={selectedIds}
-            onSelect={setSelectedIds}
-            onShowHistory={(participant) => {
-              if (participant?.player) {
-                setHistoryPlayer(participant.player);
-                setHistoryOpen(true);
-              }
-            }}
-            matches={matches}
-          />
-        </div>
-      );
-  }
-}
+        if (existing) {
+          const updated = { ...existing, scores } as Match;
+          await updateMatch(updated);
+        } else {
+          const date = new Date(todayISO);
+          let player1: number | null = null;
+          let player2: number | null = null;
+          let team1: number | null = null;
+          let team2: number | null = null;
 
+          if (isSingle) {
+            player1 = aId;
+            player2 = bId;
+          } else {
+            team1 = aId;
+            team2 = bId;
+          }
 
+          await addMatch({
+            date,
+            type: tournament.tournament_type,
+            scores,
+            player1,
+            player2,
+            team1,
+            team2,
+            tournamentId: tournament.id,
+          });
+        }
+
+        await reload();
+      } catch (err) {
+        console.error("Ошибка при сохранении счёта:", err);
+        alert(err instanceof Error ? err.message : "Не удалось сохранить счёт");
+      }
+    },
+    [tournament, matches, updateMatch, addMatch, reload]
+  );
+
+  const handleShowHistoryPlayer = useCallback((p?: Player) => {
+    if (!p) return;
+    setHistoryPlayer(p);
+    setHistoryOpen(true);
+  }, []);
+
+  // ────────────────────────────────────────────────────────────────────────────
 
   if (!tournament) return <p>Загрузка...</p>;
 
   const isAnon = user?.role === undefined;
-  const isPlayerWithFixedAttacker = user?.role === "player" && !!user?.player_id;
-
-  console.log("Tournament:", tournament,!tournament.isPyramid);
+  const isPlayerWithFixedAttacker =
+    user?.role === "player" && !!user?.player_id;
 
   return (
     <div className="page-container">
@@ -354,6 +343,7 @@ function FormatView({
           matchesCount={matches.length}
         />
 
+        {/* Табы */}
         <div className="card card-tabs">
           <button
             className={activeTab === "scheme" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
@@ -381,7 +371,7 @@ function FormatView({
           </button>
         </div>
 
-        {/* добавление матча (кроме вкладок участники/звания) */}
+        {/* Добавление матча (только для пирамиды и не на вкладках участники/звания) */}
         {activeTab !== "participants" && activeTab !== "rating" && tournament.isPyramid() && (
           <LoggedIn>
             <div className="card card-tabs card-tabs-wrap">
@@ -445,7 +435,7 @@ function FormatView({
           </LoggedIn>
         )}
 
-        {/* контент вкладок */}
+        {/* Контент вкладок */}
         <div>
           {activeTab === "scheme" && (
             <FormatView
@@ -454,9 +444,9 @@ function FormatView({
               matches={matches}
               maxLevel={maxLevel}
               selectedIds={selectedIds}
-              setSelectedIds={setSelectedIds}
-              setHistoryPlayer={setHistoryPlayer}
-              setHistoryOpen={setHistoryOpen}
+              onSelect={setSelectedIds}
+              onShowHistoryPlayer={handleShowHistoryPlayer}
+              onSaveScoreRoundRobin={handleSaveScore}
             />
           )}
 
@@ -464,8 +454,8 @@ function FormatView({
             <MatchHistoryView
               player={null}
               matches={matches}
-              onEditMatch={(updated) => handleEditMatchSave(updated)}
-              onDeleteMatch={(m) => handleDeleteMatch(m)}
+              onEditMatch={handleEditMatchSave}
+              onDeleteMatch={handleDeleteMatch}
             />
           )}
 
@@ -484,15 +474,15 @@ function FormatView({
           )}
         </div>
 
-        {/* модалка истории */}
+        {/* Модалка истории */}
         {historyPlayer && (
           <MatchHistoryModal
             isOpen={historyOpen}
             onClose={() => setHistoryOpen(false)}
             player={historyPlayer}
             matches={matches}
-            onEditMatch={(m) => handleEditMatchSave(m)}
-            onDeleteMatch={(m) => handleDeleteMatch(m)}
+            onEditMatch={handleEditMatchSave}
+            onDeleteMatch={handleDeleteMatch}
           />
         )}
       </div>

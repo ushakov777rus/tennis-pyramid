@@ -1,10 +1,10 @@
 import { Team } from "./Team";
 import { Player } from "./Player";
-import { Tournament } from "./Tournament";
+import { Tournament, TournamentType } from "./Tournament";
 
 export class Match {
   id: number;
-  type: "single" | "double";
+  type: TournamentType;
   date: Date;
   scores: [number, number][]; 
   tournament: Tournament;
@@ -15,7 +15,7 @@ export class Match {
 
   constructor(
     id: number,
-    type: "single" | "double",
+    type: TournamentType,
     date: Date,
     setsRaw: [number, number][], // может быть строка/объект/массив
     tournament: Tournament,
@@ -108,5 +108,21 @@ export class Match {
     } else {
       return [id2, id1]; // второй — победитель
     }
+  }
+
+  // Универсальный парсер: "6-4, 4:6, 10-8" -> [[6,4],[4,6],[10,8]]
+  static parseScoreStringFlexible(score: string): [number, number][] {
+    return score
+      .split(",")
+      .map((setStr) => setStr.trim())
+      .filter(Boolean)
+      .map((setStr) => {
+        // принимаем и "-" и ":"
+        const parts = setStr.split(/[-:]/).map((n) => parseInt(n.trim(), 10));
+        if (parts.length !== 2 || parts.some((x) => Number.isNaN(x))) {
+          throw new Error(`Неверный формат сета: "${setStr}" (ожидается "6-4" или "6:4")`);
+        }
+        return [parts[0], parts[1]] as [number, number];
+      });
   }
 }
