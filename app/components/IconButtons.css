@@ -1,0 +1,66 @@
+
+/* Кнопки-иконки */
+.icon-btn {
+  appearance: none;
+  background: #1f1f1f;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 6px;
+  cursor: pointer;
+  line-height: 0;
+  color: #ccc;
+}
+.icon-btn:hover {
+  background: rgba(166, 255, 0, 0.15);
+  border-color: rgba(166, 255, 0, 0.4);
+  color: #a6ff00;
+}
+.icon-btn:focus {
+  outline: 2px solid rgba(166, 255, 0, 0.6);
+  outline-offset: 2px;
+}
+.icon-btn.danger:hover {
+  background: rgba(255, 0, 0, 0.1);
+  border-color: rgba(255, 0, 0, 0.3);
+  color: #ff6666;
+}
+.icon-btn.save {
+  background: rgba(166, 255, 0, 0.15);
+  border-color: rgba(166, 255, 0, 0.4);
+  color: #a6ff00;
+}
+.icon-btn.cancel {
+  background: rgba(255, 0, 0, 0.1);
+  border-color: rgba(255, 0, 0, 0.3);
+  color: #ff6666;
+}
+.icon-btn.active {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* крупнее цель для тача */
+.icon-btn.lg {
+  padding: 4px;         /* было 6px */
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+}
+
+/* акцент для создания команды */
+.icon-btn.create-icon {
+  /* можно оставить твои базовые цвета, ниже — небольшая подсветка */
+  box-shadow: 0 0 0 rgba(166,255,0,0);
+  transition: box-shadow 0.15s ease;
+}
+.icon-btn.create-icon:hover {
+  background: rgba(166, 255, 0, 0.15);
+  border-color: rgba(166, 255, 0, 0.4);
+  color: #a6ff00;
+  box-shadow: 0 0 0 3px rgba(166,255,0,0.15);
+}
+
+/* на мобиле немного ужмём */
+@media (max-width: 720px) {
+  .icon-btn.lg { padding: 4px; }
+}

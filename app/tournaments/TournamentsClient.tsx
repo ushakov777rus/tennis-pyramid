@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { PlusIconButton } from "../components/IconButtons";
+
 import {
   TournamentStatus,
   TournamentFormat,
@@ -191,9 +193,8 @@ export function TournamentsClient() {
               className="input card-input-add-tournament"
             />
 
-            <button onClick={onCreate} className="card-btn card-btn-act">
-              Создать
-            </button>
+            <PlusIconButton onClick={onCreate} title="Создать"/>
+
           </div>
         </AdminOnly>
 

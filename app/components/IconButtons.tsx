@@ -2,6 +2,8 @@
 
 import React from "react";
 
+import "./IconButtons.css"
+
 /**
  * Базовая иконочная кнопка под существующие стили .icon-btn / .danger / .lg
  * - по умолчанию класс "icon-btn"
