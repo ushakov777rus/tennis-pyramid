@@ -21,94 +21,16 @@ import { RatingView } from "@/app/components/RatingView";
 import { MatchHistoryModal } from "@/app/components/MatchHistoryModal";
 import { MatchHistoryView } from "@/app/components/MatchHistoryView";
 import { ParticipantsView } from "@/app/components/ParticipantsView";
+import { AddMatchCard } from "@/app/components/AddMatchCard";
 
 import { calcTopPlayers } from "@/app/utils/calcTopPlayers";
 import "./Page.css";
-import { CustomSelect } from "@/app/components/CustomSelect";
-import "@/app/components/CustomSelect.css";
 
 import { useTournament } from "./TournamentProvider";
 
 type Tab = "scheme" | "matches" | "participants" | "rating";
 
-// ──────────────────────────────────────────────────────────────────────────────
-// ВСПОМОГАТЕЛЬНЫЕ КОМПОНЕНТЫ/ФУНКЦИИ
-// ──────────────────────────────────────────────────────────────────────────────
-
 const todayISO = new Date().toISOString().split("T")[0];
-
-const FormatView = React.memo(function FormatView({
-  tournament,
-  participants,
-  matches,
-  maxLevel,
-  selectedIds,
-  onSelect,
-  onShowHistoryPlayer,
-  onSaveScoreRoundRobin,
-}: {
-  tournament: Tournament;
-  participants: Participant[];
-  matches: Match[];
-  maxLevel: number;
-  selectedIds: number[];
-  onSelect: (ids: number[]) => void;
-  onShowHistoryPlayer: (p?: Player) => void;
-  onSaveScoreRoundRobin: (aId: number, bId: number, score: string) => void;
-}) {
-  const format = tournament.format ?? "pyramid";
-
-  if (format === "pyramid") {
-    const handleShowHistory = useCallback(
-      (participant?: Participant) => {
-        if (participant?.player) onShowHistoryPlayer(participant.player);
-      },
-      [onShowHistoryPlayer]
-    );
-
-    return (
-      <PyramidView
-        participants={participants}
-        maxLevel={maxLevel}
-        selectedIds={selectedIds}
-        onSelect={onSelect}                // setState — стабильная ссылка
-        onShowHistory={handleShowHistory}  // useCallback
-        matches={matches}
-      />
-    );
-  }
-
-  if (format === "round_robin") {
-    return (
-      <RoundRobinView
-        participants={participants}
-        matches={matches}
-        onSaveScore={onSaveScoreRoundRobin}
-      />
-    );
-  }
-
-  // Fallback
-  return (
-    <div style={{ padding: 12 }}>
-      Неизвестный формат «{String(format)}». Показана пирамида по умолчанию.
-      <PyramidView
-        participants={participants}
-        maxLevel={maxLevel}
-        selectedIds={selectedIds}
-        onSelect={onSelect}
-        onShowHistory={(participant) => {
-          if (participant?.player) onShowHistoryPlayer(participant.player);
-        }}
-        matches={matches}
-      />
-    </div>
-  );
-});
-
-// ──────────────────────────────────────────────────────────────────────────────
-// ОСНОВНОЙ КОМПОНЕНТ
-// ──────────────────────────────────────────────────────────────────────────────
 
 export default function TournamentClient() {
   const {
@@ -122,7 +44,6 @@ export default function TournamentClient() {
     updateMatch,
     deleteMatch,
   } = useTournament();
-
   const { user } = useUser();
   const router = useRouter();
 
@@ -134,44 +55,35 @@ export default function TournamentClient() {
   const [matchDate, setMatchDate] = useState<string>(todayISO);
   const [matchScore, setMatchScore] = useState<string>("");
 
-  // Максимальный уровень пирамиды
   const maxLevel = useMemo(
-    () =>
-      participants.length
-        ? participants.reduce((max, p) => Math.max(max, p.level ?? 0), 0)
-        : 15,
+    () => (participants.length ? participants.reduce((m, p) => Math.max(m, p.level ?? 0), 0) : 15),
     [participants]
   );
 
-  // Топы (если где-то используются в будущем)
+  // (если где-то используешь)
   const { mostPlayed, mostWins } = useMemo(() => calcTopPlayers(matches), [matches]);
 
-  // Если игрок залогинен и участвует в одиночном турнире, закрепляем его как "нападающего"
+  // если игрок залогинен и участвует — закрепляем как нападающего
   useEffect(() => {
-    const isSingle =
-      typeof tournament?.isSingle === "function"
-        ? tournament.isSingle()
-        : tournament?.tournament_type === "single";
+    const isSingle = typeof tournament?.isSingle === "function"
+      ? tournament.isSingle()
+      : tournament?.tournament_type === "single";
 
     if (user?.role === "player" && user.player_id && isSingle) {
-      const isInTournament = participants.some(
-        (p) => p.player?.id === user.player_id
-      );
+      const isInTournament = participants.some((p) => p.player?.id === user.player_id);
       setSelectedIds(isInTournament ? [user.player_id] : []);
     } else {
       setSelectedIds([]);
     }
   }, [user?.role, user?.player_id, tournament?.tournament_type, participants]);
 
-  // Список доступных для выбора игроков/команд — только участники турнира
+  // Доступные для выбора — только участники турнира
   const selectableItems = useMemo(() => {
     if (!tournament) return [] as Array<Player | Team>;
     const isSingle = tournament.isSingle();
-
     const items = participants
       .map((p) => (isSingle ? p.player : p.team))
       .filter((x): x is Player | Team => !!x);
-
     const uniq = new Map<number, Player | Team>();
     for (const it of items) uniq.set(it.id, it);
     return Array.from(uniq.values());
@@ -181,23 +93,18 @@ export default function TournamentClient() {
     () =>
       selectableItems.map((item) => ({
         value: item.id,
-        label:
-          (item as Player).name ?? (item as { id: number; name: string }).name,
+        label: (item as Player).name ?? (item as { id: number; name: string }).name,
       })),
     [selectableItems]
   );
 
-  // ────────────────────────────────────────────────────────────────────────────
-  // ХЭНДЛЕРЫ (useCallback, чтобы не трогать лишние ререндеры)
-  // ────────────────────────────────────────────────────────────────────────────
-
+  // Колбэки
   const handleAddMatch = useCallback(async () => {
     if (!tournament) return;
     if (selectedIds.length < 2 || !matchDate) {
       alert("Выбери двух игроков и дату матча");
       return;
     }
-
     try {
       const scores = Match.parseScoreStringFlexible(matchScore);
 
@@ -235,87 +142,77 @@ export default function TournamentClient() {
     }
   }, [tournament, selectedIds, matchDate, matchScore, addMatch, user?.role, user?.player_id, reload]);
 
-  const handleEditMatchSave = useCallback(
-    async (updatedMatch: Match) => {
-      try {
-        await updateMatch(updatedMatch);
-      } catch (err) {
-        console.error("Ошибка при обновлении матча:", err);
-        alert("Не удалось обновить матч");
-      }
-    },
-    [updateMatch]
-  );
+  const handleEditMatchSave = useCallback(async (updatedMatch: Match) => {
+    try {
+      await updateMatch(updatedMatch);
+    } catch (err) {
+      console.error("Ошибка при обновлении матча:", err);
+      alert("Не удалось обновить матч");
+    }
+  }, [updateMatch]);
 
-  const handleDeleteMatch = useCallback(
-    async (match: Match) => {
-      try {
-        await deleteMatch(match);
-      } catch (err) {
-        console.error("Ошибка при удалении матча:", err);
-        alert("Не удалось удалить матч");
-      }
-    },
-    [deleteMatch]
-  );
+  const handleDeleteMatch = useCallback(async (match: Match) => {
+    try {
+      await deleteMatch(match);
+    } catch (err) {
+      console.error("Ошибка при удалении матча:", err);
+      alert("Не удалось удалить матч");
+    }
+  }, [deleteMatch]);
 
-  // Универсальное сохранение счёта для кругового турнира
-  const handleSaveScore = useCallback(
-    async (aId: number, bId: number, score: string) => {
-      if (!tournament) return;
+  const handleSaveScore = useCallback(async (aId: number, bId: number, score: string) => {
+    if (!tournament) return;
 
-      try {
-        const scores = Match.parseScoreStringFlexible(score);
+    try {
+      const scores = Match.parseScoreStringFlexible(score);
 
-        const existing = matches.find((m) => {
-          const id1 = m.player1?.id ?? m.team1?.id;
-          const id2 = m.player2?.id ?? m.team2?.id;
-          return (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
-        });
+      const existing = matches.find((m) => {
+        const id1 = m.player1?.id ?? m.team1?.id;
+        const id2 = m.player2?.id ?? m.team2?.id;
+        return (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
+      });
 
-        const isSingle =
-          typeof tournament.isSingle === "function"
-            ? tournament.isSingle()
-            : tournament.tournament_type === "single";
+      const isSingle =
+        typeof tournament.isSingle === "function"
+          ? tournament.isSingle()
+          : tournament.tournament_type === "single";
 
-        if (existing) {
-          const updated = { ...existing, scores } as Match;
-          await updateMatch(updated);
+      if (existing) {
+        const updated = { ...existing, scores } as Match;
+        await updateMatch(updated);
+      } else {
+        const date = new Date(todayISO);
+        let player1: number | null = null;
+        let player2: number | null = null;
+        let team1: number | null = null;
+        let team2: number | null = null;
+
+        if (isSingle) {
+          player1 = aId;
+          player2 = bId;
         } else {
-          const date = new Date(todayISO);
-          let player1: number | null = null;
-          let player2: number | null = null;
-          let team1: number | null = null;
-          let team2: number | null = null;
-
-          if (isSingle) {
-            player1 = aId;
-            player2 = bId;
-          } else {
-            team1 = aId;
-            team2 = bId;
-          }
-
-          await addMatch({
-            date,
-            type: tournament.tournament_type,
-            scores,
-            player1,
-            player2,
-            team1,
-            team2,
-            tournamentId: tournament.id,
-          });
+          team1 = aId;
+          team2 = bId;
         }
 
-        await reload();
-      } catch (err) {
-        console.error("Ошибка при сохранении счёта:", err);
-        alert(err instanceof Error ? err.message : "Не удалось сохранить счёт");
+        await addMatch({
+          date,
+          type: tournament.tournament_type,
+          scores,
+          player1,
+          player2,
+          team1,
+          team2,
+          tournamentId: tournament.id,
+        });
       }
-    },
-    [tournament, matches, updateMatch, addMatch, reload]
-  );
+
+      await reload();
+    } catch (err) {
+      console.error("Ошибка при сохранении счёта:", err);
+      alert(err instanceof Error ? err.message : "Не удалось сохранить счёт");
+    }
+  }, [tournament, matches, updateMatch, addMatch, reload]);
 
   const handleShowHistoryPlayer = useCallback((p?: Player) => {
     if (!p) return;
@@ -323,13 +220,10 @@ export default function TournamentClient() {
     setHistoryOpen(true);
   }, []);
 
-  // ────────────────────────────────────────────────────────────────────────────
-
   if (!tournament) return <p>Загрузка...</p>;
 
   const isAnon = user?.role === undefined;
-  const isPlayerWithFixedAttacker =
-    user?.role === "player" && !!user?.player_id;
+  const isPlayerWithFixedAttacker = user?.role === "player" && !!user?.player_id;
 
   return (
     <div className="page-container">
@@ -371,67 +265,21 @@ export default function TournamentClient() {
           </button>
         </div>
 
-        {/* Добавление матча (только для пирамиды и не на вкладках участники/звания) */}
+        {/* Добавление матча — вынесено в отдельный компонент */}
         {activeTab !== "participants" && activeTab !== "rating" && tournament.isPyramid() && (
           <LoggedIn>
-            <div className="card card-tabs card-tabs-wrap">
-              {/* Нападение */}
-              <CustomSelect
-                className="input card-input-add-match"
-                options={options}
-                value={selectedIds[0] ?? null}
-                placeholder="-- Нападение --"
-                disabled={isAnon || isPlayerWithFixedAttacker}
-                onChange={(val) => {
-                  const newVal = Number(val);
-                  setSelectedIds((prev) => {
-                    if (!newVal) return prev;
-                    if (prev.includes(newVal)) return prev;
-                    if (prev.length === 0) return [newVal];
-                    if (prev.length === 1) return [newVal, prev[1]];
-                    return [newVal, prev[1]];
-                  });
-                }}
-              />
-
-              {/* Защита */}
-              <CustomSelect
-                className="input card-input-add-match"
-                options={options}
-                value={selectedIds[1] ?? null}
-                placeholder="-- Защита --"
-                disabled={isAnon}
-                onChange={(val) => {
-                  const newVal = Number(val);
-                  setSelectedIds((prev) => {
-                    if (!newVal) return prev;
-                    if (prev.includes(newVal)) return prev;
-                    if (prev.length === 0) return [newVal];
-                    if (prev.length === 1) return [...prev, newVal];
-                    return [prev[0], newVal];
-                  });
-                }}
-              />
-
-              <input
-                type="date"
-                value={matchDate}
-                onChange={(e) => setMatchDate(e.target.value)}
-                className="input card-input-add-match"
-              />
-
-              <input
-                type="text"
-                placeholder="6-4, 4-6, 11-8"
-                value={matchScore}
-                onChange={(e) => setMatchScore(e.target.value)}
-                className="input card-input-add-match"
-              />
-
-              <button onClick={handleAddMatch} className="card-btn card-btn-act">
-                Добавить
-              </button>
-            </div>
+            <AddMatchCard
+              options={options}
+              selectedIds={selectedIds}
+              setSelectedIds={setSelectedIds}
+              matchDate={matchDate}
+              setMatchDate={setMatchDate}
+              matchScore={matchScore}
+              setMatchScore={setMatchScore}
+              isAnon={isAnon}
+              isPlayerWithFixedAttacker={isPlayerWithFixedAttacker}
+              onAddMatch={handleAddMatch}
+            />
           </LoggedIn>
         )}
 
@@ -489,3 +337,72 @@ export default function TournamentClient() {
     </div>
   );
 }
+
+// Вспомогательный мемо-компонент для схемы
+const FormatView = React.memo(function FormatView({
+  tournament,
+  participants,
+  matches,
+  maxLevel,
+  selectedIds,
+  onSelect,
+  onShowHistoryPlayer,
+  onSaveScoreRoundRobin,
+}: {
+  tournament: Tournament;
+  participants: Participant[];
+  matches: Match[];
+  maxLevel: number;
+  selectedIds: number[];
+  onSelect: (ids: number[]) => void;
+  onShowHistoryPlayer: (p?: Player) => void;
+  onSaveScoreRoundRobin: (aId: number, bId: number, score: string) => void;
+}) {
+  const format = tournament.format ?? "pyramid";
+
+  if (format === "pyramid") {
+    const handleShowHistory = useCallback(
+      (participant?: Participant) => {
+        if (participant?.player) onShowHistoryPlayer(participant.player);
+      },
+      [onShowHistoryPlayer]
+    );
+
+    return (
+      <PyramidView
+        participants={participants}
+        maxLevel={maxLevel}
+        selectedIds={selectedIds}
+        onSelect={onSelect}
+        onShowHistory={handleShowHistory}
+        matches={matches}
+      />
+    );
+  }
+
+  if (format === "round_robin") {
+    return (
+      <RoundRobinView
+        participants={participants}
+        matches={matches}
+        onSaveScore={onSaveScoreRoundRobin}
+      />
+    );
+  }
+
+  return (
+    <div style={{ padding: 12 }}>
+      Неизвестный формат «{String(format)}». Показана пирамида по умолчанию.
+      <PyramidView
+        participants={participants}
+        maxLevel={maxLevel}
+        selectedIds={selectedIds}
+        onSelect={onSelect}
+        onShowHistory={(participant) => {
+          if (participant?.player) onShowHistoryPlayer(participant.player);
+        }}
+        matches={matches}
+      />
+    </div>
+  );
+});
