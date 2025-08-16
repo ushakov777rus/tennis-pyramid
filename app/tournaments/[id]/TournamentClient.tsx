@@ -100,6 +100,7 @@ export default function TournamentClient() {
 
   // Колбэки
   const handleAddMatch = useCallback(async () => {
+    console.log("const handleAddMatch = useCallback(async () => {");
     if (!tournament) return;
     if (selectedIds.length < 2 || !matchDate) {
       alert("Выбери двух игроков и дату матча");

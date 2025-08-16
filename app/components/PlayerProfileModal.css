@@ -210,7 +210,6 @@
     grid-template-columns: 56px 1fr auto;
   }
   .avatar { width: 56px; height: 56px; font-size: 18px; }
-  .player-name { font-size: 18px; }
   .stats-grid { grid-template-columns: repeat(3, 1fr); }
   .match-line { grid-template-columns: 64px 1fr max-content; }
 }

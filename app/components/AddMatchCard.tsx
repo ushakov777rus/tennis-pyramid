@@ -3,7 +3,7 @@
 import React, { useCallback } from "react";
 
 import { CustomSelect } from "@/app/components/CustomSelect";
-import { SaveIconButton, CancelIconButton } from "./IconButtons";
+import { SaveIconButton, CancelIconButton, PlusIconButton } from "./IconButtons";
 
 import "@/app/components/CustomSelect.css";
 
@@ -109,11 +109,13 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
         />
 
         <SaveIconButton
-        className="lg"
-        title="Сохранить счёт"
-        aria-label="Сохранить счёт"
-        onClick={() => onAddMatch}
-        disabled={false}
+          className="lg"
+          title="Сохранить счёт"
+          aria-label="Сохранить счёт"
+          onClick={() => {
+            console.log("onAddMatch");
+            onAddMatch();}}
+          disabled={false}
         />
 
       </div>
