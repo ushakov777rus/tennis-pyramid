@@ -59,19 +59,7 @@ export function MatchHistoryView({
     [displayMatches]
   );
 
-
-  if (matches.length === 0) return <p className="history-empty">Матчей пока нет</p>;
-
-
-
-  const getSideName = (m: Match, side: 1 | 2) => {
-    if (m.type === "double") {
-      return side === 1 ? m.team1?.name ?? "??" : m.team2?.name ?? "??";
-    }
-    return side === 1 ? m.player1?.name ?? "??" : m.player2?.name ?? "??";
-  };
-
-  const playersLine = (m: Match) => `${getSideName(m, 1)} — ${getSideName(m, 2)}`;
+    const playersLine = (m: Match) => `${getSideName(m, 1)} — ${getSideName(m, 2)}`;
 
   // применяем фильтры
   const filteredMatches = useMemo(() => {
@@ -106,6 +94,20 @@ export function MatchHistoryView({
       return true;
     });
   }, [sortedMatches, dateFrom, dateTo, tournamentQ, playersQ, scoreQ, showTournament]);
+
+
+
+  if (matches.length === 0) return <p className="history-empty">Матчей пока нет</p>;
+
+
+
+  const getSideName = (m: Match, side: 1 | 2) => {
+    if (m.type === "double") {
+      return side === 1 ? m.team1?.name ?? "??" : m.team2?.name ?? "??";
+    }
+    return side === 1 ? m.player1?.name ?? "??" : m.player2?.name ?? "??";
+  };
+
 
   const startEditing = (m: Match) => {
     setEditingId(m.id);
