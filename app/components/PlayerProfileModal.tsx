@@ -5,7 +5,6 @@ import "./PlayerProfileModal.css";
 
 import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
-import { Participant } from "@/app/models/Participant";
 
 import { MatchHistoryView } from "@/app/components/MatchHistoryView"
 
