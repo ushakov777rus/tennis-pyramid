@@ -29,7 +29,7 @@ export function NavigationBar() {
       <nav className="nav">
         <Link href="/">Главная</Link>
         <Link href="/tournaments">Турниры</Link>
-        <Link href="/rating">Рейтинг</Link>
+        <Link href="/rating">Игроки</Link>
         <Link href="/matches">Матчи</Link>
       </nav>
       <UserBadge />
