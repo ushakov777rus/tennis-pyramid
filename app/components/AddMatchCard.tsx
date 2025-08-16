@@ -113,7 +113,6 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
           title="Сохранить счёт"
           aria-label="Сохранить счёт"
           onClick={() => {
-            console.log("onAddMatch");
             onAddMatch();}}
           disabled={false}
         />
