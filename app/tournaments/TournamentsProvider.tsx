@@ -18,6 +18,7 @@ type NewTournamentPayload = {
   start_date: string | null;
   end_date: string | null;
   status: TournamentStatus; // ← опционально
+  creator_id: number;
 };
 
 type TournamentsContextValue = {
@@ -76,6 +77,7 @@ export function TournamentsProvider({ children }: { children: React.ReactNode })
       start_date: p.start_date,
       end_date: p.end_date,
       status: p.status ?? TournamentStatus.Draft, // ← дефолт
+      creator_id: p.creator_id,
     });
     await refresh();
   }, [refresh]);

@@ -15,8 +15,9 @@ import {
 } from "@/app/models/Tournament";
 
 import { NavigationBar } from "@/app/components/NavigationBar";
-import { AdminOnly } from "@/app/components/RoleGuard";
+import { AdminOnly, LoggedIn } from "@/app/components/RoleGuard";
 import { TournamentCard } from "@/app/components/TournamentCard";
+import { useUser } from "@/app/components/UserContext";
 
 import { useTournaments } from "@/app/tournaments/TournamentsProvider";
 import { Tournament } from "@/app/models/Tournament";
@@ -25,6 +26,7 @@ import "./page.css";
 import "@/app/MainPage.css";
 
 export function TournamentsClient() {
+  const { user } = useUser();
   const router = useRouter();
   const { tournaments, loading, error, createTournament, deleteTournament, stats } = useTournaments();
 
@@ -47,21 +49,26 @@ export function TournamentsClient() {
   const [fltStatus, setFltStatus] = useState<FilterStatus>("");
 
   const onCreate = async () => {
+    if (!user?.id) {
+      alert("Вы должны быть авторизованы для создания турнира");
+      return;
+    }
     await createTournament({
       name: newName,
       format: newFormat,
       tournament_type: newType,
       start_date: startDate || null,
       end_date: endDate || null,
-      status: TournamentStatus.Draft, // можно не указывать, если в провайдере дефолт "draft"
+      status: TournamentStatus.Draft,
+      creator_id: user.id, // вот здесь передаём ID залогиненного пользователя
     });
-    // Сброс формы
     setNewName("");
     setNewFormat(TournamentFormat.Pyramid);
     setStartDate("");
     setEndDate("");
     setNewType(TournamentType.Single);
   };
+
 
   const onDelete = async (id: number) => {
     if (!confirm("Удалить турнир и все его матчи?")) return;
@@ -144,8 +151,8 @@ export function TournamentsClient() {
 
         </div>
 
-        {/* Создание турнира */}
-        <AdminOnly>
+        {/* Создание турнира - любой зарегистрированный игрок может создать турнир */}
+        <LoggedIn>
           <div className="card">
             <input
               type="text"
@@ -195,7 +202,7 @@ export function TournamentsClient() {
             <PlusIconButton onClick={onCreate} title="Создать"/>
 
           </div>
-        </AdminOnly>
+        </LoggedIn>
 
         {/* Список турниров */}
         {loading && <div className="card">Загрузка…</div>}
