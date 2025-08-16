@@ -210,7 +210,7 @@ export function PyramidView({
     onSelect(newSelection);
   };
 
-  const renderPlayerCard = (p: Participant, index: number) => {
+const renderPlayerCard = (p: Participant, index: number) => {
     const id = p.player?.id ?? p.team?.id;
     const statusClass = getPlayerClass(p);
 
@@ -234,6 +234,14 @@ export function PyramidView({
       daysWithoutGames = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     }
 
+    // 👇 класс неактивности по условию
+    const inactivityClass =
+      daysWithoutGames !== null && daysWithoutGames >= 36
+        ? "inactive-36"
+        : daysWithoutGames !== null && daysWithoutGames >= 15
+        ? "inactive-15"
+        : "";
+
     return (
       <Draggable key={p.id} draggableId={String(p.id)} index={index}>
         {(provided) => (
@@ -248,7 +256,7 @@ export function PyramidView({
           >
             <div className="player-top-line">
               {daysWithoutGames !== null && (
-                <div className="days-counter">{daysWithoutGames}д</div>
+                <div className={`days-counter ${inactivityClass}`}>{daysWithoutGames}д</div>
               )}
 
               <div className="player-position">
@@ -258,7 +266,8 @@ export function PyramidView({
               </div>
             </div>
 
-            <div className="player-name">
+            {/* 👇 добавили класс неактивности к блоку имени */}
+            <div className={"player-name"}>
               {(() => {
                 const lines = p.splitName ?? [];
                 const status = lastMatch && id ? getPlayerStatusIcon(id, lastMatch) : null;
@@ -281,12 +290,8 @@ export function PyramidView({
             </div>
 
             <div className="player-bottom-line">
-              <div className="drag-handle" {...provided.dragHandleProps}>
-                ⠿
-              </div>
-
+              <div className="drag-handle" {...provided.dragHandleProps}>⠿</div>
               <div className="player-ntrp">{p.ntrp ? p.ntrp : "?"}</div>
-
               {onShowHistory && (
                 <button
                   className="history-btn"

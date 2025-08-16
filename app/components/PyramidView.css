@@ -271,3 +271,8 @@
   font-size: 14px;
   font-weight: bold;
 }
+
+/* неактивность по времени без матчей */
+.days-counter.inactive-15 { color: #cf7d01; } /* оранжевый ≥15 дней */
+.days-counter.inactive-36 { color: #e53935; } /* красный ≥36 дней */
+
