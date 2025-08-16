@@ -69,6 +69,7 @@ export class TournamentsRepository {
     end_date: string | null;
     status: TournamentStatus;
     format: TournamentFormat;
+    creator_id: number;
   }): Promise<void> {
     const { error } = await supabase.from("tournaments").insert([params]);
 

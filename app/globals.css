@@ -119,6 +119,26 @@ body {
     font-size: 14px;
 }
 
+/* затемнённый фон */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6); /* 👈 тёмный полупрозрачный фон */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+/* белая карточка поверх overlay */
+.modal-content {
+  background: #1b1b1b; /* тёмный фон */
+  border-radius: 12px;
+  padding: 24px;
+  max-height: 90vh;
+  overflow-y: auto;
+  z-index: 2001;         /* чуть выше overlay */
+}
 
 /* Сетка с карточками */
 .card-grid {

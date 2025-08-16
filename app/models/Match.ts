@@ -54,6 +54,7 @@ export class Match {
   }
 
   getWinnerId(): number {
+
     if (this.scores.length === 0) {
       return 0;
     }
@@ -70,13 +71,27 @@ export class Match {
       // если равные (например, 6–6 без тайбрейка) — сет не засчитывается
     }
 
-    if (sets1 > sets2) {
-      if (this.player1)
-        return this.player1?.id; // первый — победитель
+    // одиночный матч
+    if (this.player1 && this.player2) {
+      if (sets1 > sets2) {
+        return this.player1.id;
+      }
+      if (sets2 > sets1) {
+        return this.player2.id;
+      }
+      return 0; // ничья / не определён
     }
-      
-    if (this.player2)
-      return this.player2?.id; // первый — победитель
+
+    // парный матч
+    if (this.team1 && this.team2) {
+      if (sets1 > sets2) {
+        return this.team1.id;
+      }
+      if (sets2 > sets1) {
+        return this.team2.id;
+      }
+      return 0; // ничья / не определён
+    }
 
     return 0;
   }

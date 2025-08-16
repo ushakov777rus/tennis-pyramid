@@ -43,4 +43,15 @@ export class PlayersRepository {
 
     if (error) console.error("Ошибка сохранения игрока:", error);
   }
+
+  static async findByUserId(userId: number): Promise<Player | null> {
+    const { data, error } = await supabase
+      .from("players")
+      .select("id, name, ntrp, phone, sex, user_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) { console.error(error); return null; }
+    return data ? new Player(data) : null;
+  }
 }

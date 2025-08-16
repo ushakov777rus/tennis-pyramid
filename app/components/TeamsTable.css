@@ -93,30 +93,8 @@
   flex-wrap: wrap;
 }
 
-/* крупнее цель для тача */
-.icon-btn.lg {
-  padding: 4px;         /* было 6px */
-  border-radius: 8px;
-  width: 32px;
-  height: 32px;
-}
-
-/* акцент для создания команды */
-.icon-btn.create-icon {
-  /* можно оставить твои базовые цвета, ниже — небольшая подсветка */
-  box-shadow: 0 0 0 rgba(166,255,0,0);
-  transition: box-shadow 0.15s ease;
-}
-.icon-btn.create-icon:hover {
-  background: rgba(166, 255, 0, 0.15);
-  border-color: rgba(166, 255, 0, 0.4);
-  color: #a6ff00;
-  box-shadow: 0 0 0 3px rgba(166,255,0,0.15);
-}
-
 /* на мобиле немного ужмём */
 @media (max-width: 720px) {
   .create-inline-wrap { gap: 6px; }
-  .icon-btn.lg { padding: 4px; }
   .create-inline-wrap svg { width: 20px; height: 20px; }
 }

@@ -1,0 +1,222 @@
+/* базовая совместимость с твоими модалками */
+.profile-modal {
+  width: min(820px, 92vw);
+  max-height: 86vh;
+  overflow: auto;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+
+/* плавное появление */
+.slide-in {
+  animation: slideIn 200ms ease-out both;
+}
+@keyframes slideIn {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+
+/* шапка */
+.profile-header {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #eaf8d0;            /* светло-зелёный в тему мяча, подправь при желании */
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: 0.5px;
+}
+
+.title-block { min-width: 0; }
+
+.name-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.player-name-card {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+  color: #fafafa;
+}
+
+
+.meta-row {
+  margin-top: 6px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: #667085;
+  font-size: 13px;
+}
+
+.link-like {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: #344054;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.icon-btn.close-btn {
+  background: transparent;
+  border: 0;
+  font-size: 20px;
+  line-height: 1;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+.icon-btn.close-btn:hover {
+  background: rgba(0,0,0,0.06);
+}
+
+/* статистика */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin: 12px 0 8px;
+}
+.stat-card {
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+}
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+}
+.stat-label {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #667085;
+}
+
+/* секции */
+.section { margin-top: 18px; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.section-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.empty {
+  color: #667085;
+  font-size: 14px;
+  padding: 8px 0;
+}
+
+/* список матчей */
+.matches-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.match-item {
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fff;
+}
+.match-line {
+  display: grid;
+  grid-template-columns: 84px 1fr max-content;
+  gap: 8px;
+  align-items: center;
+}
+.match-line .date {
+  color: #98a2b3;
+  font-size: 12px;
+}
+.match-line .vs {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.score {
+  font-weight: 700;
+}
+.score.win {
+  color: #12b76a; /* зелёный — победа */
+}
+.score.loss {
+  color: #f04438; /* красный — поражение */
+}
+
+/* actions */
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+/* кнопки */
+.btn {
+  border: 1px solid #d0d5dd;
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0,0,0,0.08); }
+.btn:active { transform: translateY(0); box-shadow: none; }
+.btn.primary {
+  background: #6f5cff;   /* фирменный фиолетовый под твой вариант */
+  border-color: #6f5cff;
+  color: #fff;
+}
+.btn.ghost {
+  background: transparent;
+}
+.btn.sm {
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+/* адаптив */
+@media (max-width: 720px) {
+  .profile-header {
+    grid-template-columns: 56px 1fr auto;
+  }
+  .avatar { width: 56px; height: 56px; font-size: 18px; }
+  .player-name { font-size: 18px; }
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
+  .match-line { grid-template-columns: 64px 1fr max-content; }
+}
+
+@media (max-width: 420px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .match-line { grid-template-columns: 56px 1fr; }
+  .score { justify-self: start; }
+}
