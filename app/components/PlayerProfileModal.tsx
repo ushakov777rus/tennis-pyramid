@@ -181,23 +181,6 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-function isWinner(player: Player, match: Match) {
-  const winnerId = match.getWinnerId?.();
-  if (!winnerId) return false;
-  // одиночки
-  if (match.player1?.id || match.player2?.id) {
-    return winnerId === player.id;
-  }
-  // пары — победа, если в составе выигрывающей команды
-  if (match.team1?.player1?.id === player.id || match.team1?.player2?.id === player.id) {
-    return winnerId === match.team1?.id;
-  }
-  if (match.team2?.player1?.id === player.id || match.team2?.player2?.id === player.id) {
-    return winnerId === match.team2?.id;
-  }
-  return false;
-}
-
 function formatPhone(phone: string) {
   // на всякий случай легкая маска
   const digits = phone.replace(/\D/g, "");
