@@ -17,7 +17,6 @@ export class MatchRepository {
     team2Id: number | null,
     tournamentId: number
   ): Promise<number> {
-    console.log("MatchRepository:Add match");
     let newMatchId: number;
 
     const { data, error } = await supabase

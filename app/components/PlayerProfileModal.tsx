@@ -52,9 +52,7 @@ export function PlayerProfileModal({
     };
   }, [isOpen]);
 
-  console.log("recentMatches:", recentMatches);
-
-  // Инициалы для аватара
+    // Инициалы для аватара
   const initials = useMemo(() => {
     if (!player?.name) return "??";
     return player.name
