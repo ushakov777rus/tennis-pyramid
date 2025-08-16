@@ -7,6 +7,8 @@ import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
 import { Participant } from "@/app/models/Participant";
 
+import { MatchHistoryView } from "@/app/components/MatchHistoryView"
+
 type PlayerStats = {
   wins: number;
   losses: number;
@@ -138,21 +140,13 @@ export function PlayerProfileModal({
           {recentMatches.length === 0 ? (
             <div className="empty">Пока нет сыгранных матчей</div>
           ) : (
-            <ul className="matches-list">
-              {recentMatches.slice(0, 8).map((m) => (
-                <li key={m.id} className="input">
-                  <div className="match-line">
-                    <span className="date">{formatDate(m.date)}</span>
-                    <span className="vs">
-                      {renderOpponentLine(player, m)}
-                    </span>
-                    <span className={`score ${isWinner(player, m) ? "win" : "loss"}`}>
-                      {m.formatResult()}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <MatchHistoryView
+              player={null}
+              matches={recentMatches}
+              showTournament={true}
+              onEditMatch={undefined}
+              onDeleteMatch={undefined}
+            />
           )}
         </div>
 
@@ -202,37 +196,6 @@ function isWinner(player: Player, match: Match) {
     return winnerId === match.team2?.id;
   }
   return false;
-}
-
-function renderOpponentLine(player: Player, match: Match) {
-  // одиночки
-  if (match.player1 && match.player2) {
-    const youLeft = match.player1.id === player.id;
-    const opp = youLeft ? match.player2 : match.player1;
-    return `${youLeft ? "Вы" : match.player1.name} vs ${match.player2.name}`;
-  }
-  // пары
-  if (match.team1 && match.team2) {
-    const inTeam1 =
-      match.team1.player1?.id === player.id || match.team1.player2?.id === player.id;
-    const yourTeam = inTeam1 ? match.team1 : match.team2;
-    const oppTeam = inTeam1 ? match.team2 : match.team1;
-    return `${pairName(match.team1)} vs ${pairName(match.team2)}`;
-  }
-  return "Матч";
-}
-
-function pairName(team: any) {
-  const p1 = team?.player1?.name ?? "??";
-  const p2 = team?.player2?.name ?? "??";
-  return `${p1} + ${p2}`;
-}
-
-function formatDate(d?: string | Date) {
-  if (!d) return "";
-  const date = typeof d === "string" ? new Date(d) : d;
-  // локально, кратко
-  return date.toLocaleDateString("ru-RU", { day: "2-digit", month: "short" });
 }
 
 function formatPhone(phone: string) {
