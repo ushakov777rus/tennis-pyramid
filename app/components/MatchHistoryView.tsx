@@ -44,12 +44,11 @@ export function MatchHistoryView({
   const [playersQ, setPlayersQ] = useState<string>("");
   const [scoreQ, setScoreQ] = useState<string>("");
 
-  if (matches.length === 0) return <p className="history-empty">Матчей пока нет</p>;
-
   // из пропса player — предварительная фильтрация
   const displayMatches = player
     ? matches.filter((m) => m.player1?.id === player.id || m.player2?.id === player.id)
     : matches;
+
 
   // сортировка по дате ↓
   const sortedMatches = useMemo(
@@ -59,6 +58,11 @@ export function MatchHistoryView({
       ),
     [displayMatches]
   );
+
+
+  if (matches.length === 0) return <p className="history-empty">Матчей пока нет</p>;
+
+
 
   const getSideName = (m: Match, side: 1 | 2) => {
     if (m.type === "double") {
