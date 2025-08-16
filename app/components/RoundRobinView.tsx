@@ -24,14 +24,6 @@ function getUnitId(p: Participant): number {
   return p.player?.id ?? p.team!.id;
 }
 
-/** Отображаемое имя для сортировки (игрок или "A + B") */
-function getDisplayName(p: Participant): string {
-  if (p.player) return p.player.name;
-  const a = p.team?.player1?.name ?? "??";
-  const b = p.team?.player2?.name ?? "??";
-  return `${a} + ${b}`;
-}
-
 /** Строим расписание (circle method) по целым Participant */
 function buildRoundRobin(units: Participant[]): Participant[][][] {
   const list: (Participant | null)[] = units.map((u) => u);
@@ -86,7 +78,7 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
       participants
         .filter(isValidParticipant)
         .slice()
-        .sort((a, b) => getDisplayName(a).localeCompare(getDisplayName(b), "ru")),
+        .sort((a, b) => a.displayName.localeCompare(b.displayName, "ru")),
     [participants]
   );
 
