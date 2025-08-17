@@ -33,9 +33,6 @@ export const metadata: Metadata = {
     icon: "/favicon.ico",
     apple: "/apple-icon.png",
   },
-    other: {
-    ['yandex-verification']: '30682b11a01c5d3e',
-  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
