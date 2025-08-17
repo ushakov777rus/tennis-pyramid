@@ -2,11 +2,7 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 
 export async function POST(req: Request) {
-  console.log("route/login 0");
-
   const { name, password } = await req.json();
-
-  console.log("route/login 1");
 
   const { data, error } = await supabase
     .from("users")
@@ -28,16 +24,12 @@ export async function POST(req: Request) {
     .eq("password", password) // ⚠️ plain-text только для MVP
     .maybeSingle();
 
-console.log("route/login 2");
-
   if (error || !data) {
     return NextResponse.json(
       { error: "Неверный логин или пароль" },
       { status: 401 }
     );
   }
-
-console.log("route/login 3:", data);
 
   // формируем объект пользователя
   const user = {
@@ -46,8 +38,6 @@ console.log("route/login 3:", data);
     role: data.role,
     player_id: data.players.length > 0 ? data.players[0].id : null
   };
-
-  console.log("route/login:",user);
 
   // создаём ответ с user
   const res = NextResponse.json({
