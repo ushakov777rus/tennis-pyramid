@@ -4,6 +4,7 @@ import { UserProvider } from "./components/UserContext";
 import Script from "next/script";
 
 import type { Metadata } from "next";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://honeycup.ru"),
   title: {
@@ -31,6 +32,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-icon.png",
+  },
+    other: {
+    ['yandex-verification']: '30682b11a01c5d3e',
   },
 };
 
