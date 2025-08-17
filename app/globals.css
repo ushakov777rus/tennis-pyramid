@@ -119,6 +119,17 @@ body {
     font-size: 14px;
 }
 
+.page-footer {
+    max-width: 900px;
+    gap: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 0 auto;
+    font-size: 14px;
+}
+
+
 /* затемнённый фон */
 .modal-overlay {
   position: fixed;

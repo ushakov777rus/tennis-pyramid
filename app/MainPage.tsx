@@ -113,6 +113,22 @@ export default function HomePage() {
           </div>
         </section>
       </main>
+
+<footer className="card page-footer">
+
+    <div className="footer-section left">
+      <h3>Для связи</h3>
+      <p>
+        <a href="mailto:honeycup@yandex.ru">honeycup@yandex.ru</a>
+      </p>
+    </div>
+
+    <div className="footer-section right">
+      <h3>© {new Date().getFullYear()} HoneyCup</h3>
+      <p>Все права защищены</p>
+    </div>
+  
+</footer>
     </div>
   );
 }
