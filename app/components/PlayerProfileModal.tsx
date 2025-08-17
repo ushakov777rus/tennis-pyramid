@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
+import { useUser } from "@/app/components/UserContext";
 import "./PlayerProfileModal.css";
 
 import { Player } from "@/app/models/Player";
@@ -42,6 +43,7 @@ export function PlayerProfileModal({
   onEditPlayer,
   onMessage,
 }: Props) {
+  const { user } = useUser();
   // Блокируем прокрутку боди, когда открыта модалка
   useEffect(() => {
     if (!isOpen) return;
@@ -143,6 +145,7 @@ export function PlayerProfileModal({
               showTournament={true}
               onEditMatch={undefined}
               onDeleteMatch={undefined}
+              mask={user?.role !== "site_admin"}
             />
           )}
         </div>

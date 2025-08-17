@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
+import { useUser } from "@/app/components/UserContext";
 
 import { MatchHistoryView } from "@/app/components/MatchHistoryView";
 import "@/app/components/MatchHistory.css";
@@ -26,6 +27,7 @@ export function MatchHistoryModal({
   onEditMatch,
   onDeleteMatch,
 }: MatchHistoryModalProps) {
+  const { user } = useUser();
     // контекст уже ДОЛЖЕН быть выше в дереве
   const { matches: allMatches, updateMatch, deleteMatch } = useTournament();
 
@@ -70,6 +72,7 @@ export function MatchHistoryModal({
             showTournament={true}
             onEditMatch={handleEdit}
             onDeleteMatch={handleDelete}
+            mask={user?.role !== "site_admin"}
           />
         </div>
 
