@@ -3,6 +3,37 @@ import "./globals.css";
 import { UserProvider } from "./components/UserContext";
 import Script from "next/script";
 
+import type { Metadata } from "next";
+export const metadata: Metadata = {
+  metadataBase: new URL("https://honeycup.ru"),
+  title: {
+    default: "HoneyCup — Любительские теннисные турниры",
+    template: "%s — HoneyCup",
+  },
+  description: "Организуйте и участвуйте в любительских теннисных турнирах формата пирамида. Рейтинг игроков, сетки, расписание и результаты.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: "https://honeycup.ru",
+    title: "HoneyCup — Любительские теннисные турниры",
+    description: "Пирамида, рейтинги, матчи.",
+    siteName: "HoneyCup",
+    images: [{ url: "/og-default.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "HoneyCup",
+    description: "Любительские теннисные турниры",
+    images: ["/og-default.png"],
+  },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru">
