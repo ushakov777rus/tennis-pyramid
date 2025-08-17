@@ -158,8 +158,7 @@ export function MatchHistoryView({
   };
 
   return (
-    <div className="history-wrap">
-      {player ? <div className="chip chip-margin-bottom">История матчей {player.name}</div> : ""}
+    <div className="history-wrap">      
       <table className="history-table">
         <thead className="history-table-head">
           <tr>

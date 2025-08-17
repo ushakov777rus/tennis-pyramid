@@ -57,15 +57,8 @@ export function MatchHistoryModal({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="match-history-modal"
-        onClick={(e) => e.stopPropagation()}
-        style={{ display: "flex", flexDirection: "column", maxHeight: "90vh" }}
-        role="dialog"
-        aria-modal="true"
-        aria-label={`История матчей: ${player.name}`}
-      >
-        <div style={{ overflowY: "auto", flex: "1 1 auto", paddingBottom: 60 }}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h2 className="modal-title">{`История матчей: ${player.name}`}</h2>
           <MatchHistoryView
             player={player}
             matches={effectiveMatches}
@@ -76,20 +69,9 @@ export function MatchHistoryModal({
           />
         </div>
 
-        <div
-          style={{
-            borderTop: "1px solid #2a2a2a",
-            padding: 10,
-            background: "none",
-            position: "sticky",
-            bottom: 0,
-          }}
-        >
-          <button className="card-btn card-btn-act" style={{ width: "100%" }} onClick={onClose}>
-            Закрыть
-          </button>
-        </div>
-      </div>
+        <button onClick={onClose} className="modal-close-btn">
+          ✖
+        </button>
     </div>
   );
 }
