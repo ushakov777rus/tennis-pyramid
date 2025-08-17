@@ -58,7 +58,7 @@ export function MatchHistoryModal({
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">{`История матчей: ${player.name}`}</h2>
+        <h2 className="modal-title">{`${player.name}`}</h2>
           <MatchHistoryView
             player={player}
             matches={effectiveMatches}
@@ -67,11 +67,11 @@ export function MatchHistoryModal({
             onDeleteMatch={handleDelete}
             mask={user?.role !== "site_admin"}
           />
-        </div>
 
         <button onClick={onClose} className="modal-close-btn">
           ✖
         </button>
+      </div>
     </div>
   );
 }
