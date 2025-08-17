@@ -29,71 +29,58 @@ export function CustomSelect({
   const comboboxRef = useRef<HTMLDivElement | null>(null);
   const listboxRef = useRef<HTMLDivElement | null>(null);
 
-  const [open, setOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState<number>(() => {
-    const idx = options.findIndex(
-      (o) => String(o.value) === String(value) && !o.disabled
-    );
-    return idx >= 0 ? idx : options.findIndex((o) => !o.disabled);
-  });
+  // 0) Сортируем входящие options по алфавиту один раз (мемо)
+  const sortedOptions = useMemo(() => {
+    const copy = [...options];
+    copy.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
+    return copy;
+  }, [options]);
 
+  // 1) Фильтрация
+  const [query, setQuery] = useState("");
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredOptions = useMemo(() => {
+    if (!normalizedQuery) return sortedOptions;
+    return sortedOptions.filter((o) => o.label.toLowerCase().includes(normalizedQuery));
+  }, [sortedOptions, normalizedQuery]);
+
+  const [open, setOpen] = useState(false);
+
+  // Индексы теперь считаем относительно ОТОБРАЖАЕМОГО (filteredOptions) списка
   const selectedIndex = useMemo(
-    () => options.findIndex((o) => String(o.value) === String(value)),
-    [options, value]
+    () => filteredOptions.findIndex((o) => String(o.value) === String(value)),
+    [filteredOptions, value]
   );
 
-  // Следим за сменой value извне — подвинем activeIndex на выбранный
+  const [activeIndex, setActiveIndex] = useState<number>(() => {
+    const idx = filteredOptions.findIndex(
+      (o) => String(o.value) === String(value) && !o.disabled
+    );
+    return idx >= 0 ? idx : filteredOptions.findIndex((o) => !o.disabled);
+  });
+
+  // При смене value/фильтра — аккуратно сдвигаем активный
   useEffect(() => {
-    if (selectedIndex >= 0 && !options[selectedIndex]?.disabled) {
+    if (selectedIndex >= 0 && !filteredOptions[selectedIndex]?.disabled) {
       setActiveIndex(selectedIndex);
+    } else {
+      const firstEnabled = filteredOptions.findIndex((o) => !o.disabled);
+      if (firstEnabled >= 0) setActiveIndex(firstEnabled);
+      else setActiveIndex(-1);
     }
-  }, [selectedIndex, options]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIndex, normalizedQuery, filteredOptions.length]);
 
   const baseId = useId();
   const listboxId = `${baseId}-listbox`;
 
-  // Тайп-а-хэд
+  // Тайп-а-хэд (оставим — он работает поверх общего списка, но
+  // на практике при открытом поиске пользователи печатают в input)
   const typeBufferRef = useRef("");
   const typeTimeoutRef = useRef<number | null>(null);
 
   const setOpenSafe = (next: boolean) => {
     if (!disabled) setOpen(next);
-  };
-
-  const commitSelection = (idx: number) => {
-    const opt = options[idx];
-    if (!opt || opt.disabled) return;
-    onChange?.(opt.value);
-    setOpenSafe(false);
-  };
-
-  const moveActive = (dir: 1 | -1) => {
-    if (!options.length) return;
-    let i = activeIndex ?? -1;
-    for (let step = 0; step < options.length; step++) {
-      i = (i + dir + options.length) % options.length;
-      if (!options[i].disabled) {
-        setActiveIndex(i);
-        ensureActiveVisible(i);
-        break;
-      }
-    }
-  };
-
-  const goEdge = (edge: "start" | "end") => {
-    if (!options.length) return;
-    const range = edge === "start" ? [0, options.length] : [options.length - 1, -1];
-    for (
-      let i = range[0];
-      edge === "start" ? i < range[1] : i > range[1];
-      edge === "start" ? i++ : i--
-    ) {
-      if (!options[i].disabled) {
-        setActiveIndex(i);
-        ensureActiveVisible(i);
-        break;
-      }
-    }
   };
 
   const ensureActiveVisible = (idx: number) => {
@@ -110,7 +97,46 @@ export function CustomSelect({
     }
   };
 
-  // Клик/тап вне: учитываем и триггер, и сам список
+  const commitSelection = (idx: number) => {
+    const opt = filteredOptions[idx];
+    if (!opt || opt.disabled) return;
+    onChange?.(opt.value);
+    setOpenSafe(false);
+  };
+
+  const moveActive = (dir: 1 | -1) => {
+    if (!filteredOptions.length) return;
+    let i = activeIndex ?? -1;
+    for (let step = 0; step < filteredOptions.length; step++) {
+      i = (i + dir + filteredOptions.length) % filteredOptions.length;
+      if (!filteredOptions[i].disabled) {
+        setActiveIndex(i);
+        ensureActiveVisible(i);
+        break;
+      }
+    }
+  };
+
+  const goEdge = (edge: "start" | "end") => {
+    if (!filteredOptions.length) return;
+    if (edge === "start") {
+      const i = filteredOptions.findIndex((o) => !o.disabled);
+      if (i >= 0) {
+        setActiveIndex(i);
+        ensureActiveVisible(i);
+      }
+    } else {
+      for (let i = filteredOptions.length - 1; i >= 0; i--) {
+        if (!filteredOptions[i].disabled) {
+          setActiveIndex(i);
+          ensureActiveVisible(i);
+          break;
+        }
+      }
+    }
+  };
+
+  // Клик/тап вне
   useEffect(() => {
     const onDocPointerDown = (e: PointerEvent) => {
       const t = e.target as Node;
@@ -118,49 +144,39 @@ export function CustomSelect({
       if (listboxRef.current?.contains(t)) return;
       setOpen(false);
     };
-    // pointerdown — стабильнее на мобильных
     document.addEventListener("pointerdown", onDocPointerDown);
     return () => document.removeEventListener("pointerdown", onDocPointerDown);
   }, []);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (disabled) return;
+
+    // Если открыт дропдаун, но фокус в поле поиска — не перехватываем стрелки
+    const activeEl = document.activeElement as HTMLElement | null;
+    if (open && activeEl && activeEl.dataset?.role === "cs-search") {
+      return;
+    }
+
     switch (e.key) {
       case " ":
       case "Enter": {
         e.preventDefault();
         if (!open) {
           setOpenSafe(true);
-          const idx =
-            selectedIndex >= 0 && !options[selectedIndex]?.disabled
-              ? selectedIndex
-              : options.findIndex((o) => !o.disabled);
-          if (idx >= 0) setActiveIndex(idx);
           return;
         }
-        if (activeIndex != null) commitSelection(activeIndex);
+        if (activeIndex != null && activeIndex >= 0) commitSelection(activeIndex);
         return;
       }
       case "ArrowDown":
         e.preventDefault();
-        if (!open) {
-          setOpenSafe(true);
-          const firstIdx = options.findIndex((o) => !o.disabled);
-          if (firstIdx >= 0) setActiveIndex(firstIdx);
-        } else {
-          moveActive(1);
-        }
+        if (!open) setOpenSafe(true);
+        else moveActive(1);
         return;
       case "ArrowUp":
         e.preventDefault();
-        if (!open) {
-          setOpenSafe(true);
-          const lastIdx = [...options].reverse().findIndex((o) => !o.disabled);
-          const realIdx = lastIdx >= 0 ? options.length - 1 - lastIdx : -1;
-          if (realIdx >= 0) setActiveIndex(realIdx);
-        } else {
-          moveActive(-1);
-        }
+        if (!open) setOpenSafe(true);
+        else moveActive(-1);
         return;
       case "Home":
         e.preventDefault();
@@ -180,7 +196,7 @@ export function CustomSelect({
         break;
     }
 
-    // Тайп-а-хэд
+    // Тайп-а-хэд по отфильтрованному списку
     const char = e.key.length === 1 ? e.key : "";
     if (!char.trim()) return;
 
@@ -191,9 +207,9 @@ export function CustomSelect({
 
     const search = typeBufferRef.current;
     const start = Math.max(activeIndex ?? -1, -1);
-    for (let i = 1; i <= options.length; i++) {
-      const idx = (start + i) % options.length;
-      const o = options[idx];
+    for (let i = 1; i <= filteredOptions.length; i++) {
+      const idx = (start + i) % filteredOptions.length;
+      const o = filteredOptions[idx];
       if (!o.disabled && o.label.toLowerCase().startsWith(search)) {
         setActiveIndex(idx);
         if (open) ensureActiveVisible(idx);
@@ -207,8 +223,15 @@ export function CustomSelect({
     }, 700);
   };
 
-  const labelToShow =
-    selectedIndex >= 0 ? options[selectedIndex]?.label : placeholder;
+  const labelToShow = useMemo(() => {
+    const i = sortedOptions.findIndex((o) => String(o.value) === String(value));
+    return i >= 0 ? sortedOptions[i].label : placeholder;
+  }, [sortedOptions, value, placeholder]);
+
+  // При открытии — автофокус в поиск и сброс предыдущего запроса
+  useEffect(() => {
+    if (open) setQuery("");
+  }, [open]);
 
   return (
     <>
@@ -219,14 +242,14 @@ export function CustomSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-activedescendant={
-          open && activeIndex != null ? `${baseId}-opt-${activeIndex}` : undefined
+          open && activeIndex != null && activeIndex >= 0 ? `${baseId}-opt-${activeIndex}` : undefined
         }
         tabIndex={disabled ? -1 : 0}
         className={`cs-select cs-trigger ${disabled ? "is-disabled" : ""} ${open ? "is-open" : ""} ${className}`}
         onClick={() => setOpenSafe(!open)}
         onKeyDown={onKeyDown}
       >
-        <span className={`cs-value ${selectedIndex < 0 ? "is-placeholder" : ""}`}>
+        <span className={`cs-value ${labelToShow === placeholder ? "is-placeholder" : ""}`}>
           {labelToShow}
         </span>
         <span className="cs-caret" aria-hidden>▾</span>
@@ -241,40 +264,67 @@ export function CustomSelect({
           style={{ maxHeight: `${maxDropdownHeight}px` }}
           onMouseDown={(e) => e.stopPropagation()}
         >
-          {options.map((o, i) => {
-            const isSelected = i === selectedIndex;
-            const isActive = i === activeIndex;
-            const cls = [
-              "cs-option",
-              isSelected ? "is-selected" : "",
-              isActive ? "is-active" : "",
-              o.disabled ? "is-disabled" : "",
-            ]
-              .filter(Boolean)
-              .join(" ");
+          {/* Поле поиска */}
+          <div className="cs-search-wrap">
+            <input
+              data-role="cs-search"
+              className="input cs-search"
+              type="text"
+              autoFocus
+              placeholder="Поиск..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                // Enter в поиске — выбрать текущий activeIndex
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (activeIndex != null && activeIndex >= 0) commitSelection(activeIndex);
+                } else if (e.key === "Escape") {
+                  e.preventDefault();
+                  setOpenSafe(false);
+                }
+              }}
+            />
+          </div>
 
-            return (
-              <div
-                key={o.value}
-                id={`${baseId}-opt-${i}`}
-                data-index={i}
-                role="option"
-                aria-selected={isSelected}
-                aria-disabled={o.disabled || undefined}
-                className={cls}
-                onMouseEnter={() => !o.disabled && setActiveIndex(i)}
-                onMouseDown={(e) => {
-                  // Выбираем на mousedown: быстрее и надёжнее на мобильных
-                  e.preventDefault();   // не теряем фокус
-                  e.stopPropagation();  // не триггерим outside-click
-                  if (!o.disabled) commitSelection(i);
-                }}
-              >
-                <span className="cs-option-label">{o.label}</span>
-                {isSelected && <span className="cs-check" aria-hidden>✓</span>}
-              </div>
-            );
-          })}
+          {/* Список опций */}
+          {filteredOptions.length === 0 ? (
+            <div className="cs-empty">Ничего не найдено</div>
+          ) : (
+            filteredOptions.map((o, i) => {
+              const isSelected = i === selectedIndex;
+              const isActive = i === activeIndex;
+              const cls = [
+                "cs-option",
+                isSelected ? "is-selected" : "",
+                isActive ? "is-active" : "",
+                o.disabled ? "is-disabled" : "",
+              ]
+                .filter(Boolean)
+                .join(" ");
+
+              return (
+                <div
+                  key={o.value}
+                  id={`${baseId}-opt-${i}`}
+                  data-index={i}
+                  role="option"
+                  aria-selected={isSelected}
+                  aria-disabled={o.disabled || undefined}
+                  className={cls}
+                  onMouseEnter={() => !o.disabled && setActiveIndex(i)}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!o.disabled) commitSelection(i);
+                  }}
+                >
+                  <span className="cs-option-label">{o.label}</span>
+                  {isSelected && <span className="cs-check" aria-hidden>✓</span>}
+                </div>
+              );
+            })
+          )}
         </div>
       )}
     </>
