@@ -1,0 +1,38 @@
+
+.modal-form {
+  display: grid;
+  gap: 12px;
+}
+
+.modal-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+/* Кнопки (если нет своих) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  background: #f5f5f5;
+  cursor: pointer;
+  transition: transform .06s ease, box-shadow .12s ease;
+}
+.btn:hover { box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+.btn:active { transform: translateY(1px); }
+.btn.primary {
+  background: #ccff66; /* можешь заменить на цвет бренда */
+  color: #000;
+  border-color: transparent;
+}

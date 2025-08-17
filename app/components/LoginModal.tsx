@@ -45,16 +45,16 @@ export function LoginModal({
   }
 
   return (
-    <div className="login-modal-overlay" onClick={onClose}>
-      <div className="login-modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2 className="login-title">Вход</h2>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h2 className="modal-title">Вход</h2>
 
         <input
           type="text"
           placeholder="Имя"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="login-input"
+          className="input"
         />
 
         <input
@@ -62,16 +62,16 @@ export function LoginModal({
           placeholder="Пароль"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="login-input"
+          className="input"
         />
 
-        <button onClick={handleLogin} className="login-submit-btn">
+        <button onClick={handleLogin} className="modal-submit-btn">
           Войти
         </button>
 
         {error && <p style={{ color: "red" }}>{error}</p>}
 
-        <button onClick={onClose} className="login-close-btn">
+        <button onClick={onClose} className="modal-close-btn">
           ✖
         </button>
 

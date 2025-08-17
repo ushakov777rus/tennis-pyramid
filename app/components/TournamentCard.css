@@ -32,4 +32,15 @@
   padding-right: 8px;  /* чуть отступа от 3-й колонки */
 }
 
+.big-plus {
+  font-size: 64px;
+  color: #ccff66;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100;
+  margin: 0 auto;
+}
+
 

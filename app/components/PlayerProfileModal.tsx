@@ -111,8 +111,8 @@ export function PlayerProfileModal({
             </div>
           </div>
 
-          <button className="icon-btn close-btn" onClick={onClose} aria-label="Закрыть">
-            ✕
+          <button className="modal-close-btn" onClick={onClose} aria-label="Закрыть">
+            ✖
           </button>
         </div>
 

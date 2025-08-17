@@ -18,6 +18,7 @@ import { NavigationBar } from "@/app/components/NavigationBar";
 import { AdminOnly, LoggedIn } from "@/app/components/RoleGuard";
 import { TournamentCard } from "@/app/components/TournamentCard";
 import { useUser } from "@/app/components/UserContext";
+import { AddTournamentModal } from "../components/AddTournamentModal";
 
 import { useTournaments } from "@/app/tournaments/TournamentsProvider";
 import { Tournament } from "@/app/models/Tournament";
@@ -47,6 +48,8 @@ export function TournamentsClient() {
   const [fltType, setFltType] = useState<FilterType>("");
   const [fltFormat, setFltFormat] = useState<FilterFormat>("");
   const [fltStatus, setFltStatus] = useState<FilterStatus>("");
+
+  const [modalOpen, setModalOpen] = useState(false);
 
   const onCreate = async () => {
     if (!user?.id) {
@@ -152,63 +155,22 @@ export function TournamentsClient() {
         </div>
 
         {/* Создание турнира - любой зарегистрированный игрок может создать турнир */}
-        <LoggedIn>
-          <div className="card">
-            <input
-              type="text"
-              placeholder="Название турнира"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              className="input card-input-add-tournament"
-            />
-
-            <select
-              value={newType}
-              onChange={(e) => setNewType(e.target.value as TournamentType)}
-              className="input card-input-add-tournament"
-            >
-              {/* можно использовать TYPE_OPTIONS.slice(1), но здесь наглядно */}
-              <option value={TournamentType.Single}>Одиночный</option>
-              <option value={TournamentType.Double}>Парный</option>
-            </select>
-
-            <select
-              value={newFormat}
-              onChange={(e) => setNewFormat(e.target.value as TournamentFormat)}
-              className="input card-input-add-tournament"
-            >
-              {/* для создания — без пункта "Любой формат" */}
-              {FORMAT_OPTIONS.slice(1).map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="input card-input-add-tournament"
-            />
-
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="input card-input-add-tournament"
-            />
-
-            <PlusIconButton onClick={onCreate} title="Создать"/>
-
-          </div>
-        </LoggedIn>
+        
 
         {/* Список турниров */}
         {loading && <div className="card">Загрузка…</div>}
         {error && <div className="card card-error">Ошибка: {error}</div>}
 
         <div className="tournaments-grid">
+          <LoggedIn>
+            <TournamentCard
+              key={0}
+              tournament={null}
+              participantsCount={0}
+              matchesCount={0}
+              onClick={() => setModalOpen(true)}
+            />
+          </LoggedIn>
           {filtered.map((t: Tournament) => (
             <TournamentCard
               key={t.id}
@@ -219,6 +181,13 @@ export function TournamentsClient() {
             />
           ))}
         </div>
+
+        <AddTournamentModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          onCreate={onCreate}
+        />
+    
       </div>
     </div>
   );

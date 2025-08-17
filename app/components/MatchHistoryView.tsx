@@ -262,7 +262,7 @@ export function MatchHistoryView({
                       >
                         {getSideName(m, 1, user?.role !== "site_admin")}
                       </span>
-                      <span className="vs">—</span>
+
                       <span
                         className={
                           !winnerId

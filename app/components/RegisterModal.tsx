@@ -68,60 +68,60 @@ export function RegisterModal({
   }
 
   return (
-    <div className="login-modal-overlay" onClick={!pending ? onClose : undefined}>
-      <div className="login-modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2 className="login-title">Регистрация игрока</h2>
+    <div className="modal-overlay" onClick={!pending ? onClose : undefined}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h2 className="modal-title">Регистрация игрока</h2>
 
         <input
           type="text"
           placeholder="Фамилия и Имя"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
-          className="login-input"
+          className="input"
         />
         <input
           type="text"
           placeholder="Телефон"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="login-input"
+          className="input"
         />
         <input
           type="text"
           placeholder="NTRP"
           value={ntrp}
           onChange={(e) => setNTRP(e.target.value)}
-          className="login-input"
+          className="input"
         />
         <input
           type="text"
           placeholder="Никнейм (для входа)"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
-          className="login-input"
+          className="input"
         />
         <input
           type="password"
           placeholder="Пароль"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="login-input"
+          className="input"
         />
         <input
           type="password"
           placeholder="Повтор пароля"
           value={password2}
           onChange={(e) => setPassword2(e.target.value)}
-          className="login-input"
+          className="input"
         />
 
         {error && <p style={{ color: "tomato", marginTop: 6 }}>{error}</p>}
 
-        <button onClick={handleRegister} className="login-submit-btn" disabled={pending}>
+        <button onClick={handleRegister} className="modal-submit-btn" disabled={pending}>
           {pending ? "Регистрируем…" : "Зарегистрироваться"}
         </button>
 
-        <button onClick={onClose} className="login-close-btn" aria-label="Закрыть" disabled={pending}>
+        <button onClick={onClose} className="modal-close-btn" aria-label="Закрыть" disabled={pending}>
           ✖
         </button>
 
