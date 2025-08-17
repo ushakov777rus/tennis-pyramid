@@ -245,6 +245,7 @@ body {
 
 /* Карточки */
 .card {
+  position: relative;
   background: #1b1b1b;
   border-radius: 16px;
   padding: 5px;
@@ -362,6 +363,9 @@ button,
 }
 
 .status {
+  position: absolute;
+  top: 5px;
+  right: 5px;
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 10px;
