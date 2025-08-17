@@ -64,6 +64,14 @@ export function MatchHistoryView({
     [displayMatches]
   );
 
+  const getSideName = (m: Match, side: 1 | 2, mask: boolean) => {
+    if (m.type === "double") {
+      return side === 1 ? m.team1?.displayName(mask) ?? "??" : m.team2?.displayName(mask) ?? "??";
+    }
+    return side === 1 ? m.player1?.displayName(mask) ?? "??" : m.player2?.displayName(mask) ?? "??";
+  };
+
+
   const playersLine = (m: Match) => `${getSideName(m, 1, user?.role !== "site_admin")} — ${getSideName(m, 2, user?.role !== "site_admin")}`;
 
   // применяем фильтры
@@ -103,16 +111,6 @@ export function MatchHistoryView({
 
 
   if (matches.length === 0) return <p className="history-empty">Матчей пока нет</p>;
-
-
-
-  const getSideName = (m: Match, side: 1 | 2, mask: boolean) => {
-    if (m.type === "double") {
-      return side === 1 ? m.team1?.displayName(mask) ?? "??" : m.team2?.displayName(mask) ?? "??";
-    }
-    return side === 1 ? m.player1?.displayName(mask) ?? "??" : m.player2?.displayName(mask) ?? "??";
-  };
-
 
   const startEditing = (m: Match) => {
     setEditingId(m.id);
