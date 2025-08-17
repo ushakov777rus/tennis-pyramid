@@ -14,7 +14,9 @@ export class PlayersRepository {
       return [];
     }
 
-    return data ?? [];
+      return (data ?? []).map((row: any) => {
+        return new Player(row);
+      });
   }
 
   static async add(player: Partial<Player>): Promise<void> {
