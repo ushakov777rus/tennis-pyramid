@@ -121,6 +121,7 @@ export function PyramidView({
 
     setLocalParticipants(next);
     // сохраняет родитель (через провайдер)
+    console.log("// сохраняет родитель (через провайдер)",onPositionsChange);
     await onPositionsChange?.(next);
   };
 

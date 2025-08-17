@@ -43,6 +43,7 @@ export default function TournamentClient() {
     addMatch,
     updateMatch,
     deleteMatch,
+    updatePositions,
   } = useTournament();
   const { user } = useUser();
   const router = useRouter();
@@ -296,6 +297,7 @@ export default function TournamentClient() {
               onSelect={setSelectedIds}
               onShowHistoryPlayer={handleShowHistoryPlayer}
               onSaveScoreRoundRobin={handleSaveScore}
+              onPositionsChange={updatePositions}
             />
           )}
 
@@ -350,6 +352,7 @@ const FormatView = React.memo(function FormatView({
   onSelect,
   onShowHistoryPlayer,
   onSaveScoreRoundRobin,
+  onPositionsChange,
 }: {
   tournament: Tournament;
   participants: Participant[];
@@ -359,6 +362,7 @@ const FormatView = React.memo(function FormatView({
   onSelect: (ids: number[]) => void;
   onShowHistoryPlayer: (p?: Player) => void;
   onSaveScoreRoundRobin: (aId: number, bId: number, score: string) => void;
+  onPositionsChange: (next:Participant[]) => Promise<void> | void;
 }) {
   // ✅ Хук вызывается всегда, неусловно
   const handleShowHistory = useCallback(
@@ -387,6 +391,7 @@ const FormatView = React.memo(function FormatView({
       onSelect={onSelect}
       onShowHistory={handleShowHistory}
       matches={matches}
+      onPositionsChange={onPositionsChange}
     />
   );
 });
