@@ -7,14 +7,14 @@ const YM_ID = process.env.NEXT_PUBLIC_YM_ID;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 
-  console.log("process.env.NODE_ENV",process.env.NODE_ENV);
+  console.log("process.env.NODE_ENV",process.env.NODE_ENV, YM_ID);
   return (
     <html lang="ru">
       <body>
         <UserProvider>{children}</UserProvider>
 
         {/* Яндекс.Метрика (только в проде и если задан ID) */}
-        {process.env.NODE_ENV === "production" && YM_ID && (
+        {YM_ID && (
           <>
             <Script
               id="ym-loader"
