@@ -245,19 +245,6 @@
   box-shadow: 0 0 10px rgba(166, 255, 0, 0.1) !important;
 }
 
-
-
-
-
-
-
-.players {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 2px;
-}
-
 .chip {
   background: #2a2a2a;
   padding: 4px 8px;

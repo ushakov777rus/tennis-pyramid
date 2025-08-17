@@ -200,6 +200,13 @@ body {
 }
 
 
+/* Стиль для отображении пары игроков в матче */
+.players {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 2px;
+}
 
 
 
@@ -208,6 +215,15 @@ body {
   .modal-content {
     width: 90%;
   }
+
+  /* Игроки */
+.players {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 }
 
 
