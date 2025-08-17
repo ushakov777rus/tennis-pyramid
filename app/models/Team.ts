@@ -1,4 +1,5 @@
 import { Player } from "./Player";
+import { maskTeamName } from "../utils/maskName";
 
 export class Team {
   id: number;
@@ -12,4 +13,10 @@ export class Team {
     this.player1 = player1;
     this.player2 = player2;
   }
+
+  displayName(mask: boolean): string {
+    if (this.name) return mask ? maskTeamName(this.name) : this.name;
+    return "Без имени";
+  }
+  
 }

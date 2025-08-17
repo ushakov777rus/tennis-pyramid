@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useUser } from "@/app/components/UserContext";
 
 import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
@@ -22,6 +23,7 @@ type MatchHistoryViewProps = {
   matches: Match[];
   onEditMatch?: (match: Match) => void;
   onDeleteMatch?: (match: Match) => void;
+  mask: boolean;
   showTournament?: boolean;
 };
 
@@ -30,8 +32,11 @@ export function MatchHistoryView({
   matches,
   onEditMatch,
   onDeleteMatch,
+  mask: boolean,
   showTournament = false,
 }: MatchHistoryViewProps) {
+  const { user } = useUser();
+
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editDate, setEditDate] = useState<string>("");
   const [editScore, setEditScore] = useState<string>("");
@@ -59,7 +64,7 @@ export function MatchHistoryView({
     [displayMatches]
   );
 
-    const playersLine = (m: Match) => `${getSideName(m, 1)} — ${getSideName(m, 2)}`;
+  const playersLine = (m: Match) => `${getSideName(m, 1, user?.role !== "site_admin")} — ${getSideName(m, 2, user?.role !== "site_admin")}`;
 
   // применяем фильтры
   const filteredMatches = useMemo(() => {
@@ -101,11 +106,11 @@ export function MatchHistoryView({
 
 
 
-  const getSideName = (m: Match, side: 1 | 2) => {
+  const getSideName = (m: Match, side: 1 | 2, mask: boolean) => {
     if (m.type === "double") {
-      return side === 1 ? m.team1?.name ?? "??" : m.team2?.name ?? "??";
+      return side === 1 ? m.team1?.displayName(mask) ?? "??" : m.team2?.displayName(mask) ?? "??";
     }
-    return side === 1 ? m.player1?.name ?? "??" : m.player2?.name ?? "??";
+    return side === 1 ? m.player1?.displayName(mask) ?? "??" : m.player2?.displayName(mask) ?? "??";
   };
 
 
@@ -255,7 +260,7 @@ export function MatchHistoryView({
                         }
                         title="Сторона 1"
                       >
-                        {getSideName(m, 1)}
+                        {getSideName(m, 1, user?.role !== "site_admin")}
                       </span>
                       <span className="vs">—</span>
                       <span
@@ -268,7 +273,7 @@ export function MatchHistoryView({
                         }
                         title="Сторона 2"
                       >
-                        {getSideName(m, 2)}
+                        {getSideName(m, 2, user?.role !== "site_admin")}
                       </span>
                     </div>
                   </td>

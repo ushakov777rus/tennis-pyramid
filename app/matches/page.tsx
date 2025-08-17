@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useUser } from "@/app/components/UserContext";
 
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { Match } from "@/app/models/Match";
@@ -12,6 +13,7 @@ import "./page.css";
 import "@/app/components/MatchHistory.css";
 
 export default function MatchListView() {
+  const { user } = useUser();
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -65,6 +67,7 @@ export default function MatchListView() {
           showTournament={true}
           onEditMatch={handleEditMatchSave}
           onDeleteMatch={handleDeleteMatch}
+          mask={user?.role !== "site_admin"}
         />
       </div>
     </div>

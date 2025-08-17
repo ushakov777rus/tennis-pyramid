@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useUser } from "@/app/components/UserContext";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
 import "./PyramidView.css";    // чипы/бейджи/карточки
@@ -68,6 +69,7 @@ function getMatchScore(aId: number, bId: number, matches: Match[]): string | nul
 }
 
 export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobinViewProps) {
+  const { user } = useUser();
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
@@ -78,7 +80,7 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
       participants
         .filter(isValidParticipant)
         .slice()
-        .sort((a, b) => a.displayName.localeCompare(b.displayName, "ru")),
+        .sort((a, b) => a.displayName(user?.role !== "site_admin").localeCompare(b.displayName(user?.role !== "site_admin"), "ru")),
     [participants]
   );
 

@@ -1,4 +1,5 @@
 import { Match } from "./Match";
+import { maskFullName } from "../utils/maskName";
 
 export class Player {
   id: number;
@@ -14,6 +15,12 @@ export class Player {
     this.sex = sex;
     this.ntrp = ntrp;
   }
+
+  displayName(mask: boolean): string {
+    if (this.name) return mask ? maskFullName(this.name) : this.name;
+    return "Без имени";
+  }
+  
 
   // ⬇️ агрегатор по игрокам
   static getPlayerStats(matches: Match[]): Record<number, { matches: number; wins: number }> {

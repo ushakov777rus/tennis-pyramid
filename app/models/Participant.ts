@@ -3,6 +3,8 @@
 import { Player } from "./Player";
 import { Team } from "./Team";
 
+import { maskFullName, maskTeamName } from "../utils/maskName";
+
 /** Базовый класс — то, что реально хранится в БД */
 export class ParticipantBase {
   id: number;
@@ -34,9 +36,9 @@ export class ParticipantBase {
 
 /** Класс с методами */
 export class Participant extends ParticipantBase {
-  get displayName(): string {
-    if (this.player) return this.player.name;
-    if (this.team) return this.team.name;
+  displayName(mask: boolean): string {
+    if (this.player) return mask ? maskFullName(this.player.name) : this.player.name;
+    if (this.team) return mask ? maskTeamName(this.team.name) : this.team.name;
     return "Без имени";
   }
 
@@ -50,8 +52,8 @@ export class Participant extends ParticipantBase {
     return this.player?.ntrp;
   }
 
-  get splitName(): string[] {
-    return this.displayName.split(" ");
+  splitName(mask: boolean): string[] {
+    return this.displayName(mask).split(" ");
   }
 }
 

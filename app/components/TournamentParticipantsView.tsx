@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useUser } from "@/app/components/UserContext";
 import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
 import { Participant } from "@/app/models/Participant";
@@ -27,6 +28,7 @@ export function TournamentParticipantsView({
   onAddTeamToTournament,
   onRemoveParticipantFromTournament,
 }: TournamentParticipantsViewProps) {
+  const { user } = useUser();
   // ===== фильтры по колонкам (первая строка tbody) =====
   const [leftFilter, setLeftFilter] = useState("");   // фильтр для свободных (игроки/пары)
   const [rightFilter, setRightFilter] = useState(""); // фильтр для участников турнира
@@ -51,7 +53,7 @@ export function TournamentParticipantsView({
 
   // фильтрация справа
   const filteredParticipants = useMemo(
-    () => (rf ? tournamentParticipants.filter(p => p.displayName.toLowerCase().includes(rf)) : tournamentParticipants),
+    () => (rf ? tournamentParticipants.filter(p => p.displayName(user?.role !== "site_admin").toLowerCase().includes(rf)) : tournamentParticipants),
     [tournamentParticipants, rf]
   );
 
@@ -127,7 +129,7 @@ export function TournamentParticipantsView({
                 </td>
 
                 {/* Уже в турнире: чип + удалить */}
-                <td>{part ? <span className="chip">{part.displayName}</span> : ""}</td>
+                <td>{part ? <span className="chip">{part.displayName(user?.role !== "site_admin")}</span> : ""}</td>
                 <td className="score-col">
                   {part && (
                     <div className="row-actions always-visible">

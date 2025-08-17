@@ -210,7 +210,7 @@ export function PyramidView({
     onSelect(newSelection);
   };
 
-const renderPlayerCard = (p: Participant, index: number) => {
+const renderPlayerCard = (p: Participant, index: number, mask: boolean) => {
     const id = p.player?.id ?? p.team?.id;
     const statusClass = getPlayerClass(p);
 
@@ -269,7 +269,7 @@ const renderPlayerCard = (p: Participant, index: number) => {
             {/* 👇 добавили класс неактивности к блоку имени */}
             <div className={"player-name"}>
               {(() => {
-                const lines = p.splitName ?? [];
+                const lines = p.splitName(user?.role !== "site_admin") ?? [];
                 const status = lastMatch && id ? getPlayerStatusIcon(id, lastMatch) : null;
 
                 return lines.map((line: string, i: number) => (
@@ -331,7 +331,7 @@ const renderPlayerCard = (p: Participant, index: number) => {
                 className="card pyramid-row"
                 data-level={`Уровень ${levelKey}`}
               >
-                {byLevel[levelKey].map((p, i) => renderPlayerCard(p, i))}
+                {byLevel[levelKey].map((p, i) => renderPlayerCard(p, i, user?.role !== "site_admin"))}
                 {provided.placeholder}
               </div>
             )}
@@ -346,7 +346,7 @@ const renderPlayerCard = (p: Participant, index: number) => {
               className="card pyramid-row bench-row"
               data-level="Скамейка"
             >
-              {byLevel["999"].map((p, i) => renderPlayerCard(p, i))}
+              {byLevel["999"].map((p, i) => renderPlayerCard(p, i, user?.role !== "site_admin"))}
               {provided.placeholder}
             </div>
           )}

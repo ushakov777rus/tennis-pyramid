@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useUser } from "@/app/components/UserContext";
 import { PlayersRepository } from "@/app/repositories/PlayersRepository";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
 import { NavigationBar } from "@/app/components/NavigationBar";
+import { maskFullName } from "../utils/maskName";
 
 import {
   SaveIconButton,
@@ -20,6 +22,7 @@ import "@/app/components/MatchHistory.css";
 import { AdminOnly } from "../components/RoleGuard";
 
 export default function PlayerListView() {
+  const { user } = useUser();
   const [players, setPlayers] = useState<Player[]>([]);
   const [stats, setStats] = useState<Record<number, { matches: number; wins: number }>>({});
   const [newPlayer, setNewPlayer] = useState<Partial<Player>>({ name: "", ntrp: "" });
@@ -155,6 +158,7 @@ export default function PlayerListView() {
 
             {filteredPlayers.map((p) => {
               const isEditing = editId === p.id;
+              
               return (
                 <tr key={p.id} className={isEditing ? "editing" : ""}>
                   <td>
@@ -167,7 +171,7 @@ export default function PlayerListView() {
                         onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                       />
                     ) : (
-                      <span className="chip">{p.name}</span>
+                      <span className="chip">{user?.role !== "site_admin" ? maskFullName(p.name) : p.name}</span>
                     )}
                     <div className="show-sm-only" style={{ marginTop: 6 }}>
                       <span className="badge ntrp-badge">NTRP: {p.ntrp || "—"}</span>
