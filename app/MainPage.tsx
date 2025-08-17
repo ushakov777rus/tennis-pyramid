@@ -119,7 +119,7 @@ export default function HomePage() {
     <div className="footer-section left">
       <h3>Для связи</h3>
       <p>
-        <a href="mailto:honeycup@yandex.ru">honeycup@yandex.ru</a>
+        <a href="mailto:honey.cup@yandex.ru">honey.cup@yandex.ru</a>
       </p>
     </div>
 
