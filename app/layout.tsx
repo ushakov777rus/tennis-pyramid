@@ -6,6 +6,8 @@ import { YandexMetrikaHit } from "./ym"; // добавим ниже
 const YM_ID = process.env.NEXT_PUBLIC_YM_ID;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+
+  console.log("process.env.NODE_ENV",process.env.NODE_ENV);
   return (
     <html lang="ru">
       <body>
