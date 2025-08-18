@@ -20,11 +20,6 @@ function isValidParticipant(p: Participant | null | undefined): p is Participant
   return !!p && (!!p.player || !!p.team);
 }
 
-/** ID участника для ключей матчей (игрок.id или команда.id) */
-function getUnitId(p: Participant): number {
-  return p.player?.id ?? p.team!.id;
-}
-
 /** Строим расписание (circle method) по целым Participant */
 function buildRoundRobin(units: Participant[]): Participant[][][] {
   const list: (Participant | null)[] = units.map((u) => u);
@@ -159,8 +154,8 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
               <tbody>
                 {pairs.length > 0 ? (
                   pairs.map(([pa, pb], i) => {
-                    const aId = getUnitId(pa);
-                    const bId = getUnitId(pb);
+                    const aId = pa.getId;
+                    const bId = pb.getId;
                     const score = getMatchScore(aId, bId, matches);
                     const k = pairKey(aId, bId);
                     const isEditing = editingKey === k;

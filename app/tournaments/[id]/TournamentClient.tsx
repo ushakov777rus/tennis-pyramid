@@ -27,6 +27,7 @@ import { calcTopPlayers } from "@/app/utils/calcTopPlayers";
 import "./Page.css";
 
 import { useTournament } from "./TournamentProvider";
+import SingleEliminationView from "@/app/components/SingleEliminationView";
 
 type Tab = "scheme" | "matches" | "participants" | "rating";
 
@@ -375,6 +376,16 @@ const FormatView = React.memo(function FormatView({
   if (tournament.isRoundRobin()) {
     return (
       <RoundRobinView
+        participants={participants}
+        matches={matches}
+        onSaveScore={onSaveScoreRoundRobin}
+      />
+    );
+  }
+
+  if (tournament.isSingleElimination()) {
+    return (
+      <SingleEliminationView
         participants={participants}
         matches={matches}
         onSaveScore={onSaveScoreRoundRobin}
