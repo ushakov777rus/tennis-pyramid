@@ -46,19 +46,9 @@
   color: #fff;
 }
 
-/* Хедер 
-.page-menu {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
-  max-width: 900px;
-  margin: 0 auto;
-}*/
-
 .page-menu {
   display: grid;
-  grid-template-columns: 20% 60% 20%;
+  grid-template-columns: 30% 40% 30%;
   align-items: center; /* вертикальное выравнивание по центру */
   max-width: 900px;
   align-items: center;
