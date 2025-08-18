@@ -27,7 +27,10 @@ import { calcTopPlayers } from "@/app/utils/calcTopPlayers";
 import "./Page.css";
 
 import { useTournament } from "./TournamentProvider";
-import SingleEliminationView from "@/app/components/SingleEliminationView";
+import { SingleEliminationView } from "@/app/components/SingleEliminationView";
+import { DoubleEliminationView } from "@/app/components/DoubleEliminationView";
+import { GroupPlusPlayoffView } from "@/app/components/GroupPlusPlayoffView";
+import { SwissView } from "@/app/components/SwissView";
 
 type Tab = "scheme" | "matches" | "participants" | "rating";
 
@@ -389,6 +392,37 @@ const FormatView = React.memo(function FormatView({
         participants={participants}
         matches={matches}
         onSaveScore={onSaveScoreRoundRobin}
+      />
+    );
+  }
+
+  if (tournament.isDoubleElimination()) {
+    return (
+      <DoubleEliminationView
+        participants={participants}
+        matches={matches}
+        onSaveScore={onSaveScoreRoundRobin}
+      />
+    );
+  }
+
+  if (tournament.isGroupsPlayoff()) {
+    return (
+      <GroupPlusPlayoffView
+        participants={participants}
+        matches={matches}
+        onSaveScore={onSaveScoreRoundRobin}
+      />
+    );
+  }
+
+  if (tournament.isSwiss()) {
+    return (
+      <SwissView
+        participants={participants}
+        matches={matches}
+        onSaveScore={onSaveScoreRoundRobin}
+        roundsCount={5}
       />
     );
   }
