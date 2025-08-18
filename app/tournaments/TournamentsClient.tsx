@@ -31,47 +31,42 @@ export function TournamentsClient() {
   const router = useRouter();
   const { tournaments, loading, error, createTournament, deleteTournament, stats } = useTournaments();
 
-  // --- создание турнира
-  const [newName, setNewName] = useState("");
-  const [newFormat, setNewFormat] = useState<TournamentFormat>(TournamentFormat.Pyramid);
-  const [newType, setNewType] = useState<TournamentType>(TournamentType.Single);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-
   // --- фильтры
   const [q, setQ] = useState<string>("");
-
   type FilterType = "" | TournamentType;
   type FilterFormat = "" | TournamentFormat;
   type FilterStatus = "" | TournamentStatus;
-
   const [fltType, setFltType] = useState<FilterType>("");
   const [fltFormat, setFltFormat] = useState<FilterFormat>("");
   const [fltStatus, setFltStatus] = useState<FilterStatus>("");
 
   const [modalOpen, setModalOpen] = useState(false);
 
-  const onCreate = async () => {
+  // 🎯 ПРИНИМАЕМ payload из модалки
+  const onCreate = async (payload: {
+    name: string;
+    type: TournamentType;
+    format: TournamentFormat;
+    startDate: string; // YYYY-MM-DD
+    endDate: string;   // YYYY-MM-DD
+  }) => {
     if (!user?.id) {
       alert("Вы должны быть авторизованы для создания турнира");
       return;
     }
-    await createTournament({
-      name: newName,
-      format: newFormat,
-      tournament_type: newType,
-      start_date: startDate || null,
-      end_date: endDate || null,
-      status: TournamentStatus.Draft,
-      creator_id: user.id, // вот здесь передаём ID залогиненного пользователя
-    });
-    setNewName("");
-    setNewFormat(TournamentFormat.Pyramid);
-    setStartDate("");
-    setEndDate("");
-    setNewType(TournamentType.Single);
-  };
 
+    await createTournament({
+      name: payload.name.trim(),
+      format: payload.format,
+      tournament_type: payload.type,
+      start_date: payload.startDate || null,
+      end_date: payload.endDate || null,
+      status: TournamentStatus.Draft,
+      creator_id: user.id,
+    });
+
+    setModalOpen(false);
+  };
 
   const onDelete = async (id: number) => {
     if (!confirm("Удалить турнир и все его матчи?")) return;
@@ -85,7 +80,6 @@ export function TournamentsClient() {
     setFltStatus("");
   };
 
-  // --- применяем фильтры
   const filtered = useMemo(() => {
     const qNorm = q.trim().toLowerCase();
     return tournaments.filter((t) => {
@@ -150,7 +144,7 @@ export function TournamentsClient() {
             ))}
           </select>
 
-          <CancelIconButton onClick={resetFilters} title="Сброс"/>
+          <CancelIconButton onClick={resetFilters} title="Сброс" />
         </div>
 
         {/* Список турниров */}
@@ -158,7 +152,7 @@ export function TournamentsClient() {
         {error && <div className="card card-error">Ошибка: {error}</div>}
 
         <div className="tournaments-grid">
-          {/* Карточка создания турниров, могут создавать только админы */}
+          {/* Карточка создания турниров — только для админов */}
           <AdminOnly>
             <TournamentCard
               key={0}
@@ -168,6 +162,7 @@ export function TournamentsClient() {
               onClick={() => setModalOpen(true)}
             />
           </AdminOnly>
+
           {filtered.map((t: Tournament) => (
             <TournamentCard
               key={t.id}
@@ -182,9 +177,8 @@ export function TournamentsClient() {
         <AddTournamentModal
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
-          onCreate={onCreate}
+          onCreate={onCreate}  // ✅ теперь передаём правильный handler
         />
-    
       </div>
     </div>
   );

@@ -2,34 +2,19 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-
-import { Tournament, TournamentStatus, TournamentFormat, TournamentType } from "@/app/models/Tournament";
-
+import { Tournament, TournamentStatus, TournamentCreateInput } from "@/app/models/Tournament";
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 import { useUser } from "@/app/components/UserContext";
 
-
 type TournamentStats = { participants: number; matches: number };
-
-// 👇 Единый тип для createTournament
-type NewTournamentPayload = {
-  name: string;
-  format: TournamentFormat;
-  tournament_type: TournamentType;
-  start_date: string | null;
-  end_date: string | null;
-  status: TournamentStatus; // ← опционально
-  creator_id: number;
-};
 
 type TournamentsContextValue = {
   tournaments: Tournament[];
   loading: boolean;
   error: string | null;
   stats: Record<number, TournamentStats>;
-
   refresh: () => Promise<void>;
-  createTournament: (p: NewTournamentPayload) => Promise<void>; // ← используем единый тип
+  createTournament: (p: TournamentCreateInput) => Promise<void>;
   deleteTournament: (id: number) => Promise<void>;
 };
 
@@ -52,51 +37,62 @@ export function TournamentsProvider({ children }: { children: React.ReactNode })
     }
   }, []);
 
-  const refresh = useCallback(async (uid?: number) => {
+  // единая точка обновления списка турниров
+  const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      if (!uid) { setTournaments([]); setStats({}); return; }
+      const uid = user?.id;
+      if (!uid) {
+        setTournaments([]);
+        setStats({});
+        return;
+      }
       const list = await TournamentsRepository.loadAccessible(uid);
       setTournaments(list);
-      void loadStats(list.map(t => t.id));
+      void loadStats(list.map((t) => t.id));
     } catch (e: any) {
       console.error(e);
       setError(e?.message ?? "Не удалось загрузить турниры");
     } finally {
       setLoading(false);
     }
-  }, [loadStats]);
+  }, [loadStats, user?.id]);
 
+  // загружаем/очищаем при смене пользователя
   useEffect(() => {
-    void refresh(user?.id);    // 👈 передаём актуальный id
-  }, [refresh, user?.id]);
+    void refresh();
+  }, [refresh]);
 
-  useEffect(() => { void refresh(); }, [refresh]);
-
-  // 👇 status опционален. Дефолт "draft" проставляем здесь.
-  const createTournament = useCallback(async (p: NewTournamentPayload) => {
-    if (!p.name.trim()) return;
+  const createTournament = useCallback(async (p: TournamentCreateInput) => {
+    const name = p.name.trim();
+    if (!name) return;
     await TournamentsRepository.create({
-      name: p.name.trim(),
+      name,
       format: p.format,
       tournament_type: p.tournament_type,
       start_date: p.start_date,
       end_date: p.end_date,
-      status: p.status ?? TournamentStatus.Draft, // ← дефолт
+      status: p.status ?? TournamentStatus.Draft,  // дефолт
       creator_id: p.creator_id,
     });
-    await refresh();
+    await refresh(); // перезагрузим список с актуальным user?.id
   }, [refresh]);
 
   const deleteTournament = useCallback(async (id: number) => {
     await TournamentsRepository.delete(id);
-    setTournaments(prev => prev.filter(t => t.id !== id));
-    setStats(prev => { const { [id]: _, ...rest } = prev; return rest; });
+    setTournaments((prev) => prev.filter((t) => t.id !== id));
+    setStats((prev) => { const { [id]: _omit, ...rest } = prev; return rest; });
   }, []);
 
   const value = useMemo(() => ({
-    tournaments, loading, error, stats, refresh, createTournament, deleteTournament
+    tournaments,
+    loading,
+    error,
+    stats,
+    refresh,
+    createTournament,
+    deleteTournament,
   }), [tournaments, loading, error, stats, refresh, createTournament, deleteTournament]);
 
   return <TournamentsContext.Provider value={value}>{children}</TournamentsContext.Provider>;

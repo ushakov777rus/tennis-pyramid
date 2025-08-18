@@ -71,6 +71,29 @@ const TYPE_LABELS_RU: Record<TournamentType, string> = {
   [TournamentType.Double]: "Парный",
 };
 
+/** Данные для создания турнира (без id) */
+export type TournamentCreateInput = {
+  name: string;
+  format: TournamentFormat;
+  tournament_type: TournamentType;
+  start_date: string | null;
+  end_date: string | null;
+  /** необязателен: по умолчанию Draft, если не передан */
+  status?: TournamentStatus;
+  /** кто создал (в БД может быть creator_id) */
+  creator_id: number;
+};
+
+/** Данные для частичного обновления турнира */
+export type TournamentUpdateInput = Partial<{
+  name: string;
+  format: TournamentFormat;
+  tournament_type: TournamentType;
+  start_date: string | null;
+  end_date: string | null;
+  status: TournamentStatus;
+}>;
+
 export class Tournament {
   id: number;
   name: string;
