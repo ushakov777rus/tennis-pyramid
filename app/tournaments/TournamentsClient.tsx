@@ -151,11 +151,7 @@ export function TournamentsClient() {
           </select>
 
           <CancelIconButton onClick={resetFilters} title="Сброс"/>
-
         </div>
-
-        {/* Создание турнира - любой зарегистрированный игрок может создать турнир */}
-        
 
         {/* Список турниров */}
         {loading && <div className="card">Загрузка…</div>}
