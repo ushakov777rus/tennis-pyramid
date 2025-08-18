@@ -6,6 +6,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { Tournament, TournamentStatus, TournamentFormat, TournamentType } from "@/app/models/Tournament";
 
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
+import { useUser } from "@/app/components/UserContext";
 
 
 type TournamentStats = { participants: number; matches: number };
@@ -35,6 +36,7 @@ type TournamentsContextValue = {
 const TournamentsContext = createContext<TournamentsContextValue | undefined>(undefined);
 
 export function TournamentsProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useUser();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,11 +52,12 @@ export function TournamentsProvider({ children }: { children: React.ReactNode })
     }
   }, []);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (uid?: number) => {
     setLoading(true);
     setError(null);
     try {
-      const list = await TournamentsRepository.loadAll();
+      if (!uid) { setTournaments([]); setStats({}); return; }
+      const list = await TournamentsRepository.loadAccessible(uid);
       setTournaments(list);
       void loadStats(list.map(t => t.id));
     } catch (e: any) {
@@ -64,6 +67,10 @@ export function TournamentsProvider({ children }: { children: React.ReactNode })
       setLoading(false);
     }
   }, [loadStats]);
+
+  useEffect(() => {
+    void refresh(user?.id);    // 👈 передаём актуальный id
+  }, [refresh, user?.id]);
 
   useEffect(() => { void refresh(); }, [refresh]);
 

@@ -162,7 +162,8 @@ export function TournamentsClient() {
         {error && <div className="card card-error">Ошибка: {error}</div>}
 
         <div className="tournaments-grid">
-          <LoggedIn>
+          {/* Карточка создания турниров, могут создавать только админы */}
+          <AdminOnly>
             <TournamentCard
               key={0}
               tournament={null}
@@ -170,7 +171,7 @@ export function TournamentsClient() {
               matchesCount={0}
               onClick={() => setModalOpen(true)}
             />
-          </LoggedIn>
+          </AdminOnly>
           {filtered.map((t: Tournament) => (
             <TournamentCard
               key={t.id}
