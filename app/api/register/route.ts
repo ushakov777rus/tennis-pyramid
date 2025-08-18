@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { fullName, nickname, password } = await req.json();
+    const { fullName, phone, ntrp, nickname, password, role } = await req.json();
 
     // Валидация
     if (!fullName || typeof fullName !== "string" || !fullName.trim()) {
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       .from("users")
       .insert({
         name: nickname?.trim() || fullName.trim(), // если нет никнейма — используем ФИО
-        role: "player",
+        role: role,
         password: password, // пароль в открытом виде (лучше захешировать)
       })
       .select("id, name, role")
@@ -52,23 +52,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Не удалось создать пользователя" }, { status: 500 });
     }
 
-    // Создаём игрока, привязанного к users.id
-    const { data: newPlayer, error: perror } = await supabase
-      .from("players")
-      .insert({
-        name: fullName.trim(),
-        user_id: newUser.id, // вот здесь теперь вставляем id пользователя
-      })
-      .select("id, name")
-      .single();
+    if (role === "player") {
+      // Создаём игрока, привязанного к users.id
+      const { data: newPlayer, error: perror } = await supabase
+        .from("players")
+        .insert({
+          name: fullName.trim(),
+          user_id: newUser.id, // вот здесь теперь вставляем id пользователя
+        })
+        .select("id, name")
+        .single();
 
-    if (perror || !newPlayer) {
-      return NextResponse.json({ error: "Не удалось создать игрока" }, { status: 500 });
+      if (perror || !newPlayer) {
+        return NextResponse.json({ error: "Не удалось создать игрока" }, { status: 500 });
+      }
     }
 
     // Возвращаем объект пользователя в формате, который ожидает UserContext
     return NextResponse.json(
-      { user: { id: newUser.id, name: newUser.name, role: "player" } },
+      { user: { id: newUser.id, name: newUser.name, role: role } },
       { status: 201 }
     );
   } catch {

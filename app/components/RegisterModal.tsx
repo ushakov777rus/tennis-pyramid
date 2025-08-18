@@ -2,23 +2,25 @@
 
 import { useState } from "react";
 import { useUser } from "@/app/components/UserContext";
+import { CustomSelect } from "@/app/components/CustomSelect";
 import "./RegisterModal.css";
 
 type RegisterModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSwitchToLogin?: () => void;   // ✅ есть в типе
-  onRegistered?: () => void;      // ✅ добавил, раз ты его вызываешь
+  onSwitchToLogin?: () => void;
+  onRegistered?: () => void;
 };
 
 export function RegisterModal({
   isOpen,
   onClose,
-  onSwitchToLogin,              // ✅ деструктурируем, чтобы использовать ниже
+  onSwitchToLogin,
   onRegistered,
 }: RegisterModalProps) {
   const { setUser } = useUser();
 
+  const [role, setRole] = useState<"player" | "tournament_admin">("player");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [ntrp, setNTRP] = useState("");
@@ -36,6 +38,8 @@ export function RegisterModal({
     if (!fullName.trim()) return setError("Укажите имя и фамилию");
     if (!password) return setError("Введите пароль");
     if (password !== password2) return setError("Пароли не совпадают");
+    // NTRP требуем только у игрока
+    if (role === "player" && !ntrp.trim()) return setError("Укажите NTRP или 0.0, если не знаете");
 
     try {
       setPending(true);
@@ -44,10 +48,11 @@ export function RegisterModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fullName: fullName.trim(),
-          phone: phone,
-          ntrp: ntrp,
+          phone,
+          ntrp: role === "player" ? ntrp : null, // у организатора не отправляем
           nickname: nickname.trim() || null,
           password,
+          role,
         }),
       });
 
@@ -69,8 +74,22 @@ export function RegisterModal({
 
   return (
     <div className="modal-overlay" onClick={!pending ? onClose : undefined}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">Регистрация игрока</h2>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <h2 className="modal-title">Регистрация пользователя</h2>
+
+        {/* выбор роли */}
+        <CustomSelect
+          className="input"
+          options={[
+            { value: "player", label: "Игрок" },
+            { value: "tournament_admin", label: "Организатор" },
+          ]}
+          value={role}
+          onChange={(val) => setRole(val as "player" | "tournament_admin")}
+          placeholder="Выберите роль"
+          disabled={pending}
+          showSearch={false}
+        />
 
         <input
           type="text"
@@ -86,13 +105,18 @@ export function RegisterModal({
           onChange={(e) => setPhone(e.target.value)}
           className="input"
         />
-        <input
-          type="text"
-          placeholder="NTRP"
-          value={ntrp}
-          onChange={(e) => setNTRP(e.target.value)}
-          className="input"
-        />
+
+        {/* NTRP показываем только для роли 'Игрок' */}
+        {role === "player" && (
+          <input
+            type="text"
+            placeholder="NTRP (например 3.5)"
+            value={ntrp}
+            onChange={(e) => setNTRP(e.target.value)}
+            className="input"
+          />
+        )}
+
         <input
           type="text"
           placeholder="Никнейм (для входа)"
@@ -115,7 +139,7 @@ export function RegisterModal({
           className="input"
         />
 
-        {error && <p style={{ color: "tomato", marginTop: 6 }}>{error}</p>}
+        {error && <p className="form-error">{error}</p>}
 
         <button onClick={handleRegister} className="modal-submit-btn" disabled={pending}>
           {pending ? "Регистрируем…" : "Зарегистрироваться"}
@@ -131,7 +155,7 @@ export function RegisterModal({
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              if (!pending) onSwitchToLogin?.();   {/* ✅ теперь доступен */}
+              if (!pending) onSwitchToLogin?.();
             }}
           >
             Войдите

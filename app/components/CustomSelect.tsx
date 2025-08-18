@@ -15,6 +15,7 @@ type CustomSelectProps = {
   disabled?: boolean;
   className?: string;
   maxDropdownHeight?: number; // px
+  showSearch?: boolean;       // 👈 NEW: показывать поле поиска (по умолчанию true)
 };
 
 export function CustomSelect({
@@ -25,7 +26,9 @@ export function CustomSelect({
   disabled = false,
   className = "",
   maxDropdownHeight = 240,
+  showSearch = true,          // 👈 default = true
 }: CustomSelectProps) {
+
   const comboboxRef = useRef<HTMLDivElement | null>(null);
   const listboxRef = useRef<HTMLDivElement | null>(null);
 
@@ -36,13 +39,13 @@ export function CustomSelect({
     return copy;
   }, [options]);
 
-  // 1) Фильтрация
+// 1) Фильтрация
   const [query, setQuery] = useState("");
   const normalizedQuery = query.trim().toLowerCase();
   const filteredOptions = useMemo(() => {
-    if (!normalizedQuery) return sortedOptions;
+    if (!showSearch || !normalizedQuery) return sortedOptions; // 👈 если поиск скрыт — не фильтруем
     return sortedOptions.filter((o) => o.label.toLowerCase().includes(normalizedQuery));
-  }, [sortedOptions, normalizedQuery]);
+  }, [sortedOptions, normalizedQuery, showSearch]);
 
   const [open, setOpen] = useState(false);
 
@@ -58,6 +61,11 @@ export function CustomSelect({
     );
     return idx >= 0 ? idx : filteredOptions.findIndex((o) => !o.disabled);
   });
+
+  // При открытии — авто-сброс запроса (только если поиск включён)
+  useEffect(() => {
+    if (open && showSearch) setQuery("");
+  }, [open, showSearch]);
 
   // При смене value/фильтра — аккуратно сдвигаем активный
   useEffect(() => {
@@ -255,37 +263,40 @@ export function CustomSelect({
         <span className="cs-caret" aria-hidden>▾</span>
       </div>
 
-      {open && (
-        <div
-          ref={listboxRef}
-          id={listboxId}
-          role="listbox"
-          className="card cs-dropdown"
-          style={{ maxHeight: `${maxDropdownHeight}px` }}
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          {/* Поле поиска */}
-          <div className="cs-search-wrap">
-            <input
-              data-role="cs-search"
-              className="input cs-search"
-              type="text"
-              autoFocus
-              placeholder="Поиск..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                // Enter в поиске — выбрать текущий activeIndex
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  if (activeIndex != null && activeIndex >= 0) commitSelection(activeIndex);
-                } else if (e.key === "Escape") {
-                  e.preventDefault();
-                  setOpenSafe(false);
-                }
-              }}
-            />
-          </div>
+  {open && (
+    <div
+      ref={listboxRef}
+      id={listboxId}
+      role="listbox"
+      className="card cs-dropdown"
+      style={{ maxHeight: `${maxDropdownHeight}px` }}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
+      {/* Поле поиска — только если showSearch */}
+      {showSearch && (
+        <div className="cs-search-wrap">
+          <input
+            data-role="cs-search"
+            className="input cs-search"
+            type="text"
+            autoFocus
+            placeholder="Поиск..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (activeIndex != null && activeIndex >= 0) commitSelection(activeIndex);
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                setOpenSafe(false);
+              }
+            }}
+          />
+        </div>
+      )}
+
+
 
           {/* Список опций */}
           {filteredOptions.length === 0 ? (
