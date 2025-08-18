@@ -43,11 +43,6 @@ export function TournamentsProvider({ children }: { children: React.ReactNode })
     setError(null);
     try {
       const uid = user?.id;
-      if (!uid) {
-        setTournaments([]);
-        setStats({});
-        return;
-      }
       const list = await TournamentsRepository.loadAccessible(uid);
       setTournaments(list);
       void loadStats(list.map((t) => t.id));

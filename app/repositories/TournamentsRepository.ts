@@ -35,88 +35,162 @@ export class TournamentsRepository {
     );
   }
 
-  /** Вернуть турниры, доступные пользователю согласно его роли */
-  static async loadAccessible(userId: number | undefined): Promise<Tournament[]> {
-    console.log("userId", userId);
-    if (userId === undefined) return[];
-    
-    const user = await UsersRepository.findById(userId);
-    if (!user) return [];
+/** Вернуть турниры, доступные пользователю согласно его роли */
+static async loadAccessible(userId: number | undefined): Promise<Tournament[]> {
+  console.log("userId", userId);
 
-    // Приводим к строковому виду, чтобы не зависеть от enum/union
-    const role = String((user as any).role);
-    console.log("role", role);
+  // --- 0. Гости: видят только публичные турниры
+  if (userId === undefined) {
+    const { data, error } = await supabase
+      .from("tournaments")
+      .select("id, name, format, status, tournament_type, start_date, end_date, is_public")
+      .eq("is_public", true)
+      .order("start_date", { ascending: true });
 
-    // 1) Сайт-админ: все турниры
-    if (role === "site_admin") {
-      const { data, error } = await supabase
-        .from("tournaments")
-        .select("id, name, format, status, tournament_type, start_date, end_date")
-        .order("start_date", { ascending: true });
-
-      if (error) {
-        console.error("Ошибка загрузки всех турниров:", error);
-        return [];
-      }
-
-      return (data ?? []).map(
-        (row: any) =>
-          new Tournament(
-            Number(row.id),
-            row.name,
-            row.format,
-            row.status,
-            row.tournament_type,
-            row.start_date,
-            row.end_date
-          )
-      );
+    if (error) {
+      console.error("Ошибка загрузки публичных турниров (гость):", error);
+      return [];
     }
 
-    // 2) Админ турниров: только созданные им
-    if (role === "tournament_admin") {
-      const { data, error } = await supabase
-        .from("tournaments")
-        .select("id, name, format, status, tournament_type, start_date, end_date")
-        .eq("creator_id", userId)
-        .order("start_date", { ascending: true });
+    return (data ?? []).map(
+      (row: any) =>
+        new Tournament(
+          Number(row.id),
+          row.name,
+          row.format,
+          row.status,
+          row.tournament_type,
+          row.start_date,
+          row.end_date
+        )
+    );
+  }
 
-      if (error) {
-        console.error("Ошибка загрузки турниров организатора:", error);
-        return [];
-      }
+  // --- 1. Авторизованные пользователи
+  const user = await UsersRepository.findById(userId);
+  if (!user) return [];
 
-      return (data ?? []).map(
-        (row: any) =>
-          new Tournament(
-            Number(row.id),
-            row.name,
-            row.format,
-            row.status,
-            row.tournament_type,
-            row.start_date,
-            row.end_date
-          )
-      );
+  const role = String((user as any).role);
+  console.log("role", role);
+
+  // Сайт-админ: все турниры
+  if (role === "site_admin") {
+    const { data, error } = await supabase
+      .from("tournaments")
+      .select("id, name, format, status, tournament_type, start_date, end_date, is_public")
+      .order("start_date", { ascending: true });
+
+    if (error) {
+      console.error("Ошибка загрузки всех турниров:", error);
+      return [];
     }
 
-    // 3) Игрок: турниры, где он участвует (лично или в составе команды)
-    if (role === "player") {
-      // находим player по userId
-      const player = await PlayersRepository.findByUserId(userId);
-      if (!player) return [];
+    return (data ?? []).map(
+      (row: any) =>
+        new Tournament(
+          Number(row.id),
+          row.name,
+          row.format,
+          row.status,
+          row.tournament_type,
+          row.start_date,
+          row.end_date
+        )
+    );
+  }
 
-      const list = await TournamentsRepository.findTournamentsForPlayer(player.id);
-      // гарантируем сортировку по дате по возрастанию
-      return list.sort(
-        (a: any, b: any) =>
-          new Date(a.start_date as any).getTime() - new Date(b.start_date as any).getTime()
-      );
+  // Админ турниров: только свои + публичные
+  if (role === "tournament_admin") {
+    const { data, error } = await supabase
+      .from("tournaments")
+      .select("id, name, format, status, tournament_type, start_date, end_date, is_public")
+      .or(`creator_id.eq.${userId},is_public.eq.true`)
+      .order("start_date", { ascending: true });
+
+    if (error) {
+      console.error("Ошибка загрузки турниров организатора:", error);
+      return [];
     }
 
-    // На всякий случай — если роль неизвестна
+    return (data ?? []).map(
+      (row: any) =>
+        new Tournament(
+          Number(row.id),
+          row.name,
+          row.format,
+          row.status,
+          row.tournament_type,
+          row.start_date,
+          row.end_date
+        )
+    );
+  }
+
+  // Игрок: участвует лично или в команде + публичные
+  if (role === "player") {
+    const player = await PlayersRepository.findByUserId(userId);
+    if (!player) return [];
+
+    const personal = await TournamentsRepository.findTournamentsForPlayer(player.id);
+
+    // плюс добираем публичные
+    const { data, error } = await supabase
+      .from("tournaments")
+      .select("id, name, format, status, tournament_type, start_date, end_date, is_public")
+      .eq("is_public", true);
+
+    if (error) {
+      console.error("Ошибка загрузки публичных турниров:", error);
+    }
+
+    const publicOnes = (data ?? []).map(
+      (row: any) =>
+        new Tournament(
+          Number(row.id),
+          row.name,
+          row.format,
+          row.status,
+          row.tournament_type,
+          row.start_date,
+          row.end_date
+        )
+    );
+
+    // объединяем без дубликатов
+    const all = [...personal, ...publicOnes];
+    const unique = new Map(all.map((t) => [t.id, t]));
+    return Array.from(unique.values()).sort(
+      (a, b) =>
+        new Date(a.start_date as any).getTime() -
+        new Date(b.start_date as any).getTime()
+    );
+  }
+
+  // если роль неизвестна → только публичные
+  const { data, error } = await supabase
+    .from("tournaments")
+    .select("id, name, format, status, tournament_type, start_date, end_date, is_public")
+    .eq("is_public", true)
+    .order("start_date", { ascending: true });
+
+  if (error) {
+    console.error("Ошибка загрузки публичных турниров (неизвестная роль):", error);
     return [];
   }
+
+  return (data ?? []).map(
+    (row: any) =>
+      new Tournament(
+        Number(row.id),
+        row.name,
+        row.format,
+        row.status,
+        row.tournament_type,
+        row.start_date,
+        row.end_date
+      )
+  );
+}
 
   /** Получить турнир по ID */
   static async getTournamentById(id: number): Promise<Tournament | null> {
