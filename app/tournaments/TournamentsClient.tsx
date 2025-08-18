@@ -21,7 +21,7 @@ import { useUser } from "@/app/components/UserContext";
 import { AddTournamentModal } from "../components/AddTournamentModal";
 
 import { useTournaments } from "@/app/tournaments/TournamentsProvider";
-import { Tournament } from "@/app/models/Tournament";
+import { Tournament, TournamentCreateInput } from "@/app/models/Tournament";
 
 import "./page.css";
 import "@/app/MainPage.css";
@@ -43,13 +43,7 @@ export function TournamentsClient() {
   const [modalOpen, setModalOpen] = useState(false);
 
   // 🎯 ПРИНИМАЕМ payload из модалки
-  const onCreate = async (payload: {
-    name: string;
-    type: TournamentType;
-    format: TournamentFormat;
-    startDate: string; // YYYY-MM-DD
-    endDate: string;   // YYYY-MM-DD
-  }) => {
+  const onCreate = async (payload: TournamentCreateInput) => {
     if (!user?.id) {
       alert("Вы должны быть авторизованы для создания турнира");
       return;
@@ -58,11 +52,12 @@ export function TournamentsClient() {
     await createTournament({
       name: payload.name.trim(),
       format: payload.format,
-      tournament_type: payload.type,
-      start_date: payload.startDate || null,
-      end_date: payload.endDate || null,
+      tournament_type: payload.tournament_type,
+      start_date: payload.start_date || null,
+      end_date: payload.end_date || null,
       status: TournamentStatus.Draft,
       creator_id: user.id,
+      is_public: payload.is_public,
     });
 
     setModalOpen(false);

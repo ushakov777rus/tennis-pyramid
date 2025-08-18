@@ -7,7 +7,6 @@ import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
 import { UsersRepository } from "./UsersRepository";
 import { PlayersRepository } from "./PlayersRepository";
-import { User, UserRole } from "../models/Users";
 
 export class TournamentsRepository {
   /** Загрузить все турниры */
@@ -156,6 +155,7 @@ export class TournamentsRepository {
     status: TournamentStatus;
     format: TournamentFormat;
     creator_id: number;
+    is_public:boolean
   }): Promise<void> {
     const { error } = await supabase.from("tournaments").insert([params]);
 

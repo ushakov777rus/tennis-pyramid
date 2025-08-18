@@ -82,6 +82,8 @@ export type TournamentCreateInput = {
   status?: TournamentStatus;
   /** кто создал (в БД может быть creator_id) */
   creator_id: number;
+  /** true - видят абсолютно все, false - только организатор и участники */
+  is_public: boolean;
 };
 
 /** Данные для частичного обновления турнира */
@@ -102,6 +104,7 @@ export class Tournament {
   end_date: string | null;
   status: TournamentStatus;
   tournament_type: TournamentType;
+  is_public: boolean;
 
   constructor(
     id: number,
@@ -110,7 +113,8 @@ export class Tournament {
     status: TournamentStatus,
     tournament_type: TournamentType,
     start_date: string | null,
-    end_date: string | null
+    end_date: string | null,
+    is_public: boolean = false
   ) {
     this.id = id;
     this.name = name;
@@ -119,6 +123,7 @@ export class Tournament {
     this.end_date = end_date;
     this.status = status;
     this.tournament_type = tournament_type;
+    this.is_public = is_public;
   }
 
   // ---------- Транзиции статусов ----------

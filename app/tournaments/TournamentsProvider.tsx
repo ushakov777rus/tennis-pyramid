@@ -75,6 +75,7 @@ export function TournamentsProvider({ children }: { children: React.ReactNode })
       end_date: p.end_date,
       status: p.status ?? TournamentStatus.Draft,  // дефолт
       creator_id: p.creator_id,
+      is_public: p.is_public
     });
     await refresh(); // перезагрузим список с актуальным user?.id
   }, [refresh]);

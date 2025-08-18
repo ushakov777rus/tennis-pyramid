@@ -36,3 +36,10 @@
   color: #000;
   border-color: transparent;
 }
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}

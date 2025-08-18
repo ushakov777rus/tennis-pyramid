@@ -15,10 +15,12 @@
   border-color: rgba(166, 255, 0, 0.4);
   color: #a6ff00;
 }
+/*
 .icon-btn:focus {
   outline: 2px solid rgba(166, 255, 0, 0.6);
   outline-offset: 2px;
 }
+  */
 .icon-btn.danger:hover {
   background: rgba(255, 0, 0, 0.1);
   border-color: rgba(255, 0, 0, 0.3);

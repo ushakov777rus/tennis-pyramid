@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { TournamentCreateInput } from "@/app/models/Tournament";
 import "./AddTournamentModal.css";
 import {
   TournamentType,
@@ -9,22 +10,19 @@ import {
   FORMAT_OPTIONS,
 } from "@/app/models/Tournament";
 
+import { CheckBoxIcon } from "./IconButtons";
+
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (payload: {
-    name: string;
-    type: TournamentType;
-    format: TournamentFormat;
-    startDate: string; // YYYY-MM-DD
-    endDate: string;   // YYYY-MM-DD
-  }) => void;
+  onCreate: (payload: TournamentCreateInput) => void;
 };
 
 export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const titleId = "add-tournament-title";
 
+  const [isPublic, setIsPublic] = useState(false);                      // 👈 новое состояние
   const [name, setName] = useState("");
   const [type, setType] = useState<TournamentType>(TournamentType.Single);
   const [format, setFormat] = useState<TournamentFormat>(TournamentFormat.Pyramid);
@@ -32,32 +30,26 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
   const [endDate, setEndDate] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // Блокируем скролл страницы при открытой модалке
   useEffect(() => {
     if (!isOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
+    return () => { document.body.style.overflow = prev; };
   }, [isOpen]);
 
-  // Закрытие по Esc
   useEffect(() => {
     if (!isOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [isOpen, onClose]);
 
-  // Клик по подложке — закрыть
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) onClose();
   };
 
   const resetForm = () => {
+    setIsPublic(false);
     setName("");
     setType(TournamentType.Single);
     setFormat(TournamentFormat.Pyramid);
@@ -70,16 +62,24 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
     e.preventDefault();
 
     const trimmed = name.trim();
-    if (!trimmed) {
-      setError("Введите название турнира");
-      return;
-    }
+    if (!trimmed) { setError("Введите название турнира"); return; }
     if (startDate && endDate && startDate > endDate) {
       setError("Дата начала не может быть позже даты окончания");
       return;
     }
 
-    onCreate({ name: trimmed, type, format, startDate, endDate });
+    onCreate({
+      name: trimmed,
+      format,
+      tournament_type: type,
+      start_date: startDate || null,
+      end_date: endDate || null,
+      is_public: isPublic, // 👈 добавь это поле в тип
+      creator_id: 0
+    });
+
+
+
     resetForm();
     onClose();
   };
@@ -87,11 +87,7 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
   if (!isOpen) return null;
 
   return (
-    <div
-      className="modal-overlay"
-      onClick={handleOverlayClick}
-      aria-hidden={false}
-    >
+    <div className="modal-overlay" onClick={handleOverlayClick} aria-hidden={false}>
       <div
         className="modal-content"
         ref={dialogRef}
@@ -111,6 +107,17 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
         <h3 className="modal-title" id={titleId}>Создать турнир</h3>
 
         <form onSubmit={handleSubmit} className="modal-form" noValidate>
+          {/* 👇 ЧЕКБОКС — первым полем */}
+          {/* 👇 вместо <input type="checkbox"> */}
+          <div className="checkbox-row">
+            <CheckBoxIcon
+              isSelected={isPublic}
+              onClick={() => setIsPublic((v) => !v)}
+              aria-label="Публичный турнир"
+            />
+            <span>Публичный турнир (виден всем)</span>
+          </div>
+
           <input
             type="text"
             placeholder="Название турнира"
@@ -167,9 +174,7 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
           {error && <div className="modal-error" role="alert">{error}</div>}
 
           <div className="modal-actions">
-            <button type="submit" className="modal-submit-btn">
-              Сохранить
-            </button>
+            <button type="submit" className="modal-submit-btn">Сохранить</button>
           </div>
         </form>
       </div>
