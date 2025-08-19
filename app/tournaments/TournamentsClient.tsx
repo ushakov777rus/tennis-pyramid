@@ -158,13 +158,14 @@ export function TournamentsClient() {
             />
           </AdminOnly>
 
-          {filtered.map((t: Tournament) => (
+          {filtered.map((t) => (
             <TournamentCard
               key={t.id}
               tournament={t}
               participantsCount={stats[t.id]?.participants ?? 0}
               matchesCount={stats[t.id]?.matches ?? 0}
               onClick={() => router.push(`/tournaments/${t.id}`)}
+              {...(user?.role === "site_admin" || user?.id === t.creator_id ? { onDelete } : {})}
             />
           ))}
         </div>

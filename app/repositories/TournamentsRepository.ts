@@ -30,7 +30,9 @@ export class TournamentsRepository {
           row.status,
           row.tournament_type,
           row.start_date,
-          row.end_date
+          row.end_date,
+          row.is_public,
+          row.creator_id
         )
     );
   }
@@ -61,7 +63,9 @@ static async loadAccessible(userId: number | undefined): Promise<Tournament[]> {
           row.status,
           row.tournament_type,
           row.start_date,
-          row.end_date
+          row.end_date,
+          row.is_public,
+          row.creator_id
         )
     );
   }
@@ -77,7 +81,7 @@ static async loadAccessible(userId: number | undefined): Promise<Tournament[]> {
   if (role === "site_admin") {
     const { data, error } = await supabase
       .from("tournaments")
-      .select("id, name, format, status, tournament_type, start_date, end_date, is_public")
+      .select("*")
       .order("start_date", { ascending: true });
 
     if (error) {
@@ -94,7 +98,9 @@ static async loadAccessible(userId: number | undefined): Promise<Tournament[]> {
           row.status,
           row.tournament_type,
           row.start_date,
-          row.end_date
+          row.end_date,
+          row.is_public,
+          row.creator_id
         )
     );
   }
@@ -103,7 +109,7 @@ static async loadAccessible(userId: number | undefined): Promise<Tournament[]> {
   if (role === "tournament_admin") {
     const { data, error } = await supabase
       .from("tournaments")
-      .select("id, name, format, status, tournament_type, start_date, end_date, is_public")
+      .select("*")
       .or(`creator_id.eq.${userId},is_public.eq.true`)
       .order("start_date", { ascending: true });
 
@@ -121,7 +127,9 @@ static async loadAccessible(userId: number | undefined): Promise<Tournament[]> {
           row.status,
           row.tournament_type,
           row.start_date,
-          row.end_date
+          row.end_date,
+          row.is_public,
+          row.creator_id
         )
     );
   }
@@ -136,7 +144,7 @@ static async loadAccessible(userId: number | undefined): Promise<Tournament[]> {
     // плюс добираем публичные
     const { data, error } = await supabase
       .from("tournaments")
-      .select("id, name, format, status, tournament_type, start_date, end_date, is_public")
+      .select("*")
       .eq("is_public", true);
 
     if (error) {
@@ -152,7 +160,9 @@ static async loadAccessible(userId: number | undefined): Promise<Tournament[]> {
           row.status,
           row.tournament_type,
           row.start_date,
-          row.end_date
+          row.end_date,
+          row.is_public,
+          row.creator_id
         )
     );
 
@@ -169,7 +179,7 @@ static async loadAccessible(userId: number | undefined): Promise<Tournament[]> {
   // если роль неизвестна → только публичные
   const { data, error } = await supabase
     .from("tournaments")
-    .select("id, name, format, status, tournament_type, start_date, end_date, is_public")
+    .select("*")
     .eq("is_public", true)
     .order("start_date", { ascending: true });
 
@@ -187,7 +197,9 @@ static async loadAccessible(userId: number | undefined): Promise<Tournament[]> {
         row.status,
         row.tournament_type,
         row.start_date,
-        row.end_date
+        row.end_date,
+        row.is_public,
+        row.creator_id
       )
   );
 }
@@ -213,7 +225,9 @@ static async loadAccessible(userId: number | undefined): Promise<Tournament[]> {
           data.status,
           data.tournament_type,
           data.start_date,
-          data.end_date
+          data.end_date,
+          data.is_public,
+          data.creator_id
         )
       : null;
   }
@@ -492,7 +506,9 @@ static async loadParticipants(tournamentId: number): Promise<Participant[]> {
             row.status,
             row.tournament_type,
             row.start_date,
-            row.end_date
+            row.end_date,
+            row.is_public,
+            row.creator_id
           )
       );
     } catch (e) {

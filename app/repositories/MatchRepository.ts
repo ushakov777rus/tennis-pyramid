@@ -56,11 +56,7 @@ export class MatchRepository {
         match_type,
         tournament_id,
         tournaments (
-          id,
-          name,
-          start_date,
-          end_date,
-          tournament_type
+          *
         ),
         player1:players!fk_player1(id, name, ntrp, phone, sex),
         player2:players!fk_player2(id, name, ntrp, phone, sex),
@@ -117,7 +113,9 @@ export class MatchRepository {
             row.tournaments.status,
             row.tournaments.tournament_type,
             row.tournaments.start_date,
-            row.tournaments.end_date
+            row.tournaments.end_date,
+            row.tournaments.is_public,
+            row.tournaments.creator_id
           )
         : undefined;
 
@@ -145,11 +143,7 @@ export class MatchRepository {
         match_type,
         tournament_id,
         tournaments (
-          id,
-          name,
-          start_date,
-          end_date,
-          tournament_type
+          *
         ),
         player1:players!fk_player1(id, name, ntrp, phone, sex),
         player2:players!fk_player2(id, name, ntrp, phone, sex),
@@ -207,7 +201,9 @@ export class MatchRepository {
             row.tournaments.status,
             row.tournaments.tournament_type,
             row.tournaments.start_date,
-            row.tournaments.end_date
+            row.tournaments.end_date,
+            row.tournaments.is_public,
+            row.tournaments.creator_id
           )
         : undefined;
 
@@ -234,7 +230,7 @@ export class MatchRepository {
         scores,
         match_type,
         tournament_id,
-        tournaments ( id, name, format, status, start_date, end_date, tournament_type ),
+        tournaments ( * ),
         player1:players!fk_player1(id, name, ntrp, phone, sex),
         player2:players!fk_player2(id, name, ntrp, phone, sex),
         team1:teams!fk_team1 (
@@ -289,7 +285,9 @@ export class MatchRepository {
           data.tournaments[0].status,
           data.tournaments[0].tournament_type,
           data.tournaments[0].start_date,
-          data.tournaments[0].end_date
+          data.tournaments[0].end_date,
+          data.tournaments[0].creator_id,
+          data.tournaments[0].is_public
         )
       : undefined;
 
@@ -337,6 +335,24 @@ export class MatchRepository {
         .from("matches")
         .delete()
         .eq("id", match.id);
+
+      if (error) {
+        console.error("Ошибка при удалении матча:", error);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error("Неожиданная ошибка deleteMatch:", err);
+      return false;
+    }
+  }
+
+  static async deleteTournamentMatches(tournamentId: number): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from("matches")
+        .delete()
+        .eq("tournament_id", tournamentId);
 
       if (error) {
         console.error("Ошибка при удалении матча:", error);

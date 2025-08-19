@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { Tournament, TournamentStatus, TournamentCreateInput } from "@/app/models/Tournament";
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 import { useUser } from "@/app/components/UserContext";
+import { MatchRepository } from "../repositories/MatchRepository";
 
 type TournamentStats = { participants: number; matches: number };
 
@@ -76,6 +77,7 @@ export function TournamentsProvider({ children }: { children: React.ReactNode })
   }, [refresh]);
 
   const deleteTournament = useCallback(async (id: number) => {
+    await MatchRepository.deleteTournamentMatches(id);
     await TournamentsRepository.delete(id);
     setTournaments((prev) => prev.filter((t) => t.id !== id));
     setStats((prev) => { const { [id]: _omit, ...rest } = prev; return rest; });

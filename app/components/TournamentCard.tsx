@@ -2,6 +2,7 @@
 
 import { formatDate } from "@/app/components/Utils";
 import { Tournament } from "@/app/models/Tournament";
+import { DeleteIconButton } from "./IconButtons";
 
 import "./TournamentCard.css";
 
@@ -10,6 +11,7 @@ type TournamentCardProps = {
   participantsCount: number;
   matchesCount: number;
   onClick?: () => void;
+  onDelete?: (tournamentId: number) => void;
 };
 
 export function TournamentCard({
@@ -17,6 +19,7 @@ export function TournamentCard({
   participantsCount,
   matchesCount,
   onClick,
+  onDelete
 }: TournamentCardProps) {
   const className = `card card-with-status ${onClick ? "clickable" : ""}`;
   const style: React.CSSProperties = {
@@ -38,7 +41,6 @@ if (tournament == null) {
     <div className={className} onClick={onClick} style={style}>
       <div className="tournament-header">
         {onClick ? <h2>{tournament.name}</h2> : null}
-
         <div
           className="tournament-status"
           style={{ minWidth: 80, display: "flex", justifyContent: "flex-end" }}
@@ -73,17 +75,29 @@ if (tournament == null) {
             </tr>
             <tr>
               <td>👫</td>
-              <td>Количество участников:</td>
+              <td>Участников:</td>
               <td>{participantsCount}</td>
             </tr>
             <tr>
               <td>🎾</td>
-              <td>Количество игр:</td>
+              <td>Игр:</td>
               <td>{matchesCount}</td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      {onDelete && (
+        <DeleteIconButton
+          title="Удалить турнир"
+          className="bucket"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(tournament.id);
+          }}
+        />
+      )}
+      
     </div>
   );
 }
