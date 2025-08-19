@@ -11,7 +11,7 @@ export async function POST(req: Request) {
         id,
         name,
         role,
-        players (
+        players:players!players_user_id_fkey (
           id,
           name,
           phone,
@@ -25,6 +25,7 @@ export async function POST(req: Request) {
     .maybeSingle();
 
   if (error || !data) {
+    console.log("sss", error);
     return NextResponse.json(
       { error: "Неверный логин или пароль" },
       { status: 401 }

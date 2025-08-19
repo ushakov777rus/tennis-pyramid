@@ -36,7 +36,7 @@ export default function PlayerListView() {
   }, []);
 
   const loadPlayers = async () => {
-    const list = await PlayersRepository.loadAll();
+    const list = await PlayersRepository.loadAccessiblePlayers(user?.id, user?.role);
     const matches: Match[] = await MatchRepository.loadAll();
     const s = Player.getPlayerStats(matches);
     setStats(s);

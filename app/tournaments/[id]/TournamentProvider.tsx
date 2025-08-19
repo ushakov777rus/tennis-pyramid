@@ -20,6 +20,8 @@ import { TournamentsRepository } from "@/app/repositories/TournamentsRepository"
 import { TeamsRepository } from "@/app/repositories/TeamsRepository";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 
+import { useUser } from "@/app/components/UserContext";
+
 type InitialData = {
   tournamentId: number;
   tournament?: Tournament | null;
@@ -76,6 +78,7 @@ export function TournamentProvider({
   initial: InitialData;
   children: React.ReactNode;
 }) {
+  const { user } = useUser();
   const { tournamentId } = initial;
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -97,7 +100,7 @@ export function TournamentProvider({
     try {
       const [t, ps, parts, ts, ms] = await Promise.all([
         TournamentsRepository.getTournamentById(tournamentId),
-        PlayersRepository.loadAll(),
+        PlayersRepository.loadAccessiblePlayers(user?.id, user?.role),
         TournamentsRepository.loadParticipants(tournamentId),
         TeamsRepository.loadAll(),
         MatchRepository.loadMatches(tournamentId),
