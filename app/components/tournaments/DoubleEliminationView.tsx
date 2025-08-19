@@ -10,7 +10,7 @@ import { SaveIconButton, CancelIconButton } from "@/app/components/IconButtons";
 
 import "./PyramidView.css";
 import "./RoundRobinView.css";
-import "./TeamsTable.css";
+import "@/app/components/TeamsTable.css";
 
 
 type DoubleEliminationViewProps = {

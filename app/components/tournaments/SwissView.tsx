@@ -6,7 +6,7 @@ import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
 import "./PyramidView.css";
 import "./RoundRobinView.css";
-import "./TeamsTable.css";
+import "@/app/components/TeamsTable.css";
 import { SaveIconButton, CancelIconButton } from "@/app/components/IconButtons";
 
 type SwissViewProps = {
