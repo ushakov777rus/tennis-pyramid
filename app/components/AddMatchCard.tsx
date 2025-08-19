@@ -5,8 +5,6 @@ import React, { useCallback } from "react";
 import { CustomSelect } from "@/app/components/CustomSelect";
 import { SaveIconButton, CancelIconButton, PlusIconButton } from "./IconButtons";
 
-import "@/app/components/CustomSelect.css";
-
 type Option = { value: number; label: string };
 
 type AddMatchCardProps = {

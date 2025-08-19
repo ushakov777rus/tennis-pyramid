@@ -1,6 +1,8 @@
 "use client";
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 
+import "@/app/components/CustomSelect.css";
+
 type Option = {
   value: string | number;
   label: string;
