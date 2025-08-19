@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { PlusIconButton, CancelIconButton } from "../components/IconButtons";
+import { CancelIconButton } from "../components/IconButtons";
 
 import {
   TournamentStatus,
@@ -22,6 +22,9 @@ import { AddTournamentModal } from "../components/AddTournamentModal";
 
 import { useTournaments } from "@/app/tournaments/TournamentsProvider";
 import { Tournament, TournamentCreateInput } from "@/app/models/Tournament";
+
+import { canDeleteTournament } from "@/app/lib/permissions";
+
 
 import "./page.css";
 import "@/app/MainPage.css";
@@ -158,16 +161,20 @@ export function TournamentsClient() {
             />
           </AdminOnly>
 
-          {filtered.map((t) => (
-            <TournamentCard
-              key={t.id}
-              tournament={t}
-              participantsCount={stats[t.id]?.participants ?? 0}
-              matchesCount={stats[t.id]?.matches ?? 0}
-              onClick={() => router.push(`/tournaments/${t.id}`)}
-              {...(user?.role === "site_admin" || user?.id === t.creator_id ? { onDelete } : {})}
-            />
-          ))}
+          {filtered.map((t) => {
+            const canDelete = canDeleteTournament(user, t);
+            return (
+              <TournamentCard
+                key={t.id}
+                tournament={t}
+                participantsCount={stats[t.id]?.participants ?? 0}
+                matchesCount={stats[t.id]?.matches ?? 0}
+                onClick={() => router.push(`/tournaments/${t.id}`)}
+                {...(canDelete ? {onDelete} : {})}
+              />
+            );
+          })}
+
         </div>
 
         <AddTournamentModal

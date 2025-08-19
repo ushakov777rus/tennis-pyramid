@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Tournament } from "@/app/models/Tournament";
 
 import { Participant, ParticipantBase, ParticipantRow } from "@/app/models/Participant";
-import { TournamentStatus, TournamentFormat, TournamentType } from "@/app/models/Tournament";
+import { TournamentCreateInput } from "@/app/models/Tournament";
 import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
 import { UsersRepository } from "./UsersRepository";
@@ -232,25 +232,27 @@ static async loadAccessible(userId: number | undefined): Promise<Tournament[]> {
       : null;
   }
 
-  
-
   /** Создать турнир */
-  static async create(params: {
-    name: string;
-    tournament_type: TournamentType;
-    start_date: string | null;
-    end_date: string | null;
-    status: TournamentStatus;
-    format: TournamentFormat;
-    creator_id: number;
-    is_public:boolean
-  }): Promise<void> {
-    const { error } = await supabase.from("tournaments").insert([params]);
+  static async create(input: TournamentCreateInput): Promise<Tournament> {
+    const { data, error } = await supabase
+      .from("tournaments")
+      .insert([input])
+      .select()
+      .single();
 
-    if (error) {
-      console.error("Ошибка при создании турнира:", error);
-      throw error;
-    }
+    if (error) throw error;
+
+    return new Tournament(
+      data.id,
+      data.name,
+      data.format,
+      data.status,
+      data.tournament_type,
+      data.start_date,
+      data.end_date,
+      data.creator_id,
+      data.is_public
+    );
   }
 
   /** Удалить турнир */
