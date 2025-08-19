@@ -38,11 +38,9 @@ export class TournamentsRepository {
   }
 
 /** Вернуть турниры, доступные пользователю согласно его роли */
-static async loadAccessible(userId: number | undefined): Promise<Tournament[]> {
-  console.log("userId", userId);
-
+static async loadAccessible(userId: number | undefined, userRole: string | undefined): Promise<Tournament[]> {
   // --- 0. Гости: видят только публичные турниры
-  if (userId === undefined) {
+  if (userId === undefined || userRole === undefined) {
     const { data, error } = await supabase
       .from("tournaments")
       .select("id, name, format, status, tournament_type, start_date, end_date, is_public")
@@ -71,10 +69,7 @@ static async loadAccessible(userId: number | undefined): Promise<Tournament[]> {
   }
 
   // --- 1. Авторизованные пользователи
-  const user = await UsersRepository.findById(userId);
-  if (!user) return [];
-
-  const role = String((user as any).role);
+  const role = userRole;
 
   // Сайт-админ: все турниры
   if (role === "site_admin") {

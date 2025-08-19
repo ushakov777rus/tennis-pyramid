@@ -43,26 +43,36 @@ export function TournamentsProvider({ children }: { children: React.ReactNode })
   }, []);
 
   // Единая точка полной загрузки списка турниров
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const uid = user?.id;
-      const list = await TournamentsRepository.loadAccessible(uid);
-      setTournaments(list);
-      // загрузим стату частично по видимым
-      void loadStats(list.map((t) => t.id));
-    } catch (e: any) {
-      console.error(e);
-      setError(e?.message ?? "Не удалось загрузить турниры");
-    } finally {
-      setLoading(false);
-    }
-  }, [loadStats, user?.id]);
+  // provider
+  const [initialLoaded, setInitialLoaded] = useState(false);
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  const refresh = useCallback(
+    async (opts?: { background?: boolean }) => {
+      const background = !!opts?.background && initialLoaded;
+      if (!background) setLoading(true);
+      setError(null);
+      try {
+        const uid = user?.id;
+        const list = await TournamentsRepository.loadAccessible(user?.id, user?.role);
+        setTournaments(list);
+        void loadStats(list.map((t) => t.id));
+      } catch (e: any) {
+        console.error(e);
+        setError(e?.message ?? "Не удалось загрузить турниры");
+      } finally {
+        if (!background) setLoading(false);
+        setInitialLoaded(true);
+      }
+    },
+    [loadStats, user?.id, initialLoaded]
+  );
+
+  // 1) Первая загрузка
+  useEffect(() => { void refresh(); }, []);
+
+  // 2) Когда меняется user — рефетч без глобального "Загрузка…"
+  useEffect(() => { if (initialLoaded) void refresh({ background: true }); }, [user?.id]);
+
 
   // ====== ОПТИМИСТИЧНОЕ СОЗДАНИЕ ТУРНИРА ======
   const createTournament = useCallback(async (p: TournamentCreateInput) => {
