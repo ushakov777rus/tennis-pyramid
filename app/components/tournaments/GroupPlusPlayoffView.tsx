@@ -7,7 +7,7 @@ import { Match } from "@/app/models/Match";
 import "./PyramidView.css";
 import "./RoundRobinView.css";
 import "./TeamsTable.css";
-import { SaveIconButton, CancelIconButton } from "./IconButtons";
+import { SaveIconButton, CancelIconButton } from "@/app/components/IconButtons";
 
 type GroupPlusPlayoffViewProps = {
   participants: Participant[];

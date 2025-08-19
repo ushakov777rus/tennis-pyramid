@@ -7,7 +7,7 @@ import { Match } from "@/app/models/Match";
 import "./PyramidView.css";    // чипы/бейджи/карточки
 import "./RoundRobinView.css"; // таблицы/гриды
 import "./TeamsTable.css";     // стиль .icon-btn, .danger, .lg
-import { SaveIconButton, CancelIconButton } from "./IconButtons";
+import { SaveIconButton, CancelIconButton } from "@/app/components/IconButtons";
 
 type SingleEliminationViewProps = {
   participants: Participant[];
