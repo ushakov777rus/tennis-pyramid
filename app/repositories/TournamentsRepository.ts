@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import { Tournament } from "@/app/models/Tournament";
 
-import { Participant, ParticipantBase, ParticipantRow } from "@/app/models/Participant";
+import { Participant } from "@/app/models/Participant";
 import { TournamentCreateInput } from "@/app/models/Tournament";
 import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
@@ -75,7 +75,6 @@ static async loadAccessible(userId: number | undefined): Promise<Tournament[]> {
   if (!user) return [];
 
   const role = String((user as any).role);
-  console.log("role", role);
 
   // Сайт-админ: все турниры
   if (role === "site_admin") {
