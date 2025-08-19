@@ -23,6 +23,10 @@ export class PlayersRepository {
     organiserUserId: number | undefined,
     userRole: string | undefined
   ): Promise<Player[]> {
+
+    if (organiserUserId === undefined || userRole === undefined)
+      return [];
+
     try {
       // 1) все игроки
       const { data: playersData, error: playersErr } = await supabase
