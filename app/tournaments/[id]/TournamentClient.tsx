@@ -61,11 +61,6 @@ export default function TournamentClient() {
   const [matchDate, setMatchDate] = useState<string>(todayISO);
   const [matchScore, setMatchScore] = useState<string>("");
 
-  const maxLevel = useMemo(
-    () => (participants.length ? participants.reduce((m, p) => Math.max(m, p.level ?? 0), 0) : 15),
-    [participants]
-  );
-
   // (если где-то используешь)
   const { mostPlayed, mostWins } = useMemo(() => calcTopPlayers(matches), [matches]);
 
@@ -297,7 +292,6 @@ export default function TournamentClient() {
               tournament={tournament}
               participants={participants}
               matches={matches}
-              maxLevel={maxLevel}
               selectedIds={selectedIds}
               onSelect={setSelectedIds}
               onShowHistoryPlayer={handleShowHistoryPlayer}
@@ -352,7 +346,6 @@ const FormatView = React.memo(function FormatView({
   tournament,
   participants,
   matches,
-  maxLevel,
   selectedIds,
   onSelect,
   onShowHistoryPlayer,
@@ -362,7 +355,6 @@ const FormatView = React.memo(function FormatView({
   tournament: Tournament;
   participants: Participant[];
   matches: Match[];
-  maxLevel: number;
   selectedIds: number[];
   onSelect: (ids: number[]) => void;
   onShowHistoryPlayer: (p?: Player) => void;
@@ -432,7 +424,6 @@ const FormatView = React.memo(function FormatView({
   return (
     <PyramidView
       participants={participants}
-      maxLevel={maxLevel}
       selectedIds={selectedIds}
       onSelect={onSelect}
       onShowHistory={handleShowHistory}

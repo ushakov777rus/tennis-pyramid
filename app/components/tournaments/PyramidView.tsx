@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useUser } from "@/app/components/UserContext";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
@@ -14,7 +14,6 @@ import {
 
 type PyramidViewProps = {
   participants: Participant[];
-  maxLevel: number | 15;
   onSelect: (ids: number[]) => void;
   selectedIds: number[];
   onShowHistory?: (participant?: Participant) => void;
@@ -43,7 +42,6 @@ function getPlayerStatusIcon(
 
 export function PyramidView({
   participants,
-  maxLevel,
   onSelect,
   selectedIds,
   onShowHistory,
@@ -54,6 +52,12 @@ export function PyramidView({
 
   const [invalidId, setInvalidId] = useState<number | null>(null);
   const [localParticipants, setLocalParticipants] = useState<Participant[]>([]);
+
+  const maxLevel = useMemo(
+      () => (participants.length ? participants.reduce((m, p) => Math.max(m, p.level ?? 0), 0) : 15),
+      [participants]
+    );
+  
 
   // нормализуем порядок входящих участников
   useEffect(() => {
