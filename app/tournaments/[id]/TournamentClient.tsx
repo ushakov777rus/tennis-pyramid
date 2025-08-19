@@ -15,8 +15,6 @@ import { NavigationBar } from "@/app/components/NavigationBar";
 import { TournamentCard } from "@/app/components/TournamentCard";
 import { LoggedIn } from "@/app/components/RoleGuard";
 
-import { PyramidView } from "@/app/components/PyramidView";
-import { RoundRobinView } from "@/app/components/RoundRobinView";
 import { RatingView } from "@/app/components/RatingView";
 import { MatchHistoryModal } from "@/app/components/MatchHistoryModal";
 import { MatchHistoryView } from "@/app/components/MatchHistoryView";
@@ -27,10 +25,13 @@ import { calcTopPlayers } from "@/app/utils/calcTopPlayers";
 import "./Page.css";
 
 import { useTournament } from "./TournamentProvider";
-import { SingleEliminationView } from "@/app/components/SingleEliminationView";
-import { DoubleEliminationView } from "@/app/components/DoubleEliminationView";
-import { GroupPlusPlayoffView } from "@/app/components/GroupPlusPlayoffView";
-import { SwissView } from "@/app/components/SwissView";
+
+import { PyramidView } from "@/app/components/tournaments/PyramidView";
+import { SingleEliminationView } from "@/app/components/tournaments/SingleEliminationView";
+import { DoubleEliminationView } from "@/app/components/tournaments/DoubleEliminationView";
+import { GroupPlusPlayoffView } from "@/app/components/tournaments/GroupPlusPlayoffView";
+import { RoundRobinView } from "@/app/components/tournaments/RoundRobinView";
+import { SwissView } from "@/app/components/tournaments/SwissView";
 
 type Tab = "scheme" | "matches" | "participants" | "rating";
 
