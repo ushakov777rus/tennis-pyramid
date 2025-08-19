@@ -55,4 +55,28 @@ export class TeamsRepository {
 
     if (error) console.error("Ошибка обновления игроков в команде:", error);
   }
+
+  static async findById(teamId: number): Promise<Team | null> {
+    const { data, error } = await supabase
+      .from("teams")
+      .select(`
+        id,
+        name,
+        player1:players!teams_player1_id_fkey (id, name, phone, sex, ntrp),
+        player2:players!teams_player2_id_fkey (id, name, phone, sex, ntrp)
+      `)
+      .eq("id", teamId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Ошибка загрузки команды по id:", error);
+      return null;
+    }
+    if (!data) return null;
+
+    const player1 = data.player1 ? new Player(data.player1[0]) : undefined;
+    const player2 = data.player2 ? new Player(data.player2[0]) : undefined;
+
+    return new Team(data.id, data.name, player1 as any, player2 as any);
+  }
 }
