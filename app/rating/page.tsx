@@ -20,6 +20,7 @@ import {
 
 import "@/app/components/MatchHistory.css";
 import { AdminOnly } from "../components/RoleGuard";
+import { needMask } from "../lib/permissions";
 
 export default function PlayerListView() {
   const { user } = useUser();
@@ -171,7 +172,7 @@ export default function PlayerListView() {
                         onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                       />
                     ) : (
-                      <span className="chip">{user?.role !== "site_admin" ? maskFullName(p.name) : p.name}</span>
+                      <span className="chip">{needMask(user) ? maskFullName(p.name) : p.name}</span>
                     )}
                     <div className="show-sm-only" style={{ marginTop: 6 }}>
                       <span className="badge ntrp-badge">NTRP: {p.ntrp || "—"}</span>
