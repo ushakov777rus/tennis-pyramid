@@ -232,7 +232,7 @@ body {
   display: flex;
   gap: 15px;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: space-around;
 }
 
 /* ✅ Адаптивность для мобилок */
