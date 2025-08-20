@@ -8,11 +8,19 @@ import { Tournament } from "@/app/models/Tournament";
 import { formatDate } from "@/app/components/Utils"; // если есть
 
 import "./MainPage.css";
+import { useUser } from "./components/UserContext";
+import { GuestMainPageCard } from "./components/GuestMainPageCard";
+import { AuthContainer } from "./components/AuthContainer";
 
 export default function HomePage() {
+  const { user } = useUser();
   const router = useRouter();
   const [ongoing, setOngoing] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [signupRole, setSignupRole] = useState<"player" | "tournament_admin">("player"); 
+
+  const isGuest = !user;
 
   useEffect(() => {
     (async () => {
@@ -55,7 +63,7 @@ export default function HomePage() {
                     { t.getStatus() }
                   </span>
                 </div>
-                <div className="card-icon">🏆</div>                
+                <div className="card-icon">🏆</div>
                 <div className="card-date">
                   {t.name}
                 </div>
@@ -81,54 +89,43 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="section">
-          <h2 className="section-title">Ближайшие матчи</h2>
-          <div className="card-grid">
-            {[1, 2, 3].map((i) => (
-              <div className="card card-250px" key={i}>
-                <div className="card-icon">🎾 + 🎾</div>
-                <div className="card-date">MM/DD 00:00</div>
-                <button className="card-btn card-btn-act">Подробнее</button>
-              </div>
-            ))}
-            <div className="card card-80px card-all" onClick={() => router.push("/matches")}>
-              Все
-            </div>
-          </div>
-        </section>
-
-        <section className="section">
-          <h2 className="section-title">Топ игроков</h2>
-          <div className="card-grid">
-            {[1, 2, 3].map((i) => (
-              <div className="card card-250px" key={i}>
-                <div className="card-avatar">🏅</div>
-                <div className="card-name">Player Nickname</div>
-                <button className="card-btn card-btn-act">Подробнее</button>
-              </div>
-            ))}
-            <div className="card card-80px card-all" onClick={() => router.push("/rating")}>
-              Все
-            </div>
-          </div>
-        </section>
+        
+        {isGuest && (
+          <section className="section">
+            <GuestMainPageCard
+              onSignupPlayer={() => {              // 👇 клик по «участник»
+                setSignupRole("player");
+                setIsLoginOpen(true);
+              }}
+              onSignupAdmin={() => {               // 👇 клик по «организатор»
+                setSignupRole("tournament_admin");
+                setIsLoginOpen(true);
+              }}
+            />
+          </section>
+        )}
       </main>
 
-<footer className="card page-footer">
+      <footer className="card page-footer">
+          <div className="footer-section left">
+            <h3>Для связи</h3>
+            <p>
+              <a href="mailto:honey.cup@yandex.ru">honey.cup@yandex.ru</a>
+            </p>
+          </div>
+          <div className="footer-section right">
+            <h3>© {new Date().getFullYear()} HoneyCup</h3>
+            <p>Все права защищены</p>
+          </div>        
+      </footer>
 
-    <div className="footer-section left">
-      <h3>Для связи</h3>
-      <p>
-        <a href="mailto:honey.cup@yandex.ru">honey.cup@yandex.ru</a>
-      </p>
-    </div>
 
-    <div className="footer-section right">
-      <h3>© {new Date().getFullYear()} HoneyCup</h3>
-      <p>Все права защищены</p>
-    </div>
-  
-</footer>
+      <AuthContainer
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        initialMode="register"
+        initialRole={signupRole}
+      />
     </div>
   );
 }

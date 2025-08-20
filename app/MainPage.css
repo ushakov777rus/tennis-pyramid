@@ -80,7 +80,11 @@
 }
 
 .footer-section {
-  flex: 1;
+    flex: auto;
+    flex-direction: column;
+    display: flex
+;
+    margin: auto;
 }
 
 .footer-section h3 {

@@ -8,7 +8,6 @@ import { PlayerProfileModalLoader } from "@/app/components/PlayerProfileModalLoa
 import "./UserBadge.css";
 
 export function UserBadge() {
-  const router = useRouter();
   const { user, setUser } = useUser();
 
   const [isLoginOpen, setIsLoginOpen] = useState(false);
