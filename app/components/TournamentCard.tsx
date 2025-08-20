@@ -21,7 +21,7 @@ export function TournamentCard({
   onClick,
   onDelete
 }: TournamentCardProps) {
-  const className = `card card-with-status ${onClick ? "clickable" : ""}`;
+  const className = `card card-width-32p card-with-status ${onClick ? "clickable" : ""}`;
   const style: React.CSSProperties = {
     cursor: onClick ? "pointer" : "default",
   };
@@ -40,7 +40,7 @@ if (tournament == null) {
   return (
     <div className={className} onClick={onClick} style={style}>
       <div className="tournament-header">
-        {onClick ? <h2>{tournament.name}</h2> : null}
+        <h2>{tournament.name}</h2>
         <div
           className="tournament-status"
           style={{ minWidth: 80, display: "flex", justifyContent: "flex-end" }}
@@ -51,11 +51,10 @@ if (tournament == null) {
 
       <div
         className="tournament-details"
-        style={{ display: "flex", justifyContent: "space-between", gap: 16 }}
       >
-        <table>
-          <tbody>
-            <tr>
+        <table className="tournament-card-table">
+          <tbody className="tournament-card-table-body">
+            <tr  >
               <td>🏆</td>
               <td>Тип:</td>
               <td>{tournament.getType()}</td>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { NavigationBar } from "@/app/components/NavigationBar";
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
@@ -12,30 +12,18 @@ import { useUser } from "./components/UserContext";
 import { GuestMainPageCard } from "./components/GuestMainPageCard";
 import { AuthContainer } from "./components/AuthContainer";
 import { TournamentCard } from "./components/TournamentCard";
-import { TournamentsProvider, useTournaments } from "./tournaments/TournamentsProvider";
+import { useTournaments } from "./tournaments/TournamentsProvider";
 
 export default function HomePage() {
   const { user } = useUser();
-  const router = useRouter();
-  const [ongoing, setOngoing] = useState<Tournament[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { tournaments, loading: tLoading, stats } = useTournaments();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [signupRole, setSignupRole] = useState<"player" | "tournament_admin">("player"); 
-  const { stats } = useTournaments();
+
 
   const isGuest = !user;
 
-  useEffect(() => {
-    (async () => {
-      try {
-
-        const list = await TournamentsRepository.loadAll(); // <- готовый метод
-        setOngoing(list.slice(0, 3));
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+  const ongoing = useMemo(() => tournaments.slice(0, 3), [tournaments]);
 
   return (
     <div className="page-container">
@@ -46,28 +34,24 @@ export default function HomePage() {
         <section className="section">
           <h2 className="section-title">Ближайшие турниры</h2>
 
-          <div className="card-grid">
-            {loading && [1,2,3].map(i => (
-              <div className="card card-250px" key={`s-${i}`}>Загрузка…</div>
-            ))}
+      <div className="card-grid">
+        {tLoading && [1,2,3].map(i => (
+          <div className="card card-250px" key={`s-${i}`}>Загрузка…</div>
+        ))}
 
-            {!loading && ongoing.map(t => (
-              <TournamentCard
-                key={t.id}
-                tournament={t}
-                participantsCount={stats[t.id]?.participants ?? 0}
-                matchesCount={stats[t.id]?.matches ?? 0}
-              />
-            ))}
+        {!tLoading && ongoing.map(t => (
+          <TournamentCard
+            key={t.id}
+            tournament={t}
+            participantsCount={stats[t.id]?.participants ?? 0}
+            matchesCount={stats[t.id]?.matches ?? 0}
+          />
+        ))}
 
-            {!loading && ongoing.length === 0 && (
-              <div className="card card-250px">Сейчас турниров нет</div>
-            )}
-
-            <div className="card card-80px card-all" onClick={() => router.push("/tournaments")}>
-              Все
-            </div>
-          </div>
+        {!tLoading && ongoing.length === 0 && (
+          <div className="card card-250px">Сейчас турниров нет</div>
+        )}
+      </div>
         </section>
 
         

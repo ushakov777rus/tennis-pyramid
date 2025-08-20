@@ -230,7 +230,7 @@ body {
 /* Сетка с карточками */
 .card-grid {
   display: flex;
-  gap: 20px;
+  gap: 15px;
   flex-wrap: wrap;
   justify-content: space-between;
 }
@@ -291,6 +291,9 @@ body {
   font-size: 12px;
 }
 
+.card-width-32p {
+  width: 32%;
+}
 
 .card-all {
   display: flex;

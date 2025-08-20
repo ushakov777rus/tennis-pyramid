@@ -23,7 +23,7 @@ import { AddTournamentModal } from "../components/AddTournamentModal";
 import { useTournaments } from "@/app/tournaments/TournamentsProvider";
 import { Tournament, TournamentCreateInput } from "@/app/models/Tournament";
 
-import { canDeleteTournament } from "@/app/lib/permissions";
+import { canDeleteTournament, canViewTournament } from "@/app/lib/permissions";
 
 
 import "./page.css";
@@ -149,7 +149,7 @@ export function TournamentsClient() {
         {loading && <div className="card">Загрузка…</div>}
         {error && <div className="card card-error">Ошибка: {error}</div>}
 
-        <div className="tournaments-grid">
+        <div className="card-grid">
           {/* Карточка создания турниров — только для админов */}
           <AdminOnly>
             <TournamentCard
@@ -162,6 +162,7 @@ export function TournamentsClient() {
           </AdminOnly>
 
           {filtered.map((t) => {
+            const canView = canViewTournament(user, t);
             const canDelete = canDeleteTournament(user, t);
             return (
               <TournamentCard
@@ -169,7 +170,7 @@ export function TournamentsClient() {
                 tournament={t}
                 participantsCount={stats[t.id]?.participants ?? 0}
                 matchesCount={stats[t.id]?.matches ?? 0}
-                onClick={() => router.push(`/tournaments/${t.id}`)}
+                {...(canView ? { onClick: () => router.push(`/tournaments/${t.id}`) } : {})}
                 {...(canDelete ? {onDelete} : {})}
               />
             );

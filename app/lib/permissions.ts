@@ -9,6 +9,12 @@ export type MinimalUser = {
 };
 
 /** Может ли пользователь удалить турнир */
+export function canViewTournament(user: MinimalUser | null | undefined, t: Tournament | null | undefined): boolean {
+  if (!user || !t) return false;
+  return true;
+}
+
+/** Может ли пользователь удалить турнир */
 export function canDeleteTournament(user: MinimalUser | null | undefined, t: Tournament | null | undefined): boolean {
   if (!user || !t) return false;
   if (user.role === "site_admin") return true;

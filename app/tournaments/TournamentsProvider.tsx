@@ -46,26 +46,34 @@ export function TournamentsProvider({ children }: { children: React.ReactNode })
   // provider
   const [initialLoaded, setInitialLoaded] = useState(false);
 
-  const refresh = useCallback(
-    async (opts?: { background?: boolean }) => {
-      const background = !!opts?.background && initialLoaded;
-      if (!background) setLoading(true);
-      setError(null);
-      try {
-        const uid = user?.id;
-        const list = await TournamentsRepository.loadAccessible(user?.id, user?.role);
-        setTournaments(list);
-        void loadStats(list.map((t) => t.id));
-      } catch (e: any) {
-        console.error(e);
-        setError(e?.message ?? "Не удалось загрузить турниры");
-      } finally {
-        if (!background) setLoading(false);
-        setInitialLoaded(true);
-      }
-    },
-    [loadStats, user?.id, initialLoaded]
-  );
+const refresh = useCallback(
+  async (opts?: { background?: boolean }) => {
+    const background = !!opts?.background && initialLoaded;
+    if (!background) setLoading(true);
+    setError(null);
+    try {
+      const uid = user?.id;
+      const role = user?.role;
+
+      // Если гостевой режим — грузим публичные турниры
+      const list = uid
+        ? await TournamentsRepository.loadAccessible(uid, role)
+        : await TournamentsRepository.loadAll();  
+
+        console.log("Загруженные турниры:", uid, list);
+
+      setTournaments(list);
+      void loadStats(list.map((t) => t.id));
+    } catch (e: any) {
+      console.error(e);
+      setError(e?.message ?? "Не удалось загрузить турниры");
+    } finally {
+      if (!background) setLoading(false);
+      setInitialLoaded(true);
+    }
+  },
+  [loadStats, user?.id, user?.role, initialLoaded]
+);
 
   // 1) Первая загрузка
   useEffect(() => { void refresh(); }, []);
@@ -185,9 +193,6 @@ export function TournamentsProvider({ children }: { children: React.ReactNode })
     refresh,
     createTournament,
     deleteTournament,
-    // при желании можно экспортировать pending наборы
-    // pendingCreateIds,
-    // pendingDeleteIds,
   }), [tournaments, loading, error, stats, refresh, createTournament, deleteTournament]);
 
   return <TournamentsContext.Provider value={value}>{children}</TournamentsContext.Provider>;
