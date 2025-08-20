@@ -11,6 +11,8 @@ import "./MainPage.css";
 import { useUser } from "./components/UserContext";
 import { GuestMainPageCard } from "./components/GuestMainPageCard";
 import { AuthContainer } from "./components/AuthContainer";
+import { TournamentCard } from "./components/TournamentCard";
+import { TournamentsProvider, useTournaments } from "./tournaments/TournamentsProvider";
 
 export default function HomePage() {
   const { user } = useUser();
@@ -19,6 +21,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [signupRole, setSignupRole] = useState<"player" | "tournament_admin">("player"); 
+  const { stats } = useTournaments();
 
   const isGuest = !user;
 
@@ -49,34 +52,12 @@ export default function HomePage() {
             ))}
 
             {!loading && ongoing.map(t => (
-              <div className="card card-250px card-with-status" key={t.id}>
-                <div className="tournament-status">  
-                  <span
-                    className={`status ${
-                      t.status === "finished"
-                        ? "finished"
-                        : t.status === "ongoing"
-                        ? "ongoing"
-                        : "draft"
-                    }`}
-                  >
-                    { t.getStatus() }
-                  </span>
-                </div>
-                <div className="card-icon">🏆</div>
-                <div className="card-date">
-                  {t.name}
-                </div>
-                <div className="card-date">
-                  {t.start_date ? `${formatDate(new Date(t.start_date))} — ${t.end_date ? formatDate(new Date(t.end_date)) : "…"}` : `${t.start_date ?? ""}`}
-                </div>
-                <button
-                  className="card-btn card-btn-act"
-                  onClick={() => router.push(`/tournaments/${t.id}`)}
-                >
-                  Подробнее
-                </button>
-              </div>
+              <TournamentCard
+                key={t.id}
+                tournament={t}
+                participantsCount={stats[t.id]?.participants ?? 0}
+                matchesCount={stats[t.id]?.matches ?? 0}
+              />
             ))}
 
             {!loading && ongoing.length === 0 && (

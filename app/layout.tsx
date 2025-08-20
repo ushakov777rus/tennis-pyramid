@@ -4,6 +4,7 @@ import { UserProvider } from "./components/UserContext";
 import Script from "next/script";
 
 import type { Metadata } from "next";
+import { TournamentsProvider } from "./tournaments/TournamentsProvider";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://honeycup.ru"),
@@ -64,7 +65,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <UserProvider>
-          {children}
+          <TournamentsProvider>
+            {children}
+          </TournamentsProvider>
         </UserProvider>
       </body>
     </html>
