@@ -27,10 +27,6 @@ export function ParticipantsView() {
     createTeam,
   } = useTournament();
 
-  console.log("ParticipantsView::players", players);
-  console.log("ParticipantsView::participants", participants);
-  console.log("ParticipantsView::teams", teams);
-
   // выбор игроков для создания пары
   const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
 
