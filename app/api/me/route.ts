@@ -32,6 +32,7 @@ export async function GET() {
     .single();
 
   if (error || !data) {
+    console.error("api/me ошибка проверки пользователя в БД:", error, data);
     return NextResponse.json({ loggedIn: false });
   }
 
