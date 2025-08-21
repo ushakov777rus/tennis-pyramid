@@ -14,17 +14,17 @@ export class PlayersRepository {
       return [];
     }
 
-      return (data ?? []).map((row: any) => {
-        return new Player(row);
-      });
+    console.log("PlayersRepository-loadAll:", data);
+
+    return (data ?? []).map((row: any) => {
+      return new Player(row);
+    });
   }
 
   static async loadAccessiblePlayers(
     organiserUserId: number | undefined,
     userRole: string | undefined
   ): Promise<Player[]> {
-
-    console.log("loadAccessiblePlayers: ", organiserUserId, userRole);
     if (organiserUserId === undefined || userRole === undefined)
       return [];
 
@@ -39,6 +39,8 @@ export class PlayersRepository {
         console.error("loadAccessiblePlayers: players error", playersErr);
         return [];
       }
+
+      console.log("PlayersRepository-loadAccessiblePlayers: ", organiserUserId, userRole, playersData);
 
       // ✅ Администратор видит всех игроков
       if (userRole === "site_admin") {

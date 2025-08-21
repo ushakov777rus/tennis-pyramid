@@ -11,8 +11,11 @@ import "@/app/components/ParticipantsView.css";
 
 // 👉 все данные и действия берём из провайдера
 import { useTournament } from "@/app/tournaments/[id]/TournamentProvider";
+import { useUser } from "./UserContext";
+import { canEditTournament } from "../lib/permissions";
 
 export function ParticipantsView() {
+  const { user } = useUser();
   const {
     loading,
     tournament,
@@ -78,28 +81,31 @@ export function ParticipantsView() {
         />
       ) : (
         <>
-          <div className="card card-tabs">
-            <button
-              className={
-                activeTab === "parts"
-                  ? "card-btn tabs-button card-btn-act"
-                  : "card-btn tabs-button"
-              }
-              onClick={() => setActiveTab("parts")}
-            >
-              Участники
-            </button>
-            <button
-              className={
-                activeTab === "teams"
-                  ? "card-btn tabs-button card-btn-act"
-                  : "card-btn tabs-button"
-              }
-              onClick={() => setActiveTab("teams")}
-            >
-              Команды
-            </button>
-          </div>
+          {/* Табы для переключения с создания пар на добавление пар const canDelete = canDeleteTournament(user, t);*/}
+          {canEditTournament(user, tournament) && (
+            <div className="card card-tabs">
+              <button
+                className={
+                  activeTab === "parts"
+                    ? "card-btn tabs-button card-btn-act"
+                    : "card-btn tabs-button"
+                }
+                onClick={() => setActiveTab("parts")}
+              >
+                Участники
+              </button>
+              <button
+                className={
+                  activeTab === "teams"
+                    ? "card-btn tabs-button card-btn-act"
+                    : "card-btn tabs-button"
+                }
+                onClick={() => setActiveTab("teams")}
+              >
+                Команды
+              </button>
+            </div>
+          )}
 
           <div>
             {/* TAB: создание/удаление команд */}

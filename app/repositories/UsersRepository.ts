@@ -17,6 +17,8 @@ export class UsersRepository {
       return [];
     }
 
+    console.log("UsersRepository-loadAll:", data);
+
     return (data ?? []).map((row: any) => new User(row));
   }
 

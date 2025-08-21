@@ -21,6 +21,8 @@ export class TournamentsRepository {
       return [];
     }
 
+    console.log("TournamentsRepository-loadAll:", data);
+
     return (data ?? []).map(
       (row: Tournament) =>
         new Tournament(
@@ -51,6 +53,8 @@ static async loadAccessible(userId: number | undefined, userRole: string | undef
       console.error("Ошибка загрузки публичных турниров (гость):", error);
       return [];
     }
+
+    console.log("TournamentsRepository-loadAccessible:", userId, data);
 
     return (data ?? []).map(
       (row: any) =>
