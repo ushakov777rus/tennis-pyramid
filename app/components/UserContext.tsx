@@ -24,6 +24,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setUser(null);
         }
       } catch (err) {
+        console.error("Ошибка загрузки user:", err);
       }
     }
 
