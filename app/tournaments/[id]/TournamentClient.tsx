@@ -233,11 +233,13 @@ export default function TournamentClient() {
       <h1 className="page-title">{tournament.name}</h1>
 
       <div className="page-content-container">
-        <TournamentCard
-          tournament={tournament}
-          participantsCount={participants.length}
-          matchesCount={matches.length}
-        />
+        <div className="card-grid">
+          <TournamentCard
+            tournament={tournament}
+            participantsCount={participants.length}
+            matchesCount={matches.length}
+          />
+        </div>
 
         {/* Табы */}
         <div className="card card-tabs">
