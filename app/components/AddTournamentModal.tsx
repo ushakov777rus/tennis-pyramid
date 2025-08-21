@@ -108,7 +108,6 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
 
         <form onSubmit={handleSubmit} className="modal-form" noValidate>
           {/* 👇 ЧЕКБОКС — первым полем */}
-          {/* 👇 вместо <input type="checkbox"> */}
           <div className="checkbox-row">
             <CheckBoxIcon
               isSelected={isPublic}

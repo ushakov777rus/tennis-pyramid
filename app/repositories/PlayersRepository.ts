@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabaseClient";
 import { Player } from "../models/Player";
+import { OrganizerContactsRepository } from "./OrganizerContactRepository";
 
 
 export class PlayersRepository {
@@ -89,17 +90,32 @@ export class PlayersRepository {
     }
   }
 
-  static async add(player: Partial<Player>): Promise<void> {
-    const { error } = await supabase.from("players").insert([
-      {
-        name: player.name,
-        phone: player.phone,
-        sex: player.sex,
-        ntrp: player.ntrp,
-      },
-    ]);
+  static async add(player: Partial<Player>, adminId?: number): Promise<number | null> {
+    const { data, error } = await supabase
+      .from("players")
+      .insert([
+        {
+          name: player.name,
+          phone: player.phone,
+          sex: player.sex,
+          ntrp: player.ntrp,
+        },
+      ])
+      .select("id")   // 👈 вернёт id созданных строк
+      .single();      // 👈 берём одну строку
 
-    if (error) console.error("Ошибка добавления игрока:", error);
+    if (error) {
+      console.error("Ошибка добавления игрока:", error);
+      return null;
+    }
+
+    const playerId = data?.id ?? null;
+
+    if (adminId && playerId) {
+      await OrganizerContactsRepository.addVisiblePlayer(adminId, playerId);
+    }
+
+    return playerId;
   }
  
   static async delete(id: number): Promise<void> {
