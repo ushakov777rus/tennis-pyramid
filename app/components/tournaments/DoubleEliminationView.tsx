@@ -131,8 +131,8 @@ export function DoubleEliminationView({
         .slice()
         .sort((a, b) =>
           a
-            .displayName(user?.role !== "site_admin")
-            .localeCompare(b.displayName(user?.role !== "site_admin"), "ru")
+            .displayName(false)
+            .localeCompare(b.displayName(false), "ru")
         ),
     [participants]
   );

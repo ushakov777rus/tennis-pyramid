@@ -155,8 +155,8 @@ function swissPairRound(
     const sbb = sonnebornBerger(stats, b.getId);
     if (sbb !== sba) return sbb - sba;
     // стабильность на имени
-    const an = a.displayName(true);
-    const bn = b.displayName(true);
+    const an = a.displayName(false);
+    const bn = b.displayName(false);
     return an.localeCompare(bn, "ru");
   });
 
@@ -221,8 +221,8 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
         .slice()
         .sort((a, b) =>
           a
-            .displayName(user?.role !== "site_admin")
-            .localeCompare(b.displayName(user?.role !== "site_admin"), "ru")
+            .displayName(false)
+            .localeCompare(b.displayName(false), "ru")
         ),
     [participants]
   );
@@ -369,7 +369,7 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
                 <td>{i + 1}</td>
                 <td>
                   <span className="chip">
-                    {participants.find(p => p.getId === s.id)?.displayName(true) ?? s.id}
+                    {participants.find(p => p.getId === s.id)?.displayName(false) ?? s.id}
                   </span>
                 </td>
                 <td>{s.points}</td>

@@ -54,7 +54,7 @@ export function TournamentParticipantsView({
 
   // фильтрация справа
   const filteredParticipants = useMemo(
-    () => (rf ? tournamentParticipants.filter(p => p.displayName(user?.role !== "site_admin").toLowerCase().includes(rf)) : tournamentParticipants),
+    () => (rf ? tournamentParticipants.filter(p => p.displayName(false).toLowerCase().includes(rf)) : tournamentParticipants),
     [tournamentParticipants, rf]
   );
 

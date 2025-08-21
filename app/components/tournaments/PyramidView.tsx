@@ -274,7 +274,7 @@ const renderPlayerCard = (p: Participant, index: number, mask: boolean) => {
             {/* 👇 добавили класс неактивности к блоку имени */}
             <div className={"player-name"}>
               {(() => {
-                const lines = p.splitName(user?.role !== "site_admin") ?? [];
+                const lines = p.splitName(false) ?? [];
                 const status = lastMatch && id ? getPlayerStatusIcon(id, lastMatch) : null;
 
                 return lines.map((line: string, i: number) => (

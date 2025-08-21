@@ -141,8 +141,8 @@ export function SingleEliminationView({
         .filter(isValidParticipant)
         .slice()
         .sort((a, b) =>
-          a.displayName(user?.role !== "site_admin").localeCompare(
-            b.displayName(user?.role !== "site_admin"),
+          a.displayName(false).localeCompare(
+            b.displayName(false),
             "ru"
           )
         ),
