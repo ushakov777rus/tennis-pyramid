@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { CancelIconButton } from "../components/IconButtons";
+import { CancelIconButton, CheckBoxIcon } from "../components/IconButtons";
 
 import {
   TournamentStatus,
@@ -42,6 +42,7 @@ export function TournamentsClient() {
   const [fltType, setFltType] = useState<FilterType>("");
   const [fltFormat, setFltFormat] = useState<FilterFormat>("");
   const [fltStatus, setFltStatus] = useState<FilterStatus>("");
+  const [fltMy, setFltMy] = useState<boolean>(true);
 
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -76,18 +77,38 @@ export function TournamentsClient() {
     setFltType("");
     setFltFormat("");
     setFltStatus("");
+    setFltMy(true)
   };
 
-  const filtered = useMemo(() => {
-    const qNorm = q.trim().toLowerCase();
-    return tournaments.filter((t) => {
-      if (qNorm && !t.name.toLowerCase().includes(qNorm)) return false;
-      if (fltType && t.tournament_type !== fltType) return false;
-      if (fltFormat && t.format !== fltFormat) return false;
-      if (fltStatus && t.status !== fltStatus) return false;
-      return true;
-    });
-  }, [tournaments, q, fltType, fltFormat, fltStatus]);
+const filtered = useMemo(() => {
+  const qNorm = q.trim().toLowerCase();
+
+  // аккуратно определим «мой турнир» для разных схем БД
+  const isMine = (t: Tournament) => {
+    const uid = user?.id;
+    if (!uid) return false;
+    // приоритет — creator_id; на всякий случай поддержим admin_user_id / owner_id
+    const anyT = t as any;
+    return (
+      anyT.creator_id === uid ||
+      anyT.admin_user_id === uid ||
+      anyT.owner_id === uid
+    );
+  };
+
+  return tournaments.filter((t) => {
+    if (qNorm && !t.name.toLowerCase().includes(qNorm)) return false;
+    if (fltType && t.tournament_type !== fltType) return false;
+    if (fltFormat && t.format !== fltFormat) return false;
+    if (fltStatus && t.status !== fltStatus) return false;
+
+    // показываем только мои, если включён чекбокс
+    if (fltMy && !isMine(t)) return false;
+
+    return true;
+  });
+}, [tournaments, q, fltType, fltFormat, fltStatus, fltMy, user?.id]);
+  
 
   return (
     <div className="page-container">
@@ -98,6 +119,17 @@ export function TournamentsClient() {
       <div className="page-content-container">
         {/* Панель фильтров */}
         <div className="card">
+
+          {/* 👇 ЧЕКБОКС — первым полем */}
+          <div className="checkbox-row">
+            <CheckBoxIcon
+              isSelected={fltMy}
+              onClick={() => setFltMy(v => !v)}
+              aria-label="Показывать только мои турниры"
+            />
+            <span>Только мои</span>
+          </div>
+
           <input
             type="text"
             value={q}
