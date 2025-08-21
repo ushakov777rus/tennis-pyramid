@@ -10,6 +10,7 @@ type TournamentCardProps = {
   tournament: Tournament | null;
   participantsCount: number;
   matchesCount: number;
+  displayName: boolean;
   onClick?: () => void;
   onDelete?: (tournamentId: number) => void;
 };
@@ -18,6 +19,7 @@ export function TournamentCard({
   tournament,
   participantsCount,
   matchesCount,
+  displayName = true,
   onClick,
   onDelete
 }: TournamentCardProps) {
@@ -40,7 +42,9 @@ if (tournament == null) {
   return (
     <div className={className} onClick={onClick} style={style}>
       <div className="tournament-header">
-        <h2>{tournament.name}</h2>
+        {displayName && (
+          <h2>{tournament.name}</h2>
+        )}
         <div
           className="tournament-status"
           style={{ minWidth: 80, display: "flex", justifyContent: "flex-end" }}

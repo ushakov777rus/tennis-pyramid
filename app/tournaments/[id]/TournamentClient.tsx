@@ -238,6 +238,7 @@ export default function TournamentClient() {
             tournament={tournament}
             participantsCount={participants.length}
             matchesCount={matches.length}
+            displayName={false}
           />
         </div>
 
