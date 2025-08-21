@@ -13,12 +13,14 @@ import { GuestMainPageCard } from "./components/GuestMainPageCard";
 import { AuthContainer } from "./components/AuthContainer";
 import { TournamentCard } from "./components/TournamentCard";
 import { useTournaments } from "./tournaments/TournamentsProvider";
+import { canViewTournament } from "./lib/permissions";
 
 export default function HomePage() {
   const { user } = useUser();
   const { tournaments, loading: tLoading, stats } = useTournaments();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [signupRole, setSignupRole] = useState<"player" | "tournament_admin">("player"); 
+  const router = useRouter();
 
 
   const isGuest = !user;
@@ -40,11 +42,13 @@ export default function HomePage() {
         ))}
 
         {!tLoading && ongoing.map(t => (
+   
           <TournamentCard
             key={t.id}
             tournament={t}
             participantsCount={stats[t.id]?.participants ?? 0}
             matchesCount={stats[t.id]?.matches ?? 0}
+            {...(canViewTournament(user,t) ? { onClick: () => router.push(`/tournaments/${t.id}`) } : {})}
           />
         ))}
 
