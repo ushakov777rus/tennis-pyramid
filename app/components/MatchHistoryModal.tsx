@@ -65,7 +65,6 @@ export function MatchHistoryModal({
             showTournament={false}
             onEditMatch={handleEdit}
             onDeleteMatch={handleDelete}
-            mask={user?.role !== "site_admin"}
           />
 
         <button onClick={onClose} className="modal-close-btn">
