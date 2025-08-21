@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { supabase } from "@/lib/supabaseClient";
+import { log } from "@/app/lib/logger";
 
 export async function GET() {
   // ⚠️ cookies() в 15.4.2 синхронная
@@ -19,7 +20,7 @@ export async function GET() {
         id,
         name,
         role,
-        players (
+        players:players!players_user_id_fkey (
           id,
           name,
           phone,
