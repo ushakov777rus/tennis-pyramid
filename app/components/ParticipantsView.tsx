@@ -63,7 +63,7 @@ export function ParticipantsView() {
   async function handleCreateTeam() {
     if (selectedPlayers.length !== 2) return;
     const [p1, p2] = selectedPlayers;
-    await createTeam?.(`${p1.name} - ${p2.name}`, p1.id, p2.id);
+    await createTeam?.(p1.id, p2.id);
     setSelectedPlayers([]); // локальный сброс выбора
   }
 

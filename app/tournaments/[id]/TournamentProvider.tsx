@@ -64,7 +64,7 @@ type TournamentContextShape = {
   addPlayerToTournament?: (playerId: number) => Promise<void>;
   removeParticipant?: (participantId: number) => Promise<void>;
   addTeamToTournament?: (teamId: number, maxLevel?: number) => Promise<void>;
-  createTeam?: (name: string, p1: number, p2: number) => Promise<void>;
+  createTeam?: (p1: number, p2: number) => Promise<void>;
   removeTeam?: (teamId: number) => Promise<void>;
   updatePositions: (next: Participant[]) => Promise<void>;
 };
@@ -212,10 +212,10 @@ export function TournamentProvider({
   );
 
   const createTeam = useCallback(
-    async (name: string, p1: number, p2: number) => {
+    async (p1: number, p2: number) => {
       setLoading(true);
       try {
-        await TeamsRepository.create(name, p1, p2);
+        await TeamsRepository.create(p1, p2);
         await reload();
       } finally {
         setLoading(false);
