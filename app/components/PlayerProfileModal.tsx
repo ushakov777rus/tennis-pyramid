@@ -145,7 +145,6 @@ export function PlayerProfileModal({
               showTournament={true}
               onEditMatch={undefined}
               onDeleteMatch={undefined}
-              mask={user?.role !== "site_admin"}
             />
           )}
         </div>

@@ -308,7 +308,6 @@ export default function TournamentClient() {
               matches={matches}
               onEditMatch={handleEditMatchSave}
               onDeleteMatch={handleDeleteMatch}
-              mask={user?.role !== "site_admin"}
             />
           )}
 
