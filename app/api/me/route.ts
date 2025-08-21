@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { supabase } from "@/lib/supabaseClient";
-import { log } from "@/app/lib/logger";
 
 export async function GET() {
   // ⚠️ cookies() в 15.4.2 синхронная

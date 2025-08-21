@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
-import { log } from "../lib/logger";
 
 type User = { id: number; name: string; role: string, player_id: number } | null;
 
@@ -15,20 +14,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   // ✅ при монтировании проверяем /api/me
   useEffect(() => {
-    log.info("UserProvider mounted ✅");
     async function loadUser() {
       try {
         const res = await fetch("/api/me");
         const data = await res.json();
         if (data.loggedIn) {
-          log.info("Пользователь залогинен", data.user);
           setUser(data.user);
         } else {
-          log.info("Пользователь НЕ залогинен");
           setUser(null);
         }
       } catch (err) {
-        log.error("Ошибка загрузки user:", err);
       }
     }
 

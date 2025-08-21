@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
-import { log } from "@/app/lib/logger";
 
 export async function POST(req: Request) {
   const { name, password } = await req.json();
@@ -40,8 +39,6 @@ export async function POST(req: Request) {
     player_id: data.players.length > 0 ? data.players[0].id : null
   };
 
-  log.info("api/login", user)
-
   // создаём ответ с user
   const res = NextResponse.json({
     message: "ok",
@@ -53,8 +50,6 @@ export async function POST(req: Request) {
     httpOnly: true,
     path: "/",
   });
-
-  log.info("Saved to cookies userId", String(data.id))
 
   return res;
 }
