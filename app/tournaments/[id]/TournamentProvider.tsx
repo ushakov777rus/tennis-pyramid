@@ -64,7 +64,7 @@ type TournamentContextShape = {
   addPlayerToTournament?: (playerId: number) => Promise<void>;
   removeParticipant?: (participantId: number) => Promise<void>;
   addTeamToTournament?: (teamId: number, maxLevel?: number) => Promise<void>;
-  createTeam?: (p1: number, p2: number) => Promise<void>;
+  createTeam?: (tournamentId:number, p1: number, p2: number) => Promise<void>;
   removeTeam?: (teamId: number) => Promise<void>;
   updatePositions: (next: Participant[]) => Promise<void>;
 };
@@ -78,7 +78,7 @@ export function TournamentProvider({
   initial: InitialData;
   children: React.ReactNode;
 }) {
-  const { user } = useUser();
+  const { user, loading: userLoading } = useUser();
   const { tournamentId } = initial;
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -102,7 +102,7 @@ export function TournamentProvider({
         TournamentsRepository.getTournamentById(tournamentId),
         PlayersRepository.loadAccessiblePlayers(user?.id, user?.role),
         TournamentsRepository.loadParticipants(tournamentId),
-        TeamsRepository.loadAll(),
+        TeamsRepository.loadTournamentTeams(tournamentId),
         MatchRepository.loadMatches(tournamentId),
       ]);
       setTournament(t);
@@ -113,14 +113,13 @@ export function TournamentProvider({
     } finally {
       setLoading(false);
     }
-  }, [tournamentId]);
+  }, [tournamentId, user?.id, user?.role]);
 
   useEffect(() => {
-    if (needInitialFetch) {
-      // не блокируем рендер
+    if (needInitialFetch && !userLoading) {
       void reload();
     }
-  }, [needInitialFetch, reload]);
+  }, [needInitialFetch, userLoading, reload]);
 
   // ---- Мутации матчей ----
   const addMatch = useCallback(
@@ -212,10 +211,10 @@ export function TournamentProvider({
   );
 
   const createTeam = useCallback(
-    async (p1: number, p2: number) => {
+    async (tournamentId: number, p1: number, p2: number) => {
       setLoading(true);
       try {
-        await TeamsRepository.create(p1, p2);
+        await TeamsRepository.create(tournamentId, p1, p2);
         await reload();
       } finally {
         setLoading(false);

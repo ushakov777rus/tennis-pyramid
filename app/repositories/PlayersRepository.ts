@@ -24,6 +24,7 @@ export class PlayersRepository {
     userRole: string | undefined
   ): Promise<Player[]> {
 
+    console.log("loadAccessiblePlayers: ", organiserUserId, userRole);
     if (organiserUserId === undefined || userRole === undefined)
       return [];
 

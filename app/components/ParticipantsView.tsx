@@ -61,9 +61,10 @@ export function ParticipantsView() {
 
   // создать команду из выбранных двух игроков
   async function handleCreateTeam() {
-    if (selectedPlayers.length !== 2) return;
+    if (selectedPlayers.length !== 2 || !tournament) 
+      return;
     const [p1, p2] = selectedPlayers;
-    await createTeam?.(p1.id, p2.id);
+    await createTeam?.(tournament.id, p1.id, p2.id);
     setSelectedPlayers([]); // локальный сброс выбора
   }
 

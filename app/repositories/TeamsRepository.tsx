@@ -27,8 +27,33 @@ export class TeamsRepository {
       }) ?? []
   }
 
-  static async create(player1Id?: number, player2Id?: number): Promise<void> {
+    /* Загружаем все команды*/
+  static async loadTournamentTeams(tournamentId: number): Promise<Team[]> {
+    const { data, error } = await supabase
+      .from("teams")
+      .select(`
+        id,
+        tournament_id,
+        player1:players!teams_player1_id_fkey (id, name, phone, sex, ntrp),
+        player2:players!teams_player2_id_fkey (id, name, phone, sex, ntrp)
+      `).eq("tournament_id", tournamentId);
+
+    if (error) {
+      console.error("Ошибка загрузки команд:", error);
+      return [];
+    }
+
+    return (data ?? []).map((row: any) => {
+      const player1 = new Player(row.player1);
+      const player2 = new Player(row.player2);
+
+      return new Team(row.id, player1, player2);
+      }) ?? []
+  }
+
+  static async create(tournamentId: number, player1Id?: number, player2Id?: number): Promise<void> {
     const { error } = await supabase.from("teams").insert({
+      tournament_id: tournamentId,
       player1_id: player1Id ?? null,
       player2_id: player2Id ?? null,
     });
