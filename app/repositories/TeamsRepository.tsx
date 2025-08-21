@@ -43,6 +43,8 @@ export class TeamsRepository {
       return [];
     }
 
+    console.log("TeamsRepository-loadTournamentTeams:", tournamentId, data);
+
     return (data ?? []).map((row: any) => {
       const player1 = new Player(row.player1);
       const player2 = new Player(row.player2);

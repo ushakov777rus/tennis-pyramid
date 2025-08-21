@@ -82,7 +82,7 @@ export function ParticipantsView() {
       ) : (
         <>
           {/* Табы для переключения с создания пар на добавление пар const canDelete = canDeleteTournament(user, t);*/}
-          {canEditTournament(user, tournament) && (
+          {/*TODO canEditTournament(user, tournament)*/true && (
             <div className="card card-tabs">
               <button
                 className={
