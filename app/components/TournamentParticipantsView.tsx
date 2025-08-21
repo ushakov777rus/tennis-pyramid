@@ -6,9 +6,10 @@ import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
 import { Participant } from "@/app/models/Participant";
 
-import "./TeamsTable.css"; // реюз тех же таблиц/кнопок/чипов
 import { DeleteIconButton, PlusIconButton } from "./IconButtons";
 import { AdminOnly } from "./RoleGuard";
+
+import "@/app/components/ParticipantsView.css";
 
 type TournamentParticipantsViewProps = {
   availablePlayers: Player[];           // слева (игроки, если есть)
@@ -38,12 +39,12 @@ export function TournamentParticipantsView({
 
   // фильтрация слева
   const filteredPlayers = useMemo(
-    () => (lf ? availablePlayers.filter(p => p.name.toLowerCase().includes(lf)) : availablePlayers),
+    () => (lf ? availablePlayers.filter(p => p.displayName(false).toLowerCase().includes(lf)) : availablePlayers),
     [availablePlayers, lf]
   );
 
   const filteredTeams = useMemo(
-    () => (lf ? availableTeams.filter(t => (t.name || "").toLowerCase().includes(lf)) : availableTeams),
+    () => (lf ? availableTeams.filter(t => (t.displayName(false) || "").toLowerCase().includes(lf)) : availableTeams),
     [availableTeams, lf]
   );
 
@@ -60,11 +61,18 @@ export function TournamentParticipantsView({
   const maxRows = Math.max(leftList.length, filteredParticipants.length);
 
   return (
-    <table className="history-table">
-      <thead className="history-table-head">
+    <table className="participants-table">
+      <colgroup>
+        <col style={{ width: "40%" }} />
+        <col style={{ width: "10%" }} />
+        <col style={{ width: "40%" }} />
+        <col style={{ width: "10%" }} />
+      </colgroup>
+
+      <thead>
         <tr>
-          <th colSpan={2}>{usePlayersLeft ? "Свободные игроки" : "Свободные пары"}</th>
-          <th colSpan={2}>Участники турнира</th>
+          <th colSpan={2} style={{ width: "50%" }}>{usePlayersLeft ? "Игроки" : "Пары"}</th>
+          <th colSpan={2} style={{ width: "50%" }}>Участники турнира</th>
         </tr>
       </thead>
 
@@ -110,7 +118,7 @@ export function TournamentParticipantsView({
             return (
               <tr key={i}>
                 {/* Свободные: чип + добавить */}
-                <td>{free ? <span className="chip">{(free as any).name}</span> : ""}</td>
+                <td>{free ? <span className="chip">{(free as any).displayName(false)}</span> : ""}</td>
                 <td className="score-col">
                   {free && (
                     <div className="row-actions always-visible">
@@ -129,7 +137,7 @@ export function TournamentParticipantsView({
                 </td>
 
                 {/* Уже в турнире: чип + удалить */}
-                <td>{part ? <span className="chip">{part.displayName(user?.role !== "site_admin")}</span> : ""}</td>
+                <td>{part ? <span className="chip">{part.displayName(false)}</span> : ""}</td>
                 <td className="score-col">
                   {part && (
                     <div className="row-actions always-visible">

@@ -4,10 +4,11 @@ import { useMemo, useState } from "react";
 import { useUser } from "@/app/components/UserContext";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
+import { SaveIconButton, CancelIconButton } from "@/app/components/IconButtons";
+
 import "./PyramidView.css";
 import "./RoundRobinView.css";
-import "@/app/components/TeamsTable.css";
-import { SaveIconButton, CancelIconButton } from "@/app/components/IconButtons";
+import "@/app/components/ParticipantsView.css";
 
 type SwissViewProps = {
   participants: Participant[];

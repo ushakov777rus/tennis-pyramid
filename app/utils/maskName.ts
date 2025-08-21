@@ -19,12 +19,3 @@ export function maskFullName(fullName: string): string {
   const masked = parts.map(maskWord).join(" ");
   return masked;
 }
-
-// Если показываешь команду вида "Имя1 Фамилия1 + Имя2 Фамилия2"
-export function maskTeamName(teamName: string): string {
-  // поддержим формат "A + B" и "A&B"
-  return teamName
-    .split(/\s*[+&]\s*/g)
-    .map(maskFullName)
-    .join(" + ");
-}

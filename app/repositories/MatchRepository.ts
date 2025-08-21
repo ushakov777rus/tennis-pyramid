@@ -62,13 +62,11 @@ export class MatchRepository {
         player2:players!fk_player2(id, name, ntrp, phone, sex),
         team1:teams!fk_team1 (
           id,
-          name,
           player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
           player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
         ),
         team2:teams!fk_team2 (
           id,
-          name,
           player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
           player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
         )
@@ -90,7 +88,6 @@ export class MatchRepository {
       const team1 = row.team1
         ? new Team(
             row.team1.id,
-            row.team1.name,
             new Player(row.team1.player1),
             new Player(row.team1.player2)
           )
@@ -99,7 +96,6 @@ export class MatchRepository {
       const team2 = row.team2
         ? new Team(
             row.team2.id,
-            row.team2.name,
             new Player(row.team2.player1),
             new Player(row.team2.player2)
           )
@@ -149,13 +145,11 @@ export class MatchRepository {
         player2:players!fk_player2(id, name, ntrp, phone, sex),
         team1:teams!fk_team1 (
           id,
-          name,
           player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
           player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
         ),
         team2:teams!fk_team2 (
           id,
-          name,
           player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
           player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
         )
@@ -178,7 +172,6 @@ export class MatchRepository {
       const team1 = row.team1
         ? new Team(
             row.team1.id,
-            row.team1.name,
             new Player(row.team1.player1),
             new Player(row.team1.player2)
           )
@@ -187,7 +180,6 @@ export class MatchRepository {
       const team2 = row.team2
         ? new Team(
             row.team2.id,
-            row.team2.name,
             new Player(row.team2.player1),
             new Player(row.team2.player2)
           )
@@ -235,13 +227,11 @@ export class MatchRepository {
         player2:players!fk_player2(id, name, ntrp, phone, sex),
         team1:teams!fk_team1 (
           id,
-          name,
           player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
           player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
         ),
         team2:teams!fk_team2 (
           id,
-          name,
           player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
           player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
         )
@@ -262,7 +252,6 @@ export class MatchRepository {
     const team1 = data.team1
       ? new Team(
           data.team1[0].id,
-          data.team1[0].name,
           new Player(data.team1[0].player1[0]),
           new Player(data.team1[0].player2[0])
         )
@@ -271,7 +260,6 @@ export class MatchRepository {
     const team2 = data.team2
       ? new Team(
           data.team2[0].id,
-          data.team2[0].name,
           new Player(data.team2[0].player1[0]),
           new Player(data.team2[0].player2[0])
         )

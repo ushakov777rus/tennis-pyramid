@@ -4,10 +4,10 @@ import { useState } from "react";
 
 import { Player } from "@/app/models/Player";
 
-import { TeamsTable } from "@/app/components/TeamsTable";
+import { TournamentTeamsTable } from "@/app/components/TournamentTeamsTable";
 import { TournamentParticipantsView } from "@/app/components/TournamentParticipantsView";
 
-import "./ParticipantsView.css";
+import "@/app/components/ParticipantsView.css";
 
 // 👉 все данные и действия берём из провайдера
 import { useTournament } from "@/app/tournaments/[id]/TournamentProvider";
@@ -26,6 +26,10 @@ export function ParticipantsView() {
     removeTeam,
     createTeam,
   } = useTournament();
+
+  console.log("ParticipantsView::players", players);
+  console.log("ParticipantsView::participants", participants);
+  console.log("ParticipantsView::teams", teams);
 
   // выбор игроков для создания пары
   const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
@@ -103,7 +107,7 @@ export function ParticipantsView() {
           <div>
             {/* TAB: создание/удаление команд */}
             {activeTab === "teams" && (
-              <TeamsTable
+              <TournamentTeamsTable
                 availablePlayers={availablePlayers}
                 selectedPlayers={selectedPlayers}
                 onTogglePlayer={(p) => {

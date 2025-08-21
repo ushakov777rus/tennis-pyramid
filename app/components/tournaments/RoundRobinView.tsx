@@ -4,10 +4,11 @@ import { useMemo, useState } from "react";
 import { useUser } from "@/app/components/UserContext";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
+import { SaveIconButton, CancelIconButton } from "@/app/components/IconButtons";
+
 import "./PyramidView.css";    // чипы/бейджи/карточки
 import "./RoundRobinView.css"; // таблица кругового турнира (grid-строки)
-import "@/app/components/TeamsTable.css";     // стиль .icon-btn, .danger, .lg
-import { SaveIconButton, CancelIconButton } from "@/app/components/IconButtons";
+import "@/app/components/ParticipantsView.css";
 
 type RoundRobinViewProps = {
   participants: Participant[];

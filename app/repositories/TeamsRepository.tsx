@@ -9,12 +9,10 @@ export class TeamsRepository {
     const { data, error } = await supabase
       .from("teams")
       .select(`
-        id,
-        name,
+        id,        
         player1:players!teams_player1_id_fkey (id, name, phone, sex, ntrp),
         player2:players!teams_player2_id_fkey (id, name, phone, sex, ntrp)
-      `)
-      .order("name", { ascending: true });
+      `);
 
     if (error) {
       console.error("Ошибка загрузки команд:", error);
@@ -25,13 +23,12 @@ export class TeamsRepository {
       const player1 = new Player(row.player1);
       const player2 = new Player(row.player2);
 
-        return new Team(row.id, row.name, player1, player2);
+      return new Team(row.id, player1, player2);
       }) ?? []
   }
 
-  static async create(name: string, player1Id?: number, player2Id?: number): Promise<void> {
+  static async create(player1Id?: number, player2Id?: number): Promise<void> {
     const { error } = await supabase.from("teams").insert({
-      name,
       player1_id: player1Id ?? null,
       player2_id: player2Id ?? null,
     });
@@ -61,7 +58,6 @@ export class TeamsRepository {
       .from("teams")
       .select(`
         id,
-        name,
         player1:players!teams_player1_id_fkey (id, name, phone, sex, ntrp),
         player2:players!teams_player2_id_fkey (id, name, phone, sex, ntrp)
       `)
@@ -77,6 +73,6 @@ export class TeamsRepository {
     const player1 = data.player1 ? new Player(data.player1[0]) : undefined;
     const player2 = data.player2 ? new Player(data.player2[0]) : undefined;
 
-    return new Team(data.id, data.name, player1 as any, player2 as any);
+    return new Team(data.id, player1 as any, player2 as any);
   }
 }

@@ -3,10 +3,11 @@
 import React from "react";
 import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
-import "./TeamsTable.css";
+
+import "@/app/components/ParticipantsView.css";
 
 // ✅ унифицированные кнопки
-import { DeleteIconButton, CreateTeamIconButton, CheckBoxIconButton } from "@/app/components/IconButtons";
+import { DeleteIconButton, CreateTeamIconButton } from "@/app/components/IconButtons";
 import { AdminOnly } from "./RoleGuard";
 
 type Props = {
@@ -21,7 +22,7 @@ type Props = {
   onRemoveTeamFromTournament: (teamId: number) => void;
 };
 
-export function TeamsTable({
+export function TournamentTeamsTable({
   availablePlayers,
   selectedPlayers,
   onTogglePlayer,
@@ -41,11 +42,18 @@ export function TeamsTable({
       : undefined;
 
   return (
-    <table className="history-table">
-      <thead className="history-table-head">
+    <table className="participants-table">
+      <colgroup>
+        <col style={{ width: "33%" }} />
+        <col style={{ width: "10%" }} />
+        <col style={{ width: "47%" }} />
+        <col style={{ width: "10%" }} />
+      </colgroup>
+
+      <thead>
         <tr>
-          <th colSpan={3}>Свободные игроки</th>
-          <th colSpan={2}>Команды</th>
+          <th colSpan={2} style={{ width: "50%" }}>Игроки</th>
+          <th colSpan={2} style={{ width: "50%" }}>Команды</th>
         </tr>
       </thead>
 
@@ -65,61 +73,61 @@ export function TeamsTable({
 
           return (
             <tr key={i}>
-              {/* Свободные игроки: чип */}
-              <td>{player ? <span className="chip">{player.name}</span> : ""}</td>
-
-              {/* Кнопка выбора игрока */}
-              <td className="score-col">
-                {player && (
-                  <AdminOnly>
-                  <div
-                    className={`row-actions ${
-                      isSelected ? "always-visible" : ""
-                    } create-inline-wrap`}
-                  >
-                  <CheckBoxIconButton
+              {/* Свободные игроки: чип (кликабельный) */}
+              <td>
+                {player ? (
+                  <span
+                    className={`chip clickable ${isSelected ? "active" : ""}  cell-2lines`}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={isSelected}
                     title={isSelected ? "Снять выделение" : "Выбрать игрока"}
-                    aria-label={isSelected ? "Снять выделение" : "Выбрать игрока"}
-                    isSelected={isSelected}
-                    className={isSelected ? "active" : undefined}
                     onClick={(e) => {
                       e.stopPropagation();
                       onTogglePlayer(player);
                     }}
-                  />
-                  </div>
-                  </AdminOnly>
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onTogglePlayer(player);
+                      }
+                    }}
+                  >
+                    {player.name}
+                  </span>
+                ) : (
+                  ""
                 )}
               </td>
 
               {/* Инлайновая кнопка "создать команду" (рядом с последним выбранным) */}
-              <td className="score-col">
+              <td>
                 {player && (
                   <div
-                    className={`row-actions ${
+                    className={`${
                       isSelected ? "always-visible" : ""
                     } create-inline-wrap`}
                   >
                     {showCreateHere && (
                       <AdminOnly>
-                      <CreateTeamIconButton
-                        title="Создать команду из выбранных"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onCreateTeam();
-                        }}
-                      />
+                        <CreateTeamIconButton
+                          title="Создать команду из выбранных"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCreateTeam();
+                          }}
+                        />
                       </AdminOnly>
                     )}
                   </div>
                 )}
               </td>
 
-              {/* Пары в турнире: чип */}
+              {/* Пары в рамках турнира: чип */}
               <td>
                 {team ? (
-                  <span className="chip">
-                    {(team.player1?.name ?? "??")} + {(team.player2?.name ?? "??")}
+                  <span className="chip  cell-2lines">
+                    {(team.player1?.name ?? "??")} {(team.player2?.name ?? "??")}
                   </span>
                 ) : (
                   ""
@@ -127,18 +135,18 @@ export function TeamsTable({
               </td>
 
               {/* Кнопка удаления команды */}
-              <td className="score-col">
+              <td>
                 {team && (
                   <AdminOnly>
-                  <div className="row-actions">
-                    <DeleteIconButton
-                      title="Удалить команду"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onRemoveTeamFromTournament(team.id);
-                      }}
-                    />
-                  </div>
+                    <div>
+                      <DeleteIconButton
+                        title="Удалить команду"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRemoveTeamFromTournament(team.id);
+                        }}
+                      />
+                    </div>
                   </AdminOnly>
                 )}
               </td>

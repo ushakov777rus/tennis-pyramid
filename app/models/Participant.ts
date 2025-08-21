@@ -3,7 +3,7 @@
 import { Player } from "./Player";
 import { Team } from "./Team";
 
-import { maskFullName, maskTeamName } from "../utils/maskName";
+import { maskFullName } from "../utils/maskName";
 
 /** Базовый класс — то, что реально хранится в БД */
 export class ParticipantBase {
@@ -36,9 +36,13 @@ export class ParticipantBase {
 
 /** Класс с методами */
 export class Participant extends ParticipantBase {
+  
   displayName(mask: boolean): string {
+    console.log("this.team", this.team);
     if (this.player) return mask ? maskFullName(this.player.name) : this.player.name;
-    if (this.team) return mask ? maskTeamName(this.team.name) : this.team.name;
+    if (this.team) return mask ? 
+      maskFullName(this.team.player1.name) + " " + maskFullName(this.team.player2.name) : 
+      this.team.player1.name + " " + this.team.player2.name;
     return "Без имени";
   }
 

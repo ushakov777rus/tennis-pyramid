@@ -266,7 +266,6 @@ static async loadParticipants(tournamentId: number): Promise<Participant[]> {
       players ( id, name, ntrp, phone, sex ),
       teams (
         id,
-        name,
         player1:players!teams_player1_id_fkey ( id, name, ntrp, phone, sex ),
         player2:players!teams_player2_id_fkey ( id, name, ntrp, phone, sex )
       )
@@ -318,7 +317,7 @@ static async loadParticipants(tournamentId: number): Promise<Participant[]> {
         : undefined;
 
       if (teamPlayer1 && teamPlayer2) {
-        team = new Team(t.id, t.name, teamPlayer1, teamPlayer2);
+        team = new Team(t.id, teamPlayer1, teamPlayer2);
       }
     }
 

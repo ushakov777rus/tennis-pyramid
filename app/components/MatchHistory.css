@@ -72,8 +72,8 @@
 .chip {
   display: inline-flex;
   align-items: center;
-  padding: 4px 8px;
-  border-radius: 999px;
+  padding: 4px 4px;
+  border-radius: 10px;
   background: #2a2a2a;
   color: #ccc;
   border: 1px solid #3a3a3a;

@@ -1,3 +1,136 @@
+/* Таблица */
+.participants-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: #1b1b1b;
+  border-radius: 10px;
+  overflow: hidden;
+  color: #ccc;
+  box-shadow: 0 0 10px rgba(166, 255, 0, 0.1); /* зелёная подсветка */
+}
+
+.participants-table th {
+  background: #222; /* тёмный хедер */
+  text-align: left;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-bottom: 1px solid #2a2a2a;
+  color: #aaff55; /* мягкий зелёный акцент */
+  z-index: 1;
+}
+
+.participants-table td {
+  padding: 2px 2px;
+  white-space: normal;
+  word-break: break-word;
+  color: #ccc;
+  background: #1b1b1b;
+}
+
+
+/* 1) фиксированная раскладка, чтобы ширины колонок были предсказуемы */
+.participants-table { table-layout: fixed; width: 100%; }
+
+/* 2) вертикальный центр */
+.participants-table td, .participants-table th { vertical-align: middle; }
+
+/* 3) контент ячейки: не более 2 строк + многоточие */
+.cell-2lines {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;     /* максимум 2 строки */
+  line-clamp: 2;
+  overflow: hidden;
+  line-height: 1.25;         /* задай единый line-height */
+}
+
+/* 4) задаём высоту строки исходя из 2 строк текста + паддинги */
+.participants-table tbody tr {
+  height: calc( (1.25em * 2) + 16px ); /* 2 строки * line-height + вертикальные паддинги */
+}
+
+
+
+.pairs-tab {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.pairs-column {
+  flex: 1;
+}
+
+.button-right {
+  margin-left: auto;
+}
+
+.create-btn {
+  margin-top: 10px;
+}
+
+/* Унаследованные классы, чтобы стиль был одинаковым */
+.players-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.add-team-btn {
+  padding: 4px 8px;
+  font-size: 14px;
+  border: 1px solid #888;
+  border-radius: 4px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+.add-team-btn:hover {
+  background-color: #ddd;
+}
+
+/* контейнер рядом с чекбоксом уже есть */
+.create-inline-wrap {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* на мобиле немного ужмём */
+@media (max-width: 720px) {
+  .create-inline-wrap { gap: 6px; }
+  .create-inline-wrap svg { width: 20px; height: 20px; }
+}
+
+
+.players-2-columnt-table tr {
+  display: grid;
+  grid-template-columns: 33% 10% 47% 10%;
+  margin: 0 auto;
+}
+
+.players-2-columnt-table td {
+  white-space: normal;   /* разрешаем перенос строк */
+  word-wrap: break-word; /* старое свойство, для совместимости */
+  word-break: break-word; /* современные браузеры */
+  width: 100%;
+}
+
+.participants-2-columnt-table tr {
+  display: grid;
+  grid-template-columns: 40% 10% 40% 10%;
+  margin: 0 auto;
+}
+
+.participants-2-columnt-table td {
+  white-space: normal;   /* разрешаем перенос строк */
+  word-wrap: break-word; /* старое свойство, для совместимости */
+  word-break: break-word; /* современные браузеры */
+}
+
+
 /* Списки и строки — тёмный стиль как в истории матчей */
 .players-list, .teams-list { list-style: none; margin: 0; padding: 0; }
 
@@ -21,3 +154,19 @@
   cursor: pointer;
 }
 .add-team-btn:hover, .cta-btn:hover { background: rgba(166,255,0,0.25); }
+
+
+.chip.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.chip.clickable.active {
+  outline: 2px solid #aaff55
+}
+
+.row-actions.always-visible {
+  opacity: 1;
+}
+
+
