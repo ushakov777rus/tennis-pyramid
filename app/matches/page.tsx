@@ -67,7 +67,6 @@ export default function MatchListView() {
           showTournament={true}
           onEditMatch={handleEditMatchSave}
           onDeleteMatch={handleDeleteMatch}
-          mask={user?.role !== "site_admin"}
         />
       </div>
     </div>

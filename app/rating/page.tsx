@@ -202,7 +202,7 @@ export default function PlayerListView() {
                           onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                         />
                       ) : (
-                        <span className="chip">{needMask(user) ? maskFullName(p.name) : p.name}</span>
+                        <span className="chip">{p.displayName(false)}</span>
                       )}
                       <div className="show-sm-only" style={{ marginTop: 6 }}>
                         <span className="badge ntrp-badge">NTRP: {p.ntrp || "—"}</span>

@@ -23,7 +23,6 @@ type MatchHistoryViewProps = {
   matches: Match[];
   onEditMatch?: (match: Match) => void;
   onDeleteMatch?: (match: Match) => void;
-  mask: boolean;
   showTournament?: boolean;
 };
 
@@ -32,7 +31,6 @@ export function MatchHistoryView({
   matches,
   onEditMatch,
   onDeleteMatch,
-  mask: boolean,
   showTournament = false,
 }: MatchHistoryViewProps) {
   const { user } = useUser();
@@ -64,15 +62,15 @@ export function MatchHistoryView({
     [displayMatches]
   );
 
-  const getSideName = (m: Match, side: 1 | 2, mask: boolean) => {
+  const getSideName = (m: Match, side: 1 | 2) => {
     if (m.type === "double") {
-      return side === 1 ? m.team1?.displayName(mask) ?? "??" : m.team2?.displayName(mask) ?? "??";
+      return side === 1 ? m.team1?.displayName(false) ?? "??" : m.team2?.displayName(false) ?? "??";
     }
-    return side === 1 ? m.player1?.displayName(mask) ?? "??" : m.player2?.displayName(mask) ?? "??";
+    return side === 1 ? m.player1?.displayName(false) ?? "??" : m.player2?.displayName(false) ?? "??";
   };
 
 
-  const playersLine = (m: Match) => `${getSideName(m, 1, user?.role !== "site_admin")} — ${getSideName(m, 2, user?.role !== "site_admin")}`;
+  const playersLine = (m: Match) => `${getSideName(m, 1)} — ${getSideName(m, 2)}`;
 
   // применяем фильтры
   const filteredMatches = useMemo(() => {
@@ -257,7 +255,7 @@ export function MatchHistoryView({
                         }
                         title="Сторона 1"
                       >
-                        {getSideName(m, 1, user?.role !== "site_admin")}
+                        {getSideName(m, 1)}
                       </span>
 
                       <span
@@ -270,7 +268,7 @@ export function MatchHistoryView({
                         }
                         title="Сторона 2"
                       >
-                        {getSideName(m, 2, user?.role !== "site_admin")}
+                        {getSideName(m, 2)}
                       </span>
                     </div>
                   </td>
