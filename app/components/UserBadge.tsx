@@ -9,6 +9,7 @@ import "./UserBadge.css";
 
 export function UserBadge() {
   const { user, setUser } = useUser();
+  const router = useRouter()
 
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -16,6 +17,7 @@ export function UserBadge() {
   async function handleLogout() {
     await fetch("/api/logout", { method: "POST" });
     setUser(null);
+    router.replace("/");
   }
 
   return (
