@@ -79,6 +79,7 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
           placeholder="-- Нападение --"
           disabled={isAnon || isPlayerWithFixedAttacker}
           onChange={onChangeAttacker}
+          sort={true}
         />
 
         {/* Защита */}
@@ -89,6 +90,7 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
           placeholder="-- Защита --"
           disabled={isAnon}
           onChange={onChangeDefender}
+          sort={true}
         />
 
         <input

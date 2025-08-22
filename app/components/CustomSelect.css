@@ -99,7 +99,6 @@
 /* Узкие экраны */
 @media (max-width: 480px) {
   .cs-select { width: 100%; }
-  .cs-trigger { min-height: 32px; }
   .cs-option { padding: 10px 12px; }
 }
 

@@ -9,6 +9,12 @@ type Option = {
   disabled?: boolean;
 };
 
+type SortProp =
+  | boolean
+  | "asc"
+  | "desc"
+  | ((a: Option, b: Option) => number);
+
 type CustomSelectProps = {
   options: Option[];
   value?: string | number | null;
@@ -17,7 +23,8 @@ type CustomSelectProps = {
   disabled?: boolean;
   className?: string;
   maxDropdownHeight?: number; // px
-  showSearch?: boolean;       // 👈 NEW: показывать поле поиска (по умолчанию true)
+  showSearch?: boolean;       // показывать поле поиска (по умолчанию true)
+  sort?: SortProp;            // 👈 управление сортировкой
 };
 
 export function CustomSelect({
@@ -28,30 +35,45 @@ export function CustomSelect({
   disabled = false,
   className = "",
   maxDropdownHeight = 240,
-  showSearch = true,          // 👈 default = true
+  showSearch = true,
+  sort = "asc",              // 👈 по умолчанию сортируем по возрастанию (как раньше)
 }: CustomSelectProps) {
 
   const comboboxRef = useRef<HTMLDivElement | null>(null);
   const listboxRef = useRef<HTMLDivElement | null>(null);
 
-  // 0) Сортируем входящие options по алфавиту один раз (мемо)
+  // 0) Готовим отсортированные (или нет) опции
   const sortedOptions = useMemo(() => {
+    // всегда копируем, чтобы не мутировать входной массив
     const copy = [...options];
-    copy.sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: "base" }));
-    return copy;
-  }, [options]);
 
-// 1) Фильтрация
+    // сортировка отключена
+    if (sort === false) return copy;
+
+    // кастомный компаратор
+    if (typeof sort === "function") {
+      return copy.sort(sort);
+    }
+
+    // строки "asc"/"desc" или true
+    const asc = sort === true || sort === "asc";
+    const cmp = (a: Option, b: Option) =>
+      a.label.localeCompare(b.label, undefined, { sensitivity: "base" });
+
+    return asc ? copy.sort(cmp) : copy.sort((a, b) => -cmp(a, b));
+  }, [options, sort]);
+
+  // 1) Фильтрация
   const [query, setQuery] = useState("");
   const normalizedQuery = query.trim().toLowerCase();
   const filteredOptions = useMemo(() => {
-    if (!showSearch || !normalizedQuery) return sortedOptions; // 👈 если поиск скрыт — не фильтруем
+    if (!showSearch || !normalizedQuery) return sortedOptions;
     return sortedOptions.filter((o) => o.label.toLowerCase().includes(normalizedQuery));
   }, [sortedOptions, normalizedQuery, showSearch]);
 
   const [open, setOpen] = useState(false);
 
-  // Индексы теперь считаем относительно ОТОБРАЖАЕМОГО (filteredOptions) списка
+  // Индексы считаем относительно ОТОБРАЖАЕМОГО (filteredOptions) списка
   const selectedIndex = useMemo(
     () => filteredOptions.findIndex((o) => String(o.value) === String(value)),
     [filteredOptions, value]
@@ -84,8 +106,7 @@ export function CustomSelect({
   const baseId = useId();
   const listboxId = `${baseId}-listbox`;
 
-  // Тайп-а-хэд (оставим — он работает поверх общего списка, но
-  // на практике при открытом поиске пользователи печатают в input)
+  // Тайп-а-хэд
   const typeBufferRef = useRef("");
   const typeTimeoutRef = useRef<number | null>(null);
 
@@ -265,40 +286,38 @@ export function CustomSelect({
         <span className="cs-caret" aria-hidden>▾</span>
       </div>
 
-  {open && (
-    <div
-      ref={listboxRef}
-      id={listboxId}
-      role="listbox"
-      className="card cs-dropdown"
-      style={{ maxHeight: `${maxDropdownHeight}px` }}
-      onMouseDown={(e) => e.stopPropagation()}
-    >
-      {/* Поле поиска — только если showSearch */}
-      {showSearch && (
-        <div className="cs-search-wrap">
-          <input
-            data-role="cs-search"
-            className="input cs-search"
-            type="text"
-            autoFocus
-            placeholder="Поиск..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                if (activeIndex != null && activeIndex >= 0) commitSelection(activeIndex);
-              } else if (e.key === "Escape") {
-                e.preventDefault();
-                setOpenSafe(false);
-              }
-            }}
-          />
-        </div>
-      )}
-
-
+      {open && (
+        <div
+          ref={listboxRef}
+          id={listboxId}
+          role="listbox"
+          className="card cs-dropdown"
+          style={{ maxHeight: `${maxDropdownHeight}px` }}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          {/* Поле поиска — только если showSearch */}
+          {showSearch && (
+            <div className="cs-search-wrap">
+              <input
+                data-role="cs-search"
+                className="input cs-search"
+                type="text"
+                autoFocus
+                placeholder="Поиск..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (activeIndex != null && activeIndex >= 0) commitSelection(activeIndex);
+                  } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    setOpenSafe(false);
+                  }
+                }}
+              />
+            </div>
+          )}
 
           {/* Список опций */}
           {filteredOptions.length === 0 ? (

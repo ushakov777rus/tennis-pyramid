@@ -132,6 +132,7 @@ export function RegisterModal({
           placeholder="Выберите роль"
           disabled={pending}
           showSearch={false}
+          sort={false}
         />
 
         <input

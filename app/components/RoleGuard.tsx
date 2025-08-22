@@ -32,6 +32,10 @@ export const TournamentAdminOnly = ({ children }: { children: ReactNode }) => (
   <RoleGuard allowed={["tournament_admin"]}>{children}</RoleGuard>
 );
 
+export const NotAdminOnly = ({ children }: { children: ReactNode }) => (
+  <RoleGuard allowed={["player", "tournament_admin"]}>{children}</RoleGuard>
+);
+
 export const AdminOnly = ({ children }: { children: ReactNode }) => (
   <RoleGuard allowed={["site_admin", "tournament_admin"]}>{children}</RoleGuard>
 );

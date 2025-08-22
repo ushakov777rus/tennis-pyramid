@@ -33,13 +33,13 @@ export const FORMAT_OPTIONS = [
   { value: TournamentFormat.DoubleElimination, label: "Двойная олим." },
   { value: TournamentFormat.GroupsPlayoff, label: "Группы + плей-офф" },
   { value: TournamentFormat.Swiss, label: "Швейцарка" },
-] as const;
+];
 
 export const TYPE_OPTIONS = [
   { value: "", label: "Любой тип" },
   { value: TournamentType.Single, label: "Одиночный" },
   { value: TournamentType.Double, label: "Парный" },
-] as const;
+];
 
 export const STATUS_OPTIONS = [
   { value: "", label: "Любой статус" },
@@ -47,7 +47,7 @@ export const STATUS_OPTIONS = [
   { value: TournamentStatus.Registration, label: "Идет набор" },
   { value: TournamentStatus.Ongoing, label: "Идет" },
   { value: TournamentStatus.Finished, label: "Завершён" },
-] as const;
+];
 
 /** Словари лейблов для UI */
 const FORMAT_LABELS_RU: Record<TournamentFormat, string> = {

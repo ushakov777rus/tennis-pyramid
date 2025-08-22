@@ -15,7 +15,7 @@ import {
 } from "@/app/models/Tournament";
 
 import { NavigationBar } from "@/app/components/NavigationBar";
-import { AdminOnly, LoggedIn } from "@/app/components/RoleGuard";
+import { AdminOnly, NotAdminOnly } from "@/app/components/RoleGuard";
 import { TournamentCard } from "@/app/components/TournamentCard";
 import { useUser } from "@/app/components/UserContext";
 import { AddTournamentModal } from "../components/AddTournamentModal";
@@ -28,6 +28,7 @@ import { canDeleteTournament, canViewTournament } from "@/app/lib/permissions";
 
 import "./page.css";
 import "@/app/MainPage.css";
+import { CustomSelect } from "../components/CustomSelect";
 
 export function TournamentsClient() {
   const { user } = useUser();
@@ -120,17 +121,19 @@ const filtered = useMemo(() => {
 
       <div className="page-content-container">
         {/* Панель фильтров */}
-        <div className="card">
+        <div className="card card-grid">
 
           {/* 👇 ЧЕКБОКС — первым полем */}
-          <div className="checkbox-row">
-            <CheckBoxIcon
-              isSelected={fltMy}
-              onClick={() => setFltMy(v => !v)}
-              aria-label="Показывать только мои турниры"
-            />
-            <span>Только мои</span>
-          </div>
+          <NotAdminOnly>
+            <div className="checkbox-row">
+              <CheckBoxIcon
+                isSelected={fltMy}
+                onClick={() => setFltMy(v => !v)}
+                aria-label="Показывать только мои турниры"
+              />
+              <span>Только мои</span>
+            </div>
+          </NotAdminOnly>
 
           <input
             type="text"
@@ -140,41 +143,35 @@ const filtered = useMemo(() => {
             className="input card-input-add-tournament"
           />
 
-          <select
+          <CustomSelect
             className="input card-input-add-tournament"
+            options={TYPE_OPTIONS}
             value={fltType}
-            onChange={(e) => setFltType(e.target.value as FilterType)}
-          >
-            {TYPE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setFltType(val as TournamentType)}
+            disabled={false}
+            showSearch={false}
+            sort={false}
+          />
 
-          <select
+          <CustomSelect
             className="input card-input-add-tournament"
+            options={FORMAT_OPTIONS}
             value={fltFormat}
-            onChange={(e) => setFltFormat(e.target.value as FilterFormat)}
-          >
-            {FORMAT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setFltFormat(val as FilterFormat)}
+            disabled={false}
+            showSearch={false}
+            sort={false}
+          />
 
-          <select
+          <CustomSelect
             className="input card-input-add-tournament"
+            options={STATUS_OPTIONS}
             value={fltStatus}
-            onChange={(e) => setFltStatus(e.target.value as FilterStatus)}
-          >
-            {STATUS_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setFltStatus(val as FilterStatus)}
+            disabled={false}
+            showSearch={false}
+            sort={false}
+          />
 
           <CancelIconButton onClick={resetFilters} title="Сброс" />
         </div>

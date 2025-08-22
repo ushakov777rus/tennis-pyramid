@@ -377,6 +377,7 @@ export default function PlayerListView() {
                 onChange={(val) => setPageSize(Number(val))}
                 disabled={false}
                 showSearch={false}
+                sort={false}
               />
             </div>
           </div>

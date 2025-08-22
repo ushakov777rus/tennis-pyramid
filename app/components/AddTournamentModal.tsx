@@ -5,6 +5,7 @@ import { TournamentCreateInput, TournamentType, TournamentFormat } from "@/app/m
 import "./AddTournamentModal.css";
 import { TYPE_OPTIONS, FORMAT_OPTIONS } from "@/app/models/Tournament";
 import { CheckBoxIcon } from "./IconButtons";
+import { CustomSelect } from "./CustomSelect";
 
 type Props = {
   isOpen: boolean;
@@ -144,32 +145,25 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
           />
 
           <div className="modal-grid-2">
-            <select
+            <CustomSelect
+              className="input"
+              options={TYPE_OPTIONS.filter(o => o.value !== "")}
               value={type}
-              onChange={(e) => setType(e.target.value as unknown as TournamentType)}
-              className="input"
-            >
-              {(TYPE_OPTIONS ?? [
-                { value: TournamentType.Single, label: "Одиночный" },
-                { value: TournamentType.Double, label: "Парный" },
-              ]).map((o) => (
-                <option key={o.value} value={o.value as any}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setType(val as TournamentType)}
+              disabled={false}
+              showSearch={false}
+              sort={false}
+            />
 
-            <select
-              value={format}
-              onChange={(e) => setFormat(e.target.value as unknown as TournamentFormat)}
+            <CustomSelect
               className="input"
-            >
-              {FORMAT_OPTIONS.slice(1).map((o) => (
-                <option key={o.value} value={o.value as any}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+              options={FORMAT_OPTIONS.filter(o => o.value !== "")}
+              value={format}
+              onChange={(val) => setFormat(val as TournamentFormat)}
+              disabled={false}
+              showSearch={false}
+              sort={false}
+            />
           </div>
 
           <div className="modal-grid-2">
