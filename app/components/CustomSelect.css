@@ -75,11 +75,11 @@
 }
 
 .cs-option:hover {
-  background: #f3f4f6;
+  background: #333;
 }
 
 .cs-option.is-active {
-  background: #eef2ff; /* легкий подсвет активной */
+  background: #333; /* легкий подсвет активной */
 }
 
 .cs-option.is-selected .cs-option-label {
