@@ -20,6 +20,8 @@ type PyramidViewProps = {
   matches: Match[];
   /** Сохранение пересчитанных позиций — реализует родитель/провайдер */
   onPositionsChange?: (next: Participant[]) => Promise<void> | void;
+  /** Хранится в БД */
+  maxLevel: number;
 };
 
 function getPlayerStatusIcon(
@@ -47,16 +49,19 @@ export function PyramidView({
   onShowHistory,
   matches,
   onPositionsChange,
+  maxLevel
 }: PyramidViewProps) {
   const { user } = useUser();
 
   const [invalidId, setInvalidId] = useState<number | null>(null);
   const [localParticipants, setLocalParticipants] = useState<Participant[]>([]);
 
-  const maxLevel = useMemo(
-      () => (participants.length ? participants.reduce((m, p) => Math.max(m, p.level ?? 0), 0) : 15),
+  const calcMaxLevel = useMemo(
+      () => (participants.length ? participants.reduce((m, p) => Math.max(m, p.level ?? 0), 0) : maxLevel),
       [participants]
     );
+
+  console.log("levels:", maxLevel, calcMaxLevel);
   
 
   // нормализуем порядок входящих участников
@@ -74,7 +79,7 @@ export function PyramidView({
 
   const buildByLevel = (items: Participant[]) => {
     const byLevel: Record<string, Participant[]> = {};
-    for (let i = 1; i <= Number(maxLevel); i++) byLevel[String(i)] = [];
+    for (let i = 1; i <= Number(calcMaxLevel); i++) byLevel[String(i)] = [];
     const benchKey = "999";
     byLevel[benchKey] = [];
 
@@ -109,7 +114,7 @@ export function PyramidView({
     dstArr.splice(destination.index, 0, removed);
 
     const next: Participant[] = [];
-    for (let i = 1; i <= Number(maxLevel); i++) {
+    for (let i = 1; i <= Number(calcMaxLevel); i++) {
       const key = String(i);
       byLevel[key].forEach((p, idx) => {
         p.level = i;
@@ -124,8 +129,6 @@ export function PyramidView({
     });
 
     setLocalParticipants(next);
-    // сохраняет родитель (через провайдер)
-    console.log("// сохраняет родитель (через провайдер)",onPositionsChange);
     await onPositionsChange?.(next);
   };
 
@@ -155,7 +158,7 @@ export function PyramidView({
     if (!defender.level || !defender.position) return false;
 
     if (!attacker.level || !attacker.position) {
-      return defender.level >= Number(maxLevel) - 1;
+      return defender.level >= Number(calcMaxLevel) - 1;
     }
 
     if (attacker.level === defender.level) {
@@ -215,7 +218,7 @@ export function PyramidView({
     onSelect(newSelection);
   };
 
-const renderPlayerCard = (p: Participant, index: number, mask: boolean) => {
+const renderPlayerCard = (p: Participant, index: number) => {
     const id = p.player?.id ?? p.team?.id;
     const statusClass = getPlayerClass(p);
 
@@ -336,7 +339,7 @@ const renderPlayerCard = (p: Participant, index: number, mask: boolean) => {
                 className="card pyramid-row"
                 data-level={`Уровень ${levelKey}`}
               >
-                {byLevel[levelKey].map((p, i) => renderPlayerCard(p, i, user?.role !== "site_admin"))}
+                {byLevel[levelKey] && byLevel[levelKey].map((p, i) => renderPlayerCard(p, i))}
                 {provided.placeholder}
               </div>
             )}
@@ -351,7 +354,7 @@ const renderPlayerCard = (p: Participant, index: number, mask: boolean) => {
               className="card pyramid-row bench-row"
               data-level="Скамейка"
             >
-              {byLevel["999"].map((p, i) => renderPlayerCard(p, i, user?.role !== "site_admin"))}
+              {byLevel["999"].map((p, i) => renderPlayerCard(p, i))}
               {provided.placeholder}
             </div>
           )}

@@ -48,6 +48,7 @@ export function TournamentsClient() {
 
   // 🎯 ПРИНИМАЕМ payload из модалки
   const onCreate = async (payload: TournamentCreateInput) => {
+    console.log("TRepo::create", payload);
     if (!user?.id) {
       alert("Вы должны быть авторизованы для создания турнира");
       return;
@@ -62,6 +63,7 @@ export function TournamentsClient() {
       status: TournamentStatus.Draft,
       creator_id: user.id,
       is_public: payload.is_public,
+      settings: payload.settings,
     });
 
     setModalOpen(false);
@@ -190,6 +192,7 @@ const filtered = useMemo(() => {
               participantsCount={0}
               matchesCount={0}
               onClick={() => setModalOpen(true)}
+              displayName={true}
             />
           </AdminOnly>
 
@@ -204,6 +207,7 @@ const filtered = useMemo(() => {
                 matchesCount={stats[t.id]?.matches ?? 0}
                 {...(canView ? { onClick: () => router.push(`/tournaments/${t.id}`) } : {})}
                 {...(canDelete ? {onDelete} : {})}
+                displayName={true}
               />
             );
           })}

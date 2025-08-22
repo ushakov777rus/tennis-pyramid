@@ -1,34 +1,33 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { TournamentCreateInput } from "@/app/models/Tournament";
+import { TournamentCreateInput, TournamentType, TournamentFormat } from "@/app/models/Tournament";
 import "./AddTournamentModal.css";
-import {
-  TournamentType,
-  TournamentFormat,
-  TYPE_OPTIONS,
-  FORMAT_OPTIONS,
-} from "@/app/models/Tournament";
-
+import { TYPE_OPTIONS, FORMAT_OPTIONS } from "@/app/models/Tournament";
 import { CheckBoxIcon } from "./IconButtons";
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (payload: TournamentCreateInput) => void;
+  onCreate: (payload: TournamentCreateInput & { settings?: any }) => void;
 };
 
 export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const titleId = "add-tournament-title";
 
-  const [isPublic, setIsPublic] = useState(false);                      // 👈 новое состояние
+  // базовые поля
+  const [isPublic, setIsPublic] = useState(false);
   const [name, setName] = useState("");
   const [type, setType] = useState<TournamentType>(TournamentType.Single);
   const [format, setFormat] = useState<TournamentFormat>(TournamentFormat.Pyramid);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // доп. опции
+  const [advOpen, setAdvOpen] = useState(false);
+  const [pyramidMaxLevel, setPyramidMaxLevel] = useState<number>(15);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -55,6 +54,8 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
     setFormat(TournamentFormat.Pyramid);
     setStartDate("");
     setEndDate("");
+    setPyramidMaxLevel(15);
+    setAdvOpen(false);
     setError(null);
   };
 
@@ -68,18 +69,34 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
       return;
     }
 
-    onCreate({
+    // Валидация для пирамиды
+    if (format === TournamentFormat.Pyramid) {
+      if (!Number.isFinite(pyramidMaxLevel) || pyramidMaxLevel < 3 || pyramidMaxLevel > 50) {
+        setError("Укажите корректное число уровней пирамиды (3–50).");
+        return;
+      }
+    }
+
+    const payload: TournamentCreateInput & { settings?: any } = {
       name: trimmed,
       format,
       tournament_type: type,
       start_date: startDate || null,
       end_date: endDate || null,
-      is_public: isPublic, // 👈 добавь это поле в тип
-      creator_id: 0
-    });
+      is_public: isPublic,
+      creator_id: 0, // заполни на сервере фактическим userId
+    };
 
+    // Добавляем настройки только для актуального формата
+    if (format === TournamentFormat.Pyramid) {
+      payload.settings = {
+        pyramid: {
+          maxLevel: pyramidMaxLevel,
+        },
+      };
+    }
 
-
+    onCreate(payload);
     resetForm();
     onClose();
   };
@@ -107,7 +124,7 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
         <h3 className="modal-title" id={titleId}>Создать турнир</h3>
 
         <form onSubmit={handleSubmit} className="modal-form" noValidate>
-          {/* 👇 ЧЕКБОКС — первым полем */}
+          {/* ЧЕКБОКС — первым полем */}
           <div className="checkbox-row">
             <CheckBoxIcon
               isSelected={isPublic}
@@ -168,6 +185,46 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
               onChange={(e) => setEndDate(e.target.value)}
               className="input"
             />
+          </div>
+
+          {/* === Доп. опции (раскрывающийся блок) === */}
+          <button
+            type="button"
+            className="adv-toggle input"
+            aria-expanded={advOpen}
+            aria-controls="adv-panel"
+            onClick={() => setAdvOpen((v) => !v)}
+          >
+            {advOpen ? "Скрыть доп. опции" : "Показать доп. опции"}
+          </button>
+
+          <div
+            id="adv-panel"
+            className={`adv-panel ${advOpen ? "open" : ""}`}
+            hidden={!advOpen}
+          >
+            {/* Опция для формата Пирамида */}
+            {format === TournamentFormat.Pyramid && (
+              <div className="adv-row">
+                <label className="adv-label" htmlFor="pyr-levels">
+                  Макс. уровней пирамиды
+                </label>
+                <input
+                  id="pyr-levels"
+                  type="number"
+                  min={3}
+                  max={50}
+                  step={1}
+                  className="input"
+                  value={pyramidMaxLevel}
+                  onChange={(e) => setPyramidMaxLevel(Number(e.target.value) || 0)}
+                />
+                <div className="adv-help">Рекомендуем 10–20, по умолчанию 15</div>
+              </div>
+            )}
+
+            {/* Пример: сюда легко добавить другие настройки под форматы */}
+            {/* {format === TournamentFormat.RoundRobin && (...)} */}
           </div>
 
           {error && <div className="modal-error" role="alert">{error}</div>}

@@ -98,7 +98,8 @@ const refresh = useCallback(
       p.start_date ?? null,
       p.end_date ?? null,
       p.is_public ?? false,
-      p.creator_id,      
+      p.creator_id,
+      p.settings
     );
 
     setPendingCreateIds((s) => new Set(s).add(tmpId));
@@ -117,6 +118,7 @@ const refresh = useCallback(
         status: p.status ?? TournamentStatus.Draft,
         creator_id: p.creator_id ?? user?.id,
         is_public: p.is_public,
+        settings: p.settings
       });
 
       // Если create возвращает id/объект — заменяем оптимистичный элемент на реальный

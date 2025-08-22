@@ -40,9 +40,7 @@ const todayISO = new Date().toISOString().split("T")[0];
 export default function TournamentClient() {
   const {
     tournament,
-    players,
     participants,
-    teams,
     matches,
     reload,
     addMatch,
@@ -227,6 +225,8 @@ export default function TournamentClient() {
   const isAnon = user?.role === undefined;
   const isPlayerWithFixedAttacker = user?.role === "player" && !!user?.player_id;
 
+  console.log("tournament.settings", tournament,tournament.settings);
+
   return (
     <div className="page-container">
       <NavigationBar />
@@ -371,6 +371,8 @@ const FormatView = React.memo(function FormatView({
     [onShowHistoryPlayer]
   );
 
+  console.log("FormatView-settings:", tournament,tournament.settings);
+
   if (tournament.isRoundRobin()) {
     return (
       <RoundRobinView
@@ -431,6 +433,7 @@ const FormatView = React.memo(function FormatView({
       onShowHistory={handleShowHistory}
       matches={matches}
       onPositionsChange={onPositionsChange}
+      maxLevel={tournament.settings.pyramid.maxLevel}
     />
   );
 });

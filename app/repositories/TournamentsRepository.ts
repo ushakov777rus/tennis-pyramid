@@ -34,7 +34,8 @@ export class TournamentsRepository {
           row.start_date,
           row.end_date,
           row.is_public,
-          row.creator_id
+          row.creator_id,
+          row.settings
         )
     );
   }
@@ -45,7 +46,7 @@ static async loadAccessible(userId: number | undefined, userRole: string | undef
   if (userId === undefined || userRole === undefined) {
     const { data, error } = await supabase
       .from("tournaments")
-      .select("id, name, format, status, tournament_type, start_date, end_date, is_public")
+      .select("*")
       .eq("is_public", true)
       .order("start_date", { ascending: true });
 
@@ -67,7 +68,8 @@ static async loadAccessible(userId: number | undefined, userRole: string | undef
           row.start_date,
           row.end_date,
           row.is_public,
-          row.creator_id
+          row.creator_id,
+          row.settings
         )
     );
   }
@@ -98,7 +100,8 @@ static async loadAccessible(userId: number | undefined, userRole: string | undef
           row.start_date,
           row.end_date,
           row.is_public,
-          row.creator_id
+          row.creator_id,
+          row.settings
         )
     );
   }
@@ -127,7 +130,8 @@ static async loadAccessible(userId: number | undefined, userRole: string | undef
           row.start_date,
           row.end_date,
           row.is_public,
-          row.creator_id
+          row.creator_id,
+          row.settings
         )
     );
   }
@@ -160,7 +164,8 @@ static async loadAccessible(userId: number | undefined, userRole: string | undef
           row.start_date,
           row.end_date,
           row.is_public,
-          row.creator_id
+          row.creator_id,
+          row.settings
         )
     );
 
@@ -197,7 +202,8 @@ static async loadAccessible(userId: number | undefined, userRole: string | undef
         row.start_date,
         row.end_date,
         row.is_public,
-        row.creator_id
+        row.creator_id,
+        row.settings
       )
   );
 }
@@ -225,13 +231,15 @@ static async loadAccessible(userId: number | undefined, userRole: string | undef
           data.start_date,
           data.end_date,
           data.is_public,
-          data.creator_id
+          data.creator_id,
+          data.settings
         )
       : null;
   }
 
   /** Создать турнир */
   static async create(input: TournamentCreateInput): Promise<Tournament> {
+    console.log("TRepo::create", input);
     const { data, error } = await supabase
       .from("tournaments")
       .insert([input])
@@ -249,7 +257,8 @@ static async loadAccessible(userId: number | undefined, userRole: string | undef
       data.start_date,
       data.end_date,
       data.creator_id,
-      data.is_public
+      data.is_public,
+      data.settings
     );
   }
 
