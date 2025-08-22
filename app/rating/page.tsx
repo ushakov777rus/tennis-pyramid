@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useUser } from "@/app/components/UserContext";
 import { PlayersRepository } from "@/app/repositories/PlayersRepository";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
 import { NavigationBar } from "@/app/components/NavigationBar";
-import { maskFullName } from "../utils/maskName";
 
 import {
   SaveIconButton,
@@ -20,8 +19,8 @@ import {
 
 import "@/app/components/MatchHistory.css";
 import { AdminOnly, SiteAdminOnly } from "../components/RoleGuard";
-import { needMask } from "../lib/permissions";
-import { OrganizerContactsRepository } from "@/app/repositories/OrganizerContactRepository"; // 👈 исправлен импорт
+import { OrganizerContactsRepository } from "@/app/repositories/OrganizerContactRepository";
+import { CustomSelect } from "../components/CustomSelect";
 
 export default function PlayerListView() {
   const { user } = useUser();
@@ -36,12 +35,16 @@ export default function PlayerListView() {
   // карта: playerId -> является ли "моим" (true/false). undefined = ещё не проверяли
   const [myMap, setMyMap] = useState<Record<number, boolean | undefined>>({});
 
+  // === Пагинация ===
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(25);
+
   useEffect(() => {
     loadPlayers();
   }, []);
 
   const loadPlayers = async () => {
-    const list = await PlayersRepository.loadAll(); // грузим всех игроков
+    const list = await PlayersRepository.loadAll();
     const matches: Match[] = await MatchRepository.loadAll();
     const s = Player.getPlayerStats(matches);
     setStats(s);
@@ -100,34 +103,64 @@ export default function PlayerListView() {
   const addToMyPlayers = async (id: number) => {
     if (!user?.id) return;
     await OrganizerContactsRepository.addVisiblePlayer(user.id, id);
-    // моментально обновим локально, чтобы кнопка пропала без перезагрузки
     setMyMap((m) => ({ ...m, [id]: true }));
-    // опционально можно обновить список:
-    // await loadPlayers();
   };
 
   const removeFromMyPlayers = async (id: number) => {
     if (!user?.id) return;
     await OrganizerContactsRepository.removeVisiblePlayer(id, user.id);
-    // моментально обновим локально, чтобы кнопка пропала без перезагрузки
     setMyMap((m) => ({ ...m, [id]: false }));
-    // опционально можно обновить список:
-    // await loadPlayers();
   };
 
   // при открытии меню по игроку — проверяем, «мой» ли он
   const ensureMyStatus = async (playerId: number) => {
-    if (myMap[playerId] !== undefined) return; // уже знаем
+    if (myMap[playerId] !== undefined) return;
     const res = await OrganizerContactsRepository.isMyPlayer(playerId, user?.id);
     setMyMap((m) => ({ ...m, [playerId]: res }));
   };
 
-  // Фильтрация по значению поля "Имя" из строки добавления (как поиск)
+  // === Поиск (через отложенное значение, чтобы не тормозил ввод)
+  const searchText = newPlayer.name ?? "";
+  const deferredSearch = useDeferredValue(searchText);
+
   const filteredPlayers = useMemo(() => {
-    const q = (newPlayer.name ?? "").trim().toLowerCase();
+    const q = deferredSearch.trim().toLowerCase();
     if (!q) return players;
     return players.filter((p) => p.name.toLowerCase().includes(q));
-  }, [players, newPlayer.name]);
+  }, [players, deferredSearch]);
+
+  // Если фильтр (или размер страницы) меняется — сбрасываемся на 1-ю страницу
+  useEffect(() => {
+    setPage(1);
+  }, [deferredSearch, pageSize]);
+
+  // Параметры пагинации
+  const total = filteredPlayers.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(page, totalPages);
+  useEffect(() => {
+    if (page !== safePage) setPage(safePage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalPages]);
+
+  const from = (safePage - 1) * pageSize;
+  const to = Math.min(from + pageSize, total);
+  const pageItems = filteredPlayers.slice(from, to);
+
+  const goFirst = () => setPage(1);
+  const goPrev = () => setPage((p) => Math.max(1, p - 1));
+  const goNext = () => setPage((p) => Math.min(totalPages, p + 1));
+  const goLast = () => setPage(totalPages);
+
+  // простая пагинация с несколькими кнопками-страницами вокруг текущей
+  const pageNumbers = useMemo(() => {
+    const spread = 1; // сколько страниц слева/справа
+    const start = Math.max(1, safePage - spread);
+    const end = Math.min(totalPages, safePage + spread);
+    const arr: number[] = [];
+    for (let i = start; i <= end; i++) arr.push(i);
+    return arr;
+  }, [safePage, totalPages]);
 
   return (
     <div className="page-container">
@@ -178,7 +211,7 @@ export default function PlayerListView() {
                 </AdminOnly>
               </tr>
 
-              {filteredPlayers.length === 0 && (
+              {pageItems.length === 0 && (
                 <tr>
                   <td colSpan={6} style={{ textAlign: "center", opacity: 0.7, padding: 12 }}>
                     Ничего не найдено
@@ -186,7 +219,7 @@ export default function PlayerListView() {
                 </tr>
               )}
 
-              {filteredPlayers.map((p) => {
+              {pageItems.map((p) => {
                 const isEditing = editId === p.id;
                 const isMine = myMap[p.id];
 
@@ -254,7 +287,6 @@ export default function PlayerListView() {
                                 aria-expanded={openMenuId === p.id}
                                 onClick={async () => {
                                   setOpenMenuId((id) => (id === p.id ? null : p.id));
-                                  // при открытии меню — проверяем мой/не мой
                                   if (openMenuId !== p.id) {
                                     await ensureMyStatus(p.id);
                                   }
@@ -263,8 +295,6 @@ export default function PlayerListView() {
                               />
                               {openMenuId === p.id && (
                                 <div className="menu" role="menu">
-                                  {/* Показываем "Добавить в мои", только если ещё не мой.
-                                      Пока статус грузится (undefined) — кнопку не показываем. */}
                                   {isMine === false && (
                                     <button role="menuitem" onClick={() => addToMyPlayers(p.id)}>
                                       Добавить в мои
@@ -303,6 +333,55 @@ export default function PlayerListView() {
             </tbody>
           </table>
         </div>
+
+        {/* Пагинация снизу */}
+        <div className="card" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <div style={{ fontWeight: 500 }}>Показано: {total ? `${from + 1}–${to}` : 0} из {total}</div>
+
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
+            <button className="pagination-btn" onClick={goFirst} disabled={safePage === 1} aria-label="Первая страница">«</button>
+            <button className="pagination-btn" onClick={goPrev} disabled={safePage === 1} aria-label="Предыдущая страница">‹</button>
+
+            {pageNumbers[0] > 1 && <span style={{ padding: "0 6px" }}>…</span>}
+            {pageNumbers.map((n) => (
+              <button
+                key={n}
+                className="pagination-btn"
+                onClick={() => setPage(n)}
+                aria-current={n === safePage ? "page" : undefined}
+                style={{
+                  fontWeight: n === safePage ? 700 : 400,
+                  textDecoration: n === safePage ? "underline" : "none",
+                }}
+              >
+                {n}
+              </button>
+            ))}
+            {pageNumbers[pageNumbers.length - 1] < totalPages && <span style={{ padding: "0 6px" }}>…</span>}
+
+            <button className="pagination-btn" onClick={goNext} disabled={safePage === totalPages} aria-label="Следующая страница">›</button>
+            <button className="pagination-btn" onClick={goLast} disabled={safePage === totalPages} aria-label="Последняя страница">»</button>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 8 }}>
+              <label htmlFor="pageSizeSelBottom" style={{ opacity: 0.8 }}>На странице:</label>
+
+              <CustomSelect
+                className="input"
+                options={[
+                  { value: 10, label: "10" },
+                  { value: 25, label: "25" },
+                  { value: 50, label: "50" },
+                  { value: 100, label: "100" },
+                ]}
+                value={pageSize}
+                onChange={(val) => setPageSize(Number(val))}
+                disabled={false}
+                showSearch={false}
+              />
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );

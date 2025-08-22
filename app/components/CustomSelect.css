@@ -16,6 +16,7 @@
   cursor: pointer;
   outline: none;
   transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
+  margin: auto;
 }
 
 .cs-trigger:hover {
