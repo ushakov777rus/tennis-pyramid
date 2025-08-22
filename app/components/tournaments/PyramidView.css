@@ -82,6 +82,39 @@
   margin-top: 5px;
 }
 
+/*
+.pyramid-container {
+  width: 100%;
+}
+*/
+.pyramid-level {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pyramid-row-line {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items:center;
+  gap: 8px;
+  min-height: 10px;
+}
+
+.pyramid-row-line > [data-rbd-placeholder-context-id] {
+  flex: 0 0 100px;
+  max-width: 100px;
+}
+
+/* карточка фиксированной ширины: перRow считается из контейнера 
+.pyramid-player {
+  flex: 0 0 160px;
+  max-width: 160px;
+  box-sizing: border-box;
+}*/
+
+
 .pyramid-player.selected {
   border-color: #0070f3;
   background: #e6f0ff;
@@ -262,4 +295,11 @@
 /* неактивность по времени без матчей */
 .days-counter.inactive-15 { color: #cf7d01; } /* оранжевый ≥15 дней */
 .days-counter.inactive-36 { color: #e53935; } /* красный ≥36 дней */
+
+
+
+
+
+
+
 
