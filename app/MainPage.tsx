@@ -49,6 +49,7 @@ export default function HomePage() {
             participantsCount={stats[t.id]?.participants ?? 0}
             matchesCount={stats[t.id]?.matches ?? 0}
             {...(canViewTournament(user,t) ? { onClick: () => router.push(`/tournaments/${t.id}`) } : {})}
+            displayName={true}
           />
         ))}
 
