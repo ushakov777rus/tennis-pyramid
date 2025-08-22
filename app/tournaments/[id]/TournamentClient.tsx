@@ -225,8 +225,6 @@ export default function TournamentClient() {
   const isAnon = user?.role === undefined;
   const isPlayerWithFixedAttacker = user?.role === "player" && !!user?.player_id;
 
-  console.log("tournament.settings", tournament,tournament.settings);
-
   return (
     <div className="page-container">
       <NavigationBar />
@@ -370,8 +368,6 @@ const FormatView = React.memo(function FormatView({
     },
     [onShowHistoryPlayer]
   );
-
-  console.log("FormatView-settings:", tournament,tournament.settings);
 
   if (tournament.isRoundRobin()) {
     return (

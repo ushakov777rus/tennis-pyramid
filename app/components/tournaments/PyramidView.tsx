@@ -61,9 +61,6 @@ export function PyramidView({
       [participants]
     );
 
-  console.log("levels:", maxLevel, calcMaxLevel);
-  
-
   // нормализуем порядок входящих участников
   useEffect(() => {
     const sorted = [...participants].sort((a, b) => {
@@ -79,7 +76,10 @@ export function PyramidView({
 
   const buildByLevel = (items: Participant[]) => {
     const byLevel: Record<string, Participant[]> = {};
-    for (let i = 1; i <= Number(calcMaxLevel); i++) byLevel[String(i)] = [];
+
+    for (let i = 1; i <= Number(maxLevel); i++) 
+      byLevel[String(i)] = [];
+    
     const benchKey = "999";
     byLevel[benchKey] = [];
 
@@ -87,12 +87,14 @@ export function PyramidView({
       const key = p.level ? String(p.level) : benchKey;
       byLevel[key].push(p);
     });
+    
     return byLevel;
   };
 
   const onDragStart = () => document.body.classList.add("dnd-active");
 
   const handleDragEnd = async (result: DropResult) => {
+
     document.body.classList.remove("dnd-active");
     const { source, destination, draggableId } = result;
     if (!destination) return;
@@ -107,6 +109,8 @@ export function PyramidView({
 
     const byLevel = buildByLevel(items);
 
+    console.log("handleDragEnd - buildByLevel - start:", byLevel,srcLevel,dstLevel);
+
     const srcArr = byLevel[srcLevel];
     const [removed] = srcArr.splice(source.index, 1);
 
@@ -114,7 +118,7 @@ export function PyramidView({
     dstArr.splice(destination.index, 0, removed);
 
     const next: Participant[] = [];
-    for (let i = 1; i <= Number(calcMaxLevel); i++) {
+    for (let i = 1; i <= Number(maxLevel); i++) {
       const key = String(i);
       byLevel[key].forEach((p, idx) => {
         p.level = i;
@@ -127,6 +131,10 @@ export function PyramidView({
       p.position = idx + 1;
       next.push(p);
     });
+
+    console.log("handleDragEnd - buildByLevel - end:", byLevel,srcLevel,dstLevel);
+
+    console.log("handleDragEnd - next:", next);
 
     setLocalParticipants(next);
     await onPositionsChange?.(next);
