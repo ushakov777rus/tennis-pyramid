@@ -19,7 +19,7 @@ import {
 } from "@/app/components/IconButtons";
 
 type MatchHistoryViewProps = {
-  player: Player | null; // если передали — показываем только его матчи
+  player: Player | null;
   matches: Match[];
   onEditMatch?: (match: Match) => void;
   onDeleteMatch?: (match: Match) => void;
@@ -40,25 +40,13 @@ export function MatchHistoryView({
   const [editScore, setEditScore] = useState<string>("");
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
 
-  // ===== фильтры =====
-  const [dateFrom, setDateFrom] = useState<string>("");
-  const [dateTo, setDateTo] = useState<string>("");
-  const [tournamentQ, setTournamentQ] = useState<string>("");
-  const [playersQ, setPlayersQ] = useState<string>("");
-  const [scoreQ, setScoreQ] = useState<string>("");
-
-  // из пропса player — предварительная фильтрация
+  // фильтры можно оставить как есть
   const displayMatches = player
     ? matches.filter((m) => m.player1?.id === player.id || m.player2?.id === player.id)
     : matches;
 
-
-  // сортировка по дате ↓
   const sortedMatches = useMemo(
-    () =>
-      [...displayMatches].sort(
-        (a, b) => new Date(b.date as any).getTime() - new Date(a.date as any).getTime()
-      ),
+    () => [...displayMatches].sort((a, b) => new Date(b.date as any).getTime() - new Date(a.date as any).getTime()),
     [displayMatches]
   );
 
@@ -68,45 +56,6 @@ export function MatchHistoryView({
     }
     return side === 1 ? m.player1?.displayName(false) ?? "??" : m.player2?.displayName(false) ?? "??";
   };
-
-
-  const playersLine = (m: Match) => `${getSideName(m, 1)} — ${getSideName(m, 2)}`;
-
-  // применяем фильтры
-  const filteredMatches = useMemo(() => {
-    const fromTs = dateFrom ? new Date(dateFrom + "T00:00:00").getTime() : null;
-    const toTs = dateTo ? new Date(dateTo + "T23:59:59").getTime() : null;
-
-    const tq = tournamentQ.trim().toLowerCase();
-    const pq = playersQ.trim().toLowerCase();
-    const sq = scoreQ.trim().toLowerCase();
-
-    return sortedMatches.filter((m) => {
-      const ts = new Date(m.date as any).getTime();
-
-      if (fromTs && ts < fromTs) return false;
-      if (toTs && ts > toTs) return false;
-
-      if (tq && showTournament) {
-        const name = (m.tournament?.name ?? "").toLowerCase();
-        if (!name.includes(tq)) return false;
-      }
-
-      if (pq) {
-        const line = playersLine(m).toLowerCase();
-        if (!line.includes(pq)) return false;
-      }
-
-      if (sq) {
-        const res = (m.formatResult?.() ?? "").toLowerCase();
-        if (!res.includes(sq)) return false;
-      }
-
-      return true;
-    });
-  }, [sortedMatches, dateFrom, dateTo, tournamentQ, playersQ, scoreQ, showTournament]);
-
-
 
   if (matches.length === 0) return <p className="history-empty">Матчей пока нет</p>;
 
@@ -152,209 +101,129 @@ export function MatchHistoryView({
     setOpenMenuId(null);
     onDeleteMatch?.(m);
   };
-
+  
   return (
-    <div className="history-wrap">      
-      <table className="history-table">
-        <thead className="history-table-head">
+    <div className="history-wrap">
+      <table className="table match-history">
+        <colgroup>
+          <col className="col-date" />
+          <col className="col-players" />
+          <col className="col-score" />
+          <col className="col-actions" />
+        </colgroup>
+
+        <thead>
           <tr>
             <th>Дата</th>
-            {showTournament && <th className="hide-sm">Турнир</th>}
             <th>Игроки</th>
             <th className="score-col">Счёт</th>
+            <th></th>
           </tr>
         </thead>
 
         <tbody>
-          {/* строка фильтров — первая в tbody */}
-          <tr>
-            {/* дата */}
-            <td className="date-cell">
-              <div className="filter-dates">
-              </div>
-              {showTournament && (
-                <div className="badge show-sm-only" style={{ marginTop: 6 }}>
-                  {/* просто занимаем место, чтобы не прыгало */}
-                </div>
-              )}
-            </td>
+          {sortedMatches.map((m) => {
+            const isEditing = editingId === m.id;
+            const winnerId = m.getWinnerId();
 
-            {/* турнир (десктоп) */}
-            {showTournament && (
-              <td className="tournament-cell hide-sm">
-              </td>
-            )}
-
-            {/* игроки */}
-            <td>
-              <input
-                type="text"
-                className="inline-input"
-                placeholder="Фильтр: игроки/пары"
-                value={playersQ}
-                onChange={(e) => setPlayersQ(e.target.value)}
-                aria-label="Фильтр игроков"
-              />
-            </td>
-
-            {/* счёт */}
-            <td className="score-col">
-            </td>
-          </tr>
-
-          {/* данные */}
-          {filteredMatches.length === 0 ? (
-            <tr>
-              <td colSpan={showTournament ? 4 : 3} style={{ textAlign: "center", opacity: 0.7, padding: 12 }}>
-                Ничего не найдено
-              </td>
-            </tr>
-          ) : (
-            filteredMatches.map((m) => {
-              const isEditing = editingId === m.id;
-              const winnerId = m.getWinnerId();
-
-              return (
-                <tr key={m.id} className={isEditing ? "editing" : ""}>
-                  {/* дата */}
-                  <td className="date-cell">
-                    {isEditing ? (
-                      <input
-                        type="date"
-                        value={editDate}
-                        onChange={(e) => setEditDate(e.target.value)}
-                        className="inline-input"
-                      />
-                    ) : (
-                      <span className="date">{formatDate(m.date)}</span>
-                    )}
-                    {showTournament && (
-                      <div className="badge show-sm-only">
-                        {m.tournament?.name ?? "—"}
-                      </div>
-                    )}
-                  </td>
-
-                  {/* турнир (desktop) */}
-                  {showTournament && (
-                    <td className="tournament-cell hide-sm">
-                      {m.tournament?.name ?? "—"}
-                    </td>
+            return (
+              <tr key={m.id} className={isEditing ? "editing" : ""}>
+                <td className="date-cell">
+                  {isEditing ? (
+                    <input
+                      type="date"
+                      value={editDate}
+                      onChange={(e) => setEditDate(e.target.value)}
+                      className="input"
+                    />
+                  ) : (
+                    <span className="date">{formatDate(m.date)}</span>
                   )}
+                  <div className="badge">{m.tournament?.name ?? "—"}</div>
+                </td>
 
-                  {/* игроки */}
-                  <td>
-                    <div className="players">
-                      <span
-                        className={
-                          !winnerId
-                            ? "chip"
-                            : winnerId === (m.player1?.id ?? m.team1?.id)
-                            ? "chip win"
-                            : "chip"
-                        }
-                        title="Сторона 1"
-                      >
-                        {getSideName(m, 1)}
-                      </span>
+                <td>
+                  <div className="players">
+                    <span
+                      className={!winnerId ? "player" : winnerId === (m.player1?.id ?? m.team1?.id) ? "player win" : "player"}
+                    >
+                      {getSideName(m, 1)}
+                    </span>
+                    <span
+                      className={!winnerId ? "player" : winnerId === (m.player2?.id ?? m.team2?.id) ? "player win" : "player"}
+                    >
+                      {getSideName(m, 2)}
+                    </span>
+                  </div>
+                </td>
 
-                      <span
-                        className={
-                          !winnerId
-                            ? "chip"
-                            : winnerId === (m.player2?.id ?? m.team2?.id)
-                            ? "chip win"
-                            : "chip"
-                        }
-                        title="Сторона 2"
-                      >
-                        {getSideName(m, 2)}
-                      </span>
+                <td className="score-col">
+                  {isEditing ? (
+                    <div className="score-edit-wrap">
+                      <input
+                        type="text"
+                        value={editScore}
+                        onChange={(e) => setEditScore(e.target.value)}
+                        placeholder="напр.: 6-4, 4-6, 10-8"
+                        className="input"
+                      />
                     </div>
-                  </td>
+                  ) : (
+                    <span>{m.formatResult()}</span>
+                  )}
+                </td>
 
-                  {/* счёт + действия */}
-                  <td className="score-col">
-                    {isEditing ? (
-                      <div className="score-edit-wrap">
-                        <input
-                          type="text"
-                          value={editScore}
-                          onChange={(e) => setEditScore(e.target.value)}
-                          placeholder="напр.: 6-4, 4-6, 10-8"
-                          className="inline-input"
+                {/* отдельная колонка с действиями */}
+                <td className="actions-col">
+                  {isEditing ? (
+                    <div className="row-actions always-visible">
+                      <SaveIconButton title="Сохранить" onClick={() => saveEditing(m)} />
+                      <CancelIconButton title="Отмена" onClick={cancelEditing} />
+                    </div>
+                  ) : (
+                    <AdminOnly>
+                      <div className="row-actions">
+                        <EditIconButton
+                          title="Редактировать"
+                          className="hide-sm"
+                          onClick={() => startEditing(m)}
                         />
-                        <div className="row-actions always-visible">
-                          <SaveIconButton
-                            title="Сохранить"
-                            onClick={() => saveEditing(m)}
+                        <DeleteIconButton
+                          title="Удалить"
+                          className="hide-sm"
+                          onClick={() => confirmDelete(m)}
+                        />
+
+                        <div className="menu-wrap">
+                          <KebabIconButton
+                            title="Действия"
+                            className="kebab show-sm-only"
+                            onClick={() =>
+                              setOpenMenuId((id) => (id === m.id ? null : m.id))
+                            }
                           />
-                          <CancelIconButton
-                            title="Отмена"
-                            onClick={cancelEditing}
-                          />
+                          {openMenuId === m.id && (
+                            <div className="menu" role="menu">
+                              <button role="menuitem" onClick={() => startEditing(m)}>
+                                Редактировать
+                              </button>
+                              <button
+                                role="menuitem"
+                                className="danger"
+                                onClick={() => confirmDelete(m)}
+                              >
+                                Удалить
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    ) : (
-                      <div className="score-readonly">
-                        <span>{m.formatResult()}</span>
-
-                        <AdminOnly>
-                          <div className="row-actions">
-                            <EditIconButton
-                              title="Редактировать"
-                              className="hide-sm"
-                              onClick={() => startEditing(m)}
-                            />
-                            <DeleteIconButton
-                              title="Удалить"
-                              className="hide-sm"
-                              onClick={() => confirmDelete(m)}
-                            />
-
-                            {/* Kebab для мобилок */}
-                            <div className="menu-wrap">
-                              <KebabIconButton
-                                title="Действия"
-                                className="kebab show-sm-only"
-                                aria-label="Меню строки"
-                                onClick={() =>
-                                  setOpenMenuId((id) => (id === m.id ? null : m.id))
-                                }
-                              />
-                              {openMenuId === m.id && (
-                                <div
-                                  className="menu"
-                                  role="menu"
-                                  tabIndex={-1}
-                                  onBlur={(e) => {
-                                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                                      setOpenMenuId(null);
-                                    }
-                                  }}
-                                >
-                                  <button role="menuitem" onClick={() => startEditing(m)}>
-                                    Редактировать
-                                  </button>
-                                  <button
-                                    role="menuitem"
-                                    className="danger"
-                                    onClick={() => confirmDelete(m)}
-                                  >
-                                    Удалить
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </AdminOnly>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              );
-            })
-          )}
+                    </AdminOnly>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

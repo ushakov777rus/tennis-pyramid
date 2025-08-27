@@ -83,15 +83,21 @@ body {
 
 .input {
   width: 100%;
-  padding: 10px;
+  padding: 8px;
   margin-bottom: 10px;
   background: #222;
-  border: 1px solid #333;
-  border-radius: 8px;
-  color: #fff;
+  border: 1px solid #555;
+  border-radius: 6px;
+  color: #ccc;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: 12px;
 }
+
+@media (max-width: 768px) {
+  .input { max-width: 100%; }}
+
+
+
 
 .page-title {
   margin-bottom: 20px;
@@ -144,7 +150,7 @@ body {
 .modal-content {
   position: relative;
   background: #1b1b1b; /* тёмный фон */
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid #1f1f1f;
   padding: 20px;
   max-width: 400px;
@@ -174,7 +180,7 @@ body {
   font-weight: bold;
   font-size: 16px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   transition: 0.2s ease-in-out;
 }
@@ -247,7 +253,7 @@ body {
 .card {
   position: relative;
   background: #1b1b1b;
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 5px;
   width: 100%;
   max-width: 900px;
@@ -317,7 +323,7 @@ body {
   color: #000;
   border: none;
   padding: 8px 16px;
-  border-radius: 10px;
+  border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
   width: 110px;
@@ -398,7 +404,7 @@ button,
 .badge {
   display: inline-flex;
   padding: 2px 8px;
-  font-size: 12px;
+  font-size: 10px;
   background: rgba(166, 255, 0, 0.1);
   border: 1px solid rgba(166, 255, 0, 0.3);
   border-radius: 999px;
@@ -458,7 +464,7 @@ button,
   align-items: center;
   justify-content: center;
   padding: 10px 14px;
-  border-radius: 10px;
+  border-radius: 6px;
   border: 1px solid #333;
   background: #222;
   cursor: pointer;
@@ -471,3 +477,68 @@ button,
   color: #000;
   border-color: transparent;
 }
+
+/* Имя игрока в таблицах */
+.player {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 4px;
+  border-radius: 6px;
+  background: #2a2a2a;
+  color: #ccc;
+  border: 1px solid #3a3a3a;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.player.win {
+  background: rgba(166, 255, 0, 0.15);
+  border-color: rgba(166, 255, 0, 0.4);
+  color: #a6ff00;
+  font-weight: 600;
+}
+
+
+
+
+
+
+/* Таблицы */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  background: #1b1b1b;
+  border-radius: 8px;
+  overflow: hidden;
+  color: #ccc;
+  box-shadow: 0 0 10px rgba(166, 255, 0, 0.1); /* зелёная подсветка */
+  table-layout: fixed;
+}
+
+.table th {
+  background: #222; /* тёмный хедер */
+  text-align: left;
+  font-weight: 600;
+  padding: 10px 12px;
+  border-bottom: 1px solid #2a2a2a;
+  color: #aaff55; /* мягкий зелёный акцент */
+  z-index: 1;
+}
+
+.table td {
+  padding: 5px 12px;
+  border-bottom: 1px solid #2a2a2a;
+  vertical-align: middle;
+  
+}
+
+.table tbody tr:hover {
+  background: rgba(166, 255, 0, 0.05); /* лёгкий зелёный ховер */
+}
+
+.table tbody tr:hover .row-actions,
+.table tbody tr:focus-within .row-actions {
+  opacity: 1;
+}
+

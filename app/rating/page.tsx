@@ -186,7 +186,7 @@ export default function PlayerListView() {
                   {/* Поле одновременно для ввода НОВОГО игрока и фильтра списка */}
                   <input
                     type="text"
-                    className="inline-input"
+                    className="input"
                     placeholder="Имя (и поиск)"
                     value={newPlayer.name || ""}
                     onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
@@ -196,7 +196,7 @@ export default function PlayerListView() {
                   <td className="hide-sm">
                     <input
                       type="text"
-                      className="inline-input"
+                      className="input"
                       placeholder="NTRP"
                       value={newPlayer.ntrp || ""}
                       onChange={(e) => setNewPlayer({ ...newPlayer, ntrp: e.target.value })}
@@ -229,7 +229,7 @@ export default function PlayerListView() {
                       {isEditing ? (
                         <input
                           type="text"
-                          className="inline-input"
+                          className="input"
                           placeholder="Имя"
                           value={editData.name || ""}
                           onChange={(e) => setEditData({ ...editData, name: e.target.value })}
@@ -246,7 +246,7 @@ export default function PlayerListView() {
                       {isEditing ? (
                         <input
                           type="text"
-                          className="inline-input"
+                          className="input"
                           placeholder="NTRP"
                           value={editData.ntrp || ""}
                           onChange={(e) => setEditData({ ...editData, ntrp: e.target.value })}

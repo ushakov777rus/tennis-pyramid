@@ -82,7 +82,7 @@ export function TournamentParticipantsView({
           <td>
             <input
               type="text"
-              className="inline-input"
+              className="input"
               placeholder={usePlayersLeft ? "Фильтр: игрок" : "Фильтр: пара"}
               value={leftFilter}
               onChange={(e) => setLeftFilter(e.target.value)}
@@ -93,7 +93,7 @@ export function TournamentParticipantsView({
           <td>
             <input
               type="text"
-              className="inline-input"
+              className="input"
               placeholder="Фильтр: участник турнира"
               value={rightFilter}
               onChange={(e) => setRightFilter(e.target.value)}
