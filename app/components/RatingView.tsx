@@ -61,11 +61,6 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
     [matches, now]
   );
 
-  const getName = (p: Participant) =>
-    p.player
-      ? p.player.name
-      : `${p.team?.player1?.name ?? "?"} + ${p.team?.player2?.name ?? "?"}`;
-
   const sideIds = (m: Match) => ({
     p1: m.player1?.id ?? m.team1?.id,
     p2: m.player2?.id ?? m.team2?.id,
@@ -91,7 +86,7 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
     for (const p of participants) {
       byId.set(p.getId, {
         id: p.getId,
-        name: getName(p),
+        name: p.displayName(false),
         games: 0,
         wins: 0,
         setsWon: 0,
@@ -343,8 +338,15 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
   const roundRobinTable = useMemo(() => {
     if (!roundRobinStats.length) return <p>Пока нет сыгранных матчей.</p>;
     return (
-      <table className="history-table">
-        <thead className="history-table-head">
+      <table className="table match-history">
+        <colgroup>
+          <col style={{ width: "55%" }} />
+          <col style={{ width: "15%" }}/>
+          <col style={{ width: "15%" }} />
+          <col style={{ width: "15%" }} />
+        </colgroup>
+
+        <thead>
           <tr>
             <th style={{ textAlign: "left" }}>Игрок / Пара</th>
             <th style={{ textAlign: "right" }}>Матчей</th>
@@ -371,7 +373,7 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
                 title={badges || undefined}
               >
                 <td>
-                  <span className="chip" title={`ID: ${s.id}`}>{s.name}</span>
+                  <span className="player" title={`ID: ${s.id}`}>{s.name}</span>
                   {badges && (
                     <span className="badge" style={{ marginLeft: 8 }}>
                       {badges}
@@ -416,8 +418,8 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
                     disabled={!p.player}
                     aria-label={
                       p.player
-                        ? `Показать историю матчей: ${getName(p)}`
-                        : `${getName(p)} — история доступна только для одиночных игроков`
+                        ? `Показать историю матчей: ${p.displayName(false)}`
+                        : `${p.displayName(false)} — история доступна только для одиночных игроков`
                     }
                     title={
                       p.player
@@ -425,7 +427,7 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
                         : "История доступна только для одиночных игроков"
                     }
                   >
-                    {getName(p)}
+                    {p.displayName(false)}
                   </button>
                 </td>
                 <td>
