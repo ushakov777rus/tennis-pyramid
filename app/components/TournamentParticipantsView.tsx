@@ -19,7 +19,6 @@ type TournamentParticipantsViewProps = {
   isDouble: boolean; // 👈 новый флаг: парный или одиночный турнир
 
   availablePlayers: Player[];
-  availableTeams: Team[];
   tournamentParticipants: Participant[];
 
   onAddPlayerToTournament: (playerId: number) => void;
@@ -30,7 +29,6 @@ type TournamentParticipantsViewProps = {
 export function TournamentParticipantsView({
   isDouble,
   availablePlayers,
-  availableTeams,
   tournamentParticipants,
   onAddPlayerToTournament,
   onAddTeamToTournament,
@@ -57,21 +55,6 @@ export function TournamentParticipantsView({
     [availablePlayers, lf]
   );
 
-  const filteredTeams = useMemo(
-    () =>
-      lf
-        ? availableTeams.filter((t) =>
-            (t.displayName(false) || "").toLowerCase().includes(lf)
-          )
-        : availableTeams,
-    [availableTeams, lf]
-  );
-
-  const usePlayersLeft = availablePlayers.length > 0;
-  const leftList: (Player | Team)[] = usePlayersLeft
-    ? filteredPlayers
-    : filteredTeams;
-
   const filteredParticipants = useMemo(
     () =>
       rf
@@ -82,7 +65,7 @@ export function TournamentParticipantsView({
     [tournamentParticipants, rf]
   );
 
-  const maxRows = Math.max(leftList.length, filteredParticipants.length);
+  const maxRows = Math.max(filteredPlayers.length, filteredParticipants.length);
 
   // выбор игроков
   const toggleSelectPlayer = (player: Player) => {
@@ -161,7 +144,7 @@ export function TournamentParticipantsView({
           </tr>
         ) : (
           Array.from({ length: maxRows }).map((_, i) => {
-            const free = leftList[i] as Player | Team | undefined;
+            const free = filteredPlayers[i];
             const part = filteredParticipants[i];
 
             const isSelected =

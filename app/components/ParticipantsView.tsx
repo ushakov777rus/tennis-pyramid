@@ -60,7 +60,6 @@ export function ParticipantsView() {
       <TournamentParticipantsView
         isDouble={tournament.tournament_type === "double"}
         availablePlayers={availablePlayers}
-        availableTeams={[]} //TODO удалить
         tournamentParticipants={participants}
         onAddPlayerToTournament={(id) => addPlayerToTournament?.(id)}
         onAddTeamToTournament={(p1Id, p2Id) =>
