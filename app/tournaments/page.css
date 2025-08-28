@@ -166,12 +166,6 @@
   cursor: pointer;
 }
 
-.card-input-add-tournament {
-  max-width: 165px;
-  margin: auto;
-}
-
-
 /* Мягкий responsive */
 @media (max-width: 600px) {
   .field.name {

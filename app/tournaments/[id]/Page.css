@@ -181,18 +181,6 @@
   margin-right: 5px;
 }
 
-.card-tabs {
-  display: flex;
-  justify-content: center;
-  align-items: stretch;
-  gap: 5px;
-}
-
-.card-tabs-wrap {
-  flex-wrap: wrap;
-}
-
-
 .tabs-button {
   flex: 1;
 }

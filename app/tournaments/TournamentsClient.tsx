@@ -121,30 +121,17 @@ const filtered = useMemo(() => {
 
       <div className="page-content-container">
         {/* Панель фильтров */}
-        <div className="card card-grid">
-
-          {/* 👇 ЧЕКБОКС — первым полем */}
-          <NotAdminOnly>
-            <div className="checkbox-row">
-              <CheckBoxIcon
-                isSelected={fltMy}
-                onClick={() => setFltMy(v => !v)}
-                aria-label="Показывать только мои турниры"
-              />
-              <span>Только мои</span>
-            </div>
-          </NotAdminOnly>
-
+        <div className="card card-controls">
           <input
             type="text"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Поиск по названию…"
-            className="input card-input-add-tournament"
+            className="input card-filter-controls"
           />
 
           <CustomSelect
-            className="input card-input-add-tournament"
+            className="input card-filter-controls"
             options={TYPE_OPTIONS}
             value={fltType}
             onChange={(val) => setFltType(val as TournamentType)}
@@ -154,7 +141,7 @@ const filtered = useMemo(() => {
           />
 
           <CustomSelect
-            className="input card-input-add-tournament"
+            className="input card-filter-controls"
             options={FORMAT_OPTIONS}
             value={fltFormat}
             onChange={(val) => setFltFormat(val as FilterFormat)}
@@ -164,7 +151,7 @@ const filtered = useMemo(() => {
           />
 
           <CustomSelect
-            className="input card-input-add-tournament"
+            className="input card-filter-controls"
             options={STATUS_OPTIONS}
             value={fltStatus}
             onChange={(val) => setFltStatus(val as FilterStatus)}
@@ -172,6 +159,17 @@ const filtered = useMemo(() => {
             showSearch={false}
             sort={false}
           />
+
+          <NotAdminOnly>
+            <div className="card-filter-controls">
+              <CheckBoxIcon
+                isSelected={fltMy}
+                onClick={() => setFltMy(v => !v)}
+                aria-label="Показывать только мои турниры"
+              />
+              <span>Только мои</span>
+            </div>
+          </NotAdminOnly>
 
           <CancelIconButton onClick={resetFilters} title="Сброс" />
         </div>
