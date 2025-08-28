@@ -92,10 +92,13 @@ export default function TournamentClient() {
     () =>
       selectableItems.map((item) => ({
         value: item.id,
-        label: (item as Player).name ?? (item as { id: number; name: string }).name,
+        label: item.displayName(false), // или true, если хочешь с маской
       })),
     [selectableItems]
   );
+  
+console.log("selectableItems",selectableItems);
+console.log("options--",options);
 
   // Колбэки
   const handleAddMatch = useCallback(async () => {

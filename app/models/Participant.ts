@@ -56,7 +56,9 @@ export class Participant extends ParticipantBase {
   }
 
   splitName(mask: boolean): string[] {
-    return this.displayName(mask).split(" ");
+    if (this.player)
+      return this.displayName(mask).split(" ");
+    return this.displayName(mask).split("\n");
   }
 }
 

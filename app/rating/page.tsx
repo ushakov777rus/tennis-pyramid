@@ -170,10 +170,17 @@ export default function PlayerListView() {
       <div className="page-content-container">
         <div className="history-wrap">
           <table className="history-table">
+            <colgroup>
+              <col style={{ width: "40%" }} />
+              <col style={{ width: "15%" }}/>
+              <col style={{ width: "15%" }} />
+              <col style={{ width: "15%" }} />
+              <col style={{ width: "15%" }} />
+            </colgroup>
+
             <thead className="history-table-head">
               <tr>
                 <th>Игрок</th>
-                <th className="hide-sm">NTRP</th>
                 <th>Игры</th>
                 <th>Победы</th>
                 <th>Winrate</th>
@@ -213,7 +220,7 @@ export default function PlayerListView() {
 
               {pageItems.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", opacity: 0.7, padding: 12 }}>
+                  <td colSpan={5} style={{ textAlign: "center", opacity: 0.7, padding: 12 }}>
                     Ничего не найдено
                   </td>
                 </tr>
@@ -235,15 +242,15 @@ export default function PlayerListView() {
                           onChange={(e) => setEditData({ ...editData, name: e.target.value })}
                         />
                       ) : (
-                        <span className="chip">{p.displayName(false)}</span>
+                        <span className="player">{p.displayName(false)}</span>
                       )}
-                      <div className="show-sm-only" style={{ marginTop: 6 }}>
+                      <div style={{ marginBottom: 2 }}>
                         <span className="badge ntrp-badge">NTRP: {p.ntrp || "—"}</span>
                       </div>
                     </td>
 
-                    <td className="hide-sm">
-                      {isEditing ? (
+                    {isEditing && (
+                      <td>
                         <input
                           type="text"
                           className="input"
@@ -251,10 +258,8 @@ export default function PlayerListView() {
                           value={editData.ntrp || ""}
                           onChange={(e) => setEditData({ ...editData, ntrp: e.target.value })}
                         />
-                      ) : (
-                        p.ntrp || "—"
-                      )}
-                    </td>
+                      </td>
+                    )}
 
                     <td>{stats[p.id]?.matches ?? 0}</td>
                     <td>{stats[p.id]?.wins ?? 0}</td>

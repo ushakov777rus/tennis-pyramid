@@ -43,7 +43,7 @@ if (tournament == null) {
     <div className={className} onClick={onClick} style={style}>
       <div className="tournament-header">
         {displayName && (
-          <h2>{tournament.name}</h2>
+          <h3>{tournament.name}</h3>
         )}
         <div
           className="tournament-status"

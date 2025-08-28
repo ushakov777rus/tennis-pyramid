@@ -69,11 +69,13 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
       [setSelectedIds]
     );
 
+    console.log("AddMatchCard:", options);
+
     return (
-      <div className="card card-tabs card-tabs-wrap">
+      <div className="card card-controls">
         {/* Нападение */}
         <CustomSelect
-          className="input card-input-add-match"
+          className="input card-filter-controls"
           options={options}
           value={selectedIds[0] ?? null}
           placeholder="-- Нападение --"
@@ -84,7 +86,7 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
 
         {/* Защита */}
         <CustomSelect
-          className="input card-input-add-match"
+          className="input card-filter-controls"
           options={options}
           value={selectedIds[1] ?? null}
           placeholder="-- Защита --"
@@ -97,7 +99,7 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
           type="date"
           value={matchDate}
           onChange={(e) => setMatchDate(e.target.value)}
-          className="input card-input-add-match"
+          className="input card-filter-controls"
         />
 
         <input
@@ -105,7 +107,7 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
           placeholder="6-4, 4-6, 11-8"
           value={matchScore}
           onChange={(e) => setMatchScore(e.target.value)}
-          className="input card-input-add-match"
+          className="input card-filter-controls"
         />
 
         <SaveIconButton

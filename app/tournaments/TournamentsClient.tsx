@@ -49,7 +49,6 @@ export function TournamentsClient() {
 
   // 🎯 ПРИНИМАЕМ payload из модалки
   const onCreate = async (payload: TournamentCreateInput) => {
-    console.log("TRepo::create", payload);
     if (!user?.id) {
       alert("Вы должны быть авторизованы для создания турнира");
       return;
@@ -90,6 +89,7 @@ const filtered = useMemo(() => {
   const isMine = (t: Tournament) => {
     const uid = user?.id;
     if (!uid) return false;
+    if (user.role === "site_admin") return true;
     // приоритет — creator_id; на всякий случай поддержим admin_user_id / owner_id
     const anyT = t as any;
     return (
