@@ -202,9 +202,8 @@ export default function PlayerListView() {
                     value={newPlayer.name || ""}
                     onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
                   />
-                </td>
-                <AdminOnly>
-                  <td className="hide-sm">
+                  <AdminOnly>
+                    <div className="row-actions always-visible">
                     <input
                       type="text"
                       className="input"
@@ -212,14 +211,15 @@ export default function PlayerListView() {
                       value={newPlayer.ntrp || ""}
                       onChange={(e) => setNewPlayer({ ...newPlayer, ntrp: e.target.value })}
                     />
-                  </td>
-                  <td colSpan={3} />
-                  <td className="score-col">
+
                     <div className="row-actions always-visible">
                       <PlusIconButton onClick={addPlayer} title="Добавить" />
                     </div>
-                  </td>
-                </AdminOnly>
+                    </div>
+                  </AdminOnly>
+                </td>
+                
+                <td colSpan={3} />
               </tr>
 
               {pageItems.length === 0 && (
@@ -236,39 +236,47 @@ export default function PlayerListView() {
 
                 return (
                   <tr key={p.id} className={isEditing ? "editing" : ""}>
-                    <td>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          className="input"
-                          placeholder="Имя"
-                          value={editData.name || ""}
-                          onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                        />
-                      ) : (
-                        <span className="player">{p.displayName(false)}</span>
-                      )}
-                      <div style={{ marginBottom: 2 }}>
-                        <span className="badge ntrp-badge">NTRP: {p.ntrp || "—"}</span>
-                      </div>
-                    </td>
-
                     {isEditing && (
-                      <td>
-                        <input
-                          type="text"
-                          className="input"
-                          placeholder="NTRP"
-                          value={editData.ntrp || ""}
-                          onChange={(e) => setEditData({ ...editData, ntrp: e.target.value })}
-                        />
-                      </td>
+                        <td>
+                          <input
+                            type="text"
+                            className="input"
+                            placeholder="Имя"
+                            value={editData.name || ""}
+                            onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                          />
+                        </td>
+                    )}
+                    {isEditing && (
+                        <td>
+                          <input
+                            type="text"
+                            className="input"
+                            placeholder="NTRP"
+                            value={editData.ntrp || ""}
+                            onChange={(e) => setEditData({ ...editData, ntrp: e.target.value })}
+                          />
+                        </td>                      
                     )}
 
-                    <td>{stats[p.id]?.matches ?? 0}</td>
-                    <td>{stats[p.id]?.wins ?? 0}</td>
+                    {!isEditing && (
+                        <td>  
+                          <span className="player">{p.displayName(false)}</span>
+                          <div style={{ marginBottom: 2 }}>
+                            <span className="badge ntrp-badge">NTRP: {p.ntrp || "—"}</span>
+                          </div>
+                        </td>
+                    )}
 
-                    <td>{winrate(p.id)}</td>
+                    {!isEditing && (
+                      <td>{stats[p.id]?.matches ?? 0}</td>
+                    )}
+                    {!isEditing && (
+                      <td>{stats[p.id]?.wins ?? 0}</td>
+                    )}
+                    {!isEditing && (
+                      <td>{winrate(p.id)}</td>
+                    )}
 
                     <AdminOnly>
                       <td className="score-col">
@@ -291,7 +299,7 @@ export default function PlayerListView() {
                             />
                             <div className="menu-wrap">
                               <KebabIconButton
-                                className="show-sm-only"
+                                className="kebab show-sm-only"
                                 aria-haspopup="true"
                                 aria-expanded={openMenuId === p.id}
                                 onClick={async () => {

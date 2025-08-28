@@ -86,7 +86,7 @@ body {
 .input {
   width: 100%;
   padding: 8px;
-  margin-bottom: 10px;
+  margin: 2px;
   background: #222;
   border: 1px solid #555;
   border-radius: 6px;

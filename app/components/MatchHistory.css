@@ -121,6 +121,10 @@ tr.editing { background: rgba(166, 255, 0, 0.05); }
   .table td {
     padding: 5px 3px;
   }
+
+  .row-actions {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 720px) {
