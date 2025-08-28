@@ -37,7 +37,7 @@
 
 /* Выравнивание текста по колонкам */
 .grid-row > :nth-child(1) { text-align: left;  }
-.grid-row > :nth-child(2) { text-align: center; }
+.grid-row > :nth-child(2) { text-align: center; margin: auto;}
 .grid-row > :nth-child(3) { text-align: right; }
 
 /* Эллипсис и запрет переноса для имён игроков */

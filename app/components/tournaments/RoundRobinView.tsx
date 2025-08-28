@@ -121,17 +121,8 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
 
   // Рендер имени: одиночка — одна строка; пара — два имени столбиком
   function NameCell({ p }: { p: Participant }) {
-    if (p.player) {
-      return <span className="chip name-one-line" title={`ID: ${p.player.id}`}>{p.player.name}</span>;
-    }
-    const a = p.team?.player1?.name ?? "??";
-    const b = p.team?.player2?.name ?? "??";
-    return (
-      <span className="chip name-stack" title={`ID: ${p.team?.id}`}>
-        <span className="name-line">{a}</span>
-        <span className="name-line">{b}</span>
-      </span>
-    );
+    return <span className="player">{p.displayName(false)}</span>;
+
   }
 
   return (
@@ -144,13 +135,6 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
             </div>
 
             <table className="round-table">
-              <thead>
-                <tr className="grid-row">
-                  <th>Игрок / Пара</th>
-                  <th>Счёт</th>
-                  <th>Игрок / Пара</th>
-                </tr>
-              </thead>
 
               <tbody>
                 {pairs.length > 0 ? (

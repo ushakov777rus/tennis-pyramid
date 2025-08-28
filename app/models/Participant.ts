@@ -40,8 +40,8 @@ export class Participant extends ParticipantBase {
   displayName(mask: boolean): string {
     if (this.player) return mask ? maskFullName(this.player.name) : this.player.name;
     if (this.team) return mask ? 
-      maskFullName(this.team.player1.name) + " " + maskFullName(this.team.player2.name) : 
-      this.team.player1.name + " " + this.team.player2.name;
+      maskFullName(this.team.player1.name) + "\n" + maskFullName(this.team.player2.name) : 
+      this.team.player1.name + "\n" + this.team.player2.name;
     return "Без имени";
   }
 
