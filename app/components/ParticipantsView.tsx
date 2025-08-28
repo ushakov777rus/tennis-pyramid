@@ -25,9 +25,8 @@ export function ParticipantsView() {
     // действия из провайдера
     addPlayerToTournament,
     removeParticipant,
-    addTeamToTournament,
+    createAndAddTeamToTournament,
     removeTeam,
-    createTeam,
   } = useTournament();
 
   // выбор игроков для создания пары
@@ -58,92 +57,19 @@ export function ParticipantsView() {
     // на случай дублей участников одной и той же команды:
     .filter((team, idx, arr) => arr.findIndex(t => t.id === team.id) === idx);
 
-  // создать команду из выбранных двух игроков
-  async function handleCreateTeam() {
-    if (selectedPlayers.length !== 2 || !tournament) 
-      return;
-    const [p1, p2] = selectedPlayers;
-    await createTeam?.(tournament.id, p1.id, p2.id);
-    setSelectedPlayers([]); // локальный сброс выбора
-  }
-
   return (
     <div className="history-wrap">
-      {/* Одиночные турниры */}
-      {tournament.tournament_type === "single" ? (
-        <TournamentParticipantsView
-          availablePlayers={availablePlayers}
-          availableTeams={[]}
-          tournamentParticipants={participants}
-          onAddPlayerToTournament={(id) => addPlayerToTournament?.(id)}
-          onAddTeamToTournament={(id) => addTeamToTournament?.(id)}
-          onRemoveParticipantFromTournament={(id) => removeParticipant?.(id)}
-        />
-      ) : (
-        <>
-          {/* Табы для переключения с создания пар на добавление пар const canDelete = canDeleteTournament(user, t);*/}
-
-            <div className="card card-tabs">
-              <button
-                className={
-                  activeTab === "parts"
-                    ? "card-btn tabs-button card-btn-act"
-                    : "card-btn tabs-button"
-                }
-                onClick={() => setActiveTab("parts")}
-              >
-                Участники
-              </button>
-              <button
-                className={
-                  activeTab === "teams"
-                    ? "card-btn tabs-button card-btn-act"
-                    : "card-btn tabs-button"
-                }
-                onClick={() => setActiveTab("teams")}
-              >
-                Команды
-              </button>
-            </div>
-
-
-          <div>
-            {/* TAB: создание/удаление команд */}
-            {activeTab === "teams" && (
-              <TournamentTeamsTable
-                availablePlayers={availablePlayers}
-                selectedPlayers={selectedPlayers}
-                onTogglePlayer={(p) => {
-                  setSelectedPlayers((prev) => {
-                    const isSel = prev.some((sp) => sp.id === p.id);
-                    if (isSel) return prev.filter((sp) => sp.id !== p.id);
-                    return prev.length < 2 ? [...prev, p] : prev;
-                  });
-                }}
-                onCreateTeam={handleCreateTeam}
-                // ⬇ если у тебя в TeamsTable проп называется иначе — смени здесь на свой
-                allTeams={availableTeams}
-                onRemoveTeamFromTournament={(teamId: number) => {
-                  // удаляем саму команду из БД (как было у тебя)
-                  removeTeam?.(teamId);
-                }}
-              />
-            )}
-
-            {/* TAB: участники (пары уже в турнире + добавить из доступных) */}
-            {activeTab === "parts" && (
-              <TournamentParticipantsView
-                availablePlayers={[]}
-                availableTeams={availableTeams}
-                tournamentParticipants={participants}
-                onAddPlayerToTournament={(id) => addPlayerToTournament?.(id)}
-                onAddTeamToTournament={(id) => addTeamToTournament?.(id)}
-                onRemoveParticipantFromTournament={(id) => removeParticipant?.(id)}
-              />
-            )}
-          </div>
-        </>
-      )}
+      <TournamentParticipantsView
+        isDouble={tournament.tournament_type === "double"}
+        availablePlayers={availablePlayers}
+        availableTeams={[]}
+        tournamentParticipants={participants}
+        onAddPlayerToTournament={(id) => addPlayerToTournament?.(id)}
+        onAddTeamToTournament={(p1Id, p2Id) =>
+          createAndAddTeamToTournament?.(tournament.id, p1Id.id, p2Id.id)
+        }
+        onRemoveParticipantFromTournament={(id) => removeParticipant?.(id)}
+      />
     </div>
   );
 }

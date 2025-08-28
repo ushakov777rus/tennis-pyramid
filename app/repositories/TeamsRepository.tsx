@@ -53,14 +53,27 @@ export class TeamsRepository {
       }) ?? []
   }
 
-  static async create(tournamentId: number, player1Id?: number, player2Id?: number): Promise<void> {
-    const { error } = await supabase.from("teams").insert({
-      tournament_id: tournamentId,
-      player1_id: player1Id ?? null,
-      player2_id: player2Id ?? null,
-    });
+  static async create(
+    tournamentId: number,
+    player1Id?: number,
+    player2Id?: number
+  ): Promise<number | null> {
+    const { data, error } = await supabase
+      .from("teams")
+      .insert({
+        tournament_id: tournamentId,
+        player1_id: player1Id ?? null,
+        player2_id: player2Id ?? null,
+      })
+      .select("id")
+      .single();
 
-    if (error) console.error("Ошибка создания команды:", error);
+    if (error) {
+      console.error("Ошибка создания команды:", error);
+      return null;
+    }
+
+    return data.id;
   }
 
   static async delete(id: number): Promise<void> {

@@ -170,12 +170,12 @@
 .add-team-btn:hover, .cta-btn:hover { background: rgba(166,255,0,0.25); }
 
 
-.chip.clickable {
+.player.clickable {
   cursor: pointer;
   user-select: none;
 }
 
-.chip.clickable.active {
+.player.clickable.active {
   outline: 2px solid #aaff55
 }
 

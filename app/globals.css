@@ -483,14 +483,18 @@ button,
   display: inline-flex;
   align-items: center;
   padding: 4px 4px;
-  border-radius: 6px;
+  border-radius: 4px;
   background: #2a2a2a;
   color: #ccc;
   border: 1px solid #3a3a3a;
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 12px;
+  height: calc(2.5em + 8px);
+  white-space: pre-line; /* перенос по \n */
 }
+
 .player.win {
   background: rgba(166, 255, 0, 0.15);
   border-color: rgba(166, 255, 0, 0.4);

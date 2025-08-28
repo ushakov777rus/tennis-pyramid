@@ -64,7 +64,7 @@ type TournamentContextShape = {
   addPlayerToTournament?: (playerId: number) => Promise<void>;
   removeParticipant?: (participantId: number) => Promise<void>;
   addTeamToTournament?: (teamId: number, maxLevel?: number) => Promise<void>;
-  createTeam?: (tournamentId:number, p1: number, p2: number) => Promise<void>;
+  createAndAddTeamToTournament?: (tournamentId:number, p1: number, p2: number) => Promise<void>;
   removeTeam?: (teamId: number) => Promise<void>;
   updatePositions: (next: Participant[]) => Promise<void>;
 };
@@ -197,24 +197,20 @@ export function TournamentProvider({
     [reload]
   );
 
-  const addTeamToTournament = useCallback(
-    async (teamId: number, maxLevel = 15) => {
+  const createAndAddTeamToTournament = useCallback(
+    async (tournamentId: number, p1: number, p2: number, maxLevel = 15) => {
       setLoading(true);
       try {
-        await TournamentsRepository.addTeam(tournamentId, teamId, maxLevel);
-        await reload();
-      } finally {
-        setLoading(false);
-      }
-    },
-    [tournamentId, reload]
-  );
+        // создаём команду и получаем её id
+        const teamId = await TeamsRepository.create(tournamentId, p1, p2);
+        if (!teamId) {
+          throw new Error("Не удалось создать команду");
+        }
 
-  const createTeam = useCallback(
-    async (tournamentId: number, p1: number, p2: number) => {
-      setLoading(true);
-      try {
-        await TeamsRepository.create(tournamentId, p1, p2);
+        // добавляем в турнир
+        await TournamentsRepository.addTeam(tournamentId, teamId, maxLevel);
+
+        // обновляем данные
         await reload();
       } finally {
         setLoading(false);
@@ -264,8 +260,7 @@ export function TournamentProvider({
       deleteMatch,
       addPlayerToTournament,
       removeParticipant,
-      addTeamToTournament,
-      createTeam,
+      createAndAddTeamToTournament,
       removeTeam,
       updatePositions,
     }),
@@ -283,8 +278,7 @@ export function TournamentProvider({
       deleteMatch,
       addPlayerToTournament,
       removeParticipant,
-      addTeamToTournament,
-      createTeam,
+      createAndAddTeamToTournament,
       removeTeam,
       updatePositions,
     ]
