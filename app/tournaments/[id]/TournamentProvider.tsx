@@ -62,7 +62,7 @@ type TournamentContextShape = {
 
   // примеры мутаций участников/команд (опционально)
   addPlayerToTournament?: (playerId: number) => Promise<void>;
-  removeParticipant?: (participantId: number) => Promise<void>;
+  removeParticipant?: (participant: Participant) => Promise<void>;
   addTeamToTournament?: (teamId: number, maxLevel?: number) => Promise<void>;
   createAndAddTeamToTournament?: (tournamentId:number, p1: number, p2: number) => Promise<void>;
   removeTeam?: (teamId: number) => Promise<void>;
@@ -185,10 +185,12 @@ export function TournamentProvider({
   );
 
   const removeParticipant = useCallback(
-    async (participantId: number) => {
+    async (participant: Participant) => {
       setLoading(true);
       try {
-        await TournamentsRepository.removeParticipant(participantId);
+        await TournamentsRepository.removeParticipant(participant.id);
+        if (participant.team)
+          await removeTeam(participant.team.id);
         await reload();
       } finally {
         setLoading(false);

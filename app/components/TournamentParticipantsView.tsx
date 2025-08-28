@@ -24,7 +24,7 @@ type TournamentParticipantsViewProps = {
 
   onAddPlayerToTournament: (playerId: number) => void;
   onAddTeamToTournament: (player1: Player, player2: Player) => void;
-  onRemoveParticipantFromTournament: (participantId: number) => void;
+  onRemoveParticipantFromTournament: (participant: Participant) => void;
 };
 
 export function TournamentParticipantsView({
@@ -227,7 +227,7 @@ export function TournamentParticipantsView({
                     <AdminOnly>
                       <DeleteIconButton
                         title="Убрать"
-                        onClick={() => onRemoveParticipantFromTournament(part.id)}
+                        onClick={() => onRemoveParticipantFromTournament(part)}
                       />
                     </AdminOnly>
                   )}

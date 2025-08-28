@@ -26,7 +26,6 @@ export function ParticipantsView() {
     addPlayerToTournament,
     removeParticipant,
     createAndAddTeamToTournament,
-    removeTeam,
   } = useTournament();
 
   if (loading) return <p>Загрузка...</p>;
@@ -72,7 +71,7 @@ export function ParticipantsView() {
         onAddTeamToTournament={(p1Id, p2Id) =>
           createAndAddTeamToTournament?.(tournament.id, p1Id.id, p2Id.id)
         }
-        onRemoveParticipantFromTournament={(id) => removeParticipant?.(id)}
+        onRemoveParticipantFromTournament={(participant) => removeParticipant?.(participant)}
       />
     </div>
   );
