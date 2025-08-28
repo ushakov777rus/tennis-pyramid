@@ -182,15 +182,15 @@ export function MatchHistoryView({
                     </div>
                   ) : (
                     <AdminOnly>
-                      <div className="row-actions">
+                      <div>
                         <EditIconButton
                           title="Редактировать"
-                          className="hide-sm"
+                          className="row-actions hide-sm"
                           onClick={() => startEditing(m)}
                         />
                         <DeleteIconButton
                           title="Удалить"
-                          className="hide-sm"
+                          className="row-actions hide-sm"
                           onClick={() => confirmDelete(m)}
                         />
 

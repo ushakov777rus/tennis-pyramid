@@ -39,12 +39,6 @@
   font-size: 12px;
 }
 
-/* Счёт + действия 
-.score-col {
-  width: 1%;
-  white-space: nowrap;
-}*/
-
 .score-readonly {
   display: flex;
   align-items: center;
@@ -68,6 +62,7 @@
 /* Меню для мобилы */
 .menu-wrap { position: relative; }
 .kebab { font-size: 18px; padding: 6px 1px; }
+
 .menu {
   position: absolute;
   right: 0;
