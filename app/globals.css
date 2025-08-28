@@ -349,7 +349,7 @@ body {
   border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
-  width: 110px;
+  width: 25%; /* Пока используется в одном месте так можно */
 }
 
 .card-btn-act {

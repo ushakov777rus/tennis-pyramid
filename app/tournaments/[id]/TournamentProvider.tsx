@@ -198,7 +198,7 @@ export function TournamentProvider({
   );
 
   const createAndAddTeamToTournament = useCallback(
-    async (tournamentId: number, p1: number, p2: number, maxLevel = 15) => {
+    async (tournamentId: number, p1: number, p2: number) => {
       setLoading(true);
       try {
         // создаём команду и получаем её id
@@ -208,7 +208,7 @@ export function TournamentProvider({
         }
 
         // добавляем в турнир
-        await TournamentsRepository.addTeam(tournamentId, teamId, maxLevel);
+        await TournamentsRepository.addTeam(tournamentId, teamId);
 
         // обновляем данные
         await reload();

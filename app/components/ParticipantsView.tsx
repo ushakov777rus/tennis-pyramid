@@ -29,18 +29,22 @@ export function ParticipantsView() {
     removeTeam,
   } = useTournament();
 
-  // выбор игроков для создания пары
-  const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
-
-  // вкладки только для парного турнира
-  const [activeTab, setActiveTab] = useState<"teams" | "parts">("parts");
-
   if (loading) return <p>Загрузка...</p>;
   if (!tournament) return <p>Турнир не найден</p>;
 
   // одиночки: свободные игроки (не в участниках)
-  const participantIds = new Set(
-    participants.map((p) => p.player?.id).filter(Boolean) as number[]
+  const participantIds = new Set<number>(
+    participants.flatMap((p) => {
+      if (p.player) {
+        return [p.player.id];
+      }
+      if (p.team) {
+        return [p.team.player1?.id, p.team.player2?.id].filter(
+          (id): id is number => !!id
+        );
+      }
+      return [];
+    })
   );
   const availablePlayers = players.filter((p) => !participantIds.has(p.id));
 
@@ -62,7 +66,7 @@ export function ParticipantsView() {
       <TournamentParticipantsView
         isDouble={tournament.tournament_type === "double"}
         availablePlayers={availablePlayers}
-        availableTeams={[]}
+        availableTeams={[]} //TODO удалить
         tournamentParticipants={participants}
         onAddPlayerToTournament={(id) => addPlayerToTournament?.(id)}
         onAddTeamToTournament={(p1Id, p2Id) =>

@@ -94,10 +94,14 @@ export default function PlayerListView() {
 
   const deletePlayer = async (id: number) => {
     setOpenMenuId(null);
-    if (typeof window === "undefined" || window.confirm("Удалить игрока? Это действие необратимо.")) {
-      await PlayersRepository.delete(id);
-      loadPlayers();
+    if (typeof window !== "undefined") {
+      const confirmed = window.confirm("Удалить игрока? Это действие необратимо.");
+      if (!confirmed) return;
     }
+
+    console.log("delete player", id);
+    await PlayersRepository.delete(id);
+    loadPlayers();
   };
 
   const addToMyPlayers = async (id: number) => {
@@ -169,7 +173,7 @@ export default function PlayerListView() {
 
       <div className="page-content-container">
         <div className="history-wrap">
-          <table className="history-table">
+          <table className="table match-history">
             <colgroup>
               <col style={{ width: "40%" }} />
               <col style={{ width: "15%" }}/>
