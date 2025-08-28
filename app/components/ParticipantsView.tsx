@@ -1,10 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
-import { Player } from "@/app/models/Player";
-
-import { TournamentTeamsTable } from "@/app/components/TournamentTeamsTable";
 import { TournamentParticipantsView } from "@/app/components/TournamentParticipantsView";
 
 import "@/app/components/ParticipantsView.css";
