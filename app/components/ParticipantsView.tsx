@@ -2,27 +2,30 @@
 
 import "@/app/components/ParticipantsView.css";
 
-// 👉 все данные и действия берём из провайдера
 import { useTournament } from "@/app/tournaments/[id]/TournamentProvider";
 import { useUser } from "./UserContext";
-import { canEditTournament } from "../lib/permissions";
 import { useMemo, useState } from "react";
 import { Player } from "../models/Player";
 import { CreateTeamIconButton, DeleteIconButton, PlusIconButton } from "./IconButtons";
 import { AdminOnly } from "./RoleGuard";
 
+// очень простой inline-спиннер (можете заменить своим компонентом)
+function InlineSpinner() {
+  return <span className="inline-spinner" aria-label="Loading" />;
+}
+
 export function ParticipantsView() {
   const { user } = useUser();
   const {
-    loading,
+    initialLoading, // первая загрузка
+    refreshing,     // тихий рефетч
+    mutating,       // идёт мутация
     tournament,
     players,
     participants,
-    teams,
-    // действия из провайдера
+    createAndAddTeamToTournament,
     addPlayerToTournament,
     removeParticipant,
-    createAndAddTeamToTournament,
   } = useTournament();
 
   // фильтры
@@ -44,19 +47,10 @@ export function ParticipantsView() {
     [participants, rf]
   );
 
-    // одиночки: свободные игроки (не в участниках)
+  // одиночки: свободные игроки (не в участниках)
   const participantIds = new Set<number>(
     participants.flatMap((p) => {
-      if (p.player) {
-        return [p.player.id];
-      }
-      /* Вообще это не логично но один участник может участвовать в нескольких командах
-      if (p.team) {
-        return [p.team.player1?.id, p.team.player2?.id].filter(
-          (id): id is number => !!id
-        );
-      }
-      */
+      if (p.player) return [p.player.id];
       return [];
     })
   );
@@ -81,7 +75,7 @@ export function ParticipantsView() {
       if (sel.some((sp) => sp.id === player.id)) {
         return sel.filter((sp) => sp.id !== player.id);
       }
-      if (sel.length === 2) return [player]; // если уже 2 — сбрасываем и выбираем нового
+      if (sel.length === 2) return [player];
       return [...sel, player];
     });
   };
@@ -93,16 +87,18 @@ export function ParticipantsView() {
 
   const createTeam = () => {
     if (selectedPlayers.length === 2 && tournament?.id) {
-      createAndAddTeamToTournament?.(tournament?.id, selectedPlayers[0].id, selectedPlayers[1].id);
+      createAndAddTeamToTournament?.(tournament.id, selectedPlayers[0].id, selectedPlayers[1].id);
       setSelectedPlayers([]);
     }
   };
 
-  if (loading) return <p>Загрузка...</p>;
-  if (!tournament) return <p>Турнир не найден</p>;
+  // показываем сплэш только при первой загрузке
+  if (initialLoading || !tournament) {
+    return <p>Загрузка...</p>;
+  }
 
   return (
-    <table className="participants-table">
+    <table className="participants-table" aria-busy={refreshing || mutating}>
       <colgroup>
         <col style={{ width: "40%" }} />
         <col style={{ width: "10%" }} />
@@ -115,8 +111,9 @@ export function ParticipantsView() {
           <th colSpan={2} style={{ width: "50%" }}>
             {tournament.isDouble() ? "Игроки (для пар)" : "Игроки"}
           </th>
-          <th colSpan={2} style={{ width: "50%" }}>
-            Участники турнира
+          <th colSpan={2} style={{ width: "50%", position: "relative" }}>
+            Участники турнира{" "}
+            {(refreshing || mutating) ? <InlineSpinner /> : null}
           </th>
         </tr>
       </thead>
@@ -160,14 +157,14 @@ export function ParticipantsView() {
 
             const isSelected =
               tournament.isDouble() &&
-              free instanceof Player &&
-              selectedPlayers.some((sp) => sp.id === free.id);
+              free instanceof Object && // Player
+              selectedPlayers.some((sp) => sp.id === (free as Player).id);
 
             const showCreateHere =
               tournament.isDouble() &&
-              free instanceof Player &&
+              free instanceof Object &&
               isSelected &&
-              free.id === lastSelectedId &&
+              (free as Player).id === lastSelectedId &&
               selectedPlayers.length === 2;
 
             return (
@@ -176,12 +173,10 @@ export function ParticipantsView() {
                 <td>
                   {free ? (
                     <span
-                      className={`player ${
-                        tournament.isDouble() && free instanceof Player ? "clickable" : ""
-                      } ${isSelected ? "active" : ""}`}
+                      className={`player ${tournament.isDouble() ? "clickable" : ""} ${isSelected ? "active" : ""}`}
                       onClick={() =>
-                        tournament.isDouble() && free instanceof Player
-                          ? toggleSelectPlayer(free)
+                        tournament.isDouble()
+                          ? toggleSelectPlayer(free as Player)
                           : undefined
                       }
                     >
@@ -199,14 +194,15 @@ export function ParticipantsView() {
                         <CreateTeamIconButton
                           title="Создать команду"
                           onClick={createTeam}
+                          disabled={mutating}
                         />
                       )
                     ) : (
                       free && (
                         <PlusIconButton
                           title="Добавить"
-                          onClick={() => addPlayerToTournament?.((free as Player).id)
-                          }
+                          onClick={() => addPlayerToTournament?.((free as Player).id)}
+                          disabled={mutating}
                         />
                       )
                     )}
@@ -221,6 +217,7 @@ export function ParticipantsView() {
                       <DeleteIconButton
                         title="Убрать"
                         onClick={() => removeParticipant?.(part)}
+                        disabled={mutating}
                       />
                     </AdminOnly>
                   )}
@@ -231,10 +228,5 @@ export function ParticipantsView() {
         )}
       </tbody>
     </table>
-
-
-
-
-
   );
 }

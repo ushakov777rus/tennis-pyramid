@@ -42,9 +42,13 @@ type AddMatchArgs = {
   tournamentId: number;
 };
 
-type TournamentContextShape = {
+export type TournamentContextShape = {
   // meta
-  loading: boolean;
+  loading: boolean;            // = initialLoading (для обратной совместимости)
+  initialLoading: boolean;     // первая загрузка
+  refreshing: boolean;         // тихий рефетч (не скрываем таблицы)
+  mutating: boolean;           // идёт мутация
+
   tournamentId: number;
 
   // данные
@@ -55,12 +59,11 @@ type TournamentContextShape = {
   matches: Match[];
 
   // действия
-  reload: () => Promise<void>;
+  reload: (opts?: { silent?: boolean }) => Promise<void>;
   addMatch: (args: AddMatchArgs) => Promise<void>;
   updateMatch: (m: Match) => Promise<void>;
   deleteMatch: (m: Match) => Promise<void>;
 
-  // примеры мутаций участников/команд (опционально)
   addPlayerToTournament?: (playerId: number) => Promise<void>;
   removeParticipant?: (participant: Participant) => Promise<void>;
   addTeamToTournament?: (teamId: number, maxLevel?: number) => Promise<void>;
@@ -81,7 +84,6 @@ export function TournamentProvider({
   const { user, loading: userLoading } = useUser();
   const { tournamentId } = initial;
 
-  const [loading, setLoading] = useState<boolean>(false);
   const [tournament, setTournament] = useState<Tournament | null>(initial.tournament ?? null);
   const [players, setPlayers] = useState<Player[]>(initial.players ?? []);
   const [participants, setParticipants] = useState<Participant[]>(initial.participants ?? []);
@@ -95,36 +97,46 @@ export function TournamentProvider({
     !initial.teams ||
     !initial.matches;
 
-  const reload = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [t, ps, parts, ts, ms] = await Promise.all([
-        TournamentsRepository.getTournamentById(tournamentId),
-        PlayersRepository.loadAccessiblePlayers(user?.id, user?.role),
-        TournamentsRepository.loadParticipants(tournamentId),
-        TeamsRepository.loadTournamentTeams(tournamentId),
-        MatchRepository.loadMatches(tournamentId),
-      ]);
-      setTournament(t);
-      setPlayers(ps);
-      setParticipants(parts);
-      setTeams(ts);
-      setMatches(ms);
-    } finally {
-      setLoading(false);
-    }
-  }, [tournamentId, user?.id, user?.role]);
+  // новые флаги
+  const [initialLoading, setInitialLoading] = useState<boolean>(needInitialFetch);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [mutating, setMutating] = useState<boolean>(false);
 
+  const reload = useCallback(
+    async (opts?: { silent?: boolean }) => {
+      const silent = !!opts?.silent;
+      silent ? setRefreshing(true) : setInitialLoading(true);
+      try {
+        const [t, ps, parts, ts, ms] = await Promise.all([
+          TournamentsRepository.getTournamentById(tournamentId),
+          PlayersRepository.loadAccessiblePlayers(user?.id, user?.role),
+          TournamentsRepository.loadParticipants(tournamentId),
+          TeamsRepository.loadTournamentTeams(tournamentId),
+          MatchRepository.loadMatches(tournamentId),
+        ]);
+        setTournament(t);
+        setPlayers(ps);
+        setParticipants(parts);
+        setTeams(ts);
+        setMatches(ms);
+      } finally {
+        silent ? setRefreshing(false) : setInitialLoading(false);
+      }
+    },
+    [tournamentId, user?.id, user?.role]
+  );
+
+  // первичная загрузка
   useEffect(() => {
     if (needInitialFetch && !userLoading) {
-      void reload();
+      void reload(); // НЕ silent
     }
   }, [needInitialFetch, userLoading, reload]);
 
   // ---- Мутации матчей ----
   const addMatch = useCallback(
     async (args: AddMatchArgs) => {
-      setLoading(true);
+      setMutating(true);
       try {
         await MatchRepository.addMatch(
           args.date,
@@ -136,9 +148,9 @@ export function TournamentProvider({
           args.team2,
           args.tournamentId
         );
-        await reload();
+        await reload({ silent: true });
       } finally {
-        setLoading(false);
+        setMutating(false);
       }
     },
     [reload]
@@ -146,12 +158,12 @@ export function TournamentProvider({
 
   const updateMatch = useCallback(
     async (m: Match) => {
-      setLoading(true);
+      setMutating(true);
       try {
         await MatchRepository.updateMatch(m);
-        await reload();
+        await reload({ silent: true });
       } finally {
-        setLoading(false);
+        setMutating(false);
       }
     },
     [reload]
@@ -159,89 +171,94 @@ export function TournamentProvider({
 
   const deleteMatch = useCallback(
     async (m: Match) => {
-      setLoading(true);
+      setMutating(true);
       try {
         await MatchRepository.deleteMatch(m);
-        await reload();
+        await reload({ silent: true });
       } finally {
-        setLoading(false);
+        setMutating(false);
       }
     },
     [reload]
   );
 
-  // ---- Примеры доп. мутаций ----
+  // ---- Доп. мутации ----
   const addPlayerToTournament = useCallback(
     async (playerId: number) => {
-      setLoading(true);
+      setMutating(true);
       try {
         await TournamentsRepository.addPlayer(tournamentId, playerId);
-        await reload();
+        await reload({ silent: true });
       } finally {
-        setLoading(false);
+        setMutating(false);
       }
     },
     [tournamentId, reload]
   );
 
-  const removeParticipant = useCallback(
-    async (participant: Participant) => {
-      setLoading(true);
+  const removeTeam = useCallback(
+    async (teamId: number) => {
+      setMutating(true);
       try {
-        await TournamentsRepository.removeParticipant(participant.id);
-        if (participant.team)
-          await removeTeam(participant.team.id);
-        await reload();
+        await TeamsRepository.delete(teamId);
+        await reload({ silent: true });
       } finally {
-        setLoading(false);
+        setMutating(false);
       }
     },
     [reload]
+  );
+
+  const removeParticipant = useCallback(
+    async (participant: Participant) => {
+      setMutating(true);
+      try {
+        await TournamentsRepository.removeParticipant(participant.id);
+        if (participant.team) await removeTeam(participant.team.id);
+        await reload({ silent: true });
+      } finally {
+        setMutating(false);
+      }
+    },
+    [reload, removeTeam]
   );
 
   const createAndAddTeamToTournament = useCallback(
-    async (tournamentId: number, p1: number, p2: number) => {
-      setLoading(true);
+    async (tId: number, p1: number, p2: number) => {
+      setMutating(true);
       try {
-        // создаём команду и получаем её id
-        const teamId = await TeamsRepository.create(tournamentId, p1, p2);
-        if (!teamId) {
-          throw new Error("Не удалось создать команду");
-        }
-
-        // добавляем в турнир
-        await TournamentsRepository.addTeam(tournamentId, teamId);
-
-        // обновляем данные
-        await reload();
+        const teamId = await TeamsRepository.create(tId, p1, p2);
+        if (!teamId) throw new Error("Не удалось создать команду");
+        await TournamentsRepository.addTeam(tId, teamId);
+        await reload({ silent: true });
       } finally {
-        setLoading(false);
+        setMutating(false);
       }
     },
     [reload]
   );
 
-  const removeTeam = useCallback(
+  const addTeamToTournament = useCallback(
     async (teamId: number) => {
-      setLoading(true);
+      setMutating(true);
       try {
-        await TeamsRepository.delete(teamId);
-        await reload();
+        await TournamentsRepository.addTeam(tournamentId, teamId);
+        await reload({ silent: true });
       } finally {
-        setLoading(false);
+        setMutating(false);
       }
     },
-    [reload]
+    [tournamentId, reload]
   );
 
   const updatePositions = useCallback(
     async (next: Participant[]) => {
-      setLoading(true);
+      setMutating(true);
       try {
         await TournamentsRepository.updatePositions(next);
-        await reload();
+        await reload({ silent: true });
       } finally {
-        setLoading(false);
+        setMutating(false);
       }
     },
     [reload]
@@ -249,37 +266,49 @@ export function TournamentProvider({
 
   const value = useMemo<TournamentContextShape>(
     () => ({
-      loading,
+      loading: initialLoading,         // обратная совместимость
+      initialLoading,
+      refreshing,
+      mutating,
+
       tournamentId,
       tournament,
       players,
       participants,
       teams,
       matches,
+
       reload,
       addMatch,
       updateMatch,
       deleteMatch,
+
       addPlayerToTournament,
       removeParticipant,
+      addTeamToTournament,
       createAndAddTeamToTournament,
       removeTeam,
       updatePositions,
     }),
     [
-      loading,
+      initialLoading,
+      refreshing,
+      mutating,
+
       tournamentId,
       tournament,
       players,
       participants,
       teams,
       matches,
+
       reload,
       addMatch,
       updateMatch,
       deleteMatch,
       addPlayerToTournament,
       removeParticipant,
+      addTeamToTournament,
       createAndAddTeamToTournament,
       removeTeam,
       updatePositions,
