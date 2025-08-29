@@ -262,7 +262,7 @@ export default function TournamentClient() {
             className={activeTab === "rating" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
             onClick={() => setActiveTab("rating")}
           >
-            Звания
+            Результаты
           </button>
         </div>
 
