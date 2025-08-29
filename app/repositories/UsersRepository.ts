@@ -1,6 +1,7 @@
 // app/repositories/UsersRepository.ts
 import { supabase } from "@/lib/supabaseClient";
 import { User, UserRole } from "../models/Users";
+import { UUID } from "crypto";
 
 export type RegisterPayload = {
   fullName: string;           // ФИО для карточки игрока
@@ -9,6 +10,7 @@ export type RegisterPayload = {
   role: UserRole;             // 'player' | 'tournament_admin' | 'site_admin'
   phone?: string | null;      // если нужно, можно сохранить в players
   ntrp?: number | null;       // если нужно, можно сохранить в players
+  auth_id: string;
 };
 
 export type RegisterResult = {
@@ -43,7 +45,7 @@ export class UsersRepository {
       .insert({
         name: nickname && nickname.length > 0 ? nickname : fullName,
         role: payload.role,
-        password: payload.password ?? null, // ⚠️ plaintext — см. заметки ниже
+        auth_user_id: payload.auth_id
       })
       .select("id, name, role")
       .single();
@@ -62,8 +64,8 @@ export class UsersRepository {
         .insert({
           name: fullName,
           user_id: newUser.id,
-          // phone: payload.phone ?? null,
-          // ntrp: payload.ntrp ?? null,
+          phone: payload.phone ?? null,
+          ntrp: payload.ntrp ?? null,
         })
         .select("id")
         .single();
@@ -95,10 +97,10 @@ export class UsersRepository {
     return (data ?? []).map((row: any) => new User(row));
   }
 
-  static async add(payload: { name: string; password: string; role?: UserRole; }): Promise<number | null> {
+  static async add(payload: { name: string; role?: UserRole; authId: string }): Promise<number | null> {
     const { data, error } = await supabase
       .from("users")
-      .insert([{ name: payload.name, password: payload.password, role: payload.role ?? "player" }])
+      .insert([{ name: payload.name, role: payload.role ?? "player", auth_user_id: payload.authId }])
       .select("id")
       .maybeSingle();
 

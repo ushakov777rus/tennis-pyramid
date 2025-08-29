@@ -20,6 +20,8 @@ export function UserBadge() {
     router.replace("/");
   }
 
+  console.log("UserBadge:user", user);
+
   return (
     <div className="user-badge">
       {user ? (

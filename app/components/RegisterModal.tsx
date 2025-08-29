@@ -25,9 +25,9 @@ export function RegisterModal({
 
   const [role, setRole] = useState<"player" | "tournament_admin">(defaultRole);
   const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [ntrp, setNTRP] = useState("");
-  const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [error, setError] = useState("");
@@ -38,9 +38,9 @@ export function RegisterModal({
     if (isOpen) {
       setRole(defaultRole);
       setFullName("");
+      setEmail("");
       setPhone("");
       setNTRP("");
-      setNickname("");
       setPassword("");
       setPassword2("");
       setError("");
@@ -64,8 +64,10 @@ export function RegisterModal({
     setError("");
 
     if (!fullName.trim()) return setError("Укажите имя и фамилию");
-    if (!nickname.trim()) return setError("Укажите никнейм для входа");
+    if (!email.trim()) return setError("Укажите email");
+    if (!isValidEmail(email)) return setError("Укажите корректный email");
     if (!password) return setError("Введите пароль");
+    if (password.length < 6) return setError("Пароль должен содержать не менее 6 символов");
     if (password !== password2) return setError("Пароли не совпадают");
     // NTRP требуем только у игрока
     if (role === "player" && !ntrp.trim()) {
@@ -79,11 +81,11 @@ export function RegisterModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fullName: fullName.trim(),
+          email: email.trim(),
           phone: phone.trim(),
           ntrp: role === "player" ? ntrp.trim() : null, // у организатора не отправляем
-          nickname: nickname.trim(),
           password,
-          role,
+          role: role,
         }),
       });
 
@@ -102,6 +104,12 @@ export function RegisterModal({
       setPending(false);
     }
   }
+
+  // Функция для проверки email
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   return (
     <div
@@ -146,8 +154,19 @@ export function RegisterModal({
         />
 
         <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="input"
+          disabled={pending}
+          autoComplete="email"
+          inputMode="email"
+        />
+
+        <input
           type="tel"
-          placeholder="Телефон"
+          placeholder="Телефон (необязательно)"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           className="input"
@@ -169,18 +188,8 @@ export function RegisterModal({
         )}
 
         <input
-          type="text"
-          placeholder="Никнейм (для входа)"
-          value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
-          className="input"
-          disabled={pending}
-          autoComplete="username"
-        />
-
-        <input
           type="password"
-          placeholder="Пароль"
+          placeholder="Пароль (минимум 6 символов)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="input"

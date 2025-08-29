@@ -15,3 +15,23 @@
   text-decoration: underline;
 }
 
+.input[type="email"] {
+  /* Специфичные стили для поля email если нужно */
+}
+
+.form-error {
+  color: #e74c3c;
+  margin: 10px 0;
+  text-align: center;
+  font-size: 14px;
+}
+
+.modal-content-login {
+  max-width: 400px;
+  padding: 25px;
+}
+
+.modal-title {
+  margin-bottom: 20px;
+  text-align: center;
+}

@@ -1,14 +1,22 @@
+// app/api/logout/route.ts
 import { NextResponse } from "next/server";
+import { createClient } from "@/app/lib/supabase/server";
 
 export async function POST() {
-  const res = NextResponse.json({ message: "logged out" });
+  try {
+    const supabase = await createClient();
+    
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+      console.error("Logout error:", error);
+      return NextResponse.json({ error: "Ошибка при выходе" }, { status: 500 });
+    }
 
-  // очищаем cookie userId
-  res.cookies.set("userId", "", {
-    httpOnly: true,
-    path: "/",
-    maxAge: 0, // сразу истекает
-  });
+    return NextResponse.json({ message: "Выход выполнен успешно" });
 
-  return res;
+  } catch (e) {
+    console.error("Logout route error:", e);
+    return NextResponse.json({ error: "Внутренняя ошибка сервера" }, { status: 500 });
+  }
 }

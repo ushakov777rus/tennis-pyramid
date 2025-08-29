@@ -1,21 +1,26 @@
+// app/api/me/route.ts
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/app/lib/supabase/server";
 
-export async function GET() {
-  // ⚠️ cookies() в 15.4.2 синхронная
-  const cookieStore = await cookies();
-  const userId = cookieStore.get("userId")?.value;
+export async function GET(req: Request) {
+  try {
+    const supabase = await createClient();
+    
+    // Получаем текущую сессию
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-  if (!userId) {
-    return NextResponse.json({ loggedIn: false });
-  }
+    console.log("api:me:user:begin",session?.user);
+    
+    if (sessionError || !session) {
+      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+    }
 
-  // запрос в Supabase
-  const { data, error } = await supabase
-    .from("users")
-    .select(
-      `
+    console.log("api:me get user by auth id", session.user.id);
+
+    // Получаем информацию о пользователе
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select(`
         id,
         name,
         role,
@@ -26,25 +31,29 @@ export async function GET() {
           sex,
           ntrp
         )
-      `
-    )
-    .eq("id", userId)
-    .single();
+      `)
+      .eq('auth_user_id', session.user.id)
+      .maybeSingle();
 
-  if (error || !data) {
-    console.error("api/me ошибка проверки пользователя в БД:", error, data);
-    return NextResponse.json({ loggedIn: false });
+    if (userError) {
+      console.error("Error fetching user data:", userError);
+    }
+
+    const user = {
+      id: userData?.id,
+      email: session.user.email,
+      name: userData?.name || session.user.user_metadata.full_name || session.user.email,
+      role: userData?.role || session.user.user_metadata.role || 'player',
+      player_id: userData?.players?.[0]?.id || null,
+      full_name: userData?.name || session.user.user_metadata.full_name,
+    };
+
+    console.log("me:user", user);
+
+    return NextResponse.json({ user });
+
+  } catch (e: any) {
+    console.error("User route error:", e);
+    return NextResponse.json({ error: "Внутренняя ошибка сервера" }, { status: 500 });
   }
-
-  const user = {
-    id: data.id,
-    name: data.players.length > 0 ? data.players[0].name : data.name,
-    role: data.role,
-    player_id: data.players.length > 0 ? data.players[0].id : null
-  };
-
-  return NextResponse.json({
-    loggedIn: true,
-    user,
-  });
 }

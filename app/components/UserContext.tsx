@@ -44,7 +44,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         signal: ac.signal,
       });
       const data = await res.json();
-      setUser(data?.loggedIn ? data.user : null);
+
+      console.log("UserProvider:user", data);
+
+      setUser(data.user);
     } catch (e: any) {
       // если это именно abort — игнорируем
       if (e?.name !== "AbortError") {

@@ -17,7 +17,7 @@ export function LoginModal({
   onClose,
   onSwitchToRegister,       // <-- деструктурируем
 }: LoginModalProps) {
-  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const { setUser } = useUser();
@@ -30,7 +30,7 @@ export function LoginModal({
     const res = await fetch("/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, password }),
+      body: JSON.stringify({ email, password }),
     });
 
     const data = await res.json();
@@ -50,11 +50,13 @@ export function LoginModal({
         <h2 className="modal-title">Вход</h2>
 
         <input
-          type="text"
-          placeholder="Имя"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           className="input"
+          autoComplete="email"
+          inputMode="email"
         />
 
         <input

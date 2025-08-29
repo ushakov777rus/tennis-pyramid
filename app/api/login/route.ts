@@ -1,13 +1,47 @@
+// app/api/login/route.ts
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/app/lib/supabase/server";
 
 export async function POST(req: Request) {
-  const { name, password } = await req.json();
+  try {
+    const { email, password } = await req.json();
 
-  const { data, error } = await supabase
-    .from("users")
-    .select(
-      `
+    // Валидация
+    if (!email || typeof email !== "string" || !email.trim()) {
+      return NextResponse.json({ error: "Укажите email" }, { status: 400 });
+    }
+    
+    if (!password || typeof password !== "string") {
+      return NextResponse.json({ error: "Укажите пароль" }, { status: 400 });
+    }
+
+    // Создаем Supabase клиент
+    const supabase = await createClient();
+
+    // Аутентифицируем пользователя через Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password: password.trim(),
+    });
+
+    if (authError) {
+      console.error("Login error:", authError);
+      
+      if (authError.message.includes("Invalid login credentials")) {
+        return NextResponse.json({ error: "Неверный email или пароль" }, { status: 401 });
+      }
+      
+      return NextResponse.json({ error: "Ошибка при входе: " + authError.message }, { status: 500 });
+    }
+
+    if (!authData.user) {
+      return NextResponse.json({ error: "Пользователь не найден" }, { status: 401 });
+    }
+
+    // Получаем дополнительную информацию о пользователе из таблицы users
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select(`
         id,
         name,
         role,
@@ -18,38 +52,40 @@ export async function POST(req: Request) {
           sex,
           ntrp
         )
-      `
-    )
-    .eq("name", name)
-    .eq("password", password) // ⚠️ plain-text только для MVP
-    .maybeSingle();
+      `)
+      .eq('id', authData.user.id)
+      .maybeSingle();
 
-  if (error || !data) {
-    return NextResponse.json(
-      { error: "Неверный логин или пароль" },
-      { status: 401 }
-    );
+    if (userError) {
+      console.error("Error fetching user data:", userError);
+      // Не прерываем вход, но логируем ошибку
+    }
+
+    // Формируем объект пользователя
+    const user = {
+      id: userData?.id,
+      email: authData.user.email,
+      name: userData?.name || authData.user.user_metadata.name || authData.user.email,
+      role: userData?.role || authData.user.user_metadata.role || 'player',
+      player_id: userData?.players?.[0]?.id || null,
+      full_name: userData?.name || authData.user.user_metadata.full_name,
+    };
+
+    console.log("login:user", user);
+
+    // Создаём ответ
+    const response = NextResponse.json({
+      message: "Вход выполнен успешно",
+      user,
+    });
+
+    // Устанавливаем сессионные куки через Supabase
+    // Supabase автоматически управляет сессией через куки
+
+    return response;
+
+  } catch (e: any) {
+    console.error("Login route error:", e);
+    return NextResponse.json({ error: "Внутренняя ошибка сервера" }, { status: 500 });
   }
-
-  // формируем объект пользователя
-  const user = {
-    id: data.id,
-    name: data.players.length > 0 ? data.players[0].name : data.name,
-    role: data.role,
-    player_id: data.players.length > 0 ? data.players[0].id : null
-  };
-
-  // создаём ответ с user
-  const res = NextResponse.json({
-    message: "ok",
-    user,
-  });
-
-  // сохраняем userId в cookie
-  res.cookies.set("userId", String(data.id), {
-    httpOnly: true,
-    path: "/",
-  });
-
-  return res;
 }
