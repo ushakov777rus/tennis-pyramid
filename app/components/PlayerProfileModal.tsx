@@ -140,7 +140,7 @@ export function PlayerProfileModal({
             <div className="empty">Пока нет сыгранных матчей</div>
           ) : (
             <MatchHistoryView
-              player={null}
+              participant={null}
               matches={recentMatches}
               showTournament={true}
               onEditMatch={undefined}
