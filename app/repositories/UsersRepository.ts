@@ -1,11 +1,87 @@
-// src/app/repositories/UsersRepository.ts
+// app/repositories/UsersRepository.ts
 import { supabase } from "@/lib/supabaseClient";
-
 import { User, UserRole } from "../models/Users";
 
+export type RegisterPayload = {
+  fullName: string;           // ФИО для карточки игрока
+  nickname?: string | null;   // никнейм (пойдёт в users.name, если задан)
+  password?: string | null;   // ⚠️ сейчас хранится как есть (позже уберём)
+  role: UserRole;             // 'player' | 'tournament_admin' | 'site_admin'
+  phone?: string | null;      // если нужно, можно сохранить в players
+  ntrp?: number | null;       // если нужно, можно сохранить в players
+};
+
+export type RegisterResult = {
+  user: { id: number; name: string; role: UserRole; player_id: number | null };
+};
 
 export class UsersRepository {
-  /** Загрузить всех пользователей (без паролей) */
+  /** Проверить, занят ли никнейм (users.name) */
+  static async isNameTaken(name: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from("users")
+      .select("id")
+      .eq("name", name)
+      .maybeSingle();
+
+    if (error) {
+      console.error("UsersRepository.isNameTaken error:", error);
+      // на ошибке лучше не разрешать регистрацию с таким ником
+      return true;
+    }
+    return !!data;
+  }
+
+  /** Зарегистрировать пользователя и, если роль player, создать привязанного игрока */
+  static async register(payload: RegisterPayload): Promise<RegisterResult> {
+    const nickname = payload.nickname?.trim();
+    const fullName = payload.fullName.trim();
+
+    // 1) создаём пользователя
+    const { data: newUser, error: uerror } = await supabase
+      .from("users")
+      .insert({
+        name: nickname && nickname.length > 0 ? nickname : fullName,
+        role: payload.role,
+        password: payload.password ?? null, // ⚠️ plaintext — см. заметки ниже
+      })
+      .select("id, name, role")
+      .single();
+
+    if (uerror || !newUser) {
+      console.error("UsersRepository.register: cannot insert user:", uerror);
+      throw new Error("USER_CREATE_FAILED");
+    }
+
+    let playerId: number | null = null;
+
+    // 2) если роль player — создаём players
+    if (payload.role === "player") {
+      const { data: newPlayer, error: perror } = await supabase
+        .from("players")
+        .insert({
+          name: fullName,
+          user_id: newUser.id,
+          // phone: payload.phone ?? null,
+          // ntrp: payload.ntrp ?? null,
+        })
+        .select("id")
+        .single();
+
+      if (perror || !newPlayer) {
+        console.error("UsersRepository.register: cannot insert player:", perror);
+        throw new Error("PLAYER_CREATE_FAILED");
+      }
+      playerId = newPlayer.id;
+    }
+
+    return {
+      user: { id: newUser.id, name: newUser.name, role: newUser.role as UserRole, player_id: playerId },
+    };
+  }
+
+  /** ================== Остальные методы (как у тебя были) ================== */
+
   static async loadAll(): Promise<User[]> {
     const { data, error } = await supabase
       .from("users")
@@ -16,50 +92,29 @@ export class UsersRepository {
       console.error("Ошибка загрузки пользователей:", error);
       return [];
     }
-
-    console.log("UsersRepository-loadAll:", data);
-
     return (data ?? []).map((row: any) => new User(row));
   }
 
-  /** Добавить пользователя (role по умолчанию 'player') */
-  static async add(payload: {
-    name: string;
-    password: string; // ⚠️ сейчас в таблице хранится текстом
-    role?: UserRole;
-  }): Promise<number | null> {
+  static async add(payload: { name: string; password: string; role?: UserRole; }): Promise<number | null> {
     const { data, error } = await supabase
       .from("users")
-      .insert([
-        {
-          name: payload.name,
-          password: payload.password,
-          role: payload.role ?? "player",
-        },
-      ])
-      .select("id") // вернуть id созданной записи
+      .insert([{ name: payload.name, password: payload.password, role: payload.role ?? "player" }])
+      .select("id")
       .maybeSingle();
 
     if (error) {
       console.error("Ошибка добавления пользователя:", error);
       return null;
     }
-
     return data?.id ?? null;
   }
 
-  /** Удалить пользователя по id */
   static async delete(id: number): Promise<void> {
     const { error } = await supabase.from("users").delete().eq("id", id);
     if (error) console.error("Ошибка удаления пользователя:", error);
   }
 
-  /** Обновить пользователя (имя/роль). Пароль меняется через changePassword */
-  static async update(
-    id: number,
-    data: Partial<Pick<User, "name" | "role">>
-  ): Promise<void> {
-    // не позволяем случайно отправить лишние поля
+  static async update(id: number, data: Partial<Pick<User, "name" | "role">>): Promise<void> {
     const patch: any = {};
     if (data.name != null) patch.name = data.name;
     if (data.role != null) patch.role = data.role;
@@ -68,7 +123,6 @@ export class UsersRepository {
     if (error) console.error("Ошибка обновления пользователя:", error);
   }
 
-  /** Найти пользователя по id (без пароля) */
   static async findById(id: number): Promise<User | null> {
     const { data, error } = await supabase
       .from("users")
@@ -83,7 +137,6 @@ export class UsersRepository {
     return data ? new User(data) : null;
   }
 
-  /** Найти пользователя по имени (без пароля) */
   static async findByName(name: string): Promise<User | null> {
     const { data, error } = await supabase
       .from("users")
@@ -98,7 +151,6 @@ export class UsersRepository {
     return data ? new User(data) : null;
   }
 
-  /** Получить хэш/пароль (если нужен для локальной аутентификации) */
   static async getPasswordHashByName(name: string): Promise<string | null> {
     const { data, error } = await supabase
       .from("users")
@@ -113,7 +165,6 @@ export class UsersRepository {
     return data?.password ?? null;
   }
 
-  /** Сменить пароль пользователю */
   static async changePassword(id: number, newPassword: string): Promise<void> {
     const { error } = await supabase
       .from("users")
@@ -123,13 +174,11 @@ export class UsersRepository {
     if (error) console.error("Ошибка смены пароля:", error);
   }
 
-  /** Сменить роль пользователю (валидные: site_admin | tournament_admin | player) */
   static async setRole(id: number, role: UserRole): Promise<void> {
     const { error } = await supabase.from("users").update({ role }).eq("id", id);
     if (error) console.error("Ошибка смены роли:", error);
   }
 
-  /** Простейшая аутентификация (сравниваем как есть — см. предупреждение ниже) */
   static async authenticate(name: string, password: string): Promise<User | null> {
     const { data, error } = await supabase
       .from("users")
@@ -141,10 +190,7 @@ export class UsersRepository {
       console.error("Ошибка аутентификации:", error);
       return null;
     }
-    if (!data) return null;
-    if (data.password !== password) return null;
-
-    // не возвращаем пароль наружу
+    if (!data || data.password !== password) return null;
     const { password: _pw, ...safe } = data as any;
     return new User(safe);
   }
