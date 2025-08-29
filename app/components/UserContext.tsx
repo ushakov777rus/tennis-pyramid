@@ -2,11 +2,10 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
-
-type User = { id: number; name: string; role: string; player_id: number } | null;
+import { User } from "../models/Users";
 
 type Ctx = {
-  user: User;
+  user: User | null;
   setUser: (u: User) => void;
   loading: boolean;
   refresh: () => Promise<void>;   // <- Promise<void>
@@ -22,7 +21,7 @@ const UserContext = createContext<Ctx>({
 });
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
