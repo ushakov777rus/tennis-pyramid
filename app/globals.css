@@ -177,11 +177,12 @@ body {
 
 .modal-submit-btn {
   width: 100%;
-  padding: 12px;
+  padding: 8px;
+  margin: 2px;
   background: #ccff66;
   color: #000;
   font-weight: bold;
-  font-size: 16px;
+  font-size: 14px;
   border: none;
   border-radius: 6px;
   cursor: pointer;

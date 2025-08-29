@@ -396,7 +396,7 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
       return <p>Пока нет лидеров — сыграйте ещё немного 😉</p>;
     }
     return (
-      <table className="history-table">
+      <table className="table history-table">
         <thead className="history-table-head">
           <tr>
             <th>Игрок(и)</th>
