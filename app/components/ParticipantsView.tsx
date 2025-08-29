@@ -1,13 +1,15 @@
 "use client";
 
-import { TournamentParticipantsView } from "@/app/components/TournamentParticipantsView";
-
 import "@/app/components/ParticipantsView.css";
 
 // 👉 все данные и действия берём из провайдера
 import { useTournament } from "@/app/tournaments/[id]/TournamentProvider";
 import { useUser } from "./UserContext";
 import { canEditTournament } from "../lib/permissions";
+import { useMemo, useState } from "react";
+import { Player } from "../models/Player";
+import { CreateTeamIconButton, DeleteIconButton, PlusIconButton } from "./IconButtons";
+import { AdminOnly } from "./RoleGuard";
 
 export function ParticipantsView() {
   const { user } = useUser();
@@ -23,10 +25,26 @@ export function ParticipantsView() {
     createAndAddTeamToTournament,
   } = useTournament();
 
-  if (loading) return <p>Загрузка...</p>;
-  if (!tournament) return <p>Турнир не найден</p>;
+  // фильтры
+  const [leftFilter, setLeftFilter] = useState("");
+  const [rightFilter, setRightFilter] = useState("");
+  const lf = leftFilter.trim().toLowerCase();
+  const rf = rightFilter.trim().toLowerCase();
 
-  // одиночки: свободные игроки (не в участниках)
+  // выбранные игроки для формирования пары
+  const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
+
+  const filteredParticipants = useMemo(
+    () =>
+      rf
+        ? participants.filter((p) =>
+            p.displayName(false).toLowerCase().includes(rf)
+          )
+        : participants,
+    [participants, rf]
+  );
+
+    // одиночки: свободные игроки (не в участниках)
   const participantIds = new Set<number>(
     participants.flatMap((p) => {
       if (p.player) {
@@ -40,33 +58,181 @@ export function ParticipantsView() {
       return [];
     })
   );
+
   const availablePlayers = players.filter((p) => !participantIds.has(p.id));
 
-  // пары: свободные команды (не в участниках)
-  const participantTeamIds = new Set(
-    participants.map((p) => p.team?.id).filter(Boolean) as number[]
+  const filteredPlayers = useMemo(
+    () =>
+      lf
+        ? availablePlayers.filter((p) =>
+            p.displayName(false).toLowerCase().includes(lf)
+          )
+        : availablePlayers,
+    [availablePlayers, lf]
   );
-  const availableTeams = teams.filter((t) => !participantTeamIds.has(t.id));
 
-  // команды, уже участвующие в турнире (для рендера / если нужно)
-  const tournamentTeams = participants
-    .filter((p) => p.team)
-    .map((p) => p.team!)
-    // на случай дублей участников одной и той же команды:
-    .filter((team, idx, arr) => arr.findIndex(t => t.id === team.id) === idx);
+  const maxRows = Math.max(filteredPlayers.length, filteredParticipants.length);
+
+  // выбор игроков
+  const toggleSelectPlayer = (player: Player) => {
+    setSelectedPlayers((sel) => {
+      if (sel.some((sp) => sp.id === player.id)) {
+        return sel.filter((sp) => sp.id !== player.id);
+      }
+      if (sel.length === 2) return [player]; // если уже 2 — сбрасываем и выбираем нового
+      return [...sel, player];
+    });
+  };
+
+  const lastSelectedId =
+    selectedPlayers.length > 0
+      ? selectedPlayers[selectedPlayers.length - 1].id
+      : undefined;
+
+  const createTeam = () => {
+    if (selectedPlayers.length === 2 && tournament?.id) {
+      createAndAddTeamToTournament?.(tournament?.id, selectedPlayers[0].id, selectedPlayers[1].id);
+      setSelectedPlayers([]);
+    }
+  };
+
+  if (loading) return <p>Загрузка...</p>;
+  if (!tournament) return <p>Турнир не найден</p>;
 
   return (
-    <div className="history-wrap">
-      <TournamentParticipantsView
-        isDouble={tournament.tournament_type === "double"}
-        availablePlayers={availablePlayers}
-        tournamentParticipants={participants}
-        onAddPlayerToTournament={(id) => addPlayerToTournament?.(id)}
-        onAddTeamToTournament={(p1Id, p2Id) =>
-          createAndAddTeamToTournament?.(tournament.id, p1Id.id, p2Id.id)
-        }
-        onRemoveParticipantFromTournament={(participant) => removeParticipant?.(participant)}
-      />
-    </div>
+    <table className="participants-table">
+      <colgroup>
+        <col style={{ width: "40%" }} />
+        <col style={{ width: "10%" }} />
+        <col style={{ width: "40%" }} />
+        <col style={{ width: "10%" }} />
+      </colgroup>
+
+      <thead>
+        <tr>
+          <th colSpan={2} style={{ width: "50%" }}>
+            {tournament.isDouble() ? "Игроки (для пар)" : "Игроки"}
+          </th>
+          <th colSpan={2} style={{ width: "50%" }}>
+            Участники турнира
+          </th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {/* фильтры */}
+        <tr>
+          <td>
+            <input
+              type="text"
+              className="input"
+              placeholder={tournament.isDouble() ? "Фильтр: игрок" : "Фильтр: игрок/пара"}
+              value={leftFilter}
+              onChange={(e) => setLeftFilter(e.target.value)}
+            />
+          </td>
+          <td />
+          <td>
+            <input
+              type="text"
+              className="input"
+              placeholder="Фильтр: участник"
+              value={rightFilter}
+              onChange={(e) => setRightFilter(e.target.value)}
+            />
+          </td>
+          <td />
+        </tr>
+
+        {/* контент */}
+        {maxRows === 0 ? (
+          <tr>
+            <td colSpan={4} style={{ textAlign: "center", opacity: 0.7 }}>
+              Ничего не найдено
+            </td>
+          </tr>
+        ) : (
+          Array.from({ length: maxRows }).map((_, i) => {
+            const free = filteredPlayers[i];
+            const part = filteredParticipants[i];
+
+            const isSelected =
+              tournament.isDouble() &&
+              free instanceof Player &&
+              selectedPlayers.some((sp) => sp.id === free.id);
+
+            const showCreateHere =
+              tournament.isDouble() &&
+              free instanceof Player &&
+              isSelected &&
+              free.id === lastSelectedId &&
+              selectedPlayers.length === 2;
+
+            return (
+              <tr key={i}>
+                {/* свободные */}
+                <td>
+                  {free ? (
+                    <span
+                      className={`player ${
+                        tournament.isDouble() && free instanceof Player ? "clickable" : ""
+                      } ${isSelected ? "active" : ""}`}
+                      onClick={() =>
+                        tournament.isDouble() && free instanceof Player
+                          ? toggleSelectPlayer(free)
+                          : undefined
+                      }
+                    >
+                      {(free as any).displayName(false)}
+                    </span>
+                  ) : (
+                    ""
+                  )}
+                </td>
+
+                <td>
+                  <AdminOnly>
+                    {tournament.isDouble() ? (
+                      showCreateHere && (
+                        <CreateTeamIconButton
+                          title="Создать команду"
+                          onClick={createTeam}
+                        />
+                      )
+                    ) : (
+                      free && (
+                        <PlusIconButton
+                          title="Добавить"
+                          onClick={() => addPlayerToTournament?.((free as Player).id)
+                          }
+                        />
+                      )
+                    )}
+                  </AdminOnly>
+                </td>
+
+                {/* уже в турнире */}
+                <td>{part ? <span className="player">{part.displayName(false)}</span> : ""}</td>
+                <td>
+                  {part && (
+                    <AdminOnly>
+                      <DeleteIconButton
+                        title="Убрать"
+                        onClick={() => removeParticipant?.(part)}
+                      />
+                    </AdminOnly>
+                  )}
+                </td>
+              </tr>
+            );
+          })
+        )}
+      </tbody>
+    </table>
+
+
+
+
+
   );
 }
