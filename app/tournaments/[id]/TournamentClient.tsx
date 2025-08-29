@@ -54,7 +54,7 @@ export default function TournamentClient() {
   const [activeTab, setActiveTab] = useState<Tab>("scheme");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [historyPlayer, setHistoryPlayer] = useState<Player | undefined>(undefined);
+  const [historyParticipant, setHistoryParticipant] = useState<Participant | undefined>(undefined);
 
   const [matchDate, setMatchDate] = useState<string>(todayISO);
   const [matchScore, setMatchScore] = useState<string>("");
@@ -97,12 +97,8 @@ export default function TournamentClient() {
     [selectableItems]
   );
   
-console.log("selectableItems",selectableItems);
-console.log("options--",options);
-
   // Колбэки
   const handleAddMatch = useCallback(async () => {
-    console.log("const handleAddMatch = useCallback(async () => {");
     if (!tournament) return;
     if (selectedIds.length < 2 || !matchDate) {
       alert("Выбери двух игроков и дату матча");
@@ -217,9 +213,8 @@ console.log("options--",options);
     }
   }, [tournament, matches, updateMatch, addMatch, reload]);
 
-  const handleShowHistoryPlayer = useCallback((p?: Player) => {
-    if (!p) return;
-    setHistoryPlayer(p);
+  const handleShowHistoryPlayer = useCallback((participant: Participant) => {
+    setHistoryParticipant(participant);
     setHistoryOpen(true);
   }, []);
 
@@ -306,7 +301,7 @@ console.log("options--",options);
 
           {activeTab === "matches" && (
             <MatchHistoryView
-              player={null}
+              participant={null}
               matches={matches}
               onEditMatch={handleEditMatchSave}
               onDeleteMatch={handleDeleteMatch}
@@ -319,7 +314,7 @@ console.log("options--",options);
             <RatingView
               onShowHistory={(participant) => {
                 if (participant?.player !== undefined) {
-                  setHistoryPlayer(participant.player);
+                  setHistoryParticipant(participant);
                   setHistoryOpen(true);
                 }
               }}
@@ -329,11 +324,11 @@ console.log("options--",options);
         </div>
 
         {/* Модалка истории */}
-        {historyPlayer && (
+        {historyParticipant && (
           <MatchHistoryModal
             isOpen={historyOpen}
             onClose={() => setHistoryOpen(false)}
-            player={historyPlayer}
+            participant={historyParticipant}
             matches={matches}
             onEditMatch={handleEditMatchSave}
             onDeleteMatch={handleDeleteMatch}
@@ -360,14 +355,15 @@ const FormatView = React.memo(function FormatView({
   matches: Match[];
   selectedIds: number[];
   onSelect: (ids: number[]) => void;
-  onShowHistoryPlayer: (p?: Player) => void;
+  onShowHistoryPlayer: (participant: Participant) => void;
   onSaveScoreRoundRobin: (aId: number, bId: number, score: string) => void;
   onPositionsChange: (next:Participant[]) => Promise<void> | void;
 }) {
   // ✅ Хук вызывается всегда, неусловно
   const handleShowHistory = useCallback(
     (participant?: Participant) => {
-      if (participant?.player) onShowHistoryPlayer(participant.player);
+      if (participant) 
+        onShowHistoryPlayer(participant);
     },
     [onShowHistoryPlayer]
   );

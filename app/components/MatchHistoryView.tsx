@@ -17,9 +17,10 @@ import {
   DeleteIconButton,
   KebabIconButton,
 } from "@/app/components/IconButtons";
+import { Participant } from "../models/Participant";
 
 type MatchHistoryViewProps = {
-  player: Player | null;
+  participant: Participant | null;
   matches: Match[];
   onEditMatch?: (match: Match) => void;
   onDeleteMatch?: (match: Match) => void;
@@ -27,7 +28,7 @@ type MatchHistoryViewProps = {
 };
 
 export function MatchHistoryView({
-  player,
+  participant,
   matches,
   onEditMatch,
   onDeleteMatch,
@@ -40,14 +41,9 @@ export function MatchHistoryView({
   const [editScore, setEditScore] = useState<string>("");
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
 
-  // фильтры можно оставить как есть
-  const displayMatches = player
-    ? matches.filter((m) => m.player1?.id === player.id || m.player2?.id === player.id)
-    : matches;
-
   const sortedMatches = useMemo(
-    () => [...displayMatches].sort((a, b) => new Date(b.date as any).getTime() - new Date(a.date as any).getTime()),
-    [displayMatches]
+    () => [...matches].sort((a, b) => new Date(b.date as any).getTime() - new Date(a.date as any).getTime()),
+    [matches]
   );
 
   const getSideName = (m: Match, side: 1 | 2) => {

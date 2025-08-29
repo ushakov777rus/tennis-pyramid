@@ -50,11 +50,13 @@ export function ParticipantsView() {
       if (p.player) {
         return [p.player.id];
       }
+      /* Вообще это не логично но один участник может участвовать в нескольких командах
       if (p.team) {
         return [p.team.player1?.id, p.team.player2?.id].filter(
           (id): id is number => !!id
         );
       }
+      */
       return [];
     })
   );

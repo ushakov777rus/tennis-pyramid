@@ -1,20 +1,19 @@
 "use client";
 
 import { useMemo } from "react";
-import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
 import { useUser } from "@/app/components/UserContext";
 
 import { MatchHistoryView } from "@/app/components/MatchHistoryView";
 import "@/app/components/MatchHistory.css";
 
-import { useTournament } from "@/app/tournaments/[id]/TournamentProvider";
+import { Participant } from "../models/Participant";
 
 type MatchHistoryModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  matches?: Match[];
-  player: Player | null;
+  matches: Match[]; // всегда передаём извне
+  participant: Participant | null;
   onEditMatch?: (match: Match) => Promise<void> | void;
   onDeleteMatch?: (match: Match) => Promise<void> | void;
 };
@@ -23,50 +22,63 @@ export function MatchHistoryModal({
   isOpen,
   onClose,
   matches,
-  player,
+  participant,
   onEditMatch,
   onDeleteMatch,
 }: MatchHistoryModalProps) {
   const { user } = useUser();
-    // контекст уже ДОЛЖЕН быть выше в дереве
-  const { matches: allMatches, updateMatch, deleteMatch } = useTournament();
 
+  // вычисляем ID участника
+  const participantId = useMemo(() => {
+    if (!participant) return null;
+    if (participant.player) return participant.player.id;
+    if (participant.team) return participant.team.id;
+    return null;
+  }, [participant]);
+
+  // вычисляем имя участника
+  const participantName = useMemo(() => {
+    if (!participant) return "";
+    if (participant.player) return participant.player.displayName?.(false) ?? "Игрок";
+    if (participant.team) return participant.team.displayName?.(false) ?? "Команда";
+    return "";
+  }, [participant]);
+
+  // фильтруем матчи для конкретного участника
   const effectiveMatches = useMemo(() => {
-    if (matches) return matches;
-    const id = player?.id;
-    return allMatches.filter(
+    if (!participantId) return [];
+    return matches.filter(
       (m) =>
-        m.player1?.id === id ||
-        m.player2?.id === id ||
-        m.team1?.id === id ||
-        m.team2?.id === id
+        m.player1?.id === participantId ||
+        m.player2?.id === participantId ||
+        m.team1?.id === participantId ||
+        m.team2?.id === participantId
     );
-  }, [matches, allMatches, player]);
+  }, [matches, participantId]);
 
-  if (!isOpen || !player) return null;
+  if (!isOpen || !participant) return null;
 
   const handleEdit = async (updated: Match) => {
-    if (onEditMatch) return onEditMatch(updated);
-    await updateMatch(updated);
+    if (onEditMatch) await onEditMatch(updated);
   };
 
   const handleDelete = async (m: Match) => {
-    if (onDeleteMatch) return onDeleteMatch(m);
-    await deleteMatch(m);
+    if (onDeleteMatch) await onDeleteMatch(m);
   };
+
+  console.log("Filtere matches", participant, matches, effectiveMatches);
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content modal-content-w" onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">{`${player.name}`}</h2>
-          <MatchHistoryView
-            player={player}
-            matches={effectiveMatches}
-            showTournament={false}
-            onEditMatch={handleEdit}
-            onDeleteMatch={handleDelete}
-          />
-
+        <h2 className="modal-title">{participantName}</h2>
+        <MatchHistoryView
+          participant={participant}
+          matches={effectiveMatches}
+          showTournament={false}
+          onEditMatch={handleEdit}
+          onDeleteMatch={handleDelete}
+        />
         <button onClick={onClose} className="modal-close-btn">
           ✖
         </button>
