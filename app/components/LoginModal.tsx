@@ -46,7 +46,7 @@ export function LoginModal({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content modal-content-login" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">Вход</h2>
 
         <input

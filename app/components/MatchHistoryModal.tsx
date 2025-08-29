@@ -70,7 +70,7 @@ export function MatchHistoryModal({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content modal-content-w" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content modal-content-w modal-content-match-history" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">{participantName}</h2>
         <MatchHistoryView
           participant={participant}

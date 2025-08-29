@@ -110,7 +110,7 @@ export function RegisterModal({
       aria-hidden="true"
     >
       <div
-        className="modal-content"
+        className="modal-content modal-content-login"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
