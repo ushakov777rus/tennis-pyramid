@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { useUser } from "@/app/components/UserContext";
 
-import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
 
 import { AdminOnly } from "./RoleGuard";
@@ -100,128 +99,132 @@ export function MatchHistoryView({
   
   return (
     <div className="history-wrap">
-      <table className="table match-history">
-        <colgroup>
-          <col className="col-date" />
-          <col className="col-players" />
-          <col className="col-score" />
-          <col className="col-actions" />
-        </colgroup>
+      {/* Контейнер с вертикальным скроллингом и закрепленным header */}
+      <div className="match-history-scroll-container">
+        <table className="table match-history">
+          <colgroup>
+            <col className="col-date" />
+            <col className="col-players" />
+            <col className="col-score" />
+            <col className="col-actions" />
+          </colgroup>
 
-        <thead>
-          <tr>
-            <th>Дата</th>
-            <th>Игроки</th>
-            <th className="score-col">Счёт</th>
-            <th></th>
-          </tr>
-        </thead>
+          {/* Header таблицы */}
+          <thead className="match-history-header">
+            <tr>
+              <th>Дата</th>
+              <th>Игроки</th>
+              <th className="score-col">Счёт</th>
+              <th></th>
+            </tr>
+          </thead>
 
-        <tbody>
-          {sortedMatches.map((m) => {
-            const isEditing = editingId === m.id;
-            const winnerId = m.getWinnerId();
+          {/* Тело таблицы с прокруткой */}
+          <tbody className="match-history-body">
+            {sortedMatches.map((m) => {
+              const isEditing = editingId === m.id;
+              const winnerId = m.getWinnerId();
 
-            return (
-              <tr key={m.id} className={isEditing ? "editing" : ""}>
-                <td className="date-cell">
-                  {isEditing ? (
-                    <input
-                      type="date"
-                      value={editDate}
-                      onChange={(e) => setEditDate(e.target.value)}
-                      className="input"
-                    />
-                  ) : (
-                    <span className="date">{formatDate(m.date)}</span>
-                  )}
-                  <div className="badge">{m.tournament?.name ?? "—"}</div>
-                </td>
-
-                <td>
-                  <div className="players">
-                    <span
-                      className={!winnerId ? "player" : winnerId === (m.player1?.id ?? m.team1?.id) ? "player win" : "player"}
-                    >
-                      {getSideName(m, 1)}
-                    </span>
-                    <span
-                      className={!winnerId ? "player" : winnerId === (m.player2?.id ?? m.team2?.id) ? "player win" : "player"}
-                    >
-                      {getSideName(m, 2)}
-                    </span>
-                  </div>
-                </td>
-
-                <td className="score-col">
-                  {isEditing ? (
-                    <div className="score-edit-wrap">
+              return (
+                <tr key={m.id} className={isEditing ? "editing" : ""}>
+                  <td className="date-cell">
+                    {isEditing ? (
                       <input
-                        type="text"
-                        value={editScore}
-                        onChange={(e) => setEditScore(e.target.value)}
-                        placeholder="напр.: 6-4, 4-6, 10-8"
+                        type="date"
+                        value={editDate}
+                        onChange={(e) => setEditDate(e.target.value)}
                         className="input"
                       />
-                    </div>
-                  ) : (
-                    <span>{m.formatResult()}</span>
-                  )}
-                </td>
+                    ) : (
+                      <span className="date">{formatDate(m.date)}</span>
+                    )}
+                    <div className="badge">{m.tournament?.name ?? "—"}</div>
+                  </td>
 
-                {/* отдельная колонка с действиями */}
-                <td className="actions-col">
-                  {isEditing ? (
-                    <div className="row-actions always-visible">
-                      <SaveIconButton title="Сохранить" onClick={() => saveEditing(m)} />
-                      <CancelIconButton title="Отмена" onClick={cancelEditing} />
+                  <td>
+                    <div className="players">
+                      <span
+                        className={!winnerId ? "player" : winnerId === (m.player1?.id ?? m.team1?.id) ? "player win" : "player"}
+                      >
+                        {getSideName(m, 1)}
+                      </span>
+                      <span
+                        className={!winnerId ? "player" : winnerId === (m.player2?.id ?? m.team2?.id) ? "player win" : "player"}
+                      >
+                        {getSideName(m, 2)}
+                      </span>
                     </div>
-                  ) : (
-                    <AdminOnly>
-                      <div>
-                        <EditIconButton
-                          title="Редактировать"
-                          className="row-actions hide-sm"
-                          onClick={() => startEditing(m)}
-                        />
-                        <DeleteIconButton
-                          title="Удалить"
-                          className="row-actions hide-sm"
-                          onClick={() => confirmDelete(m)}
-                        />
+                  </td>
 
-                        <div className="menu-wrap">
-                          <KebabIconButton
-                            title="Действия"
-                            className="kebab show-sm-only"
-                            onClick={() =>
-                              setOpenMenuId((id) => (id === m.id ? null : m.id))
-                            }
-                          />
-                          {openMenuId === m.id && (
-                            <div className="menu" role="menu">
-                              <button role="menuitem" onClick={() => startEditing(m)}>
-                                Редактировать
-                              </button>
-                              <button
-                                role="menuitem"
-                                className="danger"
-                                onClick={() => confirmDelete(m)}
-                              >
-                                Удалить
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                  <td className="score-col">
+                    {isEditing ? (
+                      <div className="score-edit-wrap">
+                        <input
+                          type="text"
+                          value={editScore}
+                          onChange={(e) => setEditScore(e.target.value)}
+                          placeholder="напр.: 6-4, 4-6, 10-8"
+                          className="input"
+                        />
                       </div>
-                    </AdminOnly>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                    ) : (
+                      <span>{m.formatResult()}</span>
+                    )}
+                  </td>
+
+                  <td className="actions-col">
+                    {isEditing ? (
+                      <div className="row-actions always-visible">
+                        <SaveIconButton title="Сохранить" onClick={() => saveEditing(m)} />
+                        <CancelIconButton title="Отмена" onClick={cancelEditing} />
+                      </div>
+                    ) : (
+                      <AdminOnly>
+                        <div>
+                          <EditIconButton
+                            title="Редактировать"
+                            className="row-actions hide-sm"
+                            onClick={() => startEditing(m)}
+                          />
+                          <DeleteIconButton
+                            title="Удалить"
+                            className="row-actions hide-sm"
+                            onClick={() => confirmDelete(m)}
+                          />
+
+                          <div className="menu-wrap">
+                            <KebabIconButton
+                              title="Действия"
+                              className="kebab show-sm-only"
+                              onClick={() =>
+                                setOpenMenuId((id) => (id === m.id ? null : m.id))
+                              }
+                            />
+                            {openMenuId === m.id && (
+                              <div className="menu" role="menu">
+                                <button role="menuitem" onClick={() => startEditing(m)}>
+                                  Редактировать
+                                </button>
+                                <button
+                                  role="menuitem"
+                                  className="danger"
+                                  onClick={() => confirmDelete(m)}
+                                >
+                                  Удалить
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </AdminOnly>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

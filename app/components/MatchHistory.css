@@ -188,3 +188,36 @@ tr.editing { background: rgba(166, 255, 0, 0.05); }
     word-break: break-word;
   }
 }
+
+/* MatchHistory.css */
+.match-history-scroll-container {
+  max-height: 600px; /* или любая другая высота по вашему усмотрению */
+  overflow-y: auto;
+  
+  border-radius: 8px;
+}
+
+/* Чтобы шапка таблицы оставалась на месте при скролле */
+.match-history-scroll-container thead {
+  position: sticky;
+  top: 0;
+  
+  z-index: 10;
+  
+}
+
+
+
+/* Для мобильных устройств можно уменьшить высоту */
+@media (max-width: 768px) {
+  .match-history-scroll-container {
+    max-height: 400px;
+  }
+}
+
+/* Закрепленный header */
+.match-history-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
