@@ -6,7 +6,7 @@ import { User } from "../models/Users";
 
 type Ctx = {
   user: User | null;
-  setUser: (u: User | null) => void;
+  setUser: (user: User | null) => void;
   loading: boolean;
   refresh: () => Promise<void>;   // <- Promise<void>
   error: string | null;
