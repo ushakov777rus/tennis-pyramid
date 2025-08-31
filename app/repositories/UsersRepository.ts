@@ -58,7 +58,7 @@ export class UsersRepository {
     let playerId: number | null = null;
 
     // 2) если роль player — создаём players
-    if (payload.role === "player") {
+    if (payload.role === UserRole.Player || payload.role === UserRole.TournamentAdmin) {
       const { data: newPlayer, error: perror } = await supabase
         .from("players")
         .insert({

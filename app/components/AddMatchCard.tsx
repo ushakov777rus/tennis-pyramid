@@ -72,7 +72,7 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
     console.log("AddMatchCard:", options);
 
     return (
-      <div className="card card-controls add-match-card">
+      <div className="card card-controls sticky-add-match-card">
         {/* Нападение */}
         <CustomSelect
           className="input card-filter-controls"

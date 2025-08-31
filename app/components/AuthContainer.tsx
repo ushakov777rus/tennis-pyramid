@@ -2,19 +2,20 @@
 import { useState, useEffect } from "react";
 import { LoginModal } from "@/app/components/LoginModal";
 import { RegisterModal } from "@/app/components/RegisterModal";
+import { UserRole } from "../models/Users";
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
   initialMode?: "login" | "register"; // 👈 новый параметр
-  initialRole?: "player" | "tournament_admin";
+  initialRole?: UserRole.Player | UserRole.TournamentAdmin;
 };
 
 export function AuthContainer({ 
     isOpen, 
     onClose, 
     initialMode = "login",
-    initialRole: defaultRole = "player",
+    initialRole: defaultRole = UserRole.Player,
   }: Props) {
   const [mode, setMode] = useState<"login" | "register">(initialMode);
 

@@ -291,8 +291,25 @@ body {
   }
 }
 
-.add-match-card {
+/* Page.css */
+.sticky-add-match-card {
   position: sticky;
+  top: 20px; /* Отступ от верха */
+  z-index: 100;
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+/* Для мобильных устройств можно уменьшить отступ */
+@media (max-width: 768px) {
+  .sticky-add-match-card {
+    top: 10px;
+    padding: 12px;
+    margin-bottom: 16px;
+  }
 }
 
 

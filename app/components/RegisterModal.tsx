@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useUser } from "@/app/components/UserContext";
 import { CustomSelect } from "@/app/components/CustomSelect";
 import "./RegisterModal.css";
+import { UserRole } from "../models/Users";
 
 type RegisterModalProps = {
   isOpen: boolean;
@@ -11,7 +12,7 @@ type RegisterModalProps = {
   onSwitchToLogin?: () => void;
   onRegistered?: () => void;
   /** Роль, с которой модалка откроется по умолчанию */
-  initialRole?: "player" | "tournament_admin";
+  initialRole?: UserRole.Player | UserRole.TournamentAdmin;
 };
 
 export function RegisterModal({
@@ -19,7 +20,7 @@ export function RegisterModal({
   onClose,
   onSwitchToLogin,
   onRegistered,
-  initialRole: defaultRole = "player",
+  initialRole: defaultRole = UserRole.Player,
 }: RegisterModalProps) {
   const { setUser } = useUser();
 

@@ -7,6 +7,7 @@ import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
 import { UsersRepository } from "./UsersRepository";
 import { PlayersRepository } from "./PlayersRepository";
+import { UserRole } from "../models/Users";
 
 export class TournamentsRepository {
   /** Загрузить все турниры */
@@ -107,7 +108,7 @@ static async loadAccessible(userId: number | undefined, userRole: string | undef
   }
 
   // Админ турниров: только свои + публичные
-  if (role === "tournament_admin") {
+  if (role === UserRole.TournamentAdmin) {
     const { data, error } = await supabase
       .from("tournaments")
       .select("*")
