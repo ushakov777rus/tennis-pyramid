@@ -279,6 +279,11 @@ body {
     width: 49%;
     margin: auto;
   }
+
+  .card-filter-controls-date {
+    width: 45%;
+    margin: auto;
+  }
 }
 
 

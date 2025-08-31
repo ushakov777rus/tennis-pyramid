@@ -99,7 +99,7 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
           type="date"
           value={matchDate}
           onChange={(e) => setMatchDate(e.target.value)}
-          className="input card-filter-controls"
+          className="input card-filter-controls-date"
         />
 
         <input
