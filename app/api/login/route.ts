@@ -53,7 +53,7 @@ export async function POST(req: Request) {
           ntrp
         )
       `)
-      .eq('id', authData.user.id)
+      .eq('auth_user_id', authData.user.id)
       .maybeSingle();
 
     if (userError) {
