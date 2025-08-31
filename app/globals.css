@@ -273,6 +273,11 @@ body {
   margin: auto;
 }
 
+.card-filter-controls-date {
+  width: 24%;
+  margin: auto;
+}
+
 /* ✅ Адаптивность для мобилок */
 @media (max-width: 768px) {
   .card-filter-controls {
@@ -284,6 +289,10 @@ body {
     width: 45%;
     margin: auto;
   }
+}
+
+.add-match-card {
+  position: sticky;
 }
 
 
