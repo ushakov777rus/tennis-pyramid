@@ -1,7 +1,6 @@
 // app/repositories/UsersRepository.ts
 import { supabase } from "@/lib/supabaseClient";
 import { User, UserRole } from "../models/Users";
-import { UUID } from "crypto";
 
 export type RegisterPayload = {
   fullName: string;           // ФИО для карточки игрока

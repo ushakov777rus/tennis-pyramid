@@ -5,7 +5,6 @@ import { Participant } from "@/app/models/Participant";
 import { TournamentCreateInput } from "@/app/models/Tournament";
 import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
-import { UsersRepository } from "./UsersRepository";
 import { PlayersRepository } from "./PlayersRepository";
 import { UserRole } from "../models/Users";
 
