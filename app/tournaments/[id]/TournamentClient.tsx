@@ -295,7 +295,6 @@ export default function TournamentClient() {
 
           {activeTab === "matches" && (
             <MatchHistoryView
-              participant={null}
               matches={matches}
               onEditMatch={handleEditMatchSave}
               onDeleteMatch={handleDeleteMatch}

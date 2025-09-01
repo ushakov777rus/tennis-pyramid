@@ -21,17 +21,13 @@ type MatchHistoryViewProps = {
   matches: Match[];
   onEditMatch?: (match: Match) => void;
   onDeleteMatch?: (match: Match) => void;
-  showTournament?: boolean;
 };
 
 export function MatchHistoryView({
   matches,
   onEditMatch,
   onDeleteMatch,
-  showTournament = false,
 }: MatchHistoryViewProps) {
-  const { user } = useUser();
-
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editDate, setEditDate] = useState<string>("");
   const [editScore, setEditScore] = useState<string>("");

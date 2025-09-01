@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import { Match } from "@/app/models/Match";
-import { useUser } from "@/app/components/UserContext";
 
 import { MatchHistoryView } from "@/app/components/MatchHistoryView";
 import "@/app/components/MatchHistory.css";
@@ -73,7 +72,6 @@ export function MatchHistoryModal({
         <h2 className="modal-title">{participantName}</h2>
         <MatchHistoryView
           matches={effectiveMatches}
-          showTournament={false}
           onEditMatch={handleEdit}
           onDeleteMatch={handleDelete}
         />

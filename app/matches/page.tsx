@@ -62,9 +62,7 @@ export default function MatchListView() {
 
       <div className="page-content-container">
         <MatchHistoryView
-          participant={null}
           matches={matches}
-          showTournament={true}
           onEditMatch={handleEditMatchSave}
           onDeleteMatch={handleDeleteMatch}
         />
