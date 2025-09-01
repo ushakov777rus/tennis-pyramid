@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { useUser } from "@/app/components/UserContext";
 
@@ -21,7 +20,6 @@ import { MatchHistoryView } from "@/app/components/MatchHistoryView";
 import { ParticipantsView } from "@/app/components/ParticipantsView";
 import { AddMatchCard } from "@/app/components/AddMatchCard";
 
-import { calcTopPlayers } from "@/app/utils/calcTopPlayers";
 import "./Page.css";
 
 import { useTournament } from "./TournamentProvider";
