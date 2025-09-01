@@ -16,10 +16,8 @@ import {
   DeleteIconButton,
   KebabIconButton,
 } from "@/app/components/IconButtons";
-import { Participant } from "../models/Participant";
 
 type MatchHistoryViewProps = {
-  participant: Participant | null;
   matches: Match[];
   onEditMatch?: (match: Match) => void;
   onDeleteMatch?: (match: Match) => void;
@@ -27,7 +25,6 @@ type MatchHistoryViewProps = {
 };
 
 export function MatchHistoryView({
-  participant,
   matches,
   onEditMatch,
   onDeleteMatch,

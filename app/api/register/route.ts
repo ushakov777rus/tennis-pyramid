@@ -2,7 +2,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/app/lib/supabase/server";
 import { UsersRepository } from "@/app/repositories/UsersRepository";
-import { PlayersRepository } from "@/app/repositories/PlayersRepository";
 
 export async function POST(req: Request) {
   try {

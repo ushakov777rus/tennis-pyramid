@@ -3,7 +3,7 @@
 import React, { useCallback } from "react";
 
 import { CustomSelect } from "@/app/components/CustomSelect";
-import { SaveIconButton, CancelIconButton, PlusIconButton } from "./IconButtons";
+import { SaveIconButton } from "./IconButtons";
 
 type Option = { value: number; label: string };
 

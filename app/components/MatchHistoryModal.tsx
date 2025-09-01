@@ -26,7 +26,6 @@ export function MatchHistoryModal({
   onEditMatch,
   onDeleteMatch,
 }: MatchHistoryModalProps) {
-  const { user } = useUser();
 
   // вычисляем ID участника
   const participantId = useMemo(() => {
@@ -73,7 +72,6 @@ export function MatchHistoryModal({
       <div className="modal-content modal-content-w modal-content-match-history" onClick={(e) => e.stopPropagation()}>
         <h2 className="modal-title">{participantName}</h2>
         <MatchHistoryView
-          participant={participant}
           matches={effectiveMatches}
           showTournament={false}
           onEditMatch={handleEdit}
