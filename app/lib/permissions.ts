@@ -1,6 +1,7 @@
 // app/lib/permissions.ts
 import type { Tournament } from "@/app/models/Tournament";
-import { Player } from "../models/Player";
+import { UserRole } from "../models/Users";
+
 
 // Минимальный тип юзера, чтобы не тянуть весь контекст
 export type MinimalUser = {
@@ -36,9 +37,9 @@ export function canViewPrivateTournament(user: MinimalUser | null | undefined, t
 /* маскирование имен */
 export function needMask(user: MinimalUser | null | undefined): boolean {
   if (!user) return true;
-  if (user.role === "site_admin") 
+  if (user.role === UserRole.SiteAdmin) 
     return false;
-  if (user.role === "tournament_admin") 
+  if (user.role === UserRole.TournamentAdmin) 
     return false;
   return true;
 }
