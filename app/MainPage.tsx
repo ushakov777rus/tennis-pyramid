@@ -1,11 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { NavigationBar } from "@/app/components/NavigationBar";
-import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
-import { Tournament } from "@/app/models/Tournament";
-import { formatDate } from "@/app/components/Utils"; // если есть
 
 import "./MainPage.css";
 import { useUser } from "./components/UserContext";
