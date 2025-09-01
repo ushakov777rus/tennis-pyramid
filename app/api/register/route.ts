@@ -6,7 +6,7 @@ import { UsersRepository } from "@/app/repositories/UsersRepository";
 export async function POST(req: Request) {
   try {
     const { fullName, phone, ntrp, nickname, password, role, email } = await req.json();
-    console.log("regidter: ", fullName, phone, ntrp, nickname, password, role, email);
+    console.log("api/register: ", fullName, phone, ntrp, nickname, password, role, email);
 
     // Валидация
     if (!fullName || typeof fullName !== "string" || !fullName.trim()) {
