@@ -73,7 +73,6 @@ export function PyramidView({
     const ro = new ResizeObserver(([entry]) => {
       const w = entry.contentRect.width;
       const next = Math.max(1, Math.floor(w / CARD));
-      console.log("per row", w, CARD, next);
       setPerRow(next);
     });
     ro.observe(el);
@@ -95,7 +94,6 @@ export function PyramidView({
 
   // === Утилиты ===
   const chunk = <T,>(arr: T[], size: number): T[][] => {
-    console.log("chunk", size);
     const rows: T[][] = [];
     for (let i = 0; i < arr.length; i += size) rows.push(arr.slice(i, i + size));
     return rows;
