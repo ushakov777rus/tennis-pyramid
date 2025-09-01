@@ -14,12 +14,13 @@ import { AuthContainer } from "./components/AuthContainer";
 import { TournamentCard } from "./components/TournamentCard";
 import { useTournaments } from "./tournaments/TournamentsProvider";
 import { canViewTournament } from "./lib/permissions";
+import { UserRole } from "./models/Users";
 
 export default function HomePage() {
   const { user } = useUser();
   const { tournaments, loading: tLoading, stats } = useTournaments();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [signupRole, setSignupRole] = useState<"player" | "tournament_admin">("player"); 
+  const [signupRole, setSignupRole] = useState<UserRole.Player | UserRole.TournamentAdmin>(UserRole.Player); 
   const router = useRouter();
 
 
@@ -64,11 +65,11 @@ export default function HomePage() {
           <section className="section">
             <GuestMainPageCard
               onSignupPlayer={() => {              // 👇 клик по «участник»
-                setSignupRole("player");
+                setSignupRole(UserRole.Player);
                 setIsLoginOpen(true);
               }}
               onSignupAdmin={() => {               // 👇 клик по «организатор»
-                setSignupRole("tournament_admin");
+                setSignupRole(UserRole.TournamentAdmin);
                 setIsLoginOpen(true);
               }}
             />
