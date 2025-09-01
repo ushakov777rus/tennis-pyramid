@@ -49,7 +49,6 @@ export default function TournamentClient() {
     updatePositions,
   } = useTournament();
   const { user } = useUser();
-  const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<Tab>("scheme");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -58,9 +57,6 @@ export default function TournamentClient() {
 
   const [matchDate, setMatchDate] = useState<string>(todayISO);
   const [matchScore, setMatchScore] = useState<string>("");
-
-  // (если где-то используешь)
-  const { mostPlayed, mostWins } = useMemo(() => calcTopPlayers(matches), [matches]);
 
   // если игрок залогинен и участвует — закрепляем как нападающего
   useEffect(() => {
