@@ -1,30 +1,23 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 
 import { CustomSelect } from "@/app/components/CustomSelect";
 import { SaveIconButton } from "./IconButtons";
+import { Match } from "../models/Match";
 
 type Option = { value: number; label: string };
 
 type AddMatchCardProps = {
-  /** Список доступных игроков/команд в формате select */
   options: Option[];
-  /** [атакующийId, защитникId] */
   selectedIds: number[];
   setSelectedIds: (updater: (prev: number[]) => number[]) => void;
-
-  /** Дата и счёт */
   matchDate: string;
   setMatchDate: (v: string) => void;
   matchScore: string;
   setMatchScore: (v: string) => void;
-
-  /** Ограничения доступа */
   isAnon: boolean;
   isPlayerWithFixedAttacker: boolean;
-
-  /** Создание матча */
   onAddMatch: () => void;
 };
 
@@ -41,6 +34,8 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
     isPlayerWithFixedAttacker,
     onAddMatch,
   }) => {
+    const [scoreError, setScoreError] = useState(false);
+
     const onChangeAttacker = useCallback(
       (val: string | number | null) => {
         const newVal = Number(val);
@@ -69,11 +64,17 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
       [setSelectedIds]
     );
 
-    console.log("AddMatchCard:", options);
+    const handleSave = () => {
+      if (!Match.isValidScoreFormat(matchScore)) {
+        setScoreError(true);
+        return;
+      }
+      setScoreError(false);
+      onAddMatch();
+    };
 
     return (
       <div className="card card-controls sticky-add-match-card">
-        {/* Нападение */}
         <CustomSelect
           className="input card-filter-controls"
           options={options}
@@ -84,7 +85,6 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
           sort={true}
         />
 
-        {/* Защита */}
         <CustomSelect
           className="input card-filter-controls"
           options={options}
@@ -106,19 +106,20 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
           type="text"
           placeholder="6-4, 4-6, 11-8"
           value={matchScore}
-          onChange={(e) => setMatchScore(e.target.value)}
-          className="input card-filter-controls"
+          onChange={(e) => {
+            setMatchScore(e.target.value);
+            if (scoreError) setScoreError(false);
+          }}
+          className={`input card-filter-controls ${scoreError ? "input-error" : ""}`}
         />
 
         <SaveIconButton
           className="lg"
           title="Сохранить счёт"
           aria-label="Сохранить счёт"
-          onClick={() => {
-            onAddMatch();}}
+          onClick={handleSave}
           disabled={false}
         />
-
       </div>
     );
   }

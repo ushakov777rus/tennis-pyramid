@@ -84,14 +84,6 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
   // ключ пары (порядок не важен)
   const pairKey = (aId: number, bId: number) => `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
 
-  // "6:4" или "6-4", разделённые запятой
-  function isValidScoreFormat(s: string) {
-    const trimmed = s.trim();
-    if (!trimmed) return false;
-    const setRe = /^\s*\d+\s*[:-]\s*\d+\s*$/;
-    return trimmed.split(",").every((part) => setRe.test(part.trim()));
-  }
-
   function startEdit(aId: number, bId: number, currentScore: string | null) {
     const k = pairKey(aId, bId);
     setEditingKey(k);
@@ -104,7 +96,7 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
   }
 
   async function saveEdit(aId: number, bId: number) {
-    if (!isValidScoreFormat(editValue)) {
+    if (!Match.isValidScoreFormat(editValue)) {
       alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"');
       return;
     }

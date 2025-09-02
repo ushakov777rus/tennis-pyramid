@@ -140,4 +140,12 @@ export class Match {
         return [parts[0], parts[1]] as [number, number];
       });
   }
+
+  static isValidScoreFormat(v: string) {
+      if (!v) return false;
+      const sets = v.split(",").map((s) => s.trim());
+      const re = /^\d{1,2}-\d{1,2}$/;
+      return sets.every((s) => re.test(s));
+  }
+
 }
