@@ -48,7 +48,7 @@
 
 .page-menu {
   display: grid;
-  grid-template-columns: 30% 40% 30%;
+  grid-template-columns: 25% 50% 25%;
   align-items: center; /* вертикальное выравнивание по центру */
   max-width: 900px;
   align-items: center;

@@ -28,7 +28,7 @@ export default function HomePage() {
   return (
     <div className="page-container">
       <NavigationBar />
-      <h1 className="page-title">Теннисные турниры</h1>
+      <h1 className="page-title">Турнирная платформа для большого тенниса</h1>
 
       <main className="page-content-container">
         <section className="section">
