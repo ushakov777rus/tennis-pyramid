@@ -11,8 +11,6 @@ import "./NavigationBar.css";
 import Image from "next/image";
 
 export function NavigationBar() {
-  const [isOpen, setIsOpen] = useState(false);
-
   return (
     <header className="page-menu">
       <div className="logo">
