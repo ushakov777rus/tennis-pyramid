@@ -65,7 +65,6 @@ function getMatchScore(aId: number, bId: number, matches: Match[]): string | nul
 }
 
 export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobinViewProps) {
-  const { user } = useUser();
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
