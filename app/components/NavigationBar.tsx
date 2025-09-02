@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 
-import { useState } from "react";
-
 import { UserBadge } from "@/app/components/UserBadge";
 
 import "./NavigationBar.css";
@@ -26,7 +24,6 @@ export function NavigationBar() {
       </div>
       <nav className="nav">
         <Link href="/">Главная</Link>
-        <Link href="/about">О проекте</Link>
         <Link href="/tournaments">Турниры</Link>
         <Link href="/rating">Игроки</Link>
         <Link href="/matches">Матчи</Link>
