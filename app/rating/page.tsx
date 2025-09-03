@@ -17,7 +17,7 @@ import {
   KebabIconButton,
 } from "@/app/components/IconButtons";
 
-import "@/app/components/MatchHistory.css";
+import "@/app/components/MatchHistoryView.css";
 import { AdminOnly, SiteAdminOnly } from "../components/RoleGuard";
 import { OrganizerContactsRepository } from "@/app/repositories/OrganizerContactRepository";
 import { CustomSelect } from "../components/CustomSelect";

@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
+
 import { Match } from "@/app/models/Match";
+import { Participant } from "@/app/models/Participant";
 
 import { MatchHistoryView } from "@/app/components/MatchHistoryView";
-import "@/app/components/MatchHistory.css";
 
-import { Participant } from "../models/Participant";
+import "@/app/components/MatchHistoryModal.css";
 
 type MatchHistoryModalProps = {
   isOpen: boolean;

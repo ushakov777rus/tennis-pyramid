@@ -7,7 +7,6 @@ import { Match } from "@/app/models/Match";
 import { AdminOnly } from "./RoleGuard";
 import { formatDate } from "@/app/components/Utils";
 
-import "@/app/components/MatchHistory.css";
 import {
   SaveIconButton,
   CancelIconButton,
@@ -15,6 +14,8 @@ import {
   DeleteIconButton,
   KebabIconButton,
 } from "@/app/components/IconButtons";
+
+import "@/app/components/MatchHistoryView.css";
 
 type MatchHistoryViewProps = {
   matches: Match[];
@@ -160,12 +161,11 @@ export function MatchHistoryView({
                         />
                       </div>
                     ) : (
-                      
                       <div className="score">
                         {m.formatResult().split(",").map((set, i, arr) => (
                           <span key={i} className="score-set">
                             {set.trim()}
-                            {i < arr.length -1 && <span className="separator">,  </span>}
+                            {i < arr.length -1 && <span className="separator">, </span>}
                           </span>
                         ))}
                       </div>

@@ -10,7 +10,7 @@ import { NavigationBar } from "@/app/components/NavigationBar";
 import { MatchHistoryView } from "@/app/components/MatchHistoryView";
 
 import "./page.css";
-import "@/app/components/MatchHistory.css";
+import "@/app/components/MatchHistoryView.css";
 
 export default function MatchListView() {
   const { user } = useUser();
