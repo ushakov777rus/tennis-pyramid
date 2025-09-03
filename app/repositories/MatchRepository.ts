@@ -401,4 +401,32 @@ export class MatchRepository {
     }
   }
 
+  /** Количество всех матчей в базе */
+  static async countAll(): Promise<number> {
+    const { count, error } = await supabase
+      .from("matches")
+      .select("id", { count: "exact", head: true }); // head:true — не тянуть строки
+
+    if (error) {
+      console.error("Ошибка подсчёта матчей:", error);
+      return 0;
+    }
+    return count ?? 0;
+  }
+
+  /** Количество матчей для конкретного турнира */
+  static async countByTournament(tournamentId: number): Promise<number> {
+    const { count, error } = await supabase
+      .from("matches")
+      .select("id", { count: "exact", head: true })
+      .eq("tournament_id", tournamentId);
+
+    if (error) {
+      console.error("Ошибка подсчёта матчей по турниру:", error);
+      return 0;
+    }
+    return count ?? 0;
+  }
+
+
 }

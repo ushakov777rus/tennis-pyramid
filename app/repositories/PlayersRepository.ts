@@ -153,4 +153,18 @@ export class PlayersRepository {
     if (error) { console.error(error); return null; }
     return data ? new Player(data) : null;
   }
+
+    /** Количество всех игроков в базе */
+    static async countAll(): Promise<number> {
+      const { count, error } = await supabase
+        .from("players")
+        .select("id", { count: "exact", head: true }); // head:true — не тянуть строки
+  
+      if (error) {
+        console.error("Ошибка подсчёта игроков:", error);
+        return 0;
+      }
+      return count ?? 0;
+    }
+  
 }

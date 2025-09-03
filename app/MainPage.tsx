@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { NavigationBar } from "@/app/components/NavigationBar";
 
@@ -12,9 +12,12 @@ import { TournamentCard } from "./components/TournamentCard";
 import { useTournaments } from "./tournaments/TournamentsProvider";
 import { canViewTournament } from "./lib/permissions";
 import { UserRole } from "./models/Users";
+import { MatchRepository } from "./repositories/MatchRepository";
+import { supabase } from "@/lib/supabaseClient";
+import { PlayersRepository } from "./repositories/PlayersRepository";
+import { TournamentsRepository } from "./repositories/TournamentsRepository";
 
-
-type Stat = { label: string; value: string };
+type Stat = { label: string; value: number | string };
 type Feature = { icon: React.ReactNode; label: string; text?: string };
 
 const IconCalendar = (
@@ -52,22 +55,55 @@ const IconUser = (
   </svg>
 );
 
-
 export default function HomePage() {
   const { user } = useUser();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [signupRole, setSignupRole] = useState<UserRole.Player | UserRole.TournamentAdmin>(UserRole.Player); 
+  const [signupRole, setSignupRole] =
+    useState<UserRole.Player | UserRole.TournamentAdmin>(UserRole.Player);
   const router = useRouter();
 
+  const [matchesCount, setMatchesCount] = useState<number | null>(null);
+  const [playersCount, setPlayersCount] = useState<number | null>(null);
+  const [tournamentsCount, setTournamentsCount] = useState<number | null>(null);
 
-  const isGuest = !user;
+  useEffect(() => {
+    let alive = true;
 
-    const stats: Stat[] = [
-    { label: "МАТЧЕЙ", value: "462" },
-    { label: "УЧАСТНИКОВ", value: "195" },
-    { label: "ТУРНИРОВ", value: "3" },
-    { label: "КЛУБОВ", value: "0" },
-  ];
+    async function loadStats() {
+      try {
+        const m = await MatchRepository.countAll();
+        const p = await PlayersRepository.countAll()
+        const t = await TournamentsRepository.countAll()
+
+        if (!alive) return;
+        
+        setMatchesCount(m ?? 0);
+        setPlayersCount(p ?? 0);
+        setTournamentsCount(t ?? 0);
+      } catch (e) {
+        console.error("Не удалось загрузить статистику:", e);
+        if (!alive) return;
+        setMatchesCount((v) => v ?? 0);
+        setPlayersCount((v) => v ?? 0);
+        setTournamentsCount((v) => v ?? 0);
+      }
+    }
+
+    loadStats();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const stats = useMemo<Stat[]>(
+    () => [
+      { label: "МАТЧЕЙ", value: matchesCount ?? "…" },
+      { label: "УЧАСТНИКОВ", value: playersCount ?? "…" },
+      { label: "ТУРНИРОВ", value: tournamentsCount ?? "…" },
+      { label: "КЛУБОВ", value: 0 },
+    ],
+    [matchesCount, playersCount, tournamentsCount]
+  );
 
   const features: Feature[] = [
     { icon: IconCalendar, label: "РАСПИСАНИЕ" },
@@ -78,113 +114,96 @@ export default function HomePage() {
     { icon: IconUser,     label: "ЛИЧНЫЕ КАБИНЕТЫ" },
   ];
 
-
   return (
     <div className="page-container">
       <NavigationBar />
       <h1 className="page-title">Турнирная платформа для большого тенниса</h1>
 
-    <main className="page-content-container">
-
-
-            {/* Фичи */}
-      <section className="about__features card">
-          <div className="about__feature">
-            <div>Погрузись в мир большого тенниса</div>
+      <main className="page-content-container">
+        {/* Картинка */}
+        <section className="card" style={{ padding: "0px" }}>
+          <div className="tennis-hero">
+            <span>Погрузись в мир большого тенниса</span>
           </div>
-      </section>
-
-
-
-      {/* Шапка/заголовок */}
-      <section className="about__head">
-        <div className="about__grid">
-          <div className="about__stats">
-            {stats.map((s) => (
-              <div key={s.label} className="card">
-                <div className="about__statValue">{s.value}</div>
-                <div className="about__statLabel">{s.label}</div>
-              </div>
-            ))}
-          </div>
-
-          <div className="card" style={{height:"100%", display:"flex", alignItems:"center"}}>
-            Honey Cup — технологическая платформа для проведения 
-            турниров и сбора статистики. Мы поддерживаем самые разнообразные форматы турниров, 
-            крупные соревнования и локальные лиги и клубы — это вовлекает больше игроков и болельщиков.
-          </div>
-
-        </div>
-      </section>
-
-      {/* Фичи */}
-      <section className="about__features card">
-        {features.map((f) => (
-          <div key={f.label} className="about__feature">
-            <div className="about__icon">{f.icon}</div>
-            <div className="about__featureLabel">{f.label}</div>
-          </div>
-        ))}
-      </section>
-
-
-    <section>
-        <section className="section">
-        <div className="card-grid">
-            <div
-            className="card card-register clickable"
-            onClick={() => {
-              setSignupRole(UserRole.Player);
-              setIsLoginOpen(true);
-            }}
-            >
-            <div className="card-icon">🏅</div>
-            Зарегистрироваться как участник
-            <div className="badge badge-register">
-                Участвуй в турнирах, прокачивайся, побеждай, попади в рейтинг лучших
-            </div>
-            </div>
-
-            <div
-            className="card card-register clickable"
-            onClick={() => {
-              setSignupRole(UserRole.TournamentAdmin);
-              setIsLoginOpen(true);
-            }}   // 👈 дергаем проп
-            >
-            <div className="card-icon">🏆</div>
-            Зарегистрироваться как организатор
-            <div className="badge badge-register">
-                Организовывай турниры, выбирай любой формат, управляй матчами и следи за результатами
-            </div>
-            </div>
-        </div>
         </section>
-    </section>
 
+        {/* Шапка/заголовок */}
+        <section className="about__head">
+          <div className="about__grid">
+            <div className="about__stats">
+              {stats.map((s) => (
+                <div key={s.label} className="card">
+                  <div className="about__statValue">{s.value}</div>
+                  <div className="about__statLabel">{s.label}</div>
+                </div>
+              ))}
+            </div>
 
-      {/* Блок о миссии/соц-проектах (опционально, можешь скрыть) */}
-      <section className="about__foot card">
-        <p>
-          Мы делаем теннис ближе: социальные инициативы, свежие обзоры,
-          подробная статистика каждого турнира — всё в одном месте.
-        </p>
-      </section>
-    </main>
+            <div className="card" style={{ height: "100%", display: "flex", alignItems: "center" }}>
+              Honey Cup — технологическая платформа для проведения
+              турниров и сбора статистики. Мы поддерживаем самые разнообразные форматы турниров,
+              крупные соревнования и локальные лиги и клубы — это вовлекает больше игроков и болельщиков.
+            </div>
+          </div>
+        </section>
+
+        {/* Фичи */}
+        <section className="about__features card">
+          {features.map((f) => (
+            <div key={f.label} className="about__feature">
+              <div className="about__icon">{f.icon}</div>
+              <div className="about__featureLabel">{f.label}</div>
+            </div>
+          ))}
+        </section>
+
+        <section>
+          <section className="section">
+            <div className="card-grid">
+              <div
+                className="card card-register clickable"
+                onClick={() => {
+                  setSignupRole(UserRole.Player);
+                  setIsLoginOpen(true);
+                }}
+              >
+                <div className="card-icon">🏅</div>
+                Зарегистрироваться как участник
+                <div className="badge badge-register">
+                  Участвуй в турнирах, прокачивайся, побеждай, попади в рейтинг лучших
+                </div>
+              </div>
+
+              <div
+                className="card card-register clickable"
+                onClick={() => {
+                  setSignupRole(UserRole.TournamentAdmin);
+                  setIsLoginOpen(true);
+                }} // 👈 дергаем проп
+              >
+                <div className="card-icon">🏆</div>
+                Зарегистрироваться как организатор
+                <div className="badge badge-register">
+                  Организовывай турниры, выбирай любой формат, управляй матчами и следи за результатами
+                </div>
+              </div>
+            </div>
+          </section>
+        </section>
+      </main>
 
       <footer className="card page-footer">
-          <div className="footer-section left">
-            <h3>Для связи</h3>
-            <p>
-              <a href="mailto:honey.cup@yandex.ru">honey.cup@yandex.ru</a>
-            </p>
-          </div>
-          <div className="footer-section right">
-            <h3>© {new Date().getFullYear()} HoneyCup</h3>
-            <p>Все права защищены</p>
-          </div>        
+        <div className="footer-section left">
+          <h3>Для связи</h3>
+          <p>
+            <a href="mailto:honey.cup@yandex.ru">honey.cup@yandex.ru</a>
+          </p>
+        </div>
+        <div className="footer-section right">
+          <h3>© {new Date().getFullYear()} HoneyCup</h3>
+          <p>Все права защищены</p>
+        </div>
       </footer>
-
 
       <AuthContainer
         isOpen={isLoginOpen}

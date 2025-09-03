@@ -523,4 +523,17 @@ static async loadParticipants(tournamentId: number): Promise<Participant[]> {
       return [];
     }
   }
+
+  /** Количество всех турниров в базе */
+  static async countAll(): Promise<number> {
+    const { count, error } = await supabase
+      .from("tournaments")
+      .select("id", { count: "exact", head: true }); // head:true — не тянуть строки
+
+    if (error) {
+      console.error("Ошибка подсчёта турниров:", error);
+      return 0;
+    }
+    return count ?? 0;
+  }
 }
