@@ -159,10 +159,10 @@ tr.editing { background: rgba(166, 255, 0, 0.05); }
 
 /* ==== Мобилка (<=720px) ==== */
 @media (max-width: 720px) {
-  .table.match-history .col-date     { width: 35%; }
-  .table.match-history .col-players  { width: 15%; }
-  .table.match-history .col-score    { width: 35%; }
-  .table.match-history .col-actions  { width: 15%; }
+  .table.match-history .col-date     { width: 25%; }
+  .table.match-history .col-players  { width: 40%; }
+  .table.match-history .col-score    { width: 25%; }
+  .table.match-history .col-actions  { width: 10%; }
 
   /* бейдж турнира под датой */
   .date-cell {
