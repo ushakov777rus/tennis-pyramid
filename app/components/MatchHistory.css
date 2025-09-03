@@ -159,10 +159,10 @@ tr.editing { background: rgba(166, 255, 0, 0.05); }
 
 /* ==== Мобилка (<=720px) ==== */
 @media (max-width: 720px) {
-  .table.match-history .col-date     { width: 25%; }
-  .table.match-history .col-players  { width: 40%; }
-  .table.match-history .col-score    { width: 25%; }
-  .table.match-history .col-actions  { width: 10%; }
+  .table.match-history .col-date     { width: 20%; }
+  .table.match-history .col-players  { width: 50%; }
+  .table.match-history .col-score    { width: 15%; }
+  .table.match-history .col-actions  { width: 15%; }
 
   /* бейдж турнира под датой */
   .date-cell {
@@ -171,22 +171,6 @@ tr.editing { background: rgba(166, 255, 0, 0.05); }
     align-items: flex-start;
     gap: 4px;
     white-space: normal;
-  }
-
-  /* перенос счета по запятой */
-  .score-col span {
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-  .score-col span::after {
-    content: "";
-  }
-  .score-col span {
-    display: inline-block;
-  }
-  .score-col span {
-    /* переносить после запятой */
-    word-break: break-word;
   }
 }
 
@@ -207,8 +191,6 @@ tr.editing { background: rgba(166, 255, 0, 0.05); }
   
 }
 
-
-
 /* Для мобильных устройств можно уменьшить высоту */
 @media (max-width: 768px) {
   .match-history-scroll-container {
@@ -221,4 +203,33 @@ tr.editing { background: rgba(166, 255, 0, 0.05); }
   position: sticky;
   top: 0;
   z-index: 10;
+}
+
+
+
+.score {
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 18px;
+}
+
+/* по умолчанию (desktop) */
+.score-set {
+  display: inline;
+}
+
+.separator {
+  display: inline;
+  white-space: pre;
+}
+
+/* mobile */
+@media (max-width: 768px) {
+  .score {
+    flex-direction: column; /* каждый сет в столбик */
+    align-items: flex-start;
+  }
+  .separator {
+    display: none; /* убираем запятые */
+  }
 }

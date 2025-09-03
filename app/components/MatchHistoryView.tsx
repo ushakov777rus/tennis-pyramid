@@ -160,7 +160,15 @@ export function MatchHistoryView({
                         />
                       </div>
                     ) : (
-                      <span>{m.formatResult()}</span>
+                      
+                      <div className="score">
+                        {m.formatResult().split(",").map((set, i, arr) => (
+                          <span key={i} className="score-set">
+                            {set.trim()}
+                            {i < arr.length -1 && <span className="separator">,  </span>}
+                          </span>
+                        ))}
+                      </div>
                     )}
                   </td>
 

@@ -76,7 +76,7 @@ export default function HomePage() {
         const t = await TournamentsRepository.countAll()
 
         if (!alive) return;
-        
+
         setMatchesCount(m ?? 0);
         setPlayersCount(p ?? 0);
         setTournamentsCount(t ?? 0);
@@ -139,7 +139,7 @@ export default function HomePage() {
               ))}
             </div>
 
-            <div className="card" style={{ height: "100%", display: "flex", alignItems: "center" }}>
+            <div className="card" style={{ height: "100%", display: "flex", alignItems: "center", padding: "20px" }}>
               Honey Cup — технологическая платформа для проведения
               турниров и сбора статистики. Мы поддерживаем самые разнообразные форматы турниров,
               крупные соревнования и локальные лиги и клубы — это вовлекает больше игроков и болельщиков.
