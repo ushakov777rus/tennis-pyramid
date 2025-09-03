@@ -144,7 +144,7 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
 
                         <td className="score-cell">
                           {score ? (
-                            <span className="badge" style={{fontSize:"16px"}}>{score}</span>
+                            <span className="badge">{score}</span>
                           ) : !isEditing ? (
                             <button
                               type="button"
