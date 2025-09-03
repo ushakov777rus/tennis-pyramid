@@ -80,7 +80,7 @@
 /* Ряд в режиме редактирования */
 tr.editing { background: rgba(166, 255, 0, 0.05); }
 .score-edit-wrap {
-  display: flex;
+  display: block;
   align-items: center;
   gap: 8px;
   justify-content: flex-end;
