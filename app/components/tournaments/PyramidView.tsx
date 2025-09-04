@@ -187,6 +187,11 @@ export function PyramidView({
     if (playerMatches.length === 0) return "";
 
     const lastMatch = playerMatches.sort((a, b) => b.date.getTime() - a.date.getTime())[0];
+
+    if (lastMatch.getWinnerId() === 0) {
+      return "draw";
+    }
+
     return lastMatch.getWinnerId() === id ? "winner" : "loser";
   };
 

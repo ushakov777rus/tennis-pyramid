@@ -8,6 +8,12 @@
   border: 2px solid red;
 }
 
+.pyramid-player.draw {
+  background-color: #f6f4c7; /* красный фон */
+  border: 2px solid rgb(209, 203, 4);
+}
+
+
 .winner-attacker .status-icon {
   color: green;
   font-weight: bold;
