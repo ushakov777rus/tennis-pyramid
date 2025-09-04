@@ -154,6 +154,8 @@ export class MatchRepository {
           player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
         )
       `)
+      .order("date", {ascending: false})
+      .order("id", {ascending: false})
       .eq("tournament_id", tournamentId);
 
     if (error) {

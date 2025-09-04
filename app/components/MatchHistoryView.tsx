@@ -33,11 +33,6 @@ export function MatchHistoryView({
   const [editScore, setEditScore] = useState<string>("");
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
 
-  const sortedMatches = useMemo(
-    () => [...matches].sort((a, b) => new Date(b.date as any).getTime() - new Date(a.date as any).getTime()),
-    [matches]
-  );
-
   const getSideName = (m: Match, side: 1 | 2) => {
     if (m.type === "double") {
       return side === 1 ? m.team1?.displayName(false) ?? "??" : m.team2?.displayName(false) ?? "??";
@@ -114,7 +109,7 @@ export function MatchHistoryView({
 
           {/* Тело таблицы с прокруткой */}
           <tbody className="match-history-body">
-            {sortedMatches.map((m) => {
+            {matches.map((m) => {
               const isEditing = editingId === m.id;
               const winnerId = m.getWinnerId();
 
