@@ -134,12 +134,19 @@
   text-align: end;
 }
 
+/* Используется только в пирамиде */
 .player-name {
   font-weight: 600;
   font-size: 14px;
   color: #222;
   padding-top: 5px;
   padding-bottom: 5px;
+}
+
+.player-line {
+  white-space: pre; /* перенос по \n */
+  overflow: hidden;         /* обрезаем лишнее */
+  text-overflow: ellipsis;  /* показываем "…" */
 }
 
 .history-btn {
