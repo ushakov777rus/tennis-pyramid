@@ -1,13 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useUser } from "@/app/components/UserContext";
+
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
+
+import { SaveIconButton, CancelIconButton } from "@/app/components/IconButtons";
+
 import "./PyramidView.css";
 import "./RoundRobinView.css";
 import "@/app/components/ParticipantsView.css";
-import { SaveIconButton, CancelIconButton } from "@/app/components/IconButtons";
 
 type GroupPlusPlayoffViewProps = {
   participants: Participant[];
@@ -249,7 +251,6 @@ export function GroupPlusPlayoffView({
   advancePerGroup = 2,
   seeding = "snake",
 }: GroupPlusPlayoffViewProps) {
-  const { user } = useUser();
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
