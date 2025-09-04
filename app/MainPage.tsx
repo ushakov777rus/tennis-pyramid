@@ -6,14 +6,9 @@ import { NavigationBar } from "@/app/components/NavigationBar";
 
 import "./MainPage.css";
 import { useUser } from "./components/UserContext";
-import { GuestMainPageCard } from "./components/GuestMainPageCard";
 import { AuthContainer } from "./components/AuthContainer";
-import { TournamentCard } from "./components/TournamentCard";
-import { useTournaments } from "./tournaments/TournamentsProvider";
-import { canViewTournament } from "./lib/permissions";
 import { UserRole } from "./models/Users";
 import { MatchRepository } from "./repositories/MatchRepository";
-import { supabase } from "@/lib/supabaseClient";
 import { PlayersRepository } from "./repositories/PlayersRepository";
 import { TournamentsRepository } from "./repositories/TournamentsRepository";
 
@@ -56,11 +51,9 @@ const IconUser = (
 );
 
 export default function HomePage() {
-  const { user } = useUser();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [signupRole, setSignupRole] =
     useState<UserRole.Player | UserRole.TournamentAdmin>(UserRole.Player);
-  const router = useRouter();
 
   const [matchesCount, setMatchesCount] = useState<number | null>(null);
   const [playersCount, setPlayersCount] = useState<number | null>(null);
