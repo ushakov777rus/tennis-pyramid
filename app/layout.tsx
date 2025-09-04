@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     default: "HoneyCup — Любительские теннисные турниры",
     template: "%s — HoneyCup",
   },
-  description: "Организуйте и участвуйте в любительских теннисных турнирах любого формата. Рейтинг игроков, сетки, расписание и результаты.",
+  description: "Турнирная платформа для большого тенниса.",
   alternates: {
     canonical: "/",
   },
