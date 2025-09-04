@@ -96,3 +96,17 @@
 .player-link:not([disabled]):hover {
   text-decoration: none;
 }
+
+
+.table.history-table .col-player    { width: 40%; }
+.table.history-table .col-title     { width: 40%; }
+.table.history-table .col-events    { width: 20%; }
+
+
+/* ==== Мобилка (<=720px) ==== */
+@media (max-width: 720px) {
+  .table.history-table .col-player     { width: 20%; }
+  .table.history-table .col-title  { width: 50%; }
+  .table.history-table .col-events    { width: 15%; }
+
+}

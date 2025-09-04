@@ -156,182 +156,194 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
   }, [roundRobinStats]);
 
   /** ====== ТИТУЛЫ (для НЕ-круговых форматов) — оставлены как прежде ====== */
-  type LeadersRow = { title: string; winners: Participant[]; tooltip: string };
+type LeaderWin = { p: Participant; count: number };
+type LeadersRow = { title: string; winners: LeaderWin[]; tooltip: string };
 
-  const leaders = useMemo<LeadersRow[]>(() => {
-    if (!participants.length) return [];
+const leaders = useMemo<LeadersRow[]>(() => {
+  if (!participants.length) return [];
 
-    // 🥖 Бублик-мастер — больше всего сетов 6:0
-    const bagelsByPid = new Map<number, number>();
-    for (const p of participants) {
-      let cnt = 0;
-      for (const m of pastMatches) {
-        if (!tookPart(p.getId, m)) continue;
-        const on1 = isOnSide1(p.getId, m);
-        for (const [a, b] of m.scores ?? []) {
-          const my = on1 ? a : b;
-          const opp = on1 ? b : a;
-          if (my === 6 && opp === 0) cnt++;
-        }
+  // 🥖 Бублик-мастер — больше всего сетов 6:0
+  const bagelsByPid = new Map<number, number>();
+  for (const p of participants) {
+    let cnt = 0;
+    for (const m of pastMatches) {
+      if (!tookPart(p.getId, m)) continue;
+      const on1 = isOnSide1(p.getId, m);
+      for (const [a, b] of m.scores ?? []) {
+        const my = on1 ? a : b;
+        const opp = on1 ? b : a;
+        if (my === 6 && opp === 0) cnt++;
       }
-      bagelsByPid.set(p.getId, cnt);
     }
-    const maxBagels = Math.max(...bagelsByPid.values(), 0);
-    const bagelWinners = maxBagels > 0 ? participants.filter((p) => (bagelsByPid.get(p.getId) ?? 0) === maxBagels) : [];
+    bagelsByPid.set(p.getId, cnt);
+  }
+  const maxBagels = Math.max(...bagelsByPid.values(), 0);
+  const bagelWinners: LeaderWin[] =
+    maxBagels > 0
+      ? participants
+          .filter((p) => (bagelsByPid.get(p.getId) ?? 0) === maxBagels)
+          .map((p) => ({ p, count: bagelsByPid.get(p.getId)! }))
+      : [];
 
-    // 🧱 Стена — максимальный вин-стрик
-    const streakByPid = new Map<number, number>();
-    for (const p of participants) {
-      const ms = pastMatches
-        .filter((m) => tookPart(p.getId, m))
-        .sort((a, b) => a.date.getTime() - b.date.getTime());
-      let cur = 0;
-      let best = 0;
-      for (const m of ms) {
-        const w = winnerId(m);
-        if (!w) continue;
-        if (w === p.getId) best = Math.max(best, ++cur);
-        else cur = 0;
-      }
-      streakByPid.set(p.getId, best);
+  // 🧱 Стена — максимальный вин-стрик
+  const streakByPid = new Map<number, number>();
+  for (const p of participants) {
+    const ms = pastMatches
+      .filter((m) => tookPart(p.getId, m))
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
+    let cur = 0;
+    let best = 0;
+    for (const m of ms) {
+      const w = winnerId(m);
+      if (!w) continue;
+      if (w === p.getId) best = Math.max(best, ++cur);
+      else cur = 0;
     }
-    const maxStreak = Math.max(...streakByPid.values(), 0);
-    const wallWinners = maxStreak > 0 ? participants.filter((p) => (streakByPid.get(p.getId) ?? 0) === maxStreak) : [];
+    streakByPid.set(p.getId, best);
+  }
+  const maxStreak = Math.max(...streakByPid.values(), 0);
+  const wallWinners: LeaderWin[] =
+    maxStreak > 0
+      ? participants
+          .filter((p) => (streakByPid.get(p.getId) ?? 0) === maxStreak)
+          .map((p) => ({ p, count: streakByPid.get(p.getId)! }))
+      : [];
 
-    // 🐝 Гриндер — больше всего матчей за последние 7 дней (как в исходнике: фактически все прошедшие матчи)
-    const recentCountByPid = new Map<number, number>();
-    for (const p of participants) {
-      let cnt = 0;
-      for (const m of pastMatches) {
-        if (tookPart(p.getId, m)) cnt++;
-      }
-      recentCountByPid.set(p.getId, cnt);
+  // 🐝 Гриндер — больше всего матчей за последние 7 дней (или за весь период, если так задумано)
+  const recentCountByPid = new Map<number, number>();
+  for (const p of participants) {
+    let cnt = 0;
+    for (const m of pastMatches) {
+      // при желании ограничь 7 днями:
+      // if (m.date.getTime() >= now - 7*24*3600*1000)
+      if (tookPart(p.getId, m)) cnt++;
     }
-    const maxRecent = Math.max(...recentCountByPid.values(), 0);
-    const grinderWinners = maxRecent > 0 ? participants.filter((p) => (recentCountByPid.get(p.getId) ?? 0) === maxRecent) : [];
+    recentCountByPid.set(p.getId, cnt);
+  }
+  const maxRecent = Math.max(...recentCountByPid.values(), 0);
+  const grinderWinners: LeaderWin[] =
+    maxRecent > 0
+      ? participants
+          .filter((p) => (recentCountByPid.get(p.getId) ?? 0) === maxRecent)
+          .map((p) => ({ p, count: recentCountByPid.get(p.getId)! }))
+      : [];
 
-    // ⚡ Удачливый нападающий — победы на стороне 1
-    const successfulAttacksByPid = new Map<number, number>();
-    for (const p of participants) {
-      let cnt = 0;
-      for (const m of pastMatches) {
-        if (!tookPart(p.getId, m)) continue;
-        if (isOnSide1(p.getId, m) && winnerId(m) === p.getId) cnt++;
-      }
-      successfulAttacksByPid.set(p.getId, cnt);
+  // ⚡ Удачливый нападающий — победы на стороне 1
+  const successfulAttacksByPid = new Map<number, number>();
+  for (const p of participants) {
+    let cnt = 0;
+    for (const m of pastMatches) {
+      if (!tookPart(p.getId, m)) continue;
+      if (isOnSide1(p.getId, m) && winnerId(m) === p.getId) cnt++;
     }
-    const maxSuccessfulAttacks = Math.max(...successfulAttacksByPid.values(), 0);
-    const luckyAttackers =
-      maxSuccessfulAttacks > 0
-        ? participants.filter((p) => (successfulAttacksByPid.get(p.getId) ?? 0) === maxSuccessfulAttacks)
-        : [];
+    successfulAttacksByPid.set(p.getId, cnt);
+  }
+  const maxSuccessfulAttacks = Math.max(...successfulAttacksByPid.values(), 0);
+  const luckyAttackers: LeaderWin[] =
+    maxSuccessfulAttacks > 0
+      ? participants
+          .filter((p) => (successfulAttacksByPid.get(p.getId) ?? 0) === maxSuccessfulAttacks)
+          .map((p) => ({ p, count: successfulAttacksByPid.get(p.getId)! }))
+      : [];
 
-    // 🙃 Неудачный нападающий — поражения на стороне 1
-    const failedAttacksByPid = new Map<number, number>();
-    for (const p of participants) {
-      let cnt = 0;
-      for (const m of pastMatches) {
-        if (!tookPart(p.getId, m)) continue;
-        const onAttack = isOnSide1(p.getId, m);
-        const w = winnerId(m);
-        if (onAttack && w && w !== p.getId) cnt++;
-      }
-      failedAttacksByPid.set(p.getId, cnt);
+  // 🙃 Неунывающий драчун — поражения на стороне 1
+  const failedAttacksByPid = new Map<number, number>();
+  for (const p of participants) {
+    let cnt = 0;
+    for (const m of pastMatches) {
+      if (!tookPart(p.getId, m)) continue;
+      const onAttack = isOnSide1(p.getId, m);
+      const w = winnerId(m);
+      if (onAttack && w && w !== p.getId) cnt++;
     }
-    const maxFailedAttacks = Math.max(...failedAttacksByPid.values(), 0);
-    const unluckyAttackers =
-      maxFailedAttacks > 0
-        ? participants.filter((p) => (failedAttacksByPid.get(p.getId) ?? 0) === maxFailedAttacks)
-        : [];
+    failedAttacksByPid.set(p.getId, cnt);
+  }
+  const maxFailedAttacks = Math.max(...failedAttacksByPid.values(), 0);
+  const unluckyAttackers: LeaderWin[] =
+    maxFailedAttacks > 0
+      ? participants
+          .filter((p) => (failedAttacksByPid.get(p.getId) ?? 0) === maxFailedAttacks)
+          .map((p) => ({ p, count: failedAttacksByPid.get(p.getId)! }))
+      : [];
 
-    // 🎢 Трёхсетовый боец — матчи в 3+ сета
-    const threeSetMatchesByPid = new Map<number, number>();
-    for (const p of participants) {
-      let cnt = 0;
-      for (const m of pastMatches) {
-        if (!tookPart(p.getId, m)) continue;
-        const setsCount = (m.scores ?? []).length;
-        if (setsCount >= 3) cnt++;
-      }
-      threeSetMatchesByPid.set(p.getId, cnt);
+  // 🎢 Трёхсетовый боец — матчи в 3+ сета
+  const threeSetMatchesByPid = new Map<number, number>();
+  for (const p of participants) {
+    let cnt = 0;
+    for (const m of pastMatches) {
+      if (!tookPart(p.getId, m)) continue;
+      const setsCount = (m.scores ?? []).length;
+      if (setsCount >= 3) cnt++;
     }
-    const maxThreeSet = Math.max(...threeSetMatchesByPid.values(), 0);
-    const threeSetWarriors =
-      maxThreeSet > 0
-        ? participants.filter((p) => (threeSetMatchesByPid.get(p.getId) ?? 0) === maxThreeSet)
-        : [];
+    threeSetMatchesByPid.set(p.getId, cnt);
+  }
+  const maxThreeSet = Math.max(...threeSetMatchesByPid.values(), 0);
+  const threeSetWarriors: LeaderWin[] =
+    maxThreeSet > 0
+      ? participants
+          .filter((p) => (threeSetMatchesByPid.get(p.getId) ?? 0) === maxThreeSet)
+          .map((p) => ({ p, count: threeSetMatchesByPid.get(p.getId)! }))
+      : [];
 
-    // 🛡 Железный защитник — победы на стороне 2
-    const defenseWinsByPid = new Map<number, number>();
-    for (const p of participants) {
-      let cnt = 0;
-      for (const m of pastMatches) {
-        if (!tookPart(p.getId, m)) continue;
-        const onDefense = !isOnSide1(p.getId, m);
-        if (onDefense && winnerId(m) === p.getId) cnt++;
-      }
-      defenseWinsByPid.set(p.getId, cnt);
+  // 🛡 Железный защитник — победы на стороне 2
+  const defenseWinsByPid = new Map<number, number>();
+  for (const p of participants) {
+    let cnt = 0;
+    for (const m of pastMatches) {
+      if (!tookPart(p.getId, m)) continue;
+      const onDefense = !isOnSide1(p.getId, m);
+      if (onDefense && winnerId(m) === p.getId) cnt++;
     }
-    const maxDefenseWins = Math.max(...defenseWinsByPid.values(), 0);
-    const ironDefenders =
-      maxDefenseWins > 0
-        ? participants.filter((p) => (defenseWinsByPid.get(p.getId) ?? 0) === maxDefenseWins)
-        : [];
+    defenseWinsByPid.set(p.getId, cnt);
+  }
+  const maxDefenseWins = Math.max(...defenseWinsByPid.values(), 0);
+  const ironDefenders: LeaderWin[] =
+    maxDefenseWins > 0
+      ? participants
+          .filter((p) => (defenseWinsByPid.get(p.getId) ?? 0) === maxDefenseWins)
+          .map((p) => ({ p, count: defenseWinsByPid.get(p.getId)! }))
+      : [];
 
-    // 🪫 Неудачный защитник — поражения на стороне 2
-    const defenseLossesByPid = new Map<number, number>();
-    for (const p of participants) {
-      let cnt = 0;
-      for (const m of pastMatches) {
-        if (!tookPart(p.getId, m)) continue;
-        const onDefense = !isOnSide1(p.getId, m);
-        const w = winnerId(m);
-        if (onDefense && w && w !== p.getId) cnt++;
-      }
-      defenseLossesByPid.set(p.getId, cnt);
+  // 🪫 Неудачный защитник — поражения на стороне 2
+  const defenseLossesByPid = new Map<number, number>();
+  for (const p of participants) {
+    let cnt = 0;
+    for (const m of pastMatches) {
+      if (!tookPart(p.getId, m)) continue;
+      const onDefense = !isOnSide1(p.getId, m);
+      const w = winnerId(m);
+      if (onDefense && w && w !== p.getId) cnt++;
     }
-    const maxDefenseLosses = Math.max(...defenseLossesByPid.values(), 0);
-    const unluckyDefenders =
-      maxDefenseLosses > 0
-        ? participants.filter((p) => (defenseLossesByPid.get(p.getId) ?? 0) === maxDefenseLosses)
-        : [];
+    defenseLossesByPid.set(p.getId, cnt);
+  }
+  const maxDefenseLosses = Math.max(...defenseLossesByPid.values(), 0);
+  const unluckyDefenders: LeaderWin[] =
+    maxDefenseLosses > 0
+      ? participants
+          .filter((p) => (defenseLossesByPid.get(p.getId) ?? 0) === maxDefenseLosses)
+          .map((p) => ({ p, count: defenseLossesByPid.get(p.getId)! }))
+      : [];
 
-    const rows: LeadersRow[] = [];
-    if (bagelWinners.length)
-      rows.push({ title: "🥖 Бублик-мастер", winners: bagelWinners, tooltip: "Больше всего сетов, выигранных 6:0." });
-    if (wallWinners.length)
-      rows.push({ title: "🧱 Стена", winners: wallWinners, tooltip: "Самая длинная серия побед подряд." });
-    if (grinderWinners.length)
-      rows.push({ title: "🐝 Гриндер", winners: grinderWinners, tooltip: "Больше всего матчей за последние 7 дней." });
-    if (luckyAttackers.length)
-      rows.push({
-        title: "⚡ Удачливый нападающий",
-        winners: luckyAttackers,
-        tooltip: "Больше всего побед в роли атакующего (сторона player1/team1).",
-      });
-    if (unluckyAttackers.length)
-      rows.push({
-        title: "🙃 Неунывающий драчун",
-        winners: unluckyAttackers,
-        tooltip: "Больше всего поражений в роли атакующего (сторона player1/team1).",
-      });
-    if (threeSetWarriors.length)
-      rows.push({ title: "🎢 Трёхсетовый боец", winners: threeSetWarriors, tooltip: "Больше всего матчей в 3 сета." });
-    if (ironDefenders.length)
-      rows.push({
-        title: "🛡 Железный защитник",
-        winners: ironDefenders,
-        tooltip: "Больше всего побед, играя в защите (сторона player2/team2).",
-      });
-    if (unluckyDefenders.length)
-      rows.push({
-        title: "🪫 Неудачный защитник",
-        winners: unluckyDefenders,
-        tooltip: "Больше всего поражений, играя в защите (сторона player2/team2).",
-      });
+  const rows: LeadersRow[] = [];
+  if (bagelWinners.length)
+    rows.push({ title: "🥖 Бублик-мастер", winners: bagelWinners, tooltip: "Больше всего сетов, выигранных 6:0." });
+  if (wallWinners.length)
+    rows.push({ title: "🧱 Стена", winners: wallWinners, tooltip: "Самая длинная серия побед подряд." });
+  if (grinderWinners.length)
+    rows.push({ title: "🐝 Гриндер", winners: grinderWinners, tooltip: "Больше всего сыгранных матчей за период." });
+  if (luckyAttackers.length)
+    rows.push({ title: "⚡ Удачливый нападающий", winners: luckyAttackers, tooltip: "Больше всего побед в роли нападающего." });
+  if (unluckyAttackers.length)
+    rows.push({ title: "🙃 Неунывающий драчун", winners: unluckyAttackers, tooltip: "Больше всего поражений на стороне 1." });
+  if (threeSetWarriors.length)
+    rows.push({ title: "🎢 Трёхсетовый боец", winners: threeSetWarriors, tooltip: "Больше всего матчей в 3+ сета." });
+  if (ironDefenders.length)
+    rows.push({ title: "🛡 Железный защитник", winners: ironDefenders, tooltip: "Больше всего побед в роли защиты." });
+  if (unluckyDefenders.length)
+    rows.push({ title: "🪫 Неудачный защитник", winners: unluckyDefenders, tooltip: "Больше всего поражений в роли защищты." });
 
-    return rows;
-  }, [participants, pastMatches]);
+  return rows;
+}, [participants, pastMatches, now]);
 
   // ====== таблицы ======
 
@@ -391,55 +403,59 @@ export function RatingView({ matches, onShowHistory }: RatingViewProps) {
     );
   }, [roundRobinStats, maxWins, maxSetsWon]);
 
-  const leadersTable = useMemo(() => {
-    if (leaders.length === 0) {
-      return <p>Пока нет лидеров — сыграйте ещё немного 😉</p>;
-    }
-    return (
-      <table className="table history-table">
-        <thead className="history-table-head">
-          <tr>
-            <th>Игрок(и)</th>
-            <th>Титул</th>
-          </tr>
-        </thead>
-        <tbody>
-          {leaders.map((row, idx) =>
-            row.winners.map((p) => (
-              <tr key={`${row.title}-${p.getId}-${idx}`}>
-                <td>
-                  <button
-                    type="button"
-                    className="player-link"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (p.player) onShowHistory?.(p);
-                    }}
-                    disabled={!p.player}
-                    aria-label={
-                      p.player
-                        ? `Показать историю матчей: ${p.displayName(false)}`
-                        : `${p.displayName(false)} — история доступна только для одиночных игроков`
-                    }
-                    title={
-                      p.player
-                        ? "История матчей"
-                        : "История доступна только для одиночных игроков"
-                    }
-                  >
-                    {p.displayName(false)}
-                  </button>
-                </td>
-                <td>
-                  <BadgeWithTip titleText={row.title} tooltip={row.tooltip} />
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    );
-  }, [leaders, onShowHistory]);
+const leadersTable = useMemo(() => {
+  if (leaders.length === 0) {
+    return <p>Пока нет лидеров — сыграйте ещё немного 😉</p>;
+  }
+  return (
+    <table className="table history-table">
+      <colgroup>
+        <col className="col-player" />
+        <col className="col-title" />
+        <col className="col-events" />
+      </colgroup>
+
+      <thead className="history-table-head">
+        <tr>
+          <th>Игрок(и)</th>
+          <th>Титул</th>
+          <th style={{ textAlign: "right", width: 120 }}>Случаев</th>
+        </tr>
+      </thead>
+      <tbody>
+        {leaders.map((row, idx) =>
+          row.winners.map(({ p, count }) => (
+            <tr key={`${row.title}-${p.getId}-${idx}`}>
+              <td>
+                <button
+                  type="button"
+                  className="player-link"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (p.player) onShowHistory?.(p);
+                  }}
+                  disabled={!p.player}
+                  aria-label={
+                    p.player
+                      ? `Показать историю матчей: ${p.displayName(false)}`
+                      : `${p.displayName(false)} — история доступна только для одиночных игроков`
+                  }
+                  title={p.player ? "История матчей" : "История доступна только для одиночных игроков"}
+                >
+                  {p.displayName(false)}
+                </button>
+              </td>
+              <td>
+                <BadgeWithTip titleText={row.title} tooltip={row.tooltip} />
+              </td>
+              <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{count}</td>
+            </tr>
+          ))
+        )}
+      </tbody>
+    </table>
+  );
+}, [leaders, onShowHistory]);
 
   // ===== render =====
   if (loading) return <p>Загрузка…</p>;
