@@ -62,12 +62,12 @@ function isValidScoreFormat(s: string) {
 
 function NameCell({ p }: { p: Participant }) {
   if (p.player) {
-    return <span className="chip name-one-line" title={`ID: ${p.player.id}`}>{p.player.name}</span>;
+    return <span className="player name-one-line" title={`ID: ${p.player.id}`}>{p.player.name}</span>;
   }
   const a = p.team?.player1?.name ?? "??";
   const b = p.team?.player2?.name ?? "??";
   return (
-    <span className="chip name-stack" title={`ID: ${p.team?.id}`}>
+    <span className="player name-stack" title={`ID: ${p.team?.id}`}>
       <span className="name-line">{a}</span>
       <span className="name-line">{b}</span>
     </span>
@@ -356,7 +356,7 @@ export function DoubleEliminationView({
 
               return (
                 <tr key={k} className={`grid-row ${isEditing ? "editing-row" : ""}`}>
-                  <td>{a ? <NameCell p={a} /> : <span className="chip muted">Ожидается</span>}</td>
+                  <td>{a ? <NameCell p={a} /> : <span className="player muted">Ожидается</span>}</td>
                   <td className="score-cell">
                     {canEdit ? (
                       score ? (
@@ -410,7 +410,7 @@ export function DoubleEliminationView({
                       <span className="badge muted">—</span>
                     )}
                   </td>
-                  <td>{b ? <NameCell p={b} /> : <span className="chip muted">Ожидается</span>}</td>
+                  <td>{b ? <NameCell p={b} /> : <span className="player muted">Ожидается</span>}</td>
                 </tr>
               );
             })

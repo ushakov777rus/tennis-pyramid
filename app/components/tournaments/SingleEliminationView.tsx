@@ -190,10 +190,10 @@ export function SingleEliminationView({
   }
 
   function NameCell({ p }: { p: Participant | null }) {
-    if (!p) return <span className="chip name-one-line name-muted">BYE</span>;
+    if (!p) return <span className="player name-one-line name-muted">BYE</span>;
     if (p.player) {
       return (
-        <span className="chip name-one-line" title={`ID: ${p.player.id}`}>
+        <span className="player name-one-line" title={`ID: ${p.player.id}`}>
           {p.player.name}
         </span>
       );
@@ -201,7 +201,7 @@ export function SingleEliminationView({
     const a = p.team?.player1?.name ?? "??";
     const b = p.team?.player2?.name ?? "??";
     return (
-      <span className="chip name-stack" title={`ID: ${p.team?.id}`}>
+      <span className="player name-stack" title={`ID: ${p.team?.id}`}>
         <span className="name-line">{a}</span>
         <span className="name-line">{b}</span>
       </span>

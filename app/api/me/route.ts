@@ -1,6 +1,7 @@
 // app/api/me/route.ts
 import { NextResponse } from "next/server";
 import { createClient } from "@/app/lib/supabase/server";
+import { UserRole } from "@/app/models/Users";
 
 export async function GET() {
   try {
@@ -43,7 +44,7 @@ export async function GET() {
       id: userData?.id,
       email: session.user.email,
       name: userData?.name || session.user.user_metadata.full_name || session.user.email,
-      role: userData?.role || session.user.user_metadata.role || 'player',
+      role: userData?.role || session.user.user_metadata.role || UserRole.Player,
       player_id: userData?.players?.[0]?.id || null,
       full_name: userData?.name || session.user.user_metadata.full_name,
     };

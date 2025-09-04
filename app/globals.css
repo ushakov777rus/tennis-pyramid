@@ -100,6 +100,10 @@ body {
   .input { max-width: 100%; }
 }
 
+.score-input {
+  max-width: 120px;
+}
+
 .page-title {
   margin-bottom: 20px;
   margin-top: 20px;
@@ -557,7 +561,7 @@ button,
   text-overflow: ellipsis;
   font-size: 12px;
   height: calc(2.5em + 8px);
-  white-space: pre-line; /* перенос по \n */
+  white-space: pre; /* перенос по \n */
 }
 
 .player.win {

@@ -15,11 +15,6 @@
 
 .vs { color: #777; }
 
-.chip-margin-bottom {
-  margin-bottom: 10px;
-  font-size: 12px;
-}
-
 .score-readonly {
   display: flex;
   align-items: center;

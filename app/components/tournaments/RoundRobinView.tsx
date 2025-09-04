@@ -113,7 +113,6 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
   // Рендер имени: одиночка — одна строка; пара — два имени столбиком
   function NameCell({ p }: { p: Participant }) {
     return <span className="player">{p.displayName(false)}</span>;
-
   }
 
   return (
@@ -158,7 +157,7 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
                           ) : (
                             <div className="score-edit-wrap">
                               <input
-                                className="score-input"
+                                className="input score-input"
                                 value={editValue}
                                 onChange={(e) => setEditValue(e.target.value)}
                                 placeholder="6-4, 4-6, 10-8"

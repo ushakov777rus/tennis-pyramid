@@ -1,6 +1,7 @@
 // app/api/login/route.ts
 import { NextResponse } from "next/server";
 import { createClient } from "@/app/lib/supabase/server";
+import { UserRole } from "@/app/models/Users";
 
 export async function POST(req: Request) {
   try {
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
       id: userData?.id,
       email: authData.user.email,
       name: userData?.name || authData.user.user_metadata.name || authData.user.email,
-      role: userData?.role || authData.user.user_metadata.role || 'player',
+      role: userData?.role || authData.user.user_metadata.role || UserRole.Player,
       player_id: userData?.players?.[0]?.id || null,
       full_name: userData?.name || authData.user.user_metadata.full_name,
     };

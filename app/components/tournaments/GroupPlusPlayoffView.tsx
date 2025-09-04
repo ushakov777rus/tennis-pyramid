@@ -69,12 +69,12 @@ function isValidScoreFormat(s: string) {
 
 function NameCell({ p }: { p: Participant }) {
   if (p.player) {
-    return <span className="chip name-one-line" title={`ID: ${p.player.id}`}>{p.player.name}</span>;
+    return <span className="player name-one-line" title={`ID: ${p.player.id}`}>{p.player.name}</span>;
   }
   const a = p.team?.player1?.name ?? "??";
   const b = p.team?.player2?.name ?? "??";
   return (
-    <span className="chip name-stack" title={`ID: ${p.team?.id}`}>
+    <span className="player name-stack" title={`ID: ${p.team?.id}`}>
       <span className="name-line">{a}</span>
       <span className="name-line">{b}</span>
     </span>
@@ -387,9 +387,9 @@ export function GroupPlusPlayoffView({
               <tbody>
                 {pairs.length ? pairs.map(([a,b], i) => (
                   <tr key={i} className="grid-row">
-                    <td>{a ? <NameCell p={a}/> : <span className="chip muted">BYE</span>}</td>
+                    <td>{a ? <NameCell p={a}/> : <span className="player muted">BYE</span>}</td>
                     <MatchCell a={a} b={b}/>
-                    <td>{b ? <NameCell p={b}/> : <span className="chip muted">BYE</span>}</td>
+                    <td>{b ? <NameCell p={b}/> : <span className="player muted">BYE</span>}</td>
                   </tr>
                 )) : (
                   <tr className="grid-row"><td colSpan={3} className="history-empty">Нет пар</td></tr>
@@ -410,7 +410,7 @@ export function GroupPlusPlayoffView({
             {stats.map((s, i) => (
               <tr key={s.id} className="grid-row">
                 <td>{i + 1}</td>
-                <td><span className="chip">{s.name}</span></td>
+                <td><span className="player">{s.name}</span></td>
                 <td>{s.wins}</td>
                 <td>{s.setsDiff}</td>
                 <td>{s.gamesDiff}</td>
@@ -443,9 +443,9 @@ export function GroupPlusPlayoffView({
               <tbody>
                 {pairs.length ? pairs.map(([a,b], i) => (
                   <tr key={i} className="grid-row">
-                    <td>{a ? <NameCell p={a}/> : <span className="chip muted">Ожидается</span>}</td>
+                    <td>{a ? <NameCell p={a}/> : <span className="player muted">Ожидается</span>}</td>
                     <MatchCell a={a} b={b}/>
-                    <td>{b ? <NameCell p={b}/> : <span className="chip muted">Ожидается</span>}</td>
+                    <td>{b ? <NameCell p={b}/> : <span className="player muted">Ожидается</span>}</td>
                   </tr>
                 )) : (
                   <tr className="grid-row"><td colSpan={3} className="history-empty">Нет пар</td></tr>

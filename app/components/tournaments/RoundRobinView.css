@@ -71,7 +71,6 @@
 }
 
 /* Ограничение ширины для чипов/бейджей/VS */
-.round-table .chip,
 .round-table .badge,
 .round-table .vs {
   display: inline-block;
@@ -171,7 +170,6 @@
 .round-table thead .grid-row > th { border-bottom: 1px solid rgba(0,0,0,0.12); }
 .round-table .history-empty { text-align: center; padding: 10px; color: #666; }
 
-.round-table .chip,
 .round-table .badge,
 .round-table .vs {
   display: inline-block;
