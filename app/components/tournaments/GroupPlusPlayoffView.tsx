@@ -480,20 +480,26 @@ export function GroupPlusPlayoffView({
                 </tr>
               </thead>
               <tbody>
-                {pairs.length ? pairs.map(([a,b], i) => (
-                  // внутри PlayoffBlock → tbody → pairs.map(...)
-                  <tr key={i} className="grid-row">
-                    <td>
-                      {a ? <NameCell p={a}/> : <span className="player muted">Ожидается</span>}
-                    </td>
+                {pairs.length ? pairs.map(([a, b], i) => {
+                  const aId = pid(a); // number | null
+                  const bId = pid(b); // number | null
+                  const k = aId !== null && bId !== null ? pairKey(aId, bId) : null;
+                  const isEditing = k !== null && editingKey === k;
 
-                    <MatchCell a={a} b={b}/>
+                  return (
+                    <tr key={i} className={`grid-row ${isEditing ? "editing-row" : ""}`}>
+                      <td>
+                        {a ? <NameCell p={a}/> : <span className="player muted">Ожидается</span>}
+                      </td>
 
-                    <td>
-                      {b ? <NameCell p={b}/> : <span className="player muted">Ожидается</span>}
-                    </td>
-                  </tr>
-                )) : (
+                      <MatchCell a={a} b={b} />
+
+                      <td>
+                        {b ? <NameCell p={b}/> : <span className="player muted">Ожидается</span>}
+                      </td>
+                    </tr>
+                  );
+                }) : (
                   <tr className="grid-row"><td colSpan={3} className="history-empty">Нет пар</td></tr>
                 )}
               </tbody>
