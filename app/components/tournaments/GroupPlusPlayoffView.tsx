@@ -10,6 +10,7 @@ import { SaveIconButton, CancelIconButton } from "@/app/components/IconButtons";
 import "./PyramidView.css";
 import "./RoundRobinView.css";
 import "@/app/components/ParticipantsView.css";
+import { BUILD_MANIFEST } from "next/dist/shared/lib/constants";
 
 type GroupPlusPlayoffViewProps = {
   participants: Participant[];
@@ -53,13 +54,19 @@ function findMatchBetween(aId: number, bId: number, matches: Match[]): Match | u
   });
 }
 
+function hasPairMatch(a: Participant | null, b: Participant | null, matches: Match[]) {
+  const aId = pid(a), bId = pid(b);
+  return !!(aId && bId && findMatchBetween(aId, bId, matches));
+}
+
 function getMatchScore(aId: number, bId: number, matches: Match[]): string | null {
   const match = findMatchBetween(aId, bId, matches);
   if (!match) return null;
   if (match.scores && match.scores.length > 0) {
     return match.scores.map(([s1, s2]) => `${s1}:${s2}`).join(", ");
   }
-  return "—";
+  console.log("getMatchScore", aId, matches);
+  return null;
 }
 
 function isValidScoreFormat(s: string) {
@@ -70,18 +77,9 @@ function isValidScoreFormat(s: string) {
 }
 
 function NameCell({ p }: { p: Participant }) {
-  if (p.player) {
-    return <span className="player name-one-line" title={`ID: ${p.player.id}`}>{p.player.name}</span>;
-  }
-  const a = p.team?.player1?.name ?? "??";
-  const b = p.team?.player2?.name ?? "??";
-  return (
-    <span className="player name-stack" title={`ID: ${p.team?.id}`}>
-      <span className="name-line">{a}</span>
-      <span className="name-line">{b}</span>
-    </span>
-  );
+  return <span className="player">{p.displayName(false)}</span>;
 }
+
 
 /* ---------------- Групповая стадия ---------------- */
 
@@ -247,7 +245,7 @@ export function GroupPlusPlayoffView({
   participants,
   matches,
   onSaveScore,
-  groupsCount = 4,
+  groupsCount = 2,
   advancePerGroup = 2,
   seeding = "snake",
 }: GroupPlusPlayoffViewProps) {
@@ -342,10 +340,10 @@ export function GroupPlusPlayoffView({
           ) : (
             <div className="score-edit-wrap">
               <input
-                className="score-input"
+                className="input score-input"
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
-                placeholder="6-4, 6-4"
+                placeholder="6-4, 4-6, 10-8"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === "Enter") { e.preventDefault(); saveEdit(aId!, bId!); }
@@ -386,14 +384,23 @@ export function GroupPlusPlayoffView({
                 </tr>
               </thead>
               <tbody>
-                {pairs.length ? pairs.map(([a,b], i) => (
-                  <tr key={i} className="grid-row">
-                    <td>{a ? <NameCell p={a}/> : <span className="player muted">BYE</span>}</td>
-                    <MatchCell a={a} b={b}/>
-                    <td>{b ? <NameCell p={b}/> : <span className="player muted">BYE</span>}</td>
+                {pairs.length ? pairs.map(([a, b], i) => {
+                  const aId = a.getId;
+                  const bId = b.getId;
+                  const k = pairKey(aId, bId);
+                  const isEditing = editingKey === k;
+
+                  return (
+                    <tr key={i} className={`grid-row ${isEditing ? "editing-row" : ""}`}>
+                      <td>{a ? <NameCell p={a}/> : <span className="player muted">BYE</span>}</td>
+                      <MatchCell a={a} b={b}/>
+                      <td>{b ? <NameCell p={b}/> : <span className="player muted">BYE</span>}</td>
+                    </tr>
+                  );
+                }) : (
+                  <tr className="grid-row">
+                    <td colSpan={3} className="history-empty">Нет пар</td>
                   </tr>
-                )) : (
-                  <tr className="grid-row"><td colSpan={3} className="history-empty">Нет пар</td></tr>
                 )}
               </tbody>
             </table>
@@ -427,7 +434,7 @@ export function GroupPlusPlayoffView({
   // Отрисовка плей-офф
   function PlayoffBlock() {
     return (
-      <div className="rounds-grid bracket-grid">
+      <div className="rounds-grid">
         {resolvedPlayoff.map((pairs, rIndex) => (
           <div key={rIndex} className="card">
             <div className="history-table-head">
@@ -443,10 +450,21 @@ export function GroupPlusPlayoffView({
               </thead>
               <tbody>
                 {pairs.length ? pairs.map(([a,b], i) => (
+                  // внутри PlayoffBlock → tbody → pairs.map(...)
                   <tr key={i} className="grid-row">
-                    <td>{a ? <NameCell p={a}/> : <span className="player muted">Ожидается</span>}</td>
+                    <td>
+                      {hasPairMatch(a, b, matches)
+                        ? (a ? <NameCell p={a}/> : <span className="player muted">Ожидается</span>)
+                        : <span className="player muted">Ожидается</span>}
+                    </td>
+
                     <MatchCell a={a} b={b}/>
-                    <td>{b ? <NameCell p={b}/> : <span className="player muted">Ожидается</span>}</td>
+
+                    <td>
+                      {hasPairMatch(a, b, matches)
+                        ? (b ? <NameCell p={b}/> : <span className="player muted">Ожидается</span>)
+                        : <span className="player muted">Ожидается</span>}
+                    </td>
                   </tr>
                 )) : (
                   <tr className="grid-row"><td colSpan={3} className="history-empty">Нет пар</td></tr>
@@ -462,7 +480,7 @@ export function GroupPlusPlayoffView({
   return (
     <div className="roundrobin-wrap">
       {/* ГРУППЫ */}
-      <div className="rounds-grid bracket-grid">
+      <div className="rounds-grid">
         {groups.map((g, gi) => <GroupBlock key={gi} gIndex={gi} group={g}/>)}
       </div>
 

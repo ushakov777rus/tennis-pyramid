@@ -29,6 +29,8 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
   // доп. опции
   const [advOpen, setAdvOpen] = useState(false);
   const [pyramidMaxLevel, setPyramidMaxLevel] = useState<number>(15);
+  const [groupsPlayoffGroupsCount, setGroupsPlayoffGroupsCount] = useState<number>(2);
+  
 
   useEffect(() => {
     if (!isOpen) return;
@@ -56,6 +58,7 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
     setStartDate("");
     setEndDate("");
     setPyramidMaxLevel(15);
+    setGroupsPlayoffGroupsCount(2);
     setAdvOpen(false);
     setError(null);
   };
@@ -93,6 +96,14 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
       payload.settings = {
         pyramid: {
           maxLevel: pyramidMaxLevel,
+        },
+      };
+    }
+
+    if (format === TournamentFormat.GroupsPlayoff) {
+      payload.settings = {
+        groupsplayoff: {
+          groupsCount: groupsPlayoffGroupsCount,
         },
       };
     }
@@ -214,6 +225,26 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
                   onChange={(e) => setPyramidMaxLevel(Number(e.target.value) || 0)}
                 />
                 <div className="adv-help">Рекомендуем 10–20, по умолчанию 15</div>
+              </div>
+            )}
+
+            {/* Группы плюс плейофф */}
+            {format === TournamentFormat.GroupsPlayoff && (
+              <div className="adv-row">
+                <label className="adv-label" htmlFor="pyr-levels">
+                  Количество групп
+                </label>
+                <input
+                  id="groups-count"
+                  type="number"
+                  min={1}
+                  max={50}
+                  step={1}
+                  className="input"
+                  value={groupsPlayoffGroupsCount}
+                  onChange={(e) => setGroupsPlayoffGroupsCount(Number(e.target.value) || 0)}
+                />
+                <div className="adv-help">Рекомендуем 2–4, по умолчанию 2</div>
               </div>
             )}
 

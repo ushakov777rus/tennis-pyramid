@@ -15,7 +15,7 @@ import {
 } from "@/app/models/Tournament";
 
 import { NavigationBar } from "@/app/components/NavigationBar";
-import { AdminOnly, NotAdminOnly } from "@/app/components/RoleGuard";
+import { AdminOnly, LoggedIn, NotAdminOnly } from "@/app/components/RoleGuard";
 import { TournamentCard } from "@/app/components/TournamentCard";
 import { useUser } from "@/app/components/UserContext";
 import { AddTournamentModal } from "../components/AddTournamentModal";
@@ -90,7 +90,7 @@ const filtered = useMemo(() => {
   const isMine = (t: Tournament) => {
     const uid = user?.id;
     if (!uid) return true; // TODO пока разрешаем всем
-    if (user.role === UserRole.SiteAdmin) return true;
+
     // приоритет — creator_id; на всякий случай поддержим admin_user_id / owner_id
     const anyT = t as any;
     return (
@@ -161,7 +161,7 @@ const filtered = useMemo(() => {
             sort={false}
           />
 
-          <NotAdminOnly>
+          <LoggedIn>
             <div className="card-filter-controls">
               <CheckBoxIcon
                 isSelected={fltMy}
@@ -170,7 +170,7 @@ const filtered = useMemo(() => {
               />
               <span>Только мои</span>
             </div>
-          </NotAdminOnly>
+          </LoggedIn>
 
           <CancelIconButton onClick={resetFilters} title="Сброс" />
         </div>

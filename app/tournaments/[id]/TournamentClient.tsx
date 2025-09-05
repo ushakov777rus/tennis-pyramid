@@ -397,6 +397,7 @@ const FormatView = React.memo(function FormatView({
         participants={participants}
         matches={matches}
         onSaveScore={onSaveScoreRoundRobin}
+        groupsCount={tournament.settings.groupsplayoff.groupsCount}
       />
     );
   }
