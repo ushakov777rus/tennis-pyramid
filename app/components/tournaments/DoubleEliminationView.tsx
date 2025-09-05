@@ -119,7 +119,6 @@ export function DoubleEliminationView({
   matches,
   onSaveScore,
 }: DoubleEliminationViewProps) {
-  const { user } = useUser();
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);

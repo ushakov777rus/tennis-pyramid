@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { NavigationBar } from "@/app/components/NavigationBar";
 
-import "./MainPage.css";
-import { useUser } from "./components/UserContext";
-import { AuthContainer } from "./components/AuthContainer";
 import { UserRole } from "./models/Users";
+
+import { NavigationBar } from "@/app/components/NavigationBar";
+import { AuthContainer } from "@/app/components/AuthContainer";
+
+
 import { MatchRepository } from "./repositories/MatchRepository";
 import { PlayersRepository } from "./repositories/PlayersRepository";
 import { TournamentsRepository } from "./repositories/TournamentsRepository";
+
+import "./MainPage.css";
 
 type Stat = { label: string; value: number | string };
 type Feature = { icon: React.ReactNode; label: string; text?: string };

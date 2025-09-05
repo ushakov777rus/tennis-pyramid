@@ -43,7 +43,7 @@ export function PlayerProfileModal({
   onEditPlayer,
   onMessage,
 }: Props) {
-  const { user } = useUser();
+
   // Блокируем прокрутку боди, когда открыта модалка
   useEffect(() => {
     if (!isOpen) return;

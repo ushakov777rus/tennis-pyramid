@@ -15,7 +15,6 @@ function InlineSpinner() {
 }
 
 export function ParticipantsView() {
-  const { user } = useUser();
   const {
     initialLoading, // первая загрузка
     refreshing,     // тихий рефетч

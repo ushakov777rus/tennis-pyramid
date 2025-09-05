@@ -58,12 +58,6 @@ function findMatchBetween(aId: number, bId: number, matches: Match[]): Match | u
   });
 }
 
-/** Есть ли в массиве матчей парный матч ровно между a и b */
-function hasPairMatch(a: Participant | null, b: Participant | null, matches: Match[]) {
-  const aId = pid(a), bId = pid(b);
-  return !!(aId && bId && findMatchBetween(aId, bId, matches));
-}
-
 /** Отрендерить счёт матча в виде "6:4, 4:6, 10:8" или null */
 function getMatchScore(aId: number, bId: number, matches: Match[]): string | null {
   const match = findMatchBetween(aId, bId, matches);

@@ -208,7 +208,6 @@ function swissPairRound(
 /* ========= Компонент ========= */
 
 export function SwissView({ participants, matches, roundsCount, onSaveScore }: SwissViewProps) {
-  const { user } = useUser();
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
