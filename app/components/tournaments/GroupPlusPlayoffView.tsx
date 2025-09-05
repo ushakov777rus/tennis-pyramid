@@ -173,43 +173,68 @@ function computeGroupStats(group: Participant[], matches: Match[]): GroupStats[]
 
 /* ---------------- Плей-офф (Single Elim из квот) ---------------- */
 
-/** Составить плей-офф из топ-K из каждой группы, посев крест-накрест */
-function makePlayoffQualifiers(groups: Participant[][], statsPerGroup: GroupStats[][], topK: number): Participant[] {
-  const out: Participant[] = [];
-  // A1, B2, C1, D2, затем A2, B1, C2, D1 ... по блокам
-  const G = groups.length;
-  const order: number[] = []; // индекс группы для первой волны (1-е места)
-  for (let g = 0; g < G; g++) order.push(g);
+function isCompletedMatch(m?: Match | undefined): boolean {
+  return !!(m && m.scores && m.scores.length > 0);
+}
 
-  // первая волна: 1-е места по порядку
-  for (const gi of order) {
-    if (statsPerGroup[gi][0]) {
-      const id = statsPerGroup[gi][0].id;
-      const p = groups[gi].find((pp) => pp.getId === id);
-      if (p) out.push(p);
+function countCompletedPairsInGroup(group: Participant[], matches: Match[]): number {
+  let done = 0;
+  for (let i = 0; i < group.length; i++) {
+    for (let j = i + 1; j < group.length; j++) {
+      const aId = group[i].getId;
+      const bId = group[j].getId;
+      if (isCompletedMatch(findMatchBetween(aId, bId, matches))) done++;
     }
   }
-  // вторая волна: 2-е места — «крест-накрест» (реверс)
+  return done;
+}
+
+function isGroupStarted(group: Participant[], matches: Match[]): boolean {
+  return countCompletedPairsInGroup(group, matches) > 0;
+}
+
+/** Составить плей-офф из топ-K из каждой группы, посев крест-накрест */
+function makePlayoffQualifiers(
+  groups: Participant[][],
+  statsPerGroup: GroupStats[][],
+  topK: number,
+  matches: Match[]
+): (Participant | null)[] {
+  const out: (Participant | null)[] = [];
+  const G = groups.length;
+  const order: number[] = Array.from({ length: G }, (_, i) => i);
+
+  // утилита: положить место place (0-индекс) для группы gi
+  function pick(gi: number, place: number) {
+    const group = groups[gi];
+    const stats = statsPerGroup[gi];
+
+    // 👇 если в группе ещё НИ ОДНОГО матча — ставим null (ожидание)
+    if (!isGroupStarted(group, matches)) {
+      out.push(null);
+      return;
+    }
+
+    const slot = stats[place];
+    if (!slot) { out.push(null); return; }
+    const p = group.find(pp => pp.getId === slot.id) ?? null;
+    out.push(p);
+  }
+
+  // 1-е места
+  for (const gi of order) pick(gi, 0);
+
+  // 2-е места (реверс)
   if (topK >= 2) {
-    for (const gi of [...order].reverse()) {
-      if (statsPerGroup[gi][1]) {
-        const id = statsPerGroup[gi][1].id;
-        const p = groups[gi].find((pp) => pp.getId === id);
-        if (p) out.push(p);
-      }
-    }
+    for (const gi of [...order].reverse()) pick(gi, 1);
   }
-  // если topK > 2 — добавим оставшиеся места по той же логике: 3-и по прямому, 4-е по реверсу и т.д.
+
+  // 3-и, 4-е и т.д.
   for (let place = 3; place <= topK; place++) {
     const wave = place % 2 === 1 ? order : [...order].reverse();
-    for (const gi of wave) {
-      if (statsPerGroup[gi][place - 1]) {
-        const id = statsPerGroup[gi][place - 1].id;
-        const p = groups[gi].find((pp) => pp.getId === id);
-        if (p) out.push(p);
-      }
-    }
+    for (const gi of wave) pick(gi, place - 1);
   }
+
   return out;
 }
 
@@ -277,7 +302,10 @@ export function GroupPlusPlayoffView({
   const groupStats = useMemo(() => groups.map(g => computeGroupStats(g, matches)), [groups, matches]);
 
   // Квалифицировавшиеся в плей-офф (могут быть «дыры», если мало матчей — т.е. не все определились)
-  const qualifiers = useMemo(() => makePlayoffQualifiers(groups, groupStats, advancePerGroup), [groups, groupStats, advancePerGroup]);
+  const qualifiers = useMemo(
+    () => makePlayoffQualifiers(groups, groupStats, advancePerGroup, matches),
+    [groups, groupStats, advancePerGroup, matches]
+  );
 
   // Пары плей-офф (раунд 0) + последующие раунды
   const playoffRounds = useMemo(() => buildSingleElimPairs(qualifiers), [qualifiers]);
@@ -294,6 +322,9 @@ export function GroupPlusPlayoffView({
         copy[r][i][1] = w2 ? ordered.find(p => p.getId === w2) ?? null : null;
       }
     }
+
+    console.log("resolvedPlayoff", copy);
+
     return copy;
   }, [playoffRounds, matches, ordered]);
 
@@ -355,7 +386,7 @@ export function GroupPlusPlayoffView({
             </div>
           )
         ) : (
-          <span className="badge muted">—</span>
+          <span>vs</span>
         )}
       </td>
     );
@@ -453,17 +484,13 @@ export function GroupPlusPlayoffView({
                   // внутри PlayoffBlock → tbody → pairs.map(...)
                   <tr key={i} className="grid-row">
                     <td>
-                      {hasPairMatch(a, b, matches)
-                        ? (a ? <NameCell p={a}/> : <span className="player muted">Ожидается</span>)
-                        : <span className="player muted">Ожидается</span>}
+                      {a ? <NameCell p={a}/> : <span className="player muted">Ожидается</span>}
                     </td>
 
                     <MatchCell a={a} b={b}/>
 
                     <td>
-                      {hasPairMatch(a, b, matches)
-                        ? (b ? <NameCell p={b}/> : <span className="player muted">Ожидается</span>)
-                        : <span className="player muted">Ожидается</span>}
+                      {b ? <NameCell p={b}/> : <span className="player muted">Ожидается</span>}
                     </td>
                   </tr>
                 )) : (
