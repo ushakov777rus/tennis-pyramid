@@ -292,17 +292,6 @@
   font-weight: bold;
 }
 
-/* где-нибудь в RoundRobinView.css */
-.vs-placeholder {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px dashed currentColor;
-  opacity: 0.5;
-  cursor: default;
-  user-select: none;
-}
-
 /* неактивность по времени без матчей */
 .days-counter.inactive-15 { color: #cf7d01; } /* оранжевый ≥15 дней */
 .days-counter.inactive-36 { color: #e53935; } /* красный ≥36 дней */

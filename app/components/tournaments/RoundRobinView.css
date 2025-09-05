@@ -190,3 +190,13 @@
   padding-bottom: 8px;
 }
 .muted { opacity: 0.7; }
+
+.vs-placeholder {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px dashed currentColor;
+  opacity: 0.5;
+  user-select: none;
+  cursor: default;
+}
