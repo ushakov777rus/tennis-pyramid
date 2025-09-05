@@ -134,6 +134,10 @@
   display: grid;
   grid-template-columns: 37% 26% 37%;
 }
+.grid-row-group-playoff {
+  display: grid;
+  grid-template-columns: 70% 10% 10% 10%;
+}
 .editing-row {
   grid-template-columns: 20% 60% 20%;
 }

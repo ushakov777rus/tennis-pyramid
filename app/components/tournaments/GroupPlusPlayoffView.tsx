@@ -441,14 +441,13 @@ export function GroupPlusPlayoffView({
         {/* Таблица группы */}
         <table className="round-table" style={{ marginTop: 12 }}>
           <thead>
-            <tr className="grid-row">
-              <th>#</th><th>Участник</th><th>W</th><th>Δсет</th><th>Δгейм</th>
+            <tr className="grid-row-group-playoff">
+              <th>Участник</th><th>W</th><th>Δсет</th><th>Δгейм</th>
             </tr>
           </thead>
           <tbody>
             {stats.map((s, i) => (
-              <tr key={s.id} className="grid-row">
-                <td>{i + 1}</td>
+              <tr key={s.id} className="grid-row-group-playoff">
                 <td><span className="player">{s.name}</span></td>
                 <td>{s.wins}</td>
                 <td>{s.setsDiff}</td>
