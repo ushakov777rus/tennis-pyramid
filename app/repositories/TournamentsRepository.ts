@@ -47,7 +47,7 @@ static async loadAccessible(userId: number | undefined, userRole: string | undef
     const { data, error } = await supabase
       .from("tournaments")
       .select("*")
-      .eq("is_public", true)
+//      .eq("is_public", true)  пока будем грузить все турниры для гостя
       .order("start_date", { ascending: true });
 
     if (error) {

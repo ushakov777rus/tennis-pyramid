@@ -29,6 +29,7 @@ import { canDeleteTournament, canViewTournament } from "@/app/lib/permissions";
 import "./page.css";
 import "@/app/MainPage.css";
 import { CustomSelect } from "../components/CustomSelect";
+import { UserRole } from "../models/Users";
 
 export function TournamentsClient() {
   const { user } = useUser();
@@ -88,8 +89,8 @@ const filtered = useMemo(() => {
   // аккуратно определим «мой турнир» для разных схем БД
   const isMine = (t: Tournament) => {
     const uid = user?.id;
-    if (!uid) return false;
-    if (user.role === "site_admin") return true;
+    if (!uid) return true; // TODO пока разрешаем всем
+    if (user.role === UserRole.SiteAdmin) return true;
     // приоритет — creator_id; на всякий случай поддержим admin_user_id / owner_id
     const anyT = t as any;
     return (
@@ -192,7 +193,7 @@ const filtered = useMemo(() => {
           </AdminOnly>
 
           {filtered.map((t) => {
-            const canView = canViewTournament(user, t);
+            const canView = true;//canViewTournament(user, t); TODO пока все видят все
             const canDelete = canDeleteTournament(user, t);
             return (
               <TournamentCard
