@@ -56,9 +56,7 @@ const refresh = useCallback(
       const role = user?.role;
 
       // Если гостевой режим — грузим публичные турниры
-      const list = uid
-        ? await TournamentsRepository.loadAccessible(uid, role)
-        : await TournamentsRepository.loadAll();  
+      const list = await TournamentsRepository.loadAll();  
 
         console.log("Загруженные турниры:", uid, list);
 
