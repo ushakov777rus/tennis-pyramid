@@ -111,7 +111,7 @@ static async loadAccessible(userId: number | undefined, userRole: string | undef
     const { data, error } = await supabase
       .from("tournaments")
       .select("*")
-      .or(`creator_id.eq.${userId},is_public.eq.true`)
+      //.or(`creator_id.eq.${userId},is_public.eq.true`)
       .order("start_date", { ascending: true });
 
     if (error) {
