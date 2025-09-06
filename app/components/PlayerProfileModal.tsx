@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useUser } from "@/app/components/UserContext";
+
 import "./PlayerProfileModal.css";
 
 import { Player } from "@/app/models/Player";

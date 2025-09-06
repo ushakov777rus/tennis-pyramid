@@ -3,7 +3,6 @@
 import "@/app/components/ParticipantsView.css";
 
 import { useTournament } from "@/app/tournaments/[id]/TournamentProvider";
-import { useUser } from "./UserContext";
 import { useMemo, useState } from "react";
 import { Player } from "../models/Player";
 import { CreateTeamIconButton, DeleteIconButton, PlusIconButton } from "./IconButtons";
