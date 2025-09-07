@@ -10,6 +10,7 @@ export type RegisterPayload = {
   phone?: string | null;      // если нужно, можно сохранить в players
   ntrp?: number | null;       // если нужно, можно сохранить в players
   auth_id: string;
+  email: string;
 };
 
 export type RegisterResult = {

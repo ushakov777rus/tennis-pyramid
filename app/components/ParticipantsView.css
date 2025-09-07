@@ -61,11 +61,6 @@
 }
 
 /* Унаследованные классы, чтобы стиль был одинаковым */
-.players-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
 
 .add-team-btn {
   padding: 4px 8px;
@@ -119,10 +114,6 @@
   word-wrap: break-word; /* старое свойство, для совместимости */
   word-break: break-word; /* современные браузеры */
 }
-
-
-/* Списки и строки — тёмный стиль как в истории матчей */
-.players-list, .teams-list { list-style: none; margin: 0; padding: 0; }
 
 
 .row-left { display: flex; align-items: center; gap: 10px; }

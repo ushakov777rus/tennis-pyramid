@@ -22,7 +22,7 @@ export function RegisterModal({
   onRegistered,
   initialRole: defaultRole = UserRole.Player,
 }: RegisterModalProps) {
-  const { setUser } = useUser();
+  const { setUser, refresh } = useUser();
 
   const [role, setRole] = useState<"player" | "tournament_admin">(defaultRole);
   const [fullName, setFullName] = useState("");
@@ -97,6 +97,9 @@ export function RegisterModal({
       }
 
       setUser?.(data.user);
+
+      await refresh();
+
       onRegistered?.();
       onClose();
     } catch {

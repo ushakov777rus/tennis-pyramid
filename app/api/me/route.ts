@@ -40,14 +40,19 @@ export async function GET() {
       console.error("Error fetching user data:", userError);
     }
 
-    const user = {
-      id: userData?.id,
-      email: session.user.email,
-      name: userData?.name || session.user.user_metadata.full_name || session.user.email,
-      role: userData?.role || session.user.user_metadata.role || UserRole.Player,
-      player_id: userData?.players?.[0]?.id || null,
-      full_name: userData?.name || session.user.user_metadata.full_name,
-    };
+// app/api/me/route.ts
+const user = {
+  id: userData?.id,
+  email: session.user.email,
+  name:
+    userData?.name ||
+    session.user.user_metadata.full_name ||
+    session.user.user_metadata.nickname ||
+    session.user.email,
+  role: userData?.role || session.user.user_metadata.role || UserRole.Player,
+  player_id: userData?.players?.[0]?.id || null,
+  full_name: userData?.name || session.user.user_metadata.full_name,
+};
 
     console.log("me:user", user);
 
