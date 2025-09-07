@@ -2,6 +2,12 @@ import { Team } from "./Team";
 import { Player } from "./Player";
 import { Tournament, TournamentType } from "./Tournament";
 
+export enum PhaseType {
+  Group = "group",
+  Playoff = "playoff",
+}
+
+
 export class Match {
   id: number;
   type: TournamentType;
@@ -12,6 +18,9 @@ export class Match {
   player2?: Player;
   team1?: Team;
   team2?: Team;
+  phase?: PhaseType;
+  groupIndex?: number | null;
+  roundIndex?: number | null;
 
   constructor(
     id: number,

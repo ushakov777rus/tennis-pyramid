@@ -7,7 +7,7 @@ import { useUser } from "@/app/components/UserContext";
 import { Tournament } from "@/app/models/Tournament";
 import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
-import { Match } from "@/app/models/Match";
+import { Match, PhaseType } from "@/app/models/Match";
 import { Participant } from "@/app/models/Participant";
 
 import { NavigationBar } from "@/app/components/NavigationBar";
@@ -86,12 +86,12 @@ export default function TournamentClient() {
     () =>
       selectableItems.map((item) => ({
         value: item.id,
-        label: item.displayName(false), // или true, если хочешь с маской
+        label: item.displayName(false),
       })),
     [selectableItems]
   );
   
-  // Колбэки
+  // Добавление «ручного» матча (карточка сверху)
   const handleAddMatch = useCallback(async () => {
     if (!tournament) return;
     if (selectedIds.length < 2 || !matchDate) {
@@ -123,6 +123,7 @@ export default function TournamentClient() {
         team1,
         team2,
         tournamentId: tournament.id,
+        // без фазы: это свободный матч, если нужно — можете добавить поля phase/indices по UI
       });
 
       setMatchDate(todayISO);
@@ -153,16 +154,36 @@ export default function TournamentClient() {
     }
   }, [deleteMatch]);
 
-  const handleSaveScore = useCallback(async (aId: number, bId: number, score: string) => {
+  /**
+   * Сохранение счёта из схем (RR/SE/DE/Groups+PO/Swiss/…)
+   * Теперь поддерживает meta с фазой/индексами.
+   */
+  const handleSaveScore = useCallback(async (
+    aId: number,
+    bId: number,
+    score: string,
+    meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+  ) => {
     if (!tournament) return;
 
     try {
       const scores = Match.parseScoreStringFlexible(score);
 
+      // Ищем существующий матч по паре + фазовым полям (если заданы)
       const existing = matches.find((m) => {
-        const id1 = m.player1?.id ?? m.team1?.id;
-        const id2 = m.player2?.id ?? m.team2?.id;
-        return (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
+        const id1 = m.player1?.id ?? m.team1?.id ?? 0;
+        const id2 = m.player2?.id ?? m.team2?.id ?? 0;
+        const samePair = (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
+        if (!samePair) return false;
+        if (!meta) return true; // для обратной совместимости (старые матчи без phase)
+        const phaseOk = (m as any).phase === meta.phase;
+        const groupOk = meta.phase === PhaseType.Group
+          ? ((m as any).groupIndex ?? null) === (meta.groupIndex ?? null)
+          : true;
+        const roundOk = meta.phase === PhaseType.Playoff
+          ? ((m as any).roundIndex ?? null) === (meta.roundIndex ?? null)
+          : true;
+        return phaseOk && groupOk && roundOk;
       });
 
       const isSingle =
@@ -171,9 +192,21 @@ export default function TournamentClient() {
           : tournament.tournament_type === "single";
 
       if (existing) {
+        // UPDATE: обновляем счёт + (по возможности) фазовые поля
         const updated = { ...existing, scores } as Match;
+        if (meta) {
+          (updated as any).phase = meta.phase;
+          if (meta.phase === PhaseType.Group) {
+            (updated as any).groupIndex = meta.groupIndex ?? null;
+            (updated as any).roundIndex = null;
+          } else if (meta.phase === PhaseType.Playoff) {
+            (updated as any).roundIndex = meta.roundIndex ?? null;
+            (updated as any).groupIndex = null;
+          }
+        }
         await updateMatch(updated);
       } else {
+        // INSERT: создаём новый матч и сразу проставляем фазу/индексы
         const date = new Date(todayISO);
         let player1: number | null = null;
         let player2: number | null = null;
@@ -197,6 +230,9 @@ export default function TournamentClient() {
           team1,
           team2,
           tournamentId: tournament.id,
+          phase: meta?.phase,
+          groupIndex: meta?.phase === PhaseType.Group ? (meta.groupIndex ?? null) : null,
+          roundIndex: meta?.phase === PhaseType.Playoff ? (meta.roundIndex ?? null) : null,
         });
       }
 
@@ -349,13 +385,18 @@ const FormatView = React.memo(function FormatView({
   selectedIds: number[];
   onSelect: (ids: number[]) => void;
   onShowHistoryPlayer: (participant: Participant) => void;
-  onSaveScoreRoundRobin: (aId: number, bId: number, score: string) => void;
-  onPositionsChange: (next:Participant[]) => Promise<void> | void;
+  onSaveScoreRoundRobin: (
+    aId: number,
+    bId: number,
+    score: string,
+    meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null } // ✅ meta опционально
+  ) => void;
+  onPositionsChange: (next: Participant[]) => Promise<void> | void;
 }) {
   // ✅ Хук вызывается всегда, неусловно
   const handleShowHistory = useCallback(
     (participant?: Participant) => {
-      if (participant) 
+      if (participant)
         onShowHistoryPlayer(participant);
     },
     [onShowHistoryPlayer]
@@ -366,6 +407,7 @@ const FormatView = React.memo(function FormatView({
       <RoundRobinView
         participants={participants}
         matches={matches}
+        // RoundRobin не передаёт meta — сигнатура совместима (meta опциональна)
         onSaveScore={onSaveScoreRoundRobin}
       />
     );
@@ -396,6 +438,7 @@ const FormatView = React.memo(function FormatView({
       <GroupPlusPlayoffView
         participants={participants}
         matches={matches}
+        // ⚠️ Этот компонент уже вызывает onSaveScore с meta (phase/groupIndex/roundIndex)
         onSaveScore={onSaveScoreRoundRobin}
         groupsCount={tournament.settings.groupsplayoff.groupsCount}
       />

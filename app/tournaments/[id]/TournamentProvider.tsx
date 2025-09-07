@@ -13,7 +13,7 @@ import type { Tournament } from "@/app/models/Tournament";
 import type { Player } from "@/app/models/Player";
 import type { Team } from "@/app/models/Team";
 import type { Participant } from "@/app/models/Participant";
-import type { Match } from "@/app/models/Match";
+import type { Match, PhaseType } from "@/app/models/Match"; // ✅ PhaseType для фазы
 
 import { PlayersRepository } from "@/app/repositories/PlayersRepository";
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
@@ -31,6 +31,9 @@ type InitialData = {
   matches?: Match[];
 };
 
+/** Аргументы для создания матча из UI/схем.
+ *  Поля phase/groupIndex/roundIndex — опциональны (для свободных матчей можно не указывать).
+ */
 type AddMatchArgs = {
   date: Date;
   type: Tournament["tournament_type"];
@@ -40,6 +43,11 @@ type AddMatchArgs = {
   team1: number | null;
   team2: number | null;
   tournamentId: number;
+
+  // ✅ Новые поля для сохранения контекста фазы
+  phase?: PhaseType;
+  groupIndex?: number | null;
+  roundIndex?: number | null;
 };
 
 export type TournamentContextShape = {
@@ -146,7 +154,13 @@ export function TournamentProvider({
           args.player2,
           args.team1,
           args.team2,
-          args.tournamentId
+          args.tournamentId,
+          // ✅ прокидываем фазовые поля в репозиторий (совместимо с обновлённой сигнатурой)
+          {
+            phase: args.phase,
+            groupIndex: args.groupIndex ?? null,
+            roundIndex: args.roundIndex ?? null,
+          }
         );
         await reload({ silent: true });
       } finally {
@@ -160,7 +174,7 @@ export function TournamentProvider({
     async (m: Match) => {
       setMutating(true);
       try {
-        await MatchRepository.updateMatch(m);
+        await MatchRepository.updateMatch(m); // репозиторий уже обновляет phase/groupIndex/roundIndex при их наличии
         await reload({ silent: true });
       } finally {
         setMutating(false);
