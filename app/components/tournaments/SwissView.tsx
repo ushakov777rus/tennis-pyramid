@@ -60,18 +60,9 @@ function isValidScoreFormat(s: string) {
 }
 
 function NameCell({ p }: { p: Participant }) {
-  if (p.player) {
-    return <span className="player name-one-line" title={`ID: ${p.player.id}`}>{p.player.name}</span>;
-  }
-  const a = p.team?.player1?.name ?? "??";
-  const b = p.team?.player2?.name ?? "??";
-  return (
-    <span className="player name-stack" title={`ID: ${p.team?.id}`}>
-      <span className="name-line">{a}</span>
-      <span className="name-line">{b}</span>
-    </span>
-  );
+  return <span className="player">{p.displayName(false)}</span>;
 }
+
 
 /* ========= Подсчёт очков и тай-брейков ========= */
 
@@ -323,7 +314,7 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
   return (
     <div className="roundrobin-wrap">
       {/* РАУНДЫ ШВЕЙЦАРКИ */}
-      <div className="rounds-grid bracket-grid">
+      <div className="rounds-grid">
         {swissRounds.map((pairs, rIndex) => (
           <div key={rIndex} className="card">
             <div className="history-table-head">
@@ -351,8 +342,7 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
         <div className="history-table-head"><strong>Таблица</strong></div>
         <table className="round-table">
           <thead>
-            <tr className="grid-row">
-              <th>#</th>
+            <tr className="grid-row-swiss">
               <th>Участник</th>
               <th>Очки</th>
               <th>Бухгольц</th>
@@ -363,8 +353,7 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
           </thead>
           <tbody>
             {standings.map((s, i) => (
-              <tr key={s.id} className="grid-row">
-                <td>{i + 1}</td>
+              <tr key={s.id} className="grid-row-swiss">
                 <td>
                   <span className="player">
                     {participants.find(p => p.getId === s.id)?.displayName(false) ?? s.id}
