@@ -11,7 +11,6 @@ import "./PyramidView.css";
 import "./RoundRobinView.css";
 import "@/app/components/ParticipantsView.css";
 
-
 type DoubleEliminationViewProps = {
   participants: Participant[];
   matches: Match[];
@@ -25,8 +24,7 @@ function isValidParticipant(p: Participant | null | undefined): p is Participant
 }
 
 function pid(p: Participant | null | undefined): number | null {
-  if (!p) return null;
-  return p.getId; // у вас уже реализовано
+  return p ? p.getId : null;
 }
 
 function nextPow2(n: number) {
@@ -59,18 +57,9 @@ function isValidScoreFormat(s: string) {
   return trimmed.split(",").every((part) => setRe.test(part.trim()));
 }
 
-function NameCell({ p }: { p: Participant }) {
-  if (p.player) {
-    return <span className="player name-one-line" title={`ID: ${p.player.id}`}>{p.player.name}</span>;
-  }
-  const a = p.team?.player1?.name ?? "??";
-  const b = p.team?.player2?.name ?? "??";
-  return (
-    <span className="player name-stack" title={`ID: ${p.team?.id}`}>
-      <span className="name-line">{a}</span>
-      <span className="name-line">{b}</span>
-    </span>
-  );
+function NameCell({ p, nullText }: { p: Participant | null; nullText: string }) {
+  if (!p) return <span className="player muted">{nullText}</span>;
+  return <span className="player">{p.displayName(false)}</span>;
 }
 
 /* ---------- Построение Winners Bracket как в Single Elim ---------- */
@@ -92,17 +81,22 @@ function buildWB(ordered: Participant[]) {
   return rounds;
 }
 
-/* Победитель пары (учитывая BYE и реальные матчи), и проигравший */
+/* Победитель/проигравший пары; BYE учитываем опционально (allowBye) */
 function resultOfPair(
   a: Participant | null,
   b: Participant | null,
-  matches: Match[]
+  matches: Match[],
+  allowBye: boolean
 ): { winnerId: number | null; loserId: number | null } {
   const aId = pid(a);
   const bId = pid(b);
-  if (aId && !bId) return { winnerId: aId, loserId: null };
-  if (!aId && bId) return { winnerId: bId, loserId: null };
+
+  if (allowBye) {
+    if (aId && !bId) return { winnerId: aId, loserId: null };
+    if (!aId && bId) return { winnerId: bId, loserId: null };
+  }
   if (!aId || !bId) return { winnerId: null, loserId: null };
+
   const m = findMatchBetween(aId, bId, matches);
   if (!m) return { winnerId: null, loserId: null };
   const w = m.getWinnerId?.();
@@ -127,42 +121,45 @@ export function DoubleEliminationView({
       participants
         .filter(isValidParticipant)
         .slice()
-        .sort((a, b) =>
-          a
-            .displayName(false)
-            .localeCompare(b.displayName(false), "ru")
-        ),
+        .sort((a, b) => a.displayName(false).localeCompare(b.displayName(false), "ru")),
     [participants]
   );
 
   const wb = useMemo(() => buildWB(ordered), [ordered]);
 
-  /* Заполняем WB победителями как в single-elim, и собираем лузеров по раундам */
+  /* Заполняем WB победителями как в single-elim.
+     BYE допускаем только при переходе из R1 в R2 (т.е. когда r === 1).
+     Параллельно собираем лузеров WB по раундам. */
   const { resolvedWB, wbLosersByRound, wbWinnerId } = useMemo(() => {
     const wbCopy = wb.map((r) => r.map(([a, b]) => [a, b] as [Participant | null, Participant | null]));
     const losersByRound: number[][] = [];
 
     for (let r = 0; r < wbCopy.length; r++) {
       losersByRound[r] = [];
+
       if (r === 0) {
-        // стартовые пары уже есть
+        // стартовый раунд уже содержит пары; лузеров дополним ниже (по внесённым результатам)
       } else {
-        // участников текущего раунда — победители предыдущего
+        // победители предыдущего раунда -> текущий
         const prev = wbCopy[r - 1];
+        const allowBye = (r === 1); // ✅ BYE только на переходе из R0 в R1
         for (let i = 0; i < wbCopy[r].length; i++) {
-          const m1 = resultOfPair(prev[i * 2][0], prev[i * 2][1], matches);
-          const m2 = resultOfPair(prev[i * 2 + 1][0], prev[i * 2 + 1][1], matches);
+          const m1 = resultOfPair(prev[i * 2][0], prev[i * 2][1], matches, allowBye);
+          const m2 = resultOfPair(prev[i * 2 + 1][0], prev[i * 2 + 1][1], matches, allowBye);
           wbCopy[r][i][0] = m1.winnerId ? ordered.find((p) => p.getId === m1.winnerId) ?? null : null;
           wbCopy[r][i][1] = m2.winnerId ? ordered.find((p) => p.getId === m2.winnerId) ?? null : null;
-          // одновременно собираем лузеров предыдущего раунда (которые уже определились)
+
+          // лузеры предыдущего раунда (если определились по результату, не по BYE)
           if (m1.loserId) losersByRound[r - 1].push(m1.loserId);
           if (m2.loserId) losersByRound[r - 1].push(m2.loserId);
         }
       }
-      // для R0 лузеры появятся после того, как будут внесены результаты — обработаем ниже повторно
+
+      // Для R0 соберём лузеров после того, как внесены результаты R0
       if (r === 0) {
+        const allowByeR0 = true; // для исходных BYE
         for (let i = 0; i < wbCopy[0].length; i++) {
-          const m0 = resultOfPair(wbCopy[0][i][0], wbCopy[0][i][1], matches);
+          const m0 = resultOfPair(wbCopy[0][i][0], wbCopy[0][i][1], matches, allowByeR0);
           if (m0.loserId) {
             if (!losersByRound[0]) losersByRound[0] = [];
             losersByRound[0].push(m0.loserId);
@@ -173,7 +170,7 @@ export function DoubleEliminationView({
 
     const lastRound = wbCopy[wbCopy.length - 1];
     const finalPair = lastRound[0];
-    const finalRes = resultOfPair(finalPair[0], finalPair[1], matches);
+    const finalRes = resultOfPair(finalPair[0], finalPair[1], matches, false);
 
     return {
       resolvedWB: wbCopy,
@@ -182,20 +179,18 @@ export function DoubleEliminationView({
     };
   }, [wb, matches, ordered]);
 
-  /* Строим LB «универсальным» способом:
-     LB[0] формируется из лузеров WB[0] попарно.
-     Далее для каждого r>=1: список = победители LB[r-1] + лузеры WB[r]; пары — последовательно.
-  */
+  /* Строим LB универсально:
+     LB[0] = лузеры WB[0] попарно.
+     Для r>=1: entrants = победители LB[r-1] + лузеры WB[r]. */
   const resolvedLB = useMemo(() => {
     const rounds: Array<Array<[Participant | null, Participant | null]>> = [];
     const idToP = new Map<number, Participant>();
     ordered.forEach((p) => idToP.set(p.getId, p));
 
-    // Помощники для вычисления победителей LB-матчей по результатам matches
     const pairWinnerId = (a: Participant | null, b: Participant | null): number | null => {
       const aId = pid(a);
       const bId = pid(b);
-      if (aId && !bId) return aId;
+      if (aId && !bId) return aId;   // автопроход: это не BYE-паддинг, это натуральное «одиночное» место
       if (!aId && bId) return bId;
       if (!aId || !bId) return null;
       const m = findMatchBetween(aId, bId, matches);
@@ -208,25 +203,21 @@ export function DoubleEliminationView({
 
     for (let r = 0; r < wbLosersByRound.length; r++) {
       const entrants: number[] = [];
-      // добавляем победителей предыдущего LB-раунда (если есть)
       if (r - 1 >= 0 && lbWinnersCacheByRound[r - 1]?.length) {
         entrants.push(...lbWinnersCacheByRound[r - 1]);
       }
-      // добавляем лузеров текущего WB-раунда
       if (wbLosersByRound[r]?.length) {
         entrants.push(...wbLosersByRound[r]);
       }
 
-      // собираем пары
       const lbPairs: Array<[Participant | null, Participant | null]> = [];
       for (let i = 0; i < entrants.length; i += 2) {
         const a = idToP.get(entrants[i]) ?? null;
         const b = idToP.get(entrants[i + 1]) ?? null;
-        lbPairs.push([a ?? null, b ?? null]);
+        lbPairs.push([a, b]);
       }
       rounds.push(lbPairs);
 
-      // посчитаем победителей этого LB-раунда — понадобятся на r+1
       const winners: number[] = [];
       for (const [a, b] of lbPairs) {
         const w = pairWinnerId(a, b);
@@ -235,8 +226,7 @@ export function DoubleEliminationView({
       lbWinnersCacheByRound[r] = winners;
     }
 
-    // После того как все лузеры WB «упали», LB должен продолжить сокращаться до одного победителя.
-    // Делаем дополнительные раунды, пока победителей > 1.
+    // Схлопываем победителей LB до одного
     let curWinners = resolvedArrayLast(lbWinnersCacheByRound) ?? [];
     while (curWinners.length > 1) {
       const extraPairs: Array<[Participant | null, Participant | null]> = [];
@@ -274,8 +264,8 @@ export function DoubleEliminationView({
   }, [resolvedLB, matches]);
 
   /* Финалы:
-     - GF1: WB winner vs LB winner (когда оба известны)
-     - GF2 (reset): опциональный второй матч. Оставляем как отдельную карточку для удобства.
+     - GF1: WB winner vs LB winner
+     - GF2 (reset): опциональный второй матч
   */
   const finalsPairs = useMemo(() => {
     const idToP = new Map<number, Participant>();
@@ -285,7 +275,6 @@ export function DoubleEliminationView({
     const lbWinner = lbWinnerId ? idToP.get(lbWinnerId) ?? null : null;
 
     const gf1: [Participant | null, Participant | null] = [wbWinner ?? null, lbWinner ?? null];
-    // reset матч (GF2) — тот же состав; его наличие/использование определяется регламентом
     const gf2: [Participant | null, Participant | null] = [wbWinner ?? null, lbWinner ?? null];
 
     return [gf1, gf2];
@@ -319,16 +308,18 @@ export function DoubleEliminationView({
     }
   }
 
-  /* -------- Рендер общей таблицы (переиспользуем стили) -------- */
+  /* -------- Рендер общей таблицы -------- */
 
   const RoundTable = ({
     title,
     pairs,
     rKeyPrefix,
+    nullText,
   }: {
     title: string;
     pairs: Array<[Participant | null, Participant | null]>;
     rKeyPrefix: string;
+    nullText: string; // "BYE" для WB R1, иначе "Ожидается"
   }) => (
     <div className="card">
       <div className="history-table-head">
@@ -354,7 +345,7 @@ export function DoubleEliminationView({
 
               return (
                 <tr key={k} className={`grid-row ${isEditing ? "editing-row" : ""}`}>
-                  <td>{a ? <NameCell p={a} /> : <span className="player muted">Ожидается</span>}</td>
+                  <td><NameCell p={a} nullText={nullText} /></td>
                   <td className="score-cell">
                     {canEdit ? (
                       score ? (
@@ -405,10 +396,13 @@ export function DoubleEliminationView({
                         </div>
                       )
                     ) : (
-                      <span className="badge muted">—</span>
+                      // ✅ как в GroupPlusPlayoffView / SingleEliminationView
+                      <span className="vs vs-placeholder" aria-hidden>
+                        vs
+                      </span>
                     )}
                   </td>
-                  <td>{b ? <NameCell p={b} /> : <span className="player muted">Ожидается</span>}</td>
+                  <td><NameCell p={b} nullText={nullText} /></td>
                 </tr>
               );
             })
@@ -425,33 +419,45 @@ export function DoubleEliminationView({
   return (
     <div className="roundrobin-wrap">
       {/* Winners Bracket */}
-      <div className="rounds-grid bracket-grid">
+      <div className="rounds-grid">
         {resolvedWB.map((pairs, r) => (
           <RoundTable
             key={`WB_${r}`}
             title={r === resolvedWB.length - 1 ? "WB — Финал" : `WB — Раунд ${r + 1}`}
             pairs={pairs}
             rKeyPrefix={`WB_${r}`}
+            nullText={r === 0 ? "BYE" : "Ожидается"}  // ✅ BYE только в стартовом раунде
           />
         ))}
       </div>
 
       {/* Losers Bracket */}
-      <div className="rounds-grid bracket-grid" style={{ marginTop: 16 }}>
+      <div className="rounds-grid" style={{ marginTop: 16 }}>
         {resolvedLB.map((pairs, r) => (
           <RoundTable
             key={`LB_${r}`}
             title={`LB — Раунд ${r + 1}`}
             pairs={pairs}
             rKeyPrefix={`LB_${r}`}
+            nullText="Ожидается"
           />
         ))}
       </div>
 
       {/* Finals */}
-      <div className="rounds-grid bracket-grid" style={{ marginTop: 16 }}>
-        <RoundTable title="Гранд-финал (GF1)" pairs={[finalsPairs[0]]} rKeyPrefix="GF1" />
-        <RoundTable title="Гранд-финал (Reset, GF2)" pairs={[finalsPairs[1]]} rKeyPrefix="GF2" />
+      <div className="rounds-grid" style={{ marginTop: 16 }}>
+        <RoundTable
+          title="Гранд-финал (GF1)"
+          pairs={[finalsPairs[0]]}
+          rKeyPrefix="GF1"
+          nullText="Ожидается"
+        />
+        <RoundTable
+          title="Гранд-финал (Reset, GF2)"
+          pairs={[finalsPairs[1]]}
+          rKeyPrefix="GF2"
+          nullText="Ожидается"
+        />
       </div>
 
       <div className="hint muted" style={{ marginTop: 8 }}>

@@ -103,6 +103,8 @@
   padding: 0;
   font: inherit;
   cursor: pointer;
+  color: #a6ff00;
+  text-decoration: underline;
 }
 
 /* Когда редактор открыт — статичный vs рядом с инпутом */
