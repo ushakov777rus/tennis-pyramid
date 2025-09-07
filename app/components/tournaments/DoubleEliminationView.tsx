@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
 
-import { useUser } from "@/app/components/UserContext";
 import { SaveIconButton, CancelIconButton } from "@/app/components/IconButtons";
 
 import "./PyramidView.css";

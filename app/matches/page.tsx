@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUser } from "@/app/components/UserContext";
 
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { Match } from "@/app/models/Match";
@@ -13,7 +12,6 @@ import "./page.css";
 import "@/app/components/MatchHistoryView.css";
 
 export default function MatchListView() {
-  const { user } = useUser();
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
 
