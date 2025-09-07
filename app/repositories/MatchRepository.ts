@@ -121,9 +121,9 @@ export class MatchRepository {
         scores,
         match_type,
         tournament_id,
-        phase,            -- NEW
-        group_index,      -- NEW
-        round_index,      -- NEW
+        phase,
+        group_index,
+        round_index,
         tournaments ( * ),
         player1:players!fk_player1(id, name, ntrp, phone, sex),
         player2:players!fk_player2(id, name, ntrp, phone, sex),
@@ -198,9 +198,9 @@ export class MatchRepository {
         scores,
         match_type,
         tournament_id,
-        phase,            -- NEW
-        group_index,      -- NEW
-        round_index,      -- NEW
+        phase,
+        group_index,
+        round_index,
         tournaments ( * ),
         player1:players!fk_player1(id, name, ntrp, phone, sex),
         player2:players!fk_player2(id, name, ntrp, phone, sex),
@@ -260,9 +260,9 @@ export class MatchRepository {
           scores,
           match_type,
           tournament_id,
-          phase,            -- NEW
-          group_index,      -- NEW
-          round_index,      -- NEW
+          phase,
+          group_index,
+          round_index,
           tournaments ( * ),
           player1:players!fk_player1(id, name, ntrp, phone, sex),
           player2:players!fk_player2(id, name, ntrp, phone, sex),

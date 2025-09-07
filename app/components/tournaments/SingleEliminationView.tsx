@@ -247,21 +247,7 @@ export function SingleEliminationView({
   /** Имя участника: null -> BYE (только в 1-м раунде), выше — "Ожидается" */
   function NameCell({ p, nullText }: { p: Participant | null; nullText: string }) {
     if (!p) return <span className="player name-muted">{nullText}</span>;
-    if (p.player) {
-      return (
-        <span className="player" title={`ID: ${p.player.id}`}>
-          {p.player.name}
-        </span>
-      );
-    }
-    const a = p.team?.player1?.name ?? "??";
-    const b = p.team?.player2?.name ?? "??";
-    return (
-      <span className="player name-stack" title={`ID: ${p.team?.id}`}>
-        <span className="name-line">{a}</span>
-        <span className="name-line">{b}</span>
-      </span>
-    );
+    return <span className="player">{p.displayName(false)}</span>;
   }
 
   return (
