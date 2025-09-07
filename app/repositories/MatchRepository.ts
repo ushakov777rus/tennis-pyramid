@@ -137,7 +137,9 @@ export class MatchRepository {
           player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
           player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
         )
-      `);
+      `)      
+      .order("date", { ascending: false })
+      .order("id", { ascending: false });
 
     if (error) {
       console.error("Ошибка загрузки матчей:", error);
