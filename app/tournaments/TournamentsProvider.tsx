@@ -46,21 +46,22 @@ export function TournamentsProvider({ children }: { children: React.ReactNode })
   // provider
   const [initialLoaded, setInitialLoaded] = useState(false);
 
+// app/tournaments/TournamentsProvider.tsx
+
 const refresh = useCallback(
   async (opts?: { background?: boolean }) => {
     const background = !!opts?.background && initialLoaded;
     if (!background) setLoading(true);
     setError(null);
     try {
-      const uid = user?.id;
-      const role = user?.role;
+      const list = await TournamentsRepository.loadAll();
 
-      // Если гостевой режим — грузим публичные турниры
-      const list = await TournamentsRepository.loadAll();  
+      // ⬇️ НЕ ЗАТИРАЕМ оптимистичные элементы (id < 0)
+      setTournaments(prev => {
+        const optimistic = prev.filter(t => t.id < 0);
+        return [...optimistic, ...list];
+      });
 
-        console.log("Загруженные турниры:", uid, list);
-
-      setTournaments(list);
       void loadStats(list.map((t) => t.id));
     } catch (e: any) {
       console.error(e);
@@ -70,7 +71,7 @@ const refresh = useCallback(
       setInitialLoaded(true);
     }
   },
-  [loadStats, user?.id, user?.role, initialLoaded]
+  [loadStats, initialLoaded]
 );
 
   // 1) Первая загрузка
@@ -81,76 +82,80 @@ const refresh = useCallback(
 
 
   // ====== ОПТИМИСТИЧНОЕ СОЗДАНИЕ ТУРНИРА ======
-  const createTournament = useCallback(async (p: TournamentCreateInput) => {
-    const name = p.name.trim();
-    if (!name) return;
+// app/tournaments/TournamentsProvider.tsx
 
-    // 1) оптимистично добавляем «временный» турнир с отрицательным id
-    const tmpId = -Math.floor(Math.random() * 1e9);
-    const optimistic = new Tournament(
-      tmpId,
+const createTournament = useCallback(async (p: TournamentCreateInput) => {
+  const name = p.name.trim();
+  if (!name) return;
+
+  const tmpId = -Math.floor(Math.random() * 1e9);
+  const optimistic = new Tournament(
+    tmpId,
+    name,
+    p.format,
+    p.status ?? TournamentStatus.Draft,
+    p.tournament_type,
+    p.start_date ?? null,
+    p.end_date ?? null,
+    p.is_public ?? false,
+    p.creator_id,
+    p.settings
+  );
+
+  setPendingCreateIds(s => new Set(s).add(tmpId));
+  setTournaments(prev => [optimistic, ...prev]);
+  setStats(prev => ({ ...prev, [tmpId]: { participants: 0, matches: 0 } }));
+
+  try {
+    const created = await TournamentsRepository.create({
       name,
-      p.format,
-      p.status ?? TournamentStatus.Draft,
-      p.tournament_type,
-      p.start_date ?? null,
-      p.end_date ?? null,
-      p.is_public ?? false,
-      p.creator_id,
-      p.settings
-    );
+      format: p.format,
+      tournament_type: p.tournament_type,
+      start_date: p.start_date,
+      end_date: p.end_date,
+      status: p.status ?? TournamentStatus.Draft,
+      creator_id: p.creator_id,
+      is_public: p.is_public,
+      settings: p.settings
+    });
 
-    setPendingCreateIds((s) => new Set(s).add(tmpId));
-    setTournaments((prev) => [optimistic, ...prev]);
-    // сразу положим пустую стату, чтобы UI не прыгал
-    setStats((prev) => ({ ...prev, [tmpId]: { participants: 0, matches: 0 } }));
+    if (created && (created as any).id) {
+      const real = created as Tournament;
 
-    try {
-      // 2) создаём на бэке (желательно, чтобы репозиторий вернул созданный Tournament)
-      const created = await TournamentsRepository.create({
-        name,
-        format: p.format,
-        tournament_type: p.tournament_type,
-        start_date: p.start_date,
-        end_date: p.end_date,
-        status: p.status ?? TournamentStatus.Draft,
-        creator_id: p.creator_id ?? user?.id,
-        is_public: p.is_public,
-        settings: p.settings
+      // заменяем оптимистичный на реальный
+      setTournaments(prev => [real, ...prev.filter(t => t.id !== tmpId)]);
+
+      // переносим/обновляем стату
+      setStats(prev => {
+        const { [tmpId]: tmpStats, ...rest } = prev;
+        return tmpStats ? { ...rest, [real.id]: tmpStats } : rest;
       });
 
-      // Если create возвращает id/объект — заменяем оптимистичный элемент на реальный
-      if (created && (created as any).id) {
-        const real = created as Tournament;
-        setTournaments((prev) => [real, ...prev.filter((t) => t.id !== tmpId)]);
-        // переносим стату на реальный id
-        setStats((prev) => {
-          const { [tmpId]: tmpStats, ...rest } = prev;
-          return tmpStats ? { ...rest, [real.id]: tmpStats } : rest;
-        });
-        // дотягиваем актуальную стату по реальному id
-        void loadStats([real.id]);
-      } else {
-        // Если create ничего не возвращает — на всякий случай синхронизируемся полностью
-        await refresh();
-      }
-    } catch (e) {
-      // 3) откат оптимистичного элемента
-      console.error("createTournament error:", e);
-      setTournaments((prev) => prev.filter((t) => t.id !== tmpId));
-      setStats((prev) => {
-        const { [tmpId]: _omit, ...rest } = prev;
-        return rest;
-      });
-      throw e;
-    } finally {
-      setPendingCreateIds((s) => {
-        const n = new Set(s);
-        n.delete(tmpId);
-        return n;
-      });
+      // ⬇️ тихо дотягиваем всё, что могло установиться на бэке
+      void refresh({ background: true });
+      void loadStats([real.id]);
+
+    } else {
+      // если репозиторий не вернул объект — полная синхронизация
+      await refresh();
     }
-  }, [user?.id, refresh, loadStats]);
+  } catch (e) {
+    console.error("createTournament error:", e);
+    // откат оптимистичного
+    setTournaments(prev => prev.filter(t => t.id !== tmpId));
+    setStats(prev => {
+      const { [tmpId]: _omit, ...rest } = prev;
+      return rest;
+    });
+    throw e;
+  } finally {
+    setPendingCreateIds(s => {
+      const n = new Set(s);
+      n.delete(tmpId);
+      return n;
+    });
+  }
+}, [refresh, loadStats]);
 
   // ====== ОПТИМИСТИЧНОЕ УДАЛЕНИЕ ТУРНИРА ======
   const deleteTournament = useCallback(async (id: number) => {
