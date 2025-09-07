@@ -182,13 +182,13 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="input"
+              className="input input-date-2"
             />
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="input"
+              className="input input-date-2"
             />
           </div>
 

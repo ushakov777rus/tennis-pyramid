@@ -98,6 +98,7 @@ body {
 
 @media (max-width: 768px) {
   .input { max-width: 100%; }
+  .input-date-2 { max-width: 90%; }
 }
 
 .score-input {
