@@ -49,8 +49,6 @@ export default function MatchListView() {
     }
   };
 
-  if (loading) return <p>Загрузка матчей...</p>;
-  if (!matches.length) return <p>Пока нет матчей</p>;
 
   return (
     <div className="page-container">
