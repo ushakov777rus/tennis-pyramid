@@ -58,17 +58,23 @@ export const PyramidView = React.memo(function PyramidView({
   const [localParticipants, setLocalParticipants] = useState<Participant[]>([]);
 
   // === КЭШ ДЛЯ ОПТИМИЗАЦИИ ===
-  const matchesCache = useRef(new Map<number, Match[]>());
+// В начале компонента, рядом с кэшами
+  type MatchesCacheEntry = { epoch: number; items: Match[] };
+
+  const matchesEpoch = useRef(0);
+  const matchesCache = useRef(new Map<number, MatchesCacheEntry>());
   const lastMatchCache = useRef(new Map<number, Match | null>());
   const statusClassCache = useRef(new Map<number, string>());
   const daysWithoutGamesCache = useRef(new Map<number, number | null>());
 
   // Сбрасываем кэш при изменении matches
   useEffect(() => {
+    matchesEpoch.current += 1; // важное: новая версия данных матчей
     matchesCache.current.clear();
     lastMatchCache.current.clear();
     statusClassCache.current.clear();
     daysWithoutGamesCache.current.clear();
+    // console.log("[PV] caches cleared, epoch =", matchesEpoch.current);
   }, [matches]);
 
   // === Мемоизация вычислений ===
@@ -194,18 +200,28 @@ export const PyramidView = React.memo(function PyramidView({
 
   // Оптимизированная функция получения матчей игрока
   const getPlayerMatches = useCallback((participantId: number): Match[] => {
-    if (matchesCache.current.has(participantId)) {
-      return matchesCache.current.get(participantId)!;
+    const entry = matchesCache.current.get(participantId);
+    if (entry && entry.epoch === matchesEpoch.current) {
+      return entry.items; // актуальный кэш
     }
-    
-    const playerMatches = matches.filter(
-      m => m.scores.length && 
-      (m.player1?.id === participantId || m.player2?.id === participantId ||
-       m.team1?.id === participantId || m.team2?.id === participantId)
+
+    // (опционально) нормализация даты, если где-то прилетает строка:
+    const normalized = matches.map(m =>
+      m.date instanceof Date ? m
+        : Object.assign(Object.create(Object.getPrototypeOf(m)), m, { date: new Date(m.date as any) })
     );
-    
-    matchesCache.current.set(participantId, playerMatches);
-    return playerMatches;
+
+    const items = normalized.filter(
+      m =>
+        m.scores.length &&
+        (m.player1?.id === participantId ||
+        m.player2?.id === participantId ||
+        m.team1?.id   === participantId ||
+        m.team2?.id   === participantId)
+    );
+
+    matchesCache.current.set(participantId, { epoch: matchesEpoch.current, items });
+    return items;
   }, [matches]);
 
   // Оптимизированная функция получения последнего матча
@@ -217,15 +233,13 @@ export const PyramidView = React.memo(function PyramidView({
     const playerMatches = getPlayerMatches(participantId);
     const nowTs = Date.now();
 
-    // Выбираем лучший матч без сортировки массива (не мутируем кеш)
     const last = playerMatches
       .filter(m => m.date.getTime() <= nowTs)
       .reduce<Match | null>((acc, m) => {
         if (!acc) return m;
         const dt = m.date.getTime() - acc.date.getTime();
-        if (dt > 0) return m;          // m новее по дате
-        if (dt < 0) return acc;        // acc новее по дате
-        // даты равны — тай-брейк по id (предполагаем, что больший id == более поздняя вставка)
+        if (dt > 0) return m;
+        if (dt < 0) return acc;
         return (m.id ?? 0) > (acc.id ?? 0) ? m : acc;
       }, null);
 
@@ -251,13 +265,13 @@ export const PyramidView = React.memo(function PyramidView({
     return daysWithoutGames;
   }, [getLastMatch]);
 
+  // Ключевое изменение: создаем новую версию getPlayerClass при каждом изменении matches
   const getPlayerClass = useCallback((participant: Participant): string => {
     const id = participant.player?.id ?? participant.team?.id;
     if (!id) return "";
 
-    if (statusClassCache.current.has(id)) {
-      return statusClassCache.current.get(id)!;
-    }
+    const cached = statusClassCache.current.get(id);
+    if (cached) return cached;
 
     const playerMatches = getPlayerMatches(id);
     if (playerMatches.length === 0) {
@@ -266,13 +280,12 @@ export const PyramidView = React.memo(function PyramidView({
     }
 
     const lastMatch = getLastMatch(id);
-    let result = "";
-
-    if (!lastMatch || lastMatch.getWinnerId() === 0) {
-      result = "draw";
-    } else {
-      result = lastMatch.getWinnerId() === id ? "winner" : "loser";
-    }
+    const result =
+      !lastMatch || lastMatch.getWinnerId() === 0
+        ? "draw"
+        : lastMatch.getWinnerId() === id
+        ? "winner"
+        : "loser";
 
     statusClassCache.current.set(id, result);
     return result;

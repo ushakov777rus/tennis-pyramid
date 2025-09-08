@@ -319,96 +319,62 @@ export function TournamentProvider({
           doSwap: args.doSwap,
         });
 
-        // 1) Оптимистично дописываем матч (настоящий экземпляр Match + участники)
-        if (matchId) {
-          const isSingle = tournament?.isSingle() ?? true;
+        console.log("[TP] addMatchAndMaybeSwap result:", { matchId, ...args });
 
-          // находим участников по их id (aId/bId — это id игрока или команды)
-          const findPartByEntityId = (entityId: number) =>
-            participants.find((p) => p.getId === entityId);
+        const isSingle = tournament?.isSingle() ?? true;
 
-          const aPart = findPartByEntityId(args.aId);
-          const bPart = findPartByEntityId(args.bId);
+        // найдём участников по player/team id
+        const findPartByEntityId = (entityId: number) =>
+          participants.find((p) => p.getId === entityId);
 
-          const player1 = isSingle ? aPart?.player : undefined;
-          const player2 = isSingle ? bPart?.player : undefined;
-          const team1   = !isSingle ? aPart?.team   : undefined;
-          const team2   = !isSingle ? bPart?.team   : undefined;
+        const aPart = findPartByEntityId(args.aId);
+        const bPart = findPartByEntityId(args.bId);
 
-          // создаём экземпляр Match
-          const optimistic = new Match(
-            matchId,
-            (isSingle ? "single" : "double") as any,
-            new Date(args.date),
-            args.scores,
-            tournament!,
-            player1,
-            player2,
-            team1,
-            team2
-          );
+        // временный id, если сервер не вернул реальный
+        const tempId = matchId ?? -Date.now();
 
-          // проставляем фазовые поля (если нужны)
-          (optimistic as any).phase       = args.phase ?? null;
-          (optimistic as any).groupIndex  = args.groupIndex ?? null;
-          (optimistic as any).roundIndex  = args.roundIndex ?? null;
+        // создаём полноценный экземпляр Match — важно передать player/team объекты!
+        const optimistic = new Match(
+          tempId,
+          (isSingle ? "single" : "double") as any,
+          args.date,
+          args.scores,
+          tournament!, // ссылка на текущий турнир
+          isSingle ? aPart?.player : undefined,
+          isSingle ? bPart?.player : undefined,
+          !isSingle ? aPart?.team   : undefined,
+          !isSingle ? bPart?.team   : undefined
+        );
+        // если используете фазовые поля
+        (optimistic as any).phase      = args.phase ?? null;
+        (optimistic as any).groupIndex = args.groupIndex ?? null;
+        (optimistic as any).roundIndex = args.roundIndex ?? null;
 
-          // ⚠️ ДОБАВКА: проставим "сырые" id так же, как их отдаёт Supabase
-          if (isSingle) {
-            (optimistic as any).player1_id = player1?.id ?? null;
-            (optimistic as any).player2_id = player2?.id ?? null;
-            // на всякий случай занулим team-поля
-            (optimistic as any).team1_id   = null;
-            (optimistic as any).team2_id   = null;
-          } else {
-            (optimistic as any).team1_id   = team1?.id ?? null;
-            (optimistic as any).team2_id   = team2?.id ?? null;
-            (optimistic as any).player1_id = null;
-            (optimistic as any).player2_id = null;
-          }
+        // 1) ВСЕГДА добавляем матч в состояние — это триггерит перерисовку PyramidView
+        setMatches((prev) => [...prev, optimistic]);
 
-          // (по желанию) унифицируем поле tournament_id — некоторые вьюхи читают его напрямую
-          (optimistic as any).tournament_id = tournamentId;
-
-          // кладём матч в состояние - ОБНОВЛЯЕМ МАТЧИ
-          setMatches((prev) => [...prev, optimistic]);
-        }
-
-        // 2) Если был свап — локально меняем level/position у двух участников
+        // 2) Локальный свап позиций (как было)
         if (args.doSwap && args.winnerId && args.loserId) {
           setParticipants((prev) => {
-            // Унифицированный способ получить ключ сравнения (player/team id)
             const pid = (p: Participant) => p.player?.id ?? p.team?.id ?? 0;
-
             const wIdx = prev.findIndex((p) => pid(p) === args.winnerId);
             const lIdx = prev.findIndex((p) => pid(p) === args.loserId);
-            if (wIdx === -1 || lIdx === -1) return prev; // не нашли — ничего не меняем
+            if (wIdx === -1 || lIdx === -1) return prev;
 
-            const w = prev[wIdx];
-            const l = prev[lIdx];
-
-            // создаём новые инстансы для двух участников — без мутаций «на месте»
-            const wNext = new Participant({
-              id: w.id,
-              level: l.level,                 // <— меняем местами
-              position: l.position,           // <— меняем местами
-              player: w.player,
-              team: w.team,
-            });
-
-            const lNext = new Participant({
-              id: l.id,
-              level: w.level,                 // <— меняем местами
-              position: w.position,           // <— меняем местами
-              player: l.player,
-              team: l.team,
-            });
+            const w = prev[wIdx], l = prev[lIdx];
+            const wNext = new Participant({ id: w.id, level: l.level, position: l.position, player: w.player, team: w.team });
+            const lNext = new Participant({ id: l.id, level: w.level, position: w.position, player: l.player, team: l.team });
 
             const next = [...prev];
             next[wIdx] = wNext;
             next[lIdx] = lNext;
-            return next; // новая ссылка на массив + новые ссылки на 2 элемента
+            return next;
           });
+        }
+
+        // 3) Если id не пришёл — подтянем с сервера «настоящий» матч тихим рефрешем
+        if (!matchId) {
+          setTimeout(() => void reload({ silent: true }), 0);
         }
       } finally {
         setMutating(false);
@@ -416,6 +382,7 @@ export function TournamentProvider({
     },
     [tournamentId, tournament, participants]
   );
+
 
   const value = useMemo<TournamentContextShape>(
     () => ({
