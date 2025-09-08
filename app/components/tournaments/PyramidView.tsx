@@ -1,4 +1,3 @@
-//app/components/tournaments/PyramidView.tsx
 "use client";
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
@@ -210,30 +209,29 @@ export const PyramidView = React.memo(function PyramidView({
   }, [matches]);
 
   // Оптимизированная функция получения последнего матча
-// Правила сравнения: 1) по дате (позже — новее), 2) при равной дате — по id (бОльший — новее)
-const getLastMatch = useCallback((participantId: number): Match | null => {
-  if (lastMatchCache.current.has(participantId)) {
-    return lastMatchCache.current.get(participantId)!;
-  }
+  const getLastMatch = useCallback((participantId: number): Match | null => {
+    if (lastMatchCache.current.has(participantId)) {
+      return lastMatchCache.current.get(participantId)!;
+    }
 
-  const playerMatches = getPlayerMatches(participantId);
-  const nowTs = Date.now();
+    const playerMatches = getPlayerMatches(participantId);
+    const nowTs = Date.now();
 
-  // Выбираем лучший матч без сортировки массива (не мутируем кеш)
-  const last = playerMatches
-    .filter(m => m.date.getTime() <= nowTs)
-    .reduce<Match | null>((acc, m) => {
-      if (!acc) return m;
-      const dt = m.date.getTime() - acc.date.getTime();
-      if (dt > 0) return m;          // m новее по дате
-      if (dt < 0) return acc;        // acc новее по дате
-      // даты равны — тай-брейк по id (предполагаем, что больший id == более поздняя вставка)
-      return (m.id ?? 0) > (acc.id ?? 0) ? m : acc;
-    }, null);
+    // Выбираем лучший матч без сортировки массива (не мутируем кеш)
+    const last = playerMatches
+      .filter(m => m.date.getTime() <= nowTs)
+      .reduce<Match | null>((acc, m) => {
+        if (!acc) return m;
+        const dt = m.date.getTime() - acc.date.getTime();
+        if (dt > 0) return m;          // m новее по дате
+        if (dt < 0) return acc;        // acc новее по дате
+        // даты равны — тай-брейк по id (предполагаем, что больший id == более поздняя вставка)
+        return (m.id ?? 0) > (acc.id ?? 0) ? m : acc;
+      }, null);
 
-  lastMatchCache.current.set(participantId, last);
-  return last;
-}, [getPlayerMatches]);
+    lastMatchCache.current.set(participantId, last);
+    return last;
+  }, [getPlayerMatches]);
 
   // Оптимизированная функция получения дней без игр
   const getDaysWithoutGames = useCallback((participantId: number): number | null => {
@@ -253,33 +251,32 @@ const getLastMatch = useCallback((participantId: number): Match | null => {
     return daysWithoutGames;
   }, [getLastMatch]);
 
-const getPlayerClass = useCallback((participant: Participant): string => {
-  const id = participant.player?.id ?? participant.team?.id;
-  if (!id) return "";
+  const getPlayerClass = useCallback((participant: Participant): string => {
+    const id = participant.player?.id ?? participant.team?.id;
+    if (!id) return "";
 
-  if (statusClassCache.current.has(id)) {
-    return statusClassCache.current.get(id)!;
-  }
+    if (statusClassCache.current.has(id)) {
+      return statusClassCache.current.get(id)!;
+    }
 
-  const playerMatches = getPlayerMatches(id);
-  if (playerMatches.length === 0) {
-    statusClassCache.current.set(id, "");
-    return "";
-  }
+    const playerMatches = getPlayerMatches(id);
+    if (playerMatches.length === 0) {
+      statusClassCache.current.set(id, "");
+      return "";
+    }
 
-  // раньше тут было: playerMatches.sort(...)[0] — это мутировало кеш
-  const lastMatch = getLastMatch(id);
-  let result = "";
+    const lastMatch = getLastMatch(id);
+    let result = "";
 
-  if (!lastMatch || lastMatch.getWinnerId() === 0) {
-    result = "draw";
-  } else {
-    result = lastMatch.getWinnerId() === id ? "winner" : "loser";
-  }
+    if (!lastMatch || lastMatch.getWinnerId() === 0) {
+      result = "draw";
+    } else {
+      result = lastMatch.getWinnerId() === id ? "winner" : "loser";
+    }
 
-  statusClassCache.current.set(id, result);
-  return result;
-}, [getPlayerMatches, getLastMatch]);
+    statusClassCache.current.set(id, result);
+    return result;
+  }, [getPlayerMatches, getLastMatch]);
 
   const canChallenge = useCallback((attacker: Participant, defender: Participant): boolean => {
     if (!defender.level || !defender.position) return false;

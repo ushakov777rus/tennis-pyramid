@@ -91,16 +91,11 @@ export default function TournamentClient() {
     [selectableItems]
   );
 
-  /** Универсально определяем победителя и проигравшего по счёту и id A/B.
-   * Match.getWinnerId(...) в проекте возвращает id участника-победителя (или 0/undefined при ничьей),
-   * а НЕ tuple. Поэтому здесь формируем пару сами.
-   */
-
-  // Стало (корректно учитываем кортеж и ничьи):
+  /** Универсально определяем победителя и проигравшего по счёту и id A/B. */
   const determineWinnerLoser = useCallback(
     (scores: [number, number][], aId: number, bId: number) => {
-      const [winner, loser] = Match.getWinnerId(scores, aId, bId); // <- кортеж
-      if (!winner) return { winnerId: null, loserId: null };       // [0,0] -> ничья/нет результата
+      const [winner, loser] = Match.getWinnerId(scores, aId, bId);
+      if (!winner) return { winnerId: null, loserId: null };
       return { winnerId: winner, loserId: loser };
     },
     []
