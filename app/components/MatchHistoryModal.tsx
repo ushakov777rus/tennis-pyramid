@@ -65,8 +65,6 @@ export function MatchHistoryModal({
     if (onDeleteMatch) await onDeleteMatch(m);
   };
 
-  console.log("Filtere matches", participant, matches, effectiveMatches);
-
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content modal-content-w modal-content-match-history" onClick={(e) => e.stopPropagation()}>

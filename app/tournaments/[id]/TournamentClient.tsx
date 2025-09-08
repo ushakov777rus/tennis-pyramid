@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-
 import { useUser } from "@/app/components/UserContext";
 
 import { Tournament } from "@/app/models/Tournament";
@@ -45,7 +44,9 @@ export default function TournamentClient() {
     updateMatch,
     deleteMatch,
     updatePositions,
+    addMatchAndMaybeSwap,
   } = useTournament();
+
   const { user } = useUser();
 
   const [activeTab, setActiveTab] = useState<Tab>("scheme");
@@ -58,9 +59,8 @@ export default function TournamentClient() {
 
   // если игрок залогинен и участвует — закрепляем как нападающего
   useEffect(() => {
-    const isSingle = typeof tournament?.isSingle === "function"
-      ? tournament.isSingle()
-      : tournament?.tournament_type === "single";
+    const isSingle =
+      typeof tournament?.isSingle === "function" ? tournament.isSingle() : tournament?.tournament_type === "single";
 
     if (user?.role === "player" && user.player_id && isSingle) {
       const isInTournament = participants.some((p) => p.player?.id === user.player_id);
@@ -68,7 +68,7 @@ export default function TournamentClient() {
     } else {
       setSelectedIds([]);
     }
-  }, [user?.role, user?.player_id, tournament?.tournament_type, participants]);
+  }, [user?.role, user?.player_id, tournament?.tournament_type, participants, tournament]);
 
   // Доступные для выбора — только участники турнира
   const selectableItems = useMemo(() => {
@@ -91,203 +91,175 @@ export default function TournamentClient() {
     [selectableItems]
   );
 
-function buildSwappedPyramidByFields(
-  participants: Participant[],
-  winnerId: number,
-  loserId: number
-): Participant[] | null {
-  const winnerIndex = participants.findIndex(p => p.getId === winnerId);
-  const loserIndex  = participants.findIndex(p => p.getId === loserId);
+  /** Универсально определяем победителя и проигравшего по счёту и id A/B.
+   * Match.getWinnerId(...) в проекте возвращает id участника-победителя (или 0/undefined при ничьей),
+   * а НЕ tuple. Поэтому здесь формируем пару сами.
+   */
 
-  if (winnerIndex === -1 || loserIndex === -1) return null;
+  // Стало (корректно учитываем кортеж и ничьи):
+  const determineWinnerLoser = useCallback(
+    (scores: [number, number][], aId: number, bId: number) => {
+      const [winner, loser] = Match.getWinnerId(scores, aId, bId); // <- кортеж
+      if (!winner) return { winnerId: null, loserId: null };       // [0,0] -> ничья/нет результата
+      return { winnerId: winner, loserId: loser };
+    },
+    []
+  );
 
-  // Копируем ТОЛЬКО массив (экземпляры остаются теми же — методы не теряем)
-  const next = participants.slice();
-
-  const w = next[winnerIndex];
-  const l = next[loserIndex];
-
-  // Если победитель уже «выше» (меньший level/позиция), можно ничего не делать,
-  // но это правило — опционально. Убери, если не нужно.
-  // if ((w.level ?? Infinity) < (l.level ?? Infinity)) return null;
-
-  // Обмениваем level
-  const wLevel = w.level ?? null;
-  w.level = l.level ?? undefined;
-  l.level = wLevel ?? undefined;
-
-  // Обмениваем position
-  const wPos = w.position ?? null;
-  w.position = l.position ?? undefined;
-  l.position = wPos ?? undefined;
-
-  return next;
-}
-
-  // Добавление «ручного» матча (карточка сверху)
+  /** Быстрое добавление «ручного» матча (карточка сверху) + автосвап для пирамиды. */
   const handleAddMatch = useCallback(async () => {
     if (!tournament) return;
     if (selectedIds.length < 2 || !matchDate) {
       alert("Выбери двух игроков и дату матча");
       return;
     }
+
     try {
       const scores = Match.parseScoreStringFlexible(matchScore);
+      const [aId, bId] = selectedIds;
+      const { winnerId, loserId } = determineWinnerLoser(scores, aId, bId);
 
-      let player1: number | null = null;
-      let player2: number | null = null;
-      let team1: number | null = null;
-      let team2: number | null = null;
-
-      if (tournament.isSingle()) {
-        player1 = selectedIds[0];
-        player2 = selectedIds[1];
-      } else {
-        team1 = selectedIds[0];
-        team2 = selectedIds[1];
-      }
-
-      await addMatch({
+      await addMatchAndMaybeSwap({
         date: new Date(matchDate),
         type: tournament.tournament_type,
         scores,
-        player1,
-        player2,
-        team1,
-        team2,
-        tournamentId: tournament.id,
-        // без фазы: это свободный матч, если нужно — можете добавить поля phase/indices по UI
+        aId,
+        bId,
+        winnerId,
+        loserId,
+        doSwap: tournament.isPyramid() && !!winnerId && !!loserId,
       });
 
-      // ⬇️ Автоперестановка для пирамиды
-      if (tournament.isPyramid()) {
-        const aId = selectedIds[0];
-        const bId = selectedIds[1];
-        const winnerId = Match.getWinnerId(Match.parseScoreStringFlexible(matchScore), aId, bId);
-        if (winnerId != null) {
-          const next = buildSwappedPyramidByFields(participants, winnerId[0], winnerId[1]);
-          if (next) {
-            await updatePositions(next); // ожидает Participant[]
-          }
-        }
-      }
-
+      // только UI-сброс
       setMatchDate(todayISO);
       setMatchScore("");
       setSelectedIds(user?.role === "player" && user.player_id ? [user.player_id] : []);
-      await reload();
-    } catch (err) {
-      console.error("Ошибка при добавлении матча:", err);
+    } catch (e) {
+      console.error(e);
       alert("Не удалось добавить матч");
     }
-  }, [tournament, selectedIds, matchDate, matchScore, addMatch, user?.role, user?.player_id, reload]);
+  }, [
+    tournament,
+    selectedIds,
+    matchDate,
+    matchScore,
+    user?.role,
+    user?.player_id,
+    addMatchAndMaybeSwap,
+    determineWinnerLoser,
+  ]);
 
-  const handleEditMatchSave = useCallback(async (updatedMatch: Match) => {
-    try {
-      await updateMatch(updatedMatch);
-    } catch (err) {
-      console.error("Ошибка при обновлении матча:", err);
-      alert("Не удалось обновить матч");
-    }
-  }, [updateMatch]);
+  /** Сохранение счёта из схем (RR/SE/DE/Groups+PO/Swiss/…) */
+  const handleSaveScore = useCallback(
+    async (
+      aId: number,
+      bId: number,
+      score: string,
+      meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+    ) => {
+      if (!tournament) return;
 
-  const handleDeleteMatch = useCallback(async (match: Match) => {
-    try {
-      await deleteMatch(match);
-    } catch (err) {
-      console.error("Ошибка при удалении матча:", err);
-      alert("Не удалось удалить матч");
-    }
-  }, [deleteMatch]);
+      try {
+        const scores = Match.parseScoreStringFlexible(score);
 
-  /**
-   * Сохранение счёта из схем (RR/SE/DE/Groups+PO/Swiss/…)
-   * Теперь поддерживает meta с фазой/индексами.
-   */
-  const handleSaveScore = useCallback(async (
-    aId: number,
-    bId: number,
-    score: string,
-    meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
-  ) => {
-    if (!tournament) return;
-
-    try {
-      const scores = Match.parseScoreStringFlexible(score);
-
-      // Ищем существующий матч по паре + фазовым полям (если заданы)
-      const existing = matches.find((m) => {
-        const id1 = m.player1?.id ?? m.team1?.id ?? 0;
-        const id2 = m.player2?.id ?? m.team2?.id ?? 0;
-        const samePair = (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
-        if (!samePair) return false;
-        if (!meta) return true; // для обратной совместимости (старые матчи без phase)
-        const phaseOk = (m as any).phase === meta.phase;
-        const groupOk = meta.phase === PhaseType.Group
-          ? ((m as any).groupIndex ?? null) === (meta.groupIndex ?? null)
-          : true;
-        const roundOk = meta.phase === PhaseType.Playoff
-          ? ((m as any).roundIndex ?? null) === (meta.roundIndex ?? null)
-          : true;
-        return phaseOk && groupOk && roundOk;
-      });
-
-      const isSingle =
-        typeof tournament.isSingle === "function"
-          ? tournament.isSingle()
-          : tournament.tournament_type === "single";
-
-      if (existing) {
-        // UPDATE: обновляем счёт + (по возможности) фазовые поля
-        const updated = { ...existing, scores } as Match;
-        if (meta) {
-          (updated as any).phase = meta.phase;
-          if (meta.phase === PhaseType.Group) {
-            (updated as any).groupIndex = meta.groupIndex ?? null;
-            (updated as any).roundIndex = null;
-          } else if (meta.phase === PhaseType.Playoff) {
-            (updated as any).roundIndex = meta.roundIndex ?? null;
-            (updated as any).groupIndex = null;
-          }
-        }
-        await updateMatch(updated);
-      } else {
-        // INSERT: создаём новый матч и сразу проставляем фазу/индексы
-        const date = new Date(todayISO);
-        let player1: number | null = null;
-        let player2: number | null = null;
-        let team1: number | null = null;
-        let team2: number | null = null;
-
-        if (isSingle) {
-          player1 = aId;
-          player2 = bId;
-        } else {
-          team1 = aId;
-          team2 = bId;
-        }
-
-        await addMatch({
-          date,
-          type: tournament.tournament_type,
-          scores,
-          player1,
-          player2,
-          team1,
-          team2,
-          tournamentId: tournament.id,
-          phase: meta?.phase,
-          groupIndex: meta?.phase === PhaseType.Group ? (meta.groupIndex ?? null) : null,
-          roundIndex: meta?.phase === PhaseType.Playoff ? (meta.roundIndex ?? null) : null,
+        // Ищем существующий матч по паре + фазовым полям (если заданы)
+        const existing = matches.find((m) => {
+          const id1 = m.player1?.id ?? m.team1?.id ?? 0;
+          const id2 = m.player2?.id ?? m.team2?.id ?? 0;
+          const samePair = (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
+          if (!samePair) return false;
+          if (!meta) return true; // обратная совместимость (старые матчи без phase)
+          const phaseOk = (m as any).phase === meta.phase;
+          const groupOk =
+            meta.phase === PhaseType.Group ? ((m as any).groupIndex ?? null) === (meta.groupIndex ?? null) : true;
+          const roundOk =
+            meta.phase === PhaseType.Playoff ? ((m as any).roundIndex ?? null) === (meta.roundIndex ?? null) : true;
+          return phaseOk && groupOk && roundOk;
         });
-      }
 
-      await reload();
-    } catch (err) {
-      console.error("Ошибка при сохранении счёта:", err);
-      alert(err instanceof Error ? err.message : "Не удалось сохранить счёт");
-    }
-  }, [tournament, matches, updateMatch, addMatch, reload]);
+        const isSingle =
+          typeof tournament.isSingle === "function"
+            ? tournament.isSingle()
+            : tournament.tournament_type === "single";
+
+        if (existing) {
+          // UPDATE: обновляем счёт + (по возможности) фазовые поля
+          const updated = { ...existing, scores } as Match;
+          if (meta) {
+            (updated as any).phase = meta.phase;
+            if (meta.phase === PhaseType.Group) {
+              (updated as any).groupIndex = meta.groupIndex ?? null;
+              (updated as any).roundIndex = null;
+            } else if (meta.phase === PhaseType.Playoff) {
+              (updated as any).roundIndex = meta.roundIndex ?? null;
+              (updated as any).groupIndex = null;
+            }
+          }
+          await updateMatch(updated);
+        } else {
+          // INSERT: создаём новый матч и сразу проставляем фазу/индексы
+          const date = new Date(todayISO);
+          let player1: number | null = null;
+          let player2: number | null = null;
+          let team1: number | null = null;
+          let team2: number | null = null;
+
+          if (isSingle) {
+            player1 = aId;
+            player2 = bId;
+          } else {
+            team1 = aId;
+            team2 = bId;
+          }
+
+          await addMatch({
+            date,
+            type: tournament.tournament_type,
+            scores,
+            player1,
+            player2,
+            team1,
+            team2,
+            tournamentId: tournament.id,
+            phase: meta?.phase,
+            groupIndex: meta?.phase === PhaseType.Group ? meta.groupIndex ?? null : null,
+            roundIndex: meta?.phase === PhaseType.Playoff ? meta.roundIndex ?? null : null,
+          });
+        }
+
+        // NB: тут остаётся reload(), т.к. это общий путь для разных схем.
+        await reload({ silent: true });
+      } catch (err) {
+        console.error("Ошибка при сохранении счёта:", err);
+        alert(err instanceof Error ? err.message : "Не удалось сохранить счёт");
+      }
+    },
+    [tournament, matches, updateMatch, addMatch, reload]
+  );
+
+  const handleEditMatchSave = useCallback(
+    async (updatedMatch: Match) => {
+      try {
+        await updateMatch(updatedMatch);
+      } catch (err) {
+        console.error("Ошибка при обновлении матча:", err);
+        alert("Не удалось обновить матч");
+      }
+    },
+    [updateMatch]
+  );
+
+  const handleDeleteMatch = useCallback(
+    async (match: Match) => {
+      try {
+        await deleteMatch(match);
+      } catch (err) {
+        console.error("Ошибка при удалении матча:", err);
+        alert("Не удалось удалить матч");
+      }
+    },
+    [deleteMatch]
+  );
 
   const handleShowHistoryPlayer = useCallback((participant: Participant) => {
     setHistoryParticipant(participant);
@@ -342,7 +314,7 @@ function buildSwappedPyramidByFields(
           </button>
         </div>
 
-        {/* Добавление матча — вынесено в отдельный компонент */}
+        {/* Добавление матча — карточка */}
         {activeTab !== "participants" && activeTab !== "rating" && tournament.isPyramid() && (
           <LoggedIn>
             <AddMatchCard
@@ -376,11 +348,7 @@ function buildSwappedPyramidByFields(
           )}
 
           {activeTab === "matches" && (
-            <MatchHistoryView
-              matches={matches}
-              onEditMatch={handleEditMatchSave}
-              onDeleteMatch={handleDeleteMatch}
-            />
+            <MatchHistoryView matches={matches} onEditMatch={handleEditMatchSave} onDeleteMatch={handleDeleteMatch} />
           )}
 
           {activeTab === "participants" && <ParticipantsView />}
@@ -435,48 +403,27 @@ const FormatView = React.memo(function FormatView({
     aId: number,
     bId: number,
     score: string,
-    meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null } // ✅ meta опционально
+    meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
   ) => void;
   onPositionsChange: (next: Participant[]) => Promise<void> | void;
 }) {
-  // ✅ Хук вызывается всегда, неусловно
   const handleShowHistory = useCallback(
     (participant?: Participant) => {
-      if (participant)
-        onShowHistoryPlayer(participant);
+      if (participant) onShowHistoryPlayer(participant);
     },
     [onShowHistoryPlayer]
   );
 
   if (tournament.isRoundRobin()) {
-    return (
-      <RoundRobinView
-        participants={participants}
-        matches={matches}
-        // RoundRobin не передаёт meta — сигнатура совместима (meta опциональна)
-        onSaveScore={onSaveScoreRoundRobin}
-      />
-    );
+    return <RoundRobinView participants={participants} matches={matches} onSaveScore={onSaveScoreRoundRobin} />;
   }
 
   if (tournament.isSingleElimination()) {
-    return (
-      <SingleEliminationView
-        participants={participants}
-        matches={matches}
-        onSaveScore={onSaveScoreRoundRobin}
-      />
-    );
+    return <SingleEliminationView participants={participants} matches={matches} onSaveScore={onSaveScoreRoundRobin} />;
   }
 
   if (tournament.isDoubleElimination()) {
-    return (
-      <DoubleEliminationView
-        participants={participants}
-        matches={matches}
-        onSaveScore={onSaveScoreRoundRobin}
-      />
-    );
+    return <DoubleEliminationView participants={participants} matches={matches} onSaveScore={onSaveScoreRoundRobin} />;
   }
 
   if (tournament.isGroupsPlayoff()) {
@@ -484,7 +431,6 @@ const FormatView = React.memo(function FormatView({
       <GroupPlusPlayoffView
         participants={participants}
         matches={matches}
-        // ⚠️ Этот компонент уже вызывает onSaveScore с meta (phase/groupIndex/roundIndex)
         onSaveScore={onSaveScoreRoundRobin}
         groupsCount={tournament.settings.groupsplayoff.groupsCount}
       />
@@ -492,14 +438,7 @@ const FormatView = React.memo(function FormatView({
   }
 
   if (tournament.isSwiss()) {
-    return (
-      <SwissView
-        participants={participants}
-        matches={matches}
-        onSaveScore={onSaveScoreRoundRobin}
-        roundsCount={5}
-      />
-    );
+    return <SwissView participants={participants} matches={matches} onSaveScore={onSaveScoreRoundRobin} roundsCount={5} />;
   }
 
   // "pyramid" и fallback используют один и тот же обработчик

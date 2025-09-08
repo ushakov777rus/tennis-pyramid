@@ -42,8 +42,6 @@ export class PlayersRepository {
         return [];
       }
 
-      console.log("PlayersRepository-loadAccessiblePlayers: ", organiserUserId, userRole, playersData);
-
       // ✅ Администратор видит всех игроков
       if (userRole === UserRole.SiteAdmin || userRole === UserRole.TournamentAdmin) {
         return (playersData ?? []).map(

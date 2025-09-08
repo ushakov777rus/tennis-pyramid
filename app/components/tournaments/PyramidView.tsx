@@ -1,6 +1,7 @@
+//app/components/tournaments/PyramidView.tsx
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useUser } from "@/app/components/UserContext";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
@@ -11,6 +12,7 @@ import {
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
+import React from "react";
 
 type PyramidViewProps = {
   participants: Participant[];
@@ -19,13 +21,14 @@ type PyramidViewProps = {
   onShowHistory?: (participant?: Participant) => void;
   matches: Match[];
   onPositionsChange?: (next: Participant[]) => Promise<void> | void;
-  maxLevel: number; // визуальный максимум уровней
+  maxLevel: number;
 };
 
-function getPlayerStatusIcon(
+// Функция получения статуса игрока (вынесена из компонента)
+const getPlayerStatusIcon = (
   participantId: number,
   match: Match
-): { icon: string; className: string; title: string } {
+): { icon: string; className: string; title: string } => {
   const winnerId = match.getWinnerId();
   const isWinner = winnerId === participantId;
   const isAttacker =
@@ -38,9 +41,10 @@ function getPlayerStatusIcon(
   if (!isWinner && isAttacker)
     return { icon: " ↺", className: "loser-attacker", title: "Атаковал и проиграл" };
   return { icon: " ↓", className: "loser-defender", title: "Защищался и проиграл" };
-}
+};
 
-export function PyramidView({
+// Мемоизированный компонент
+export const PyramidView = React.memo(function PyramidView({
   participants,
   onSelect,
   selectedIds,
@@ -54,7 +58,21 @@ export function PyramidView({
   const [invalidId, setInvalidId] = useState<number | null>(null);
   const [localParticipants, setLocalParticipants] = useState<Participant[]>([]);
 
-  // === Сколько уровней реально показываем ===
+  // === КЭШ ДЛЯ ОПТИМИЗАЦИИ ===
+  const matchesCache = useRef(new Map<number, Match[]>());
+  const lastMatchCache = useRef(new Map<number, Match | null>());
+  const statusClassCache = useRef(new Map<number, string>());
+  const daysWithoutGamesCache = useRef(new Map<number, number | null>());
+
+  // Сбрасываем кэш при изменении matches
+  useEffect(() => {
+    matchesCache.current.clear();
+    lastMatchCache.current.clear();
+    statusClassCache.current.clear();
+    daysWithoutGamesCache.current.clear();
+  }, [matches]);
+
+  // === Мемоизация вычислений ===
   const totalLevels = useMemo(() => {
     const fromData = participants.length
       ? participants.reduce((m, p) => Math.max(m, p.level ?? 0), 0)
@@ -62,24 +80,30 @@ export function PyramidView({
     return Math.max(Number(maxLevel) || 0, fromData);
   }, [participants, maxLevel]);
 
-  // === Сколько карточек помещается в строку ===
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const CARD = 110; // ширина карточки + горизонтальный gap (подстрой)
+  const CARD = 110;
   const [perRow, setPerRow] = useState(3);
 
+  // Оптимизированный ResizeObserver
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const ro = new ResizeObserver(([entry]) => {
-      const w = entry.contentRect.width;
+    
+    const handleResize = () => {
+      const w = el.clientWidth;
       const next = Math.max(1, Math.floor(w / CARD));
       setPerRow(next);
+    };
+
+    const ro = new ResizeObserver(() => {
+      requestAnimationFrame(handleResize);
     });
+    
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
-  // === Упорядочим входящих участников по level/position ===
+  // Оптимизированная сортировка участников
   useEffect(() => {
     const sorted = [...participants].sort((a, b) => {
       const la = a.level ?? Number.POSITIVE_INFINITY;
@@ -92,34 +116,36 @@ export function PyramidView({
     setLocalParticipants(sorted);
   }, [participants]);
 
-  // === Утилиты ===
-  const chunk = <T,>(arr: T[], size: number): T[][] => {
+  // Мемоизированные утилиты
+  const chunk = useCallback(<T,>(arr: T[], size: number): T[][] => {
     const rows: T[][] = [];
     for (let i = 0; i < arr.length; i += size) rows.push(arr.slice(i, i + size));
     return rows;
-  };
+  }, []);
 
-  const parseDroppableId = (id: string) => {
-    // droppableId формата "<levelKey>:<rowIndex>"
+  const parseDroppableId = useCallback((id: string) => {
     const [levelKey, rowStr] = id.split(":");
     return { levelKey, rowIndex: Number(rowStr) || 0 };
-  };
+  }, []);
 
-  const buildByLevel = (items: Participant[]) => {
+  const buildByLevel = useCallback((items: Participant[]) => {
     const byLevel: Record<string, Participant[]> = {};
     for (let i = 1; i <= totalLevels; i++) byLevel[String(i)] = [];
-    byLevel["999"] = []; // скамейка
+    byLevel["999"] = [];
 
     items.forEach((p) => {
       const key = p.level ? String(p.level) : "999";
       (byLevel[key] ??= []).push(p);
     });
     return byLevel;
-  };
+  }, [totalLevels]);
 
-  const onDragStart = () => document.body.classList.add("dnd-active");
+  const onDragStart = useCallback(() => {
+    document.body.classList.add("dnd-active");
+  }, []);
 
-  const handleDragEnd = async (result: DropResult) => {
+  // Оптимизированный handleDragEnd
+  const handleDragEnd = useCallback(async (result: DropResult) => {
     document.body.classList.remove("dnd-active");
     const { source, destination, draggableId } = result;
     if (!destination) return;
@@ -129,7 +155,6 @@ export function PyramidView({
     const items = [...localParticipants];
     const byLevel = buildByLevel(items);
 
-    // --- Источник: переводим (row, index) в "линейный" индекс внутри уровня
     const { levelKey: srcLevelKey, rowIndex: srcRowIndex } = parseDroppableId(String(source.droppableId));
     const srcLinearIndexPre = srcRowIndex * perRow + source.index;
     const srcArrLinear = byLevel[srcLevelKey] ?? (byLevel[srcLevelKey] = []);
@@ -137,13 +162,11 @@ export function PyramidView({
 
     const [removed] = srcArrLinear.splice(srcLinearIndex, 1);
 
-    // --- Приёмник: тоже считаем линейный индекс
     const { levelKey: dstLevelKey, rowIndex: dstRowIndex } = parseDroppableId(String(destination.droppableId));
     const dstArrLinear = byLevel[dstLevelKey] ?? (byLevel[dstLevelKey] = []);
 
     let dstLinearIndex = dstRowIndex * perRow + destination.index;
 
-    // если перетаскиваем в тот же уровень и удалили элемент ДО будущего места — индекс сдвигается на -1
     if (srcLevelKey === dstLevelKey && srcLinearIndex < dstLinearIndex) {
       dstLinearIndex -= 1;
     }
@@ -151,7 +174,6 @@ export function PyramidView({
 
     dstArrLinear.splice(dstLinearIndex, 0, removed);
 
-    // --- Пересчёт level/position и обновление состояния
     const next: Participant[] = [];
     for (let level = 1; level <= totalLevels; level++) {
       const key = String(level);
@@ -169,41 +191,105 @@ export function PyramidView({
 
     setLocalParticipants(next);
     await onPositionsChange?.(next);
-  };
+  }, [localParticipants, buildByLevel, parseDroppableId, perRow, totalLevels, onPositionsChange]);
 
-  // === Вспомогательные методы (как у тебя) ===
-  const getPlayerClass = (participant: Participant): string => {
-    const id = participant.player?.id ?? participant.team?.id;
-    if (!id) return "";
-
+  // Оптимизированная функция получения матчей игрока
+  const getPlayerMatches = useCallback((participantId: number): Match[] => {
+    if (matchesCache.current.has(participantId)) {
+      return matchesCache.current.get(participantId)!;
+    }
+    
     const playerMatches = matches.filter(
-      (m) =>
-        m.scores.length &&
-        (m.player1?.id === id ||
-          m.player2?.id === id ||
-          m.team1?.id === id ||
-          m.team2?.id === id)
+      m => m.scores.length && 
+      (m.player1?.id === participantId || m.player2?.id === participantId ||
+       m.team1?.id === participantId || m.team2?.id === participantId)
     );
-    if (playerMatches.length === 0) return "";
+    
+    matchesCache.current.set(participantId, playerMatches);
+    return playerMatches;
+  }, [matches]);
 
-    const lastMatch = playerMatches.sort((a, b) => b.date.getTime() - a.date.getTime())[0];
+  // Оптимизированная функция получения последнего матча
+// Правила сравнения: 1) по дате (позже — новее), 2) при равной дате — по id (бОльший — новее)
+const getLastMatch = useCallback((participantId: number): Match | null => {
+  if (lastMatchCache.current.has(participantId)) {
+    return lastMatchCache.current.get(participantId)!;
+  }
 
-    if (lastMatch.getWinnerId() === 0) {
-      return "draw";
+  const playerMatches = getPlayerMatches(participantId);
+  const nowTs = Date.now();
+
+  // Выбираем лучший матч без сортировки массива (не мутируем кеш)
+  const last = playerMatches
+    .filter(m => m.date.getTime() <= nowTs)
+    .reduce<Match | null>((acc, m) => {
+      if (!acc) return m;
+      const dt = m.date.getTime() - acc.date.getTime();
+      if (dt > 0) return m;          // m новее по дате
+      if (dt < 0) return acc;        // acc новее по дате
+      // даты равны — тай-брейк по id (предполагаем, что больший id == более поздняя вставка)
+      return (m.id ?? 0) > (acc.id ?? 0) ? m : acc;
+    }, null);
+
+  lastMatchCache.current.set(participantId, last);
+  return last;
+}, [getPlayerMatches]);
+
+  // Оптимизированная функция получения дней без игр
+  const getDaysWithoutGames = useCallback((participantId: number): number | null => {
+    if (daysWithoutGamesCache.current.has(participantId)) {
+      return daysWithoutGamesCache.current.get(participantId)!;
     }
 
-    return lastMatch.getWinnerId() === id ? "winner" : "loser";
-  };
+    const lastMatch = getLastMatch(participantId);
+    let daysWithoutGames: number | null = null;
+    
+    if (lastMatch) {
+      const diffMs = Date.now() - lastMatch.date.getTime();
+      daysWithoutGames = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    }
 
-  const canChallenge = (attacker: Participant, defender: Participant): boolean => {
+    daysWithoutGamesCache.current.set(participantId, daysWithoutGames);
+    return daysWithoutGames;
+  }, [getLastMatch]);
+
+const getPlayerClass = useCallback((participant: Participant): string => {
+  const id = participant.player?.id ?? participant.team?.id;
+  if (!id) return "";
+
+  if (statusClassCache.current.has(id)) {
+    return statusClassCache.current.get(id)!;
+  }
+
+  const playerMatches = getPlayerMatches(id);
+  if (playerMatches.length === 0) {
+    statusClassCache.current.set(id, "");
+    return "";
+  }
+
+  // раньше тут было: playerMatches.sort(...)[0] — это мутировало кеш
+  const lastMatch = getLastMatch(id);
+  let result = "";
+
+  if (!lastMatch || lastMatch.getWinnerId() === 0) {
+    result = "draw";
+  } else {
+    result = lastMatch.getWinnerId() === id ? "winner" : "loser";
+  }
+
+  statusClassCache.current.set(id, result);
+  return result;
+}, [getPlayerMatches, getLastMatch]);
+
+  const canChallenge = useCallback((attacker: Participant, defender: Participant): boolean => {
     if (!defender.level || !defender.position) return false;
     if (!attacker.level || !attacker.position) return defender.level >= totalLevels - 1;
     if (attacker.level === defender.level) return defender.position < attacker.position;
     if (defender.level === attacker.level - 1) return true;
     return false;
-  };
+  }, [totalLevels]);
 
-  const handleClick = (id: number, participant: Participant) => {
+  const handleClick = useCallback((id: number, participant: Participant) => {
     let newSelection: number[] = [];
     if (user?.role === undefined) return;
     if (user?.role === "player" && selectedIds.length > 0 && selectedIds[0] === id) return;
@@ -214,8 +300,9 @@ export function PyramidView({
       newSelection = [id];
     } else if (selectedIds.length === 1) {
       const attacker = localParticipants.find((p) => (p.player?.id ?? p.team?.id) === selectedIds[0]);
-      if (attacker && canChallenge(attacker, participant)) newSelection = [selectedIds[0], id];
-      else {
+      if (attacker && canChallenge(attacker, participant)) {
+        newSelection = [selectedIds[0], id];
+      } else {
         setInvalidId(id);
         setTimeout(() => setInvalidId(null), 1500);
         return;
@@ -223,8 +310,9 @@ export function PyramidView({
     } else if (selectedIds.length === 2) {
       if (user?.role === "player") {
         const attacker = localParticipants.find((p) => (p.player?.id ?? p.team?.id) === selectedIds[0]);
-        if (attacker && canChallenge(attacker, participant)) newSelection = [selectedIds[0], id];
-        else {
+        if (attacker && canChallenge(attacker, participant)) {
+          newSelection = [selectedIds[0], id];
+        } else {
           setInvalidId(id);
           setTimeout(() => setInvalidId(null), 1500);
           return;
@@ -234,25 +322,17 @@ export function PyramidView({
       }
     }
     onSelect(newSelection);
-  };
+  }, [user?.role, selectedIds, localParticipants, canChallenge, onSelect]);
 
-  const renderPlayerCard = (p: Participant, indexInRow: number) => {
+  // Мемоизированный рендер карточки игрока
+  const renderPlayerCard = useCallback((p: Participant, indexInRow: number) => {
     const id = p.player?.id ?? p.team?.id;
+    if (!id) return null;
+
     const statusClass = getPlayerClass(p);
+    const lastMatch = getLastMatch(id);
+    const daysWithoutGames = getDaysWithoutGames(id);
 
-    const now = new Date();
-    const playerMatches = matches.filter(
-      (m) => m.player1?.id === id || m.player2?.id === id || m.team1?.id === id || m.team2?.id === id
-    );
-    const lastMatch = playerMatches
-      .filter((m) => m.date.getTime() <= now.getTime())
-      .sort((a, b) => b.date.getTime() - a.date.getTime())[0] || null;
-
-    let daysWithoutGames: number | null = null;
-    if (lastMatch) {
-      const diffMs = Date.now() - lastMatch.date.getTime();
-      daysWithoutGames = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    }
     const inactivityClass =
       daysWithoutGames !== null && daysWithoutGames >= 36
         ? "inactive-36"
@@ -268,9 +348,9 @@ export function PyramidView({
             {...provided.draggableProps}
             style={provided.draggableProps.style as React.CSSProperties}
             className={`pyramid-player ${
-              selectedIds.includes(id ?? -1) ? "selected" : ""
+              selectedIds.includes(id) ? "selected" : ""
             } ${statusClass} ${invalidId === id ? "shake" : ""}`}
-            onClick={() => id && handleClick(id, p)}
+            onClick={() => handleClick(id, p)}
           >
             <div className="player-top-line">
               {daysWithoutGames !== null && (
@@ -284,7 +364,7 @@ export function PyramidView({
             <div className="player-name">
               {(() => {
                 const lines = p.splitName(false) ?? [];
-                const status = lastMatch && id ? getPlayerStatusIcon(id, lastMatch) : null;
+                const status = lastMatch ? getPlayerStatusIcon(id, lastMatch) : null;
                 return lines.map((line: string, i: number) => (
                   <div key={i} className={`player-line ${status?.className ?? ""}`}>
                     {line}
@@ -306,7 +386,7 @@ export function PyramidView({
                   className="history-btn"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onShowHistory(p);
+                    onShowHistory?.(p);
                   }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24">
@@ -322,10 +402,9 @@ export function PyramidView({
         )}
       </Draggable>
     );
-  };
+  }, [getPlayerClass, getLastMatch, getDaysWithoutGames, selectedIds, invalidId, handleClick, onShowHistory]);
 
-  // === Группируем участников по уровням ===
-  const byLevel = useMemo(() => buildByLevel(localParticipants), [localParticipants]);
+  const byLevel = useMemo(() => buildByLevel(localParticipants), [localParticipants, buildByLevel]);
 
   return (
     <DragDropContext onDragStart={onDragStart} onDragEnd={handleDragEnd}>
@@ -348,7 +427,6 @@ export function PyramidView({
                   )}
                 </Droppable>
               ))}
-              {/* если последняя строка пустая (например, уровень пуст) — всё равно рисуем пустой droppable */}
               {rows.length === 0 && (
                 <Droppable droppableId={`${levelKey}:0`} direction="horizontal" key={`${levelKey}:0-empty`}>
                   {(provided) => (
@@ -362,7 +440,6 @@ export function PyramidView({
           );
         })}
 
-        {/* Скамейка: тоже строками */}
         {(() => {
           const benchRows = chunk(byLevel["999"] ?? [], perRow);
           return (
@@ -392,4 +469,4 @@ export function PyramidView({
       </div>
     </DragDropContext>
   );
-}
+});

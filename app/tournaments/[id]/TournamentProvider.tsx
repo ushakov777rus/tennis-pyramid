@@ -12,15 +12,29 @@ import React, {
 import type { Tournament } from "@/app/models/Tournament";
 import type { Player } from "@/app/models/Player";
 import type { Team } from "@/app/models/Team";
-import type { Participant } from "@/app/models/Participant";
-import type { Match, PhaseType } from "@/app/models/Match"; // ✅ PhaseType для фазы
+import { Participant } from "@/app/models/Participant";
+import type { Match, PhaseType } from "@/app/models/Match";
 
 import { PlayersRepository } from "@/app/repositories/PlayersRepository";
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 import { TeamsRepository } from "@/app/repositories/TeamsRepository";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
-
 import { useUser } from "@/app/components/UserContext";
+
+/** Аргументы «1 RPC: добавить матч + при необходимости свапнуть позиции в пирамиде» */
+export type AddMatchAndMaybeSwapArgs = {
+  date: Date;
+  type: Tournament["tournament_type"];
+  scores: any;
+  aId: number;
+  bId: number;
+  winnerId: number | null;
+  loserId: number | null;
+  doSwap: boolean;
+  phase?: PhaseType;
+  groupIndex?: number | null;
+  roundIndex?: number | null;
+};
 
 type InitialData = {
   tournamentId: number;
@@ -31,9 +45,7 @@ type InitialData = {
   matches?: Match[];
 };
 
-/** Аргументы для создания матча из UI/схем.
- *  Поля phase/groupIndex/roundIndex — опциональны (для свободных матчей можно не указывать).
- */
+/** Старый путь создания матча (оставлен для совместимости с другими видами схем) */
 type AddMatchArgs = {
   date: Date;
   type: Tournament["tournament_type"];
@@ -43,8 +55,6 @@ type AddMatchArgs = {
   team1: number | null;
   team2: number | null;
   tournamentId: number;
-
-  // ✅ Новые поля для сохранения контекста фазы
   phase?: PhaseType;
   groupIndex?: number | null;
   roundIndex?: number | null;
@@ -52,10 +62,10 @@ type AddMatchArgs = {
 
 export type TournamentContextShape = {
   // meta
-  loading: boolean;            // = initialLoading (для обратной совместимости)
-  initialLoading: boolean;     // первая загрузка
-  refreshing: boolean;         // тихий рефетч (не скрываем таблицы)
-  mutating: boolean;           // идёт мутация
+  loading: boolean;
+  initialLoading: boolean;
+  refreshing: boolean;
+  mutating: boolean;
 
   tournamentId: number;
 
@@ -68,6 +78,8 @@ export type TournamentContextShape = {
 
   // действия
   reload: (opts?: { silent?: boolean }) => Promise<void>;
+
+  // классические мутации (оставлены как есть)
   addMatch: (args: AddMatchArgs) => Promise<void>;
   updateMatch: (m: Match) => Promise<void>;
   deleteMatch: (m: Match) => Promise<void>;
@@ -78,6 +90,9 @@ export type TournamentContextShape = {
   createAndAddTeamToTournament?: (tournamentId:number, p1: number, p2: number) => Promise<void>;
   removeTeam?: (teamId: number) => Promise<void>;
   updatePositions: (next: Participant[]) => Promise<void>;
+
+  // быстрый путь
+  addMatchAndMaybeSwap: (args: AddMatchAndMaybeSwapArgs) => Promise<void>;
 };
 
 const TournamentContext = createContext<TournamentContextShape | null>(null);
@@ -92,6 +107,7 @@ export function TournamentProvider({
   const { user, loading: userLoading } = useUser();
   const { tournamentId } = initial;
 
+  // source of truth
   const [tournament, setTournament] = useState<Tournament | null>(initial.tournament ?? null);
   const [players, setPlayers] = useState<Player[]>(initial.players ?? []);
   const [participants, setParticipants] = useState<Participant[]>(initial.participants ?? []);
@@ -105,11 +121,12 @@ export function TournamentProvider({
     !initial.teams ||
     !initial.matches;
 
-  // новые флаги
+  // флаги загрузок
   const [initialLoading, setInitialLoading] = useState<boolean>(needInitialFetch);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [mutating, setMutating] = useState<boolean>(false);
 
+  /** Глобальный перезахват данных. Используем экономно (после сложных мутаций или на отдельных вкладках). */
   const reload = useCallback(
     async (opts?: { silent?: boolean }) => {
       const silent = !!opts?.silent;
@@ -137,11 +154,11 @@ export function TournamentProvider({
   // первичная загрузка
   useEffect(() => {
     if (needInitialFetch && !userLoading) {
-      void reload(); // НЕ silent
+      void reload(); // НЕ silent — показываем спиннер
     }
   }, [needInitialFetch, userLoading, reload]);
 
-  // ---- Мутации матчей ----
+  // ---- Мутации матчей (старая ветка) ----
   const addMatch = useCallback(
     async (args: AddMatchArgs) => {
       setMutating(true);
@@ -155,13 +172,13 @@ export function TournamentProvider({
           args.team1,
           args.team2,
           args.tournamentId,
-          // ✅ прокидываем фазовые поля в репозиторий (совместимо с обновлённой сигнатурой)
           {
             phase: args.phase,
             groupIndex: args.groupIndex ?? null,
             roundIndex: args.roundIndex ?? null,
           }
         );
+        // медленный путь — полный silent reload
         await reload({ silent: true });
       } finally {
         setMutating(false);
@@ -174,13 +191,14 @@ export function TournamentProvider({
     async (m: Match) => {
       setMutating(true);
       try {
-        await MatchRepository.updateMatch(m); // репозиторий уже обновляет phase/groupIndex/roundIndex при их наличии
-        await reload({ silent: true });
+        const saved = await MatchRepository.updateMatch(m);
+        // быстрый локальный патч без reload
+        setMatches((prev) => prev.map((x) => (x.id === saved.id ? saved : x)));
       } finally {
         setMutating(false);
       }
     },
-    [reload]
+    []
   );
 
   const deleteMatch = useCallback(
@@ -188,15 +206,16 @@ export function TournamentProvider({
       setMutating(true);
       try {
         await MatchRepository.deleteMatch(m);
-        await reload({ silent: true });
+        // быстрый локальный патч без reload
+        setMatches((prev) => prev.filter((x) => x.id !== m.id));
       } finally {
         setMutating(false);
       }
     },
-    [reload]
+    []
   );
 
-  // ---- Доп. мутации ----
+  // ---- Прочие мутации (оставил reload: они реже и затрагивают много сущностей) ----
   const addPlayerToTournament = useCallback(
     async (playerId: number) => {
       setMutating(true);
@@ -265,22 +284,101 @@ export function TournamentProvider({
     [tournamentId, reload]
   );
 
+  /** Массовое обновление позиций (используется dnd в PyramidView). */
   const updatePositions = useCallback(
     async (next: Participant[]) => {
       setMutating(true);
       try {
         await TournamentsRepository.updatePositions(next);
-        await reload({ silent: true });
+        // быстро апдейтим локально без полного рефетча:
+        setParticipants(next.map((p) => p));
       } finally {
         setMutating(false);
       }
     },
-    [reload]
+    []
+  );
+
+  // ---- Быстрый путь: один RPC + оптимистичные локальные апдейты ----
+  const addMatchAndMaybeSwap = useCallback(
+    async (args: AddMatchAndMaybeSwapArgs) => {
+      setMutating(true);
+      try {
+        const matchId = await TournamentsRepository.addMatchAndMaybeSwap({
+          tournamentId,
+          isSingle: tournament?.isSingle() ?? true,
+          aId: args.aId,
+          bId: args.bId,
+          winnerId: args.winnerId,
+          loserId: args.loserId,
+          scores: args.scores,
+          date: args.date,
+          phase: args.phase ?? null,
+          groupIndex: args.groupIndex ?? null,
+          roundIndex: args.roundIndex ?? null,
+          doSwap: args.doSwap,
+        });
+
+        // 1) Оптимистично дописываем матч
+        if (matchId) {
+          setMatches((prev) => [
+            ...prev,
+            {
+              id: matchId,
+              date: args.date,
+              scores: args.scores,
+              match_type: (tournament?.isSingle() ? "single" : "double") as any,
+              tournament_id: tournamentId,
+            } as unknown as Match,
+          ]);
+        }
+
+// 2) Если был свап — локально меняем level/position у двух участников
+if (args.doSwap && args.winnerId && args.loserId) {
+  setParticipants((prev) => {
+    // Унифицированный способ получить ключ сравнения (player/team id)
+    const pid = (p: Participant) => p.player?.id ?? p.team?.id ?? 0;
+
+    const wIdx = prev.findIndex((p) => pid(p) === args.winnerId);
+    const lIdx = prev.findIndex((p) => pid(p) === args.loserId);
+    if (wIdx === -1 || lIdx === -1) return prev; // не нашли — ничего не меняем
+
+    const w = prev[wIdx];
+    const l = prev[lIdx];
+
+    // создаём новые инстансы для двух участников — без мутаций «на месте»
+    const wNext = new Participant({
+      id: w.id,
+      level: l.level,                 // <— меняем местами
+      position: l.position,           // <— меняем местами
+      player: w.player,
+      team: w.team,
+    });
+
+    const lNext = new Participant({
+      id: l.id,
+      level: w.level,                 // <— меняем местами
+      position: w.position,           // <— меняем местами
+      player: l.player,
+      team: l.team,
+    });
+
+    const next = [...prev];
+    next[wIdx] = wNext;
+    next[lIdx] = lNext;
+    return next; // новая ссылка на массив + новые ссылки на 2 элемента
+  });
+}
+      } finally {
+        setMutating(false);
+      }
+    },
+    [tournamentId, tournament]
   );
 
   const value = useMemo<TournamentContextShape>(
     () => ({
-      loading: initialLoading,         // обратная совместимость
+      loading: initialLoading,
       initialLoading,
       refreshing,
       mutating,
@@ -293,6 +391,8 @@ export function TournamentProvider({
       matches,
 
       reload,
+
+      // стандартные экшены
       addMatch,
       updateMatch,
       deleteMatch,
@@ -303,19 +403,20 @@ export function TournamentProvider({
       createAndAddTeamToTournament,
       removeTeam,
       updatePositions,
+
+      // быстрый экшен
+      addMatchAndMaybeSwap,
     }),
     [
       initialLoading,
       refreshing,
       mutating,
-
       tournamentId,
       tournament,
       players,
       participants,
       teams,
       matches,
-
       reload,
       addMatch,
       updateMatch,
@@ -326,14 +427,11 @@ export function TournamentProvider({
       createAndAddTeamToTournament,
       removeTeam,
       updatePositions,
+      addMatchAndMaybeSwap,
     ]
   );
 
-  return (
-    <TournamentContext.Provider value={value}>
-      {children}
-    </TournamentContext.Provider>
-  );
+  return <TournamentContext.Provider value={value}>{children}</TournamentContext.Provider>;
 }
 
 export function useTournament(): TournamentContextShape {

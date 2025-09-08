@@ -87,6 +87,14 @@
   margin-top: 5px;
 }
 
+.pyramid-player {
+  transition: transform 0.2s ease;
+}
+
+.dnd-active .pyramid-player {
+  transition: none;
+}
+
 /*
 .pyramid-container {
   width: 100%;

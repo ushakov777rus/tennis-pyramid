@@ -233,64 +233,83 @@ export class MatchRepository {
 
   // ------------------------------ update ------------------------------
 
-  static async updateMatch(updatedMatch: Match): Promise<Match | null> {
-    try {
-      const payload: any = {
-        date: updatedMatch.date.toISOString(),
-        scores: updatedMatch.scores,
-        player1_id: updatedMatch.player1?.id ?? null,
-        player2_id: updatedMatch.player2?.id ?? null,
-        // team1/team2 — добавьте при необходимости, если редактируете пары
-      };
 
-      // NEW: обновляем фазовые поля, если присутствуют в модели
-      const phase = (updatedMatch as any).phase as PhaseType | undefined;
-      const groupIndex = (updatedMatch as any).groupIndex as number | null | undefined;
-      const roundIndex = (updatedMatch as any).roundIndex as number | null | undefined;
+// если у тебя уже есть этот маппер — используй свой
+// здесь просто напоминаю сигнатуру
+// private static mapRowToMatch(row: any): Match { ... }
 
-      if (phase !== undefined) payload.phase = phase;
-      if (groupIndex !== undefined) payload.group_index = groupIndex;
-      if (roundIndex !== undefined) payload.round_index = roundIndex;
-
-      const { data, error } = await supabase
-        .from("matches")
-        .update(payload)
-        .eq("id", (updatedMatch as any).id)
-        .select(`
-          id,
-          date,
-          scores,
-          match_type,
-          tournament_id,
-          phase,
-          group_index,
-          round_index,
-          tournaments ( * ),
-          player1:players!fk_player1(id, name, ntrp, phone, sex),
-          player2:players!fk_player2(id, name, ntrp, phone, sex),
-          team1:teams!fk_team1 (
-            id,
-            player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
-            player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
-          ),
-          team2:teams!fk_team2 (
-            id,
-            player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
-            player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
-          )
-        `)
-        .single();
-
-      if (error) {
-        console.error("Ошибка при обновлении матча:", error);
-        return null;
-      }
-      return data ? this.mapRowToMatch(data) : null;
-    } catch (err) {
-      console.error("Неожиданная ошибка updateMatch:", err);
-      return null;
-    }
+static async updateMatch(updatedMatch: Match): Promise<Match> {
+  // 1) Быстрая валидация входных данных
+  const matchId = (updatedMatch as any)?.id;
+  if (!matchId || typeof matchId !== "number") {
+    throw new Error("updateMatch: invalid match id");
   }
+
+  // 2) Формируем payload. Аккуратно сериализуем дату: если уже строка — не трогаем
+  const isoDate =
+    updatedMatch.date instanceof Date
+      ? updatedMatch.date.toISOString()
+      : new Date(updatedMatch.date as unknown as string).toISOString();
+
+  const payload: any = {
+    date: isoDate,
+    scores: updatedMatch.scores,
+    player1_id: updatedMatch.player1?.id ?? null,
+    player2_id: updatedMatch.player2?.id ?? null,
+    team1_id: (updatedMatch as any).team1?.id ?? null,
+    team2_id: (updatedMatch as any).team2?.id ?? null,
+  };
+
+  // 3) Фазовые поля — только если явно заданы в объекте
+  const phase       = (updatedMatch as any).phase as PhaseType | undefined;
+  const groupIndex  = (updatedMatch as any).groupIndex as number | null | undefined;
+  const roundIndex  = (updatedMatch as any).roundIndex as number | null | undefined;
+
+  if (phase !== undefined)       payload.phase        = phase;
+  if (groupIndex !== undefined)  payload.group_index  = groupIndex;
+  if (roundIndex !== undefined)  payload.round_index  = roundIndex;
+
+  // 4) Обновляем и сразу читаем полную строку для маппинга в доменную модель
+  const { data, error } = await supabase
+    .from("matches")
+    .update(payload)
+    .eq("id", matchId)
+    .select(`
+      id,
+      date,
+      scores,
+      match_type,
+      tournament_id,
+      phase,
+      group_index,
+      round_index,
+      tournaments ( * ),
+      player1:players!fk_player1(id, name, ntrp, phone, sex),
+      player2:players!fk_player2(id, name, ntrp, phone, sex),
+      team1:teams!fk_team1 (
+        id,
+        player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
+        player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
+      ),
+      team2:teams!fk_team2 (
+        id,
+        player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
+        player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
+      )
+    `)
+    .single();
+
+  if (error) {
+    // кидаем ошибку — наверху ты либо покажешь alert, либо сделаешь silent reload
+    throw new Error(`updateMatch: ${error.message ?? "supabase error"}`);
+  }
+  if (!data) {
+    throw new Error("updateMatch: empty response");
+  }
+
+  // 5) Маппим и возвращаем строго Match
+  return this.mapRowToMatch(data);
+}
 
   // ------------------------------ delete ------------------------------
 
