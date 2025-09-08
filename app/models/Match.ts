@@ -63,13 +63,14 @@ export class Match {
   }
 
   getWinnerId(): number {
-
     if (this.scores.length === 0) {
       return 0;
     }
 
     let sets1 = 0;
     let sets2 = 0;
+    let games1 = 0;
+    let games2 = 0;
 
     for (const [s1, s2] of this.scores) {
       if (s1 > s2) {
@@ -77,32 +78,36 @@ export class Match {
       } else if (s2 > s1) {
         sets2++;
       }
-      // если равные (например, 6–6 без тайбрейка) — сет не засчитывается
+      games1 += s1;
+      games2 += s2;
     }
 
-    // одиночный матч
-    if (this.player1 && this.player2) {
-      if (sets1 > sets2) {
-        return this.player1.id;
-      }
-      if (sets2 > sets1) {
-        return this.player2.id;
-      }
-      return 0; // ничья / не определён
+    // 1. Победитель по сетам
+    if (sets1 > sets2) {
+      return this.getEntityId(1);
+    }
+    if (sets2 > sets1) {
+      return this.getEntityId(2);
     }
 
-    // парный матч
-    if (this.team1 && this.team2) {
-      if (sets1 > sets2) {
-        return this.team1.id;
-      }
-      if (sets2 > sets1) {
-        return this.team2.id;
-      }
-      return 0; // ничья / не определён
+    // 2. При равных сетах - победитель по геймам
+    if (games1 > games2) {
+      return this.getEntityId(1);
+    }
+    if (games2 > games1) {
+      return this.getEntityId(2);
     }
 
-    return 0;
+    return 0; // ничья
+  }
+
+  // Вспомогательный метод для получения ID сущности
+  private getEntityId(playerNumber: number): number {
+    if (playerNumber === 1) {
+      return this.player1?.id || this.team1?.id || 0;
+    } else {
+      return this.player2?.id || this.team2?.id || 0;
+    }
   }
 
   formatResult(): string {
@@ -117,6 +122,8 @@ export class Match {
 
     let sets1 = 0;
     let sets2 = 0;
+    let games1 = 0;
+    let games2 = 0;
 
     for (const [s1, s2] of scores) {
       if (s1 > s2) {
@@ -124,14 +131,27 @@ export class Match {
       } else if (s2 > s1) {
         sets2++;
       }
-      // если равные (например, 6–6 без тайбрейка) — сет не засчитывается
+      // Считаем общее количество геймов
+      games1 += s1;
+      games2 += s2;
     }
 
+    // Определяем победителя по сетам
     if (sets1 > sets2) {
       return [id1, id2]; // первый — победитель
-    } else {
+    } else if (sets2 > sets1) {
       return [id2, id1]; // второй — победитель
     }
+
+    // Если сеты равны, определяем победителя по геймам
+    if (games1 > games2) {
+      return [id1, id2]; // первый — победитель по геймам
+    } else if (games2 > games1) {
+      return [id2, id1]; // второй — победитель по геймам
+    }
+
+    // Если и геймы равны - ничья
+    return [0, 0];
   }
 
   // Универсальный парсер: "6-4, 4:6, 10-8" -> [[6,4],[4,6],[10,8]]
