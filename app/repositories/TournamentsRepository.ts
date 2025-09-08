@@ -393,6 +393,7 @@ static async loadParticipants(tournamentId: number): Promise<Participant[]> {
   }
 
   static async updatePositions(parts: Participant[]) {
+    console.log("TournamentsRepository::updatePositions", parts);
     if (parts.length === 0) return;
 
     // формируем массив объектов для апдейта

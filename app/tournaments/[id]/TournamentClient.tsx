@@ -90,7 +90,40 @@ export default function TournamentClient() {
       })),
     [selectableItems]
   );
-  
+
+function buildSwappedPyramidByFields(
+  participants: Participant[],
+  winnerId: number,
+  loserId: number
+): Participant[] | null {
+  const winnerIndex = participants.findIndex(p => p.getId === winnerId);
+  const loserIndex  = participants.findIndex(p => p.getId === loserId);
+
+  if (winnerIndex === -1 || loserIndex === -1) return null;
+
+  // Копируем ТОЛЬКО массив (экземпляры остаются теми же — методы не теряем)
+  const next = participants.slice();
+
+  const w = next[winnerIndex];
+  const l = next[loserIndex];
+
+  // Если победитель уже «выше» (меньший level/позиция), можно ничего не делать,
+  // но это правило — опционально. Убери, если не нужно.
+  // if ((w.level ?? Infinity) < (l.level ?? Infinity)) return null;
+
+  // Обмениваем level
+  const wLevel = w.level ?? null;
+  w.level = l.level ?? undefined;
+  l.level = wLevel ?? undefined;
+
+  // Обмениваем position
+  const wPos = w.position ?? null;
+  w.position = l.position ?? undefined;
+  l.position = wPos ?? undefined;
+
+  return next;
+}
+
   // Добавление «ручного» матча (карточка сверху)
   const handleAddMatch = useCallback(async () => {
     if (!tournament) return;
@@ -125,6 +158,19 @@ export default function TournamentClient() {
         tournamentId: tournament.id,
         // без фазы: это свободный матч, если нужно — можете добавить поля phase/indices по UI
       });
+
+      // ⬇️ Автоперестановка для пирамиды
+      if (tournament.isPyramid()) {
+        const aId = selectedIds[0];
+        const bId = selectedIds[1];
+        const winnerId = Match.getWinnerId(Match.parseScoreStringFlexible(matchScore), aId, bId);
+        if (winnerId != null) {
+          const next = buildSwappedPyramidByFields(participants, winnerId[0], winnerId[1]);
+          if (next) {
+            await updatePositions(next); // ожидает Participant[]
+          }
+        }
+      }
 
       setMatchDate(todayISO);
       setMatchScore("");
