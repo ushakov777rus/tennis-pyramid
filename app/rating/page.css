@@ -1,44 +1,16 @@
-.player-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  font-size: 12px;
+.players-controls {
+  display: grid;
+  grid-template-columns: 6fr 3fr auto;
+  column-gap: 5px;
 }
 
-.player-table th,
-.player-table td {
-  border: 1px solid #ccc;
-  padding: 5px 5px;
-  text-align: left;
+.ntrp-badge {
+  width: 50%;
+  margin-top: 3px;
+  max-width: 75px;
 }
 
-.player-table th {
-  background-color: #444;
-}
-
-.player-table input,
-.player-table select {
-  width: 100%;
-  padding: 4px 6px;
-  box-sizing: border-box;
-}
-
-.player-table button {
-  margin-right: 5px;
-  padding: 4px 8px;
-  cursor: pointer;
-  background-color: #e9e9e9;
-  border: 1px solid #aaa;
-  border-radius: 4px;
-}
-
-.player-table button:hover {
-  background-color: #d1d1d1;
-}
-
-.add-row input,
-.edit-row input,
-.add-row select,
-.edit-row select {
-  background-color: #fffff7;
+.players-table td:nth-child(n+2),
+.players-table th:nth-child(n+2) {
+  text-align: center;
 }

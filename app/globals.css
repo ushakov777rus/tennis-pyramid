@@ -567,7 +567,7 @@ button,
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 12px;
+  font-size: 14px;
   height: calc(2.5em + 8px);
   white-space: pre; /* перенос по \n */
 }
@@ -601,7 +601,7 @@ button,
   background: #222; /* тёмный хедер */
   text-align: left;
   font-weight: 600;
-  padding: 10px 12px;
+  padding: 10px 2px;
   border-bottom: 1px solid #2a2a2a;
   color: #aaff55; /* мягкий зелёный акцент */
   z-index: 1;

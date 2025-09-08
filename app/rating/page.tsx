@@ -18,6 +18,7 @@ import {
 } from "@/app/components/IconButtons";
 
 import "@/app/components/MatchHistoryView.css";
+import "./page.css"
 import { AdminOnly, SiteAdminOnly } from "../components/RoleGuard";
 import { OrganizerContactsRepository } from "@/app/repositories/OrganizerContactRepository";
 import { CustomSelect } from "../components/CustomSelect";
@@ -172,14 +173,38 @@ export default function PlayerListView() {
       <h1 className="page-title">Рейтинг игроков</h1>
 
       <div className="page-content-container">
-        <div className="history-wrap">
-          <table className="table match-history">
+          <div className="card players-controls">
+            <input
+              name="player-name"
+              type="text"
+              className="input"
+              placeholder="Имя (и поиск)"
+              value={newPlayer.name || ""}
+              onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
+              suppressHydrationWarning
+            />
+            <AdminOnly>
+              <input
+                name="ntrp"
+                type="text"
+                className="input"
+                placeholder="NTRP"
+                value={newPlayer.ntrp || ""}
+                onChange={(e) => setNewPlayer({ ...newPlayer, ntrp: e.target.value })}
+                suppressHydrationWarning
+              />
+
+              <PlusIconButton onClick={addPlayer} title="Добавить" />
+            </AdminOnly>
+          </div>
+
+          <table className="table match-history players-table">
             <colgroup>
-              <col style={{ width: "40%" }} />
-              <col style={{ width: "15%" }}/>
+              <col style={{ width: "50%" }} />
+              <col style={{ width: "10%" }}/>
               <col style={{ width: "15%" }} />
-              <col style={{ width: "15%" }} />
-              <col style={{ width: "15%" }} />
+              <col style={{ width: "12%" }} />
+              <col/>
             </colgroup>
 
             <thead className="history-table-head">
@@ -192,36 +217,6 @@ export default function PlayerListView() {
               </tr>
             </thead>
             <tbody>
-              <tr className="add-row">
-                <td>
-                  {/* Поле одновременно для ввода НОВОГО игрока и фильтра списка */}
-                  <input
-                    type="text"
-                    className="input"
-                    placeholder="Имя (и поиск)"
-                    value={newPlayer.name || ""}
-                    onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
-                  />
-                  <AdminOnly>
-                    <div className="row-actions always-visible">
-                    <input
-                      type="text"
-                      className="input"
-                      placeholder="NTRP"
-                      value={newPlayer.ntrp || ""}
-                      onChange={(e) => setNewPlayer({ ...newPlayer, ntrp: e.target.value })}
-                    />
-
-                    <div className="row-actions always-visible">
-                      <PlusIconButton onClick={addPlayer} title="Добавить" />
-                    </div>
-                    </div>
-                  </AdminOnly>
-                </td>
-                
-                <td colSpan={3} />
-              </tr>
-
               {pageItems.length === 0 && (
                 <tr>
                   <td colSpan={5} style={{ textAlign: "center", opacity: 0.7, padding: 12 }}>
@@ -261,8 +256,8 @@ export default function PlayerListView() {
 
                     {!isEditing && (
                         <td>  
-                          <span className="player">{p.displayName(false)}</span>
-                          <div style={{ marginBottom: 2 }}>
+                          <div className="player">
+                            {p.displayName(false)}
                             <span className="badge ntrp-badge">NTRP: {p.ntrp || "—"}</span>
                           </div>
                         </td>
@@ -324,7 +319,7 @@ export default function PlayerListView() {
                                     </button>
                                   )*/}
 
-                                  <SiteAdminOnly>
+                                  <AdminOnly>
                                     <button role="menuitem" onClick={() => startEdit(p)}>
                                       Редактировать
                                     </button>
@@ -336,7 +331,7 @@ export default function PlayerListView() {
                                     >
                                       Удалить
                                     </button>
-                                  </SiteAdminOnly>
+                                  </AdminOnly>
                                 </div>
                               )}
                             </div>
@@ -349,7 +344,7 @@ export default function PlayerListView() {
               })}
             </tbody>
           </table>
-        </div>
+
 
         {/* Пагинация снизу */}
         <div className="card" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
