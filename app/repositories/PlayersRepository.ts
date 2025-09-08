@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import { Player } from "../models/Player";
 import { OrganizerContactsRepository } from "./OrganizerContactRepository";
+import { UserRole } from "../models/Users";
 
 
 export class PlayersRepository {
@@ -44,7 +45,7 @@ export class PlayersRepository {
       console.log("PlayersRepository-loadAccessiblePlayers: ", organiserUserId, userRole, playersData);
 
       // ✅ Администратор видит всех игроков
-      if (userRole === "site_admin") {
+      if (userRole === UserRole.SiteAdmin || userRole === UserRole.TournamentAdmin) {
         return (playersData ?? []).map(
           row =>
             new Player({

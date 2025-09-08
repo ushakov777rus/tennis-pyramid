@@ -312,17 +312,17 @@ export default function PlayerListView() {
                               />
                               {openMenuId === p.id && (
                                 <div className="menu" role="menu">
-                                  {isMine === false && (
+                                  {/*isMine === false && (
                                     <button role="menuitem" onClick={() => addToMyPlayers(p.id)}>
                                       Добавить в мои
                                     </button>
-                                  )}
+                                  )*/}
 
-                                  {isMine === true && (
+                                  {/*isMine === true && (
                                     <button role="menuitem" onClick={() => removeFromMyPlayers(p.id)}>
                                       Удалить из моих
                                     </button>
-                                  )}
+                                  )*/}
 
                                   <SiteAdminOnly>
                                     <button role="menuitem" onClick={() => startEdit(p)}>
