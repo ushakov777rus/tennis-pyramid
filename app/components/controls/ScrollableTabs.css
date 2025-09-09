@@ -1,0 +1,118 @@
+/* app/components/ScrollableTabs.css */
+
+.tabs-wrap {
+  position: relative;
+  /* нижняя тонкая линия как у табов */
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+/* горизонтальный скролл с маской-градиентом по краям */
+.tabs-scroll {
+  display: flex;
+  /*gap: 8px;*/
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* IE/Edge */
+  padding: 0 12px;
+  position: relative;
+
+  /* градиентные фейды по краям (маска) */
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+}
+
+.tabs-scroll::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  position: relative;
+  flex: 0 0 auto;
+  height: 40px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: rgba(255,255,255,0.85);
+  font: inherit;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  outline: none;
+}
+
+.tab-btn:is(:hover, :focus-visible) {
+  background: rgba(255,255,255,0.06);
+}
+
+.tab-btn.is-active {
+  color: #ccff66; /* твой теннис-грин */
+}
+
+.tab-label {
+  white-space: nowrap;
+}
+
+/* компактный бейдж */
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  font-size: 12px;
+  border-radius: 9px;
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.9);
+}
+
+/* активное подчёркивание */
+.tab-underline {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: #ccff66;
+  pointer-events: none;
+}
+
+/* по умолчанию — мобильный скролл уже есть в твоём коде */
+
+/* >= 1024px: растянуть вкладки равномерно */
+@media (min-width: 1024px) {
+  .tabs-wrap {
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .tabs-scroll {
+    overflow-x: visible;                 /* скролл не нужен */
+    -webkit-mask-image: none;            /* убираем фейды */
+    mask-image: none;
+    display: flex;
+    gap: 8px;                            /* можно вернуть зазор между табами */
+    justify-content: stretch;            /* ширина берётся из flex-grow */
+    padding: 0 0;                        /* опционально убрать внутренние отступы */
+  }
+
+  .tab-btn {
+    flex: 1 1 0;                         /* все табы одинаковой ширины */
+    min-width: 0;                        /* чтобы не выпирали */
+    justify-content: center;             /* центрируем содержимое */
+    text-align: center;
+  }
+
+  .tab-label { 
+    white-space: nowrap;                 /* не переносим названия */
+    overflow: hidden;
+    text-overflow: ellipsis;             /* если строка слишком длинная */
+  }
+
+  /* подчёркивание остаётся внутри кнопки с внутренними отступами */
+  .tab-underline {
+    left: 8px;
+    right: 8px;
+  }
+}

@@ -19,6 +19,8 @@ import { MatchHistoryView } from "@/app/components/MatchHistoryView";
 import { ParticipantsView } from "@/app/components/ParticipantsView";
 import { AddMatchCard } from "@/app/components/AddMatchCard";
 
+import { ScrollableTabs, TabItem } from "@/app/components/controls/ScrollableTabs";
+
 import "./Page.css";
 
 import { useTournament } from "./TournamentProvider";
@@ -29,10 +31,13 @@ import { DoubleEliminationView } from "@/app/components/tournaments/DoubleElimin
 import { GroupPlusPlayoffView } from "@/app/components/tournaments/GroupPlusPlayoffView";
 import { RoundRobinView } from "@/app/components/tournaments/RoundRobinView";
 import { SwissView } from "@/app/components/tournaments/SwissView";
+// app/tournaments/[slug]/TournamentClient.tsx (фрагмент)
+import { AboutTournament } from "@/app/components/AboutTournament";
 
-type Tab = "scheme" | "matches" | "participants" | "rating";
 
 const todayISO = new Date().toISOString().split("T")[0];
+
+type ViewKey = "bracket" | "matches" | "participants" | "results" | "about";
 
 export default function TournamentClient() {
   const {
@@ -49,13 +54,26 @@ export default function TournamentClient() {
 
   const { user } = useUser();
 
-  const [activeTab, setActiveTab] = useState<Tab>("scheme");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyParticipant, setHistoryParticipant] = useState<Participant | undefined>(undefined);
 
   const [matchDate, setMatchDate] = useState<string>(todayISO);
   const [matchScore, setMatchScore] = useState<string>("");
+
+  const [view, setView] = useState<ViewKey>("matches");
+
+  const tabs: TabItem[] = useMemo(
+    () => [
+      { key: "bracket",      label: "Сетка" },
+      { key: "matches",      label: "Матчи",      /* badge: 494 */ },
+      { key: "participants", label: "Участники",  /* badge: 172 */ },
+      { key: "results",      label: "Результаты" },
+      { key: "about",        label: "О турнире" },
+    ],
+    []
+  );
+
 
   // если игрок залогинен и участвует — закрепляем как нападающего
   useEffect(() => {
@@ -281,36 +299,9 @@ export default function TournamentClient() {
           />
         </div>
 
-        {/* Табы */}
-        <div className="card card-tabs">
-          <button
-            className={activeTab === "scheme" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
-            onClick={() => setActiveTab("scheme")}
-          >
-            Сетка
-          </button>
-          <button
-            className={activeTab === "matches" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
-            onClick={() => setActiveTab("matches")}
-          >
-            Матчи
-          </button>
-          <button
-            className={activeTab === "participants" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
-            onClick={() => setActiveTab("participants")}
-          >
-            Участники
-          </button>
-          <button
-            className={activeTab === "rating" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
-            onClick={() => setActiveTab("rating")}
-          >
-            Результаты
-          </button>
-        </div>
 
         {/* Добавление матча — карточка */}
-        {activeTab !== "participants" && activeTab !== "rating" && tournament.isPyramid() && (
+        {tournament.isPyramid() && (
           <LoggedIn>
             <AddMatchCard
               options={options}
@@ -329,36 +320,49 @@ export default function TournamentClient() {
 
         {/* Контент вкладок */}
         <div>
-          {activeTab === "scheme" && (
-            <FormatView
-              tournament={tournament}
-              participants={participants}
-              matches={matches}
-              selectedIds={selectedIds}
-              onSelect={setSelectedIds}
-              onShowHistoryPlayer={handleShowHistoryPlayer}
-              onSaveScoreRoundRobin={handleSaveScore}
-              onPositionsChange={updatePositions}
-            />
-          )}
+          <ScrollableTabs
+            items={tabs}
+            value={view}
+            onChange={(k) => setView(k as ViewKey)}
+            ariaLabel="Разделы турнира"
+          />
 
-          {activeTab === "matches" && (
-            <MatchHistoryView matches={matches} onEditMatch={handleEditMatchSave} onDeleteMatch={handleDeleteMatch} />
-          )}
+          <div>
+            {view === "bracket" &&             
+              <FormatView
+                tournament={tournament}
+                participants={participants}
+                matches={matches}
+                selectedIds={selectedIds}
+                onSelect={setSelectedIds}
+                onShowHistoryPlayer={handleShowHistoryPlayer}
+                onSaveScoreRoundRobin={handleSaveScore}
+                onPositionsChange={updatePositions}
+              />}
 
-          {activeTab === "participants" && <ParticipantsView />}
+            {view === "matches" && 
+              <MatchHistoryView 
+                matches={matches} 
+                onEditMatch={handleEditMatchSave} 
+                onDeleteMatch={handleDeleteMatch} />}
 
-          {activeTab === "rating" && (
-            <RatingView
-              onShowHistory={(participant) => {
-                if (participant?.player !== undefined) {
-                  setHistoryParticipant(participant);
-                  setHistoryOpen(true);
+            {view === "participants" && 
+              <ParticipantsView />}
+
+            {view === "results" &&             
+              <RatingView
+                onShowHistory={(participant) => {
+                  if (participant?.player !== undefined) {
+                    setHistoryParticipant(participant);
+                    setHistoryOpen(true);
                 }
               }}
               matches={matches}
-            />
-          )}
+            />}
+            
+            {view === "about" && 
+              <AboutTournament />}
+          </div>
         </div>
 
         {/* Модалка истории */}

@@ -26,6 +26,7 @@ import {
 import { TeamsRepository } from "@/app/repositories/TeamsRepository";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { useUser } from "@/app/components/UserContext";
+import { User } from "@/app/models/Users";
 
 /** Аргументы «1 RPC: добавить матч + при необходимости свапнуть позиции в пирамиде» */
 export type AddMatchAndMaybeSwapArgs = {
@@ -78,6 +79,7 @@ export type TournamentContextShape = {
 
   // данные
   tournament: Tournament | null;
+  creator: Player | null;
   players: Player[];
   participants: Participant[];
   teams: Team[];
@@ -133,6 +135,7 @@ export function TournamentProvider({
   const { slug } = initial;
 
   // source of truth (на клиенте храним класс-модель)
+  const [creator, setCreator] = useState<Player | null>(null);
   const [tournament, setTournament] = useState<Tournament | null>(
     toModel(initial.tournamentPlain)
   );
@@ -169,11 +172,24 @@ export function TournamentProvider({
         setTournament(t);
 
         if (!t) {
+          setCreator(null);
           setPlayers([]);
           setParticipants([]);
           setTeams([]);
           setMatches([]);
           return;
+        }
+
+        try {
+          if (tPlain) {
+            const creatorPlayer = await PlayersRepository.findByUserId(tPlain.creator_id);
+            setCreator(creatorPlayer ?? null);
+          } else {
+            setCreator(null);
+          }
+        } catch (e) {
+          console.error("Не удалось загрузить creator (Player):", e);
+          setCreator(null);
         }
 
         // 2) остальное — по id
@@ -438,6 +454,7 @@ export function TournamentProvider({
       tournamentId,
       slug,
 
+      creator,
       tournament,
       players,
       participants,
@@ -467,6 +484,7 @@ export function TournamentProvider({
       mutating,
       tournamentId,
       slug,
+      creator,
       tournament,
       players,
       participants,
