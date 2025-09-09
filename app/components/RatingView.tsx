@@ -6,7 +6,7 @@ import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
 
 import "./RatingView.css";
-import { useTournament } from "@/app/tournaments/[id]/TournamentProvider";
+import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 
 type RatingViewProps = {
   matches: Match[];

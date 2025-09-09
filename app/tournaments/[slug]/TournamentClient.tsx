@@ -287,7 +287,7 @@ export default function TournamentClient() {
             className={activeTab === "scheme" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}
             onClick={() => setActiveTab("scheme")}
           >
-            Схема
+            Сетка
           </button>
           <button
             className={activeTab === "matches" ? "card-btn tabs-button card-btn-act" : "card-btn tabs-button"}

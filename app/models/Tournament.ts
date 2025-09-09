@@ -107,8 +107,9 @@ export class Tournament {
   tournament_type: TournamentType;
   is_public: boolean;
   creator_id: number;
+  slug:string;
   settings?: any;
-
+  
   constructor(
     id: number,
     name: string,
@@ -119,6 +120,7 @@ export class Tournament {
     end_date: string | null,
     is_public: boolean = false,
     creator_id: number,
+    slug:string,
     settings?: any
   ) {
     this.id = id;
@@ -131,6 +133,7 @@ export class Tournament {
     this.is_public = is_public;
     this.creator_id = creator_id;
     this.settings = settings;
+    this.slug = slug;
   }
 
   // ---------- Транзиции статусов ----------

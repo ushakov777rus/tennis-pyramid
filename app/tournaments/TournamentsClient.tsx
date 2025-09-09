@@ -30,6 +30,7 @@ import "./page.css";
 import "@/app/MainPage.css";
 import { CustomSelect } from "../components/CustomSelect";
 import { UserRole } from "../models/Users";
+import { tournamentUrl } from "../repositories/TournamentsRepository";
 
 export function TournamentsClient() {
   const { user } = useUser();
@@ -201,9 +202,9 @@ const filtered = useMemo(() => {
                 tournament={t}
                 participantsCount={stats[t.id]?.participants ?? 0}
                 matchesCount={stats[t.id]?.matches ?? 0}
-                {...(canView ? { onClick: () => router.push(`/tournaments/${t.id}`) } : {})}
-                {...(canDelete ? {onDelete} : {})}
-                displayName={true}
+                {...(canView ? { onClick: () => router.push(tournamentUrl(t)) } : {})}
+                {...(canDelete ? { onDelete } : {})}
+                displayName
               />
             );
           })}

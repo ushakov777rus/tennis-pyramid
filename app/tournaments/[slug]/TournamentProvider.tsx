@@ -9,14 +9,20 @@ import React, {
   useState,
 } from "react";
 
+import { Tournament as TournamentModel } from "@/app/models/Tournament";
 import type { Tournament } from "@/app/models/Tournament";
 import type { Player } from "@/app/models/Player";
 import type { Team } from "@/app/models/Team";
 import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
 
-import { PlayersRepository } from "@/app/repositories/PlayersRepository";
-import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
+import {
+  PlayersRepository
+} from "@/app/repositories/PlayersRepository";
+import {
+  TournamentsRepository,
+  type TournamentPlain
+} from "@/app/repositories/TournamentsRepository";
 import { TeamsRepository } from "@/app/repositories/TeamsRepository";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { useUser } from "@/app/components/UserContext";
@@ -37,8 +43,8 @@ export type AddMatchAndMaybeSwapArgs = {
 };
 
 type InitialData = {
-  tournamentId: number;
-  tournament?: Tournament | null;
+  slug: string;                         // роутим по slug
+  tournamentPlain?: TournamentPlain | null; // получаем с сервера только POJO
   players?: Player[];
   participants?: Participant[];
   teams?: Team[];
@@ -67,7 +73,8 @@ export type TournamentContextShape = {
   refreshing: boolean;
   mutating: boolean;
 
-  tournamentId: number;
+  tournamentId: number | null;          // до загрузки может быть null
+  slug: string;
 
   // данные
   tournament: Tournament | null;
@@ -97,6 +104,24 @@ export type TournamentContextShape = {
 
 const TournamentContext = createContext<TournamentContextShape | null>(null);
 
+// helper: собираем модель из plain-объекта
+function toModel(p?: TournamentPlain | null): Tournament | null {
+  if (!p) return null;
+  return new TournamentModel(
+    p.id,
+    p.name,
+    p.format as any,
+    p.status as any,
+    p.tournament_type as any,
+    p.start_date,
+    p.end_date,
+    p.is_public,
+    p.creator_id,
+    p.slug,
+    p.settings
+  );
+}
+
 export function TournamentProvider({
   initial,
   children,
@@ -105,41 +130,59 @@ export function TournamentProvider({
   children: React.ReactNode;
 }) {
   const { user, loading: userLoading } = useUser();
-  const { tournamentId } = initial;
+  const { slug } = initial;
 
-  // source of truth
-  const [tournament, setTournament] = useState<Tournament | null>(initial.tournament ?? null);
+  // source of truth (на клиенте храним класс-модель)
+  const [tournament, setTournament] = useState<Tournament | null>(
+    toModel(initial.tournamentPlain)
+  );
   const [players, setPlayers] = useState<Player[]>(initial.players ?? []);
-  const [participants, setParticipants] = useState<Participant[]>(initial.participants ?? []);
+  const [participants, setParticipants] = useState<Participant[]>(
+    initial.participants ?? []
+  );
   const [teams, setTeams] = useState<Team[]>(initial.teams ?? []);
   const [matches, setMatches] = useState<Match[]>(initial.matches ?? []);
 
   const needInitialFetch =
-    !initial.tournament ||
+    !initial.tournamentPlain ||
     !initial.players ||
     !initial.participants ||
     !initial.teams ||
     !initial.matches;
+
+  const tournamentId = tournament?.id ?? null;
 
   // флаги загрузок
   const [initialLoading, setInitialLoading] = useState<boolean>(needInitialFetch);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [mutating, setMutating] = useState<boolean>(false);
 
-  /** Глобальный перезахват данных. Используем экономно (после сложных мутаций или на отдельных вкладках). */
+  /** Перезагрузка по slug: тянем plain и превращаем в модель на клиенте */
   const reload = useCallback(
     async (opts?: { silent?: boolean }) => {
       const silent = !!opts?.silent;
       silent ? setRefreshing(true) : setInitialLoading(true);
       try {
-        const [t, ps, parts, ts, ms] = await Promise.all([
-          TournamentsRepository.getTournamentById(tournamentId),
-          PlayersRepository.loadAccessiblePlayers(user?.id, user?.role),
-          TournamentsRepository.loadParticipants(tournamentId),
-          TeamsRepository.loadTournamentTeams(tournamentId),
-          MatchRepository.loadMatches(tournamentId),
-        ]);
+        // 1) турнир по slug → модель
+        const tPlain = await TournamentsRepository.getBySlug(slug);
+        const t = toModel(tPlain);
         setTournament(t);
+
+        if (!t) {
+          setPlayers([]);
+          setParticipants([]);
+          setTeams([]);
+          setMatches([]);
+          return;
+        }
+
+        // 2) остальное — по id
+        const [ps, parts, ts, ms] = await Promise.all([
+          PlayersRepository.loadAccessiblePlayers(user?.id, user?.role),
+          TournamentsRepository.loadParticipants(t.id),
+          TeamsRepository.loadTournamentTeams(t.id),
+          MatchRepository.loadMatches(t.id),
+        ]);
         setPlayers(ps);
         setParticipants(parts);
         setTeams(ts);
@@ -148,15 +191,26 @@ export function TournamentProvider({
         silent ? setRefreshing(false) : setInitialLoading(false);
       }
     },
-    [tournamentId, user?.id, user?.role]
+    [slug, user?.id, user?.role]
   );
 
   // первичная загрузка
   useEffect(() => {
     if (needInitialFetch && !userLoading) {
-      void reload(); // НЕ silent — показываем спиннер
+      void reload();
     }
   }, [needInitialFetch, userLoading, reload]);
+
+  // гарантируем наличие id перед мутациями
+  const requireTid = useCallback(async (): Promise<number> => {
+    if (tournamentId != null) return tournamentId;
+    await reload({ silent: true });
+    const tid = (tournament?.id ?? null);
+    if (tid == null) {
+      throw new Error("Турнир не загружен: не удалось определить tournamentId");
+    }
+    return tid;
+  }, [tournamentId, reload, tournament]);
 
   // ---- Мутации матчей (старая ветка) ----
   const addMatch = useCallback(
@@ -178,7 +232,6 @@ export function TournamentProvider({
             roundIndex: args.roundIndex ?? null,
           }
         );
-        // медленный путь — полный silent reload
         await reload({ silent: true });
       } finally {
         setMutating(false);
@@ -192,7 +245,6 @@ export function TournamentProvider({
       setMutating(true);
       try {
         const saved = await MatchRepository.updateMatch(m);
-        // быстрый локальный патч без reload
         setMatches((prev) => prev.map((x) => (x.id === saved.id ? saved : x)));
       } finally {
         setMutating(false);
@@ -206,7 +258,6 @@ export function TournamentProvider({
       setMutating(true);
       try {
         await MatchRepository.deleteMatch(m);
-        // быстрый локальный патч без reload
         setMatches((prev) => prev.filter((x) => x.id !== m.id));
       } finally {
         setMutating(false);
@@ -215,18 +266,19 @@ export function TournamentProvider({
     []
   );
 
-  // ---- Прочие мутации (оставил reload: они реже и затрагивают много сущностей) ----
+  // ---- Прочие мутации ----
   const addPlayerToTournament = useCallback(
     async (playerId: number) => {
       setMutating(true);
       try {
-        await TournamentsRepository.addPlayer(tournamentId, playerId);
+        const tid = await requireTid();
+        await TournamentsRepository.addPlayer(tid, playerId);
         await reload({ silent: true });
       } finally {
         setMutating(false);
       }
     },
-    [tournamentId, reload]
+    [requireTid, reload]
   );
 
   const removeTeam = useCallback(
@@ -275,13 +327,14 @@ export function TournamentProvider({
     async (teamId: number) => {
       setMutating(true);
       try {
-        await TournamentsRepository.addTeam(tournamentId, teamId);
+        const tid = await requireTid();
+        await TournamentsRepository.addTeam(tid, teamId);
         await reload({ silent: true });
       } finally {
         setMutating(false);
       }
     },
-    [tournamentId, reload]
+    [requireTid, reload]
   );
 
   /** Массовое обновление позиций (используется dnd в PyramidView). */
@@ -290,7 +343,6 @@ export function TournamentProvider({
       setMutating(true);
       try {
         await TournamentsRepository.updatePositions(next);
-        // быстро апдейтим локально без полного рефетча:
         setParticipants(next.map((p) => p));
       } finally {
         setMutating(false);
@@ -304,8 +356,10 @@ export function TournamentProvider({
     async (args: AddMatchAndMaybeSwapArgs) => {
       setMutating(true);
       try {
+        const tid = await requireTid();
+
         const matchId = await TournamentsRepository.addMatchAndMaybeSwap({
-          tournamentId,
+          tournamentId: tid,
           isSingle: tournament?.isSingle() ?? true,
           aId: args.aId,
           bId: args.bId,
@@ -319,21 +373,16 @@ export function TournamentProvider({
           doSwap: args.doSwap,
         });
 
-        console.log("[TP] addMatchAndMaybeSwap result:", { matchId, ...args });
-
         const isSingle = tournament?.isSingle() ?? true;
 
-        // найдём участников по player/team id
         const findPartByEntityId = (entityId: number) =>
           participants.find((p) => p.getId === entityId);
 
         const aPart = findPartByEntityId(args.aId);
         const bPart = findPartByEntityId(args.bId);
 
-        // временный id, если сервер не вернул реальный
         const tempId = matchId ?? -Date.now();
 
-        // создаём полноценный экземпляр Match — важно передать player/team объекты!
         const optimistic = new Match(
           tempId,
           (isSingle ? "single" : "double") as any,
@@ -345,15 +394,12 @@ export function TournamentProvider({
           !isSingle ? aPart?.team   : undefined,
           !isSingle ? bPart?.team   : undefined
         );
-        // если используете фазовые поля
         (optimistic as any).phase      = args.phase ?? null;
         (optimistic as any).groupIndex = args.groupIndex ?? null;
         (optimistic as any).roundIndex = args.roundIndex ?? null;
 
-        // 1) ВСЕГДА добавляем матч в состояние — это триггерит перерисовку PyramidView
         setMatches((prev) => [...prev, optimistic]);
 
-        // 2) Локальный свап позиций (как было)
         if (args.doSwap && args.winnerId && args.loserId) {
           setParticipants((prev) => {
             const pid = (p: Participant) => p.player?.id ?? p.team?.id ?? 0;
@@ -372,7 +418,6 @@ export function TournamentProvider({
           });
         }
 
-        // 3) Если id не пришёл — подтянем с сервера «настоящий» матч тихим рефрешем
         if (!matchId) {
           setTimeout(() => void reload({ silent: true }), 0);
         }
@@ -380,9 +425,8 @@ export function TournamentProvider({
         setMutating(false);
       }
     },
-    [tournamentId, tournament, participants]
+    [requireTid, tournament, participants, reload]
   );
-
 
   const value = useMemo<TournamentContextShape>(
     () => ({
@@ -392,6 +436,8 @@ export function TournamentProvider({
       mutating,
 
       tournamentId,
+      slug,
+
       tournament,
       players,
       participants,
@@ -420,6 +466,7 @@ export function TournamentProvider({
       refreshing,
       mutating,
       tournamentId,
+      slug,
       tournament,
       players,
       participants,

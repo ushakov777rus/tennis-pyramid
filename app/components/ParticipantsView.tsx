@@ -2,7 +2,7 @@
 
 import "@/app/components/ParticipantsView.css";
 
-import { useTournament } from "@/app/tournaments/[id]/TournamentProvider";
+import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 import { useMemo, useState } from "react";
 import { Player } from "../models/Player";
 import { CreateTeamIconButton, DeleteIconButton, PlusIconButton } from "./IconButtons";

@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
-import { Tournament } from "@/app/models/Tournament";
+import { Tournament, TournamentFormat, TournamentStatus, TournamentType } from "@/app/models/Tournament";
 
 import { Participant } from "@/app/models/Participant";
 import { TournamentCreateInput } from "@/app/models/Tournament";
@@ -8,7 +8,92 @@ import { Team } from "@/app/models/Team";
 import { PlayersRepository } from "./PlayersRepository";
 import { UserRole } from "../models/Users";
 
+
+
+
+
+
+
+export type TournamentPlain = {
+  id: number;
+  name: string;
+  format: string;
+  start_date: string | null;
+  end_date: string | null;
+  status: string;
+  tournament_type: string;
+  is_public: boolean;
+  creator_id: number;
+  slug: string;
+  settings?: any;
+};
+
+
+
+
 export class TournamentsRepository {
+
+  static async loadParticipantsBySlug(slug: string) {
+    const { data, error } = await supabase
+      .from("tournaments")
+      .select("id, participants:participants(*)") // пример: джоин по slug
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (error || !data) return [];
+    return data.participants;
+  }
+
+  static async getBySlug(slug: string): Promise<TournamentPlain | null> {
+    const { data, error } = await supabase
+      .from("tournaments")
+      .select(
+        "id, name, format, start_date, end_date, status, tournament_type, is_public, creator_id, slug, settings"
+      )
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (error) {
+      console.error("TournamentsRepository.getBySlug:", error);
+      return null;
+    }
+    if (!data) return null;
+
+    // ВАЖНО: возвращаем именно plain-object
+    return {
+      id: data.id,
+      name: data.name,
+      format: data.format,
+      start_date: data.start_date,
+      end_date: data.end_date,
+      status: data.status,
+      tournament_type: data.tournament_type,
+      is_public: data.is_public,
+      creator_id: data.creator_id,
+      slug: data.slug,
+      settings: data.settings,
+    };
+  }
+
+
+
+  static async loadAllSlugs(): Promise<{ slug: string; updatedAt?: string }[]> {
+    const { data, error } = await supabase
+      .from("tournaments")
+      .select("slug, updated_at")
+      .eq("is_public", true); // ⚠️ фильтруем только опубликованные
+
+    if (error) {
+      console.error("TournamentsRepository.loadAllSlugs:", error);
+      return [];
+    }
+
+    return data.map((t) => ({
+      slug: t.slug,
+      updatedAt: t.updated_at,
+    }));
+  }
+
   /** Загрузить все турниры */
   static async loadAll(): Promise<Tournament[]> {
     const { data, error } = await supabase.from("tournaments").select("*").order("start_date", { ascending: true });
@@ -28,6 +113,7 @@ export class TournamentsRepository {
           row.end_date,
           row.is_public,
           row.creator_id,
+          row.slug,
           row.settings
         )
     );
@@ -54,6 +140,7 @@ export class TournamentsRepository {
             row.end_date,
             row.is_public,
             row.creator_id,
+            row.slug,
             row.settings
           )
       );
@@ -79,6 +166,7 @@ export class TournamentsRepository {
             row.end_date,
             row.is_public,
             row.creator_id,
+            row.slug,
             row.settings
           )
       );
@@ -102,6 +190,7 @@ export class TournamentsRepository {
             row.end_date,
             row.is_public,
             row.creator_id,
+            row.slug,
             row.settings
           )
       );
@@ -127,6 +216,7 @@ export class TournamentsRepository {
             row.end_date,
             row.is_public,
             row.creator_id,
+            row.slug,
             row.settings
           )
       );
@@ -162,6 +252,7 @@ export class TournamentsRepository {
           row.end_date,
           row.is_public,
           row.creator_id,
+          row.slug,
           row.settings
         )
     );
@@ -185,6 +276,7 @@ export class TournamentsRepository {
           data.end_date,
           data.is_public,
           data.creator_id,
+          data.slug,
           data.settings
         )
       : null;
@@ -204,6 +296,7 @@ export class TournamentsRepository {
       data.end_date,
       data.creator_id,
       data.is_public,
+      data.slug,
       data.settings
     );
   }
@@ -414,7 +507,9 @@ export class TournamentsRepository {
             row.start_date,
             row.end_date,
             row.is_public,
-            row.creator_id
+            row.creator_id,
+            row.slug,
+            row.settings
           )
       );
     } catch (e) {
@@ -465,4 +560,10 @@ export class TournamentsRepository {
     if (error) throw error;
     return data?.[0]?.match_id as number | undefined;
   }
+}
+
+
+// хелпер, чтобы везде генерировать ссылки единообразно
+export function tournamentUrl(t: { slug: string }) {
+  return `/tournaments/${t.slug}`;
 }
