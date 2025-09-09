@@ -183,7 +183,7 @@ function formatPhone(phone: string) {
   const digits = phone.replace(/\D/g, "");
   if (digits.length < 10) return phone;
   const tail = digits.slice(-10);
-  return `+${digits.slice(0, digits.length - 10)} (${tail.slice(0, 3)}) ${tail.slice(3, 6)}-${tail.slice(6, 8)}-${tail.slice(8)}`.replace(
+  return `+7${digits.slice(0, digits.length - 10)} (${tail.slice(0, 3)}) ${tail.slice(3, 6)}-${tail.slice(6, 8)}-${tail.slice(8)}`.replace(
     /\(\)/,
     ""
   );

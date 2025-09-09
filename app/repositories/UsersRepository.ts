@@ -35,36 +35,92 @@ export class UsersRepository {
   }
 
   /** Зарегистрировать пользователя и, если роль player, создать привязанного игрока */
-  static async register(payload: RegisterPayload): Promise<RegisterResult> {
-    const nickname = payload.nickname?.trim();
-    const fullName = payload.fullName.trim();
+static async register(payload: RegisterPayload): Promise<RegisterResult> {
+  const nickname = payload.nickname?.trim();
+  const fullName = payload.fullName.trim();
 
-    // 1) создаём пользователя
-    const { data: newUser, error: uerror } = await supabase
-      .from("users")
-      .insert({
-        name: nickname && nickname.length > 0 ? nickname : fullName,
-        role: payload.role,
-        auth_user_id: payload.auth_id
-      })
-      .select("id, name, role")
-      .single();
+  // helper: берём последние 10 цифр (без +7/8 и любых разделителей)
+  const norm10 = (phone?: string | null): string | null => {
+    if (!phone) return null;
+    const digits = phone.replace(/\D/g, "");
+    if (!digits) return null;
+    return digits.slice(-10); // последние 10 цифр
+  };
 
-    if (uerror || !newUser) {
-      console.error("UsersRepository.register: cannot insert user:", uerror);
-      throw new Error("USER_CREATE_FAILED");
+  // 1) создаём пользователя
+  const { data: newUser, error: uerror } = await supabase
+    .from("users")
+    .insert({
+      name: nickname && nickname.length > 0 ? nickname : fullName,
+      role: payload.role,
+      auth_user_id: payload.auth_id,
+    })
+    .select("id, name, role")
+    .single();
+
+  if (uerror || !newUser) {
+    console.error("UsersRepository.register: cannot insert user:", uerror);
+    throw new Error("USER_CREATE_FAILED");
+  }
+
+  console.log("User created", payload);
+
+  let playerId: number | null = null;
+
+  // 2) если роль предполагает профиль игрока — пытаемся найти существующего по телефону
+  if (payload.role === UserRole.Player || payload.role === UserRole.TournamentAdmin) {
+    const wanted10 = norm10(payload.phone);
+
+    console.log("Lookup by phone", wanted10);
+
+    let linkedExisting = false;
+
+    if (wanted10) {
+      // предварительный поиск по "хвосту" (на уровне БД),
+      // затем точная проверка нормализацией на клиенте
+      const { data: candidates, error: serror } = await supabase
+        .from("players")
+        .select("id, user_id, phone")
+        .eq("phone", wanted10);
+
+      console.log("Candidates for linking", candidates);
+
+      if (!serror && candidates && candidates.length > 0) {
+        const exact = candidates.find((p) => norm10(p.phone) === wanted10);
+
+        console.log("Exact", exact);
+
+        if (exact) {
+          // если у найденного нет user_id — привяжем
+          if (!exact.user_id) {
+            const { error: uperr } = await supabase
+              .from("players")
+              .update({ user_id: newUser.id })
+              .eq("id", exact.id);
+
+            if (uperr) {
+              console.error("UsersRepository.register: cannot link existing player:", uperr);
+              // падаем назад к созданию нового игрока
+            } else {
+              playerId = exact.id;
+              linkedExisting = true;
+              console.log("Linked success");
+            }
+          } else {
+            // у найденного уже есть user_id — не трогаем, создадим нового игрока ниже
+          }
+        }
+      }
     }
 
-    let playerId: number | null = null;
-
-    // 2) если роль player — создаём players
-    if (payload.role === UserRole.Player || payload.role === UserRole.TournamentAdmin) {
+    // если не привязали существующего — создаём нового
+    if (!linkedExisting) {
       const { data: newPlayer, error: perror } = await supabase
         .from("players")
         .insert({
           name: fullName,
           user_id: newUser.id,
-          phone: payload.phone ?? null,
+          phone: payload.phone ?? null, // храним как ввели (можно сохранять и нормализовано — на твой вкус)
           ntrp: payload.ntrp ?? null,
         })
         .select("id")
@@ -76,11 +132,17 @@ export class UsersRepository {
       }
       playerId = newPlayer.id;
     }
-
-    return {
-      user: { id: newUser.id, name: newUser.name, role: newUser.role as UserRole, player_id: playerId },
-    };
   }
+
+  return {
+    user: {
+      id: newUser.id,
+      name: newUser.name,
+      role: newUser.role as UserRole,
+      player_id: playerId,
+    },
+  };
+}
 
   /** ================== Остальные методы (как у тебя были) ================== */
 
