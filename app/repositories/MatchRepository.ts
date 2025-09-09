@@ -39,7 +39,9 @@ export class MatchRepository {
           row.tournaments.start_date,
           row.tournaments.end_date,
           row.tournaments.is_public,
-          row.tournaments.creator_id
+          row.tournaments.creator_id,
+          row.tournaments.slug,
+          row.tournaments.settings
         )
       : undefined;
 
