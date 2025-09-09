@@ -6,6 +6,8 @@ import { CustomSelect } from "@/app/components/CustomSelect";
 import { SaveIconButton } from "./IconButtons";
 import { Match } from "../models/Match";
 
+import "./AddMatchCard.css"
+
 type Option = { value: number; label: string };
 
 type AddMatchCardProps = {
@@ -74,52 +76,54 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
     };
 
     return (
-      <div className="card card-controls sticky-add-match-card">
-        <CustomSelect
-          className="input card-filter-controls"
-          options={options}
-          value={selectedIds[0] ?? null}
-          placeholder="-- Нападение --"
-          disabled={isAnon || isPlayerWithFixedAttacker}
-          onChange={onChangeAttacker}
-          sort={true}
-        />
+      <div className="card add-match-card">
+          <CustomSelect
+            className="input"
+            options={options}
+            value={selectedIds[0] ?? null}
+            placeholder="-- Нападение --"
+            disabled={isAnon || isPlayerWithFixedAttacker}
+            onChange={onChangeAttacker}
+            sort={true}
+          />
 
-        <CustomSelect
-          className="input card-filter-controls"
-          options={options}
-          value={selectedIds[1] ?? null}
-          placeholder="-- Защита --"
-          disabled={isAnon}
-          onChange={onChangeDefender}
-          sort={true}
-        />
+          <CustomSelect
+            className="input"
+            options={options}
+            value={selectedIds[1] ?? null}
+            placeholder="-- Защита --"
+            disabled={isAnon}
+            onChange={onChangeDefender}
+            sort={true}
+          />
 
-        <input
-          type="date"
-          value={matchDate}
-          onChange={(e) => setMatchDate(e.target.value)}
-          className="input card-filter-controls-date"
-        />
+          <input
+            type="date"
+            value={matchDate}
+            onChange={(e) => setMatchDate(e.target.value)}
+            className="input date"
+          />
 
-        <input
-          type="text"
-          placeholder="6-4, 4-6, 11-8"
-          value={matchScore}
-          onChange={(e) => {
-            setMatchScore(e.target.value);
-            if (scoreError) setScoreError(false);
-          }}
-          className={`input card-filter-controls ${scoreError ? "input-error" : ""}`}
-        />
+          <div>
+            <input
+              type="text"
+              placeholder="6-4, 4-6, 11-8"
+              value={matchScore}
+              onChange={(e) => {
+                setMatchScore(e.target.value);
+                if (scoreError) setScoreError(false);
+              }}
+              className={`input ${scoreError ? "input-error" : ""}`}
+            />
 
-        <SaveIconButton
-          className="lg"
-          title="Сохранить счёт"
-          aria-label="Сохранить счёт"
-          onClick={handleSave}
-          disabled={false}
-        />
+            <SaveIconButton
+              className="lg"
+              title="Сохранить счёт"
+              aria-label="Сохранить счёт"
+              onClick={handleSave}
+              disabled={false}
+            />
+          </div>
       </div>
     );
   }

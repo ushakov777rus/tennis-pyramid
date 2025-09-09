@@ -37,6 +37,10 @@
   color: #9ca3af;
 }
 
+.cs-value {
+  white-space: pre;
+}
+
 .cs-caret {
   margin-left: 8px;
   transform: translateY(1px);

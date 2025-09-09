@@ -1,0 +1,62 @@
+.add-match-card {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ====== МОБИЛКА: 2 строки × 2 ячейки ====== */
+@media (max-width: 600px) {
+  .add-match-card {
+    grid-template-columns: 1fr 1fr;               /* левая и правая колонка */
+    grid-template-areas:
+      "att defender"                              /* 1-я строка */
+      "date right";                               /* 2-я строка */
+  }
+
+  /* расставляем детей по областям по порядку в разметке */
+  .add-match-card > *:nth-child(1) { grid-area: att; }     /* CustomSelect — Нападение */
+  .add-match-card > *:nth-child(2) { grid-area: defender;} /* CustomSelect — Защита */
+  .add-match-card > *:nth-child(3) { grid-area: date; }    /* input date */
+  .add-match-card > div:last-child {                       /* обёртка (счёт+кнопка) */
+    grid-area: right;
+    display: grid;
+    grid-template-columns: 1fr auto; /* счёт тянется, кнопка авто */
+    gap: 8px;
+    align-items: center;
+    min-width: 0;
+  }
+
+  /* чтобы поля тянулись и не раздвигали сетку на iPhone */
+  .add-match-card .input { width: 100%; min-width: 0; }
+  .add-match-card input[type="date"],
+  .add-match-card input[type="text"] {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .add-match-card input[type="date"] {
+    max-width: 90%;
+  }
+
+  /* кнопка вправо */
+  .add-match-card .save { justify-self: end; }
+}
+
+/* ====== ДЕСКТОП: всё в одну строку ====== */
+@media (min-width: 601px) {
+  .add-match-card {
+    grid-template-columns: 1fr 1fr 1fr 1fr auto;
+  }
+
+  /* расплющиваем правую обёртку, чтобы счёт и кнопка стали соседями */
+  .add-match-card > div:last-child { display: contents; }
+
+  /* позиционируем элементы по колонкам */
+  .add-match-card > *:nth-child(1) { grid-column: 1; } /* Нападение */
+  .add-match-card > *:nth-child(2) { grid-column: 2; } /* Защита   */
+  .add-match-card > *:nth-child(3) { grid-column: 3; } /* Дата     */
+  .add-match-card .score           { grid-column: 4; min-width: 0; }
+  .add-match-card .save            { grid-column: 5; justify-self: end; }
+}
