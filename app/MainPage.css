@@ -20,8 +20,17 @@
 
 /* Секции */
 .section {
-  margin-bottom: 20px;
+  padding:20px;
 }
+
+.section h2 {
+  margin-bottom: 1rem; /* или любое значение */
+}
+
+.section p {
+  margin-bottom: 1rem; /* или любое значение */
+}
+
 
 .section-title {
   font-size: 16px;
@@ -38,7 +47,7 @@
     display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin: 0 auto;
+  margin: 20px auto;
   gap: 20px;
 
   flex-direction: row;

@@ -1,17 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 
 import { UserRole } from "./models/Users";
 
 import { NavigationBar } from "@/app/components/NavigationBar";
 import { AuthContainer } from "@/app/components/AuthContainer";
 
-
 import { MatchRepository } from "./repositories/MatchRepository";
 import { PlayersRepository } from "./repositories/PlayersRepository";
 import { TournamentsRepository } from "./repositories/TournamentsRepository";
 
+import Script from "next/script";
 import "./MainPage.css";
 
 type Stat = { label: string; value: number | string };
@@ -67,8 +68,8 @@ export default function HomePage() {
     async function loadStats() {
       try {
         const m = await MatchRepository.countAll();
-        const p = await PlayersRepository.countAll()
-        const t = await TournamentsRepository.countAll()
+        const p = await PlayersRepository.countAll();
+        const t = await TournamentsRepository.countAll();
 
         if (!alive) return;
 
@@ -109,20 +110,84 @@ export default function HomePage() {
     { icon: IconUser,     label: "ЛИЧНЫЕ КАБИНЕТЫ" },
   ];
 
+  // JSON-LD FAQ
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Можно ли бесплатно создать турнирную сетку онлайн?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Да. В HoneyCup есть бесплатный генератор турнирной сетки онлайн для любительских соревнований."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Какие форматы турнирных сеток поддерживаются?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Круговая система, олимпийка (single elimination), пирамида и другие варианты. Поддерживается настройка под конкретные правила клуба."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Подходит ли платформа для настольного тенниса и падела?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Да. HoneyCup подходит для большого и настольного тенниса, падела и бадминтона."
+        }
+      }
+    ]
+  };
+
+  // JSON-LD Breadcrumbs (Home)
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Главная",
+        "item": "https://honeycup.ru/"
+      }
+    ]
+  };
+
   return (
     <div className="page-container">
+      {/* JSON-LD вставляем через Script (SEO) */}
+      <Script
+        id="ld-faq"
+        type="application/ld+json"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <Script
+        id="ld-breadcrumbs"
+        type="application/ld+json"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
       <NavigationBar />
-      <h1 className="page-title">Турнирная платформа для большого тенниса</h1>
+
+      {/* H1 содержит главную ключевую группу, но читабельно */}
+      <h1 className="page-title">
+        Платформа для проведения любительских теннисных турниров
+      </h1>
 
       <main className="page-content-container">
-        {/* Картинка */}
-        <section className="card" style={{ padding: "0px" }}>
-          <div className="tennis-hero">
-            <span>Погрузись в мир большого тенниса</span>
+        {/* Hero: изображение с alt и приоритетом (если есть /hero.png) */}
+        <section className="card" style={{ padding: 0 }}>
+          <div className="tennis-hero" style={{ position: "relative", width: "100%", height: "260px" }}>
+            <span className="tennis-hero__title">Погрузись в мир большого тенниса</span>
           </div>
         </section>
 
-        {/* Шапка/заголовок */}
+        {/* Вступительный абзац (важно для SEO — первые 100–150 слов) */}
         <section className="about__head">
           <div className="about__grid">
             <div className="about__stats">
@@ -135,55 +200,101 @@ export default function HomePage() {
             </div>
 
             <div className="card" style={{ height: "100%", display: "flex", alignItems: "center", padding: "20px" }}>
-              Honey Cup — технологическая платформа для проведения
-              турниров и сбора статистики. Мы поддерживаем самые разнообразные форматы турниров,
-              крупные соревнования и локальные лиги и клубы — это вовлекает больше игроков и болельщиков.
+              <p>
+              HoneyCup — турнирная платформа для тенниса. Создавайте и ведите любительские турниры, 
+              используйте генератор турнирной сетки онлайн, публикуйте расписание и результаты, 
+              собирайте статистику и рейтинги, ведите историю матчей. Поддерживаем популярные форматы: 
+              круговая система, олимпийка и пирамида.
+              </p>
             </div>
           </div>
         </section>
 
-        {/* Фичи */}
+        {/* Блок с фичами */}
         <section className="about__features card">
           {features.map((f) => (
             <div key={f.label} className="about__feature">
-              <div className="about__icon">{f.icon}</div>
+              <div className="about__icon" aria-hidden="true">{f.icon}</div>
               <div className="about__featureLabel">{f.label}</div>
             </div>
           ))}
         </section>
 
-        <section>
-          <section className="section">
-            <div className="card-grid">
-              <div
-                className="card card-register clickable"
-                onClick={() => {
-                  setSignupRole(UserRole.Player);
-                  setIsLoginOpen(true);
-                }}
-              >
-                <div className="card-icon">🏅</div>
-                Зарегистрироваться как участник
-                <div className="badge badge-register">
-                  Участвуй в турнирах, прокачивайся, побеждай, попади в рейтинг лучших
-                </div>
-              </div>
+        {/* SEO-блоки с H2 и вкраплением твоих ключей (естественно, без переспама) */}
+        <section className="section card" id="generator">
+          <h2>Турнирная сетка за 2 минуты</h2>
+          <p>
+            Запустите турнир без рутины: наш онлайн-генератор бесплатно создаст сетку, распределит участников и подготовит схему к печати и экспорту. Работает для тенниса и других ракеточных видов спорта.
+          </p>
+          <ul className="bullet-list">
+            <li>•	Бесплатный генератор турнирных сеток онлайн</li>
+            <li>•	Быстрое составление и удобная печать</li>
+            <li>•	Форматы: круговая, олимпийка (single elimination), пирамида</li>
+          </ul>
+        </section>
 
-              <div
-                className="card card-register clickable"
-                onClick={() => {
-                  setSignupRole(UserRole.TournamentAdmin);
-                  setIsLoginOpen(true);
-                }} // 👈 дергаем проп
-              >
-                <div className="card-icon">🏆</div>
-                Зарегистрироваться как организатор
-                <div className="badge badge-register">
-                  Организовывай турниры, выбирай любой формат, управляй матчами и следи за результатами
-                </div>
+        <section className="section card" id="tennis-platform">
+          <h2>Организация турниров по теннису онлайн</h2>
+          <p>
+            HoneyCup помогает клубам и тренерам запускать и вести любительские теннисные турниры:
+            регистрация участников, сетки и таблицы, расписание, онлайн-табло, подсчёт результатов,
+            статистика игроков и рейтинги.
+          </p>
+          <ul className="bullet-list">
+            <li>•	Любительские теннисные турниры в вашем клубе</li>
+            <li>•	Онлайн-табло и публикация результатов</li>
+            <li>•	Статистика, рейтинги, история матчей</li>
+          </ul>
+        </section>
+
+        {/* CTA блоки */}
+        <section>
+          <div className="card-grid-cta">
+            <div
+              className="card card-register clickable"
+              onClick={() => {
+                setSignupRole(UserRole.Player);
+                setIsLoginOpen(true);
+              }}
+            >
+              <div className="card-icon" aria-hidden="true">🏅</div>
+              Зарегистрироваться как участник
+              <div className="badge badge-register">
+                Участвуй в турнирах, прокачивайся, побеждай, попади в рейтинг лучших
               </div>
             </div>
-          </section>
+
+            <div
+              className="card card-register clickable"
+              onClick={() => {
+                setSignupRole(UserRole.TournamentAdmin);
+                setIsLoginOpen(true);
+              }}
+            >
+              <div className="card-icon" aria-hidden="true">🏆</div>
+              Зарегистрироваться как организатор
+              <div className="badge badge-register">
+                Организовывай турниры, выбирай любой формат, управляй матчами и следи за результатами
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ для расширенных сниппетов */}
+        <section className="section card" id="faq">
+          <h2>Частые вопросы</h2>
+          <details>
+            <summary>Можно ли бесплатно создать турнирную сетку онлайн?</summary>
+            <p>Да. Базовый генератор турнирной сетки доступен бесплатно.</p>
+          </details>
+          <details>
+            <summary>Какие форматы поддерживаются?</summary>
+            <p>Круговая система, олимпийка (single elimination), пирамида и другие.</p>
+          </details>
+          <details>
+            <summary>Подходит ли платформа для настольного тенниса и падела?</summary>
+            <p>Да, HoneyCup подходит для большого и настольного тенниса, падела и бадминтона.</p>
+          </details>
         </section>
       </main>
 
