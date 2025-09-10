@@ -61,7 +61,7 @@ export default function TournamentClient() {
   const [matchDate, setMatchDate] = useState<string>(todayISO);
   const [matchScore, setMatchScore] = useState<string>("");
 
-  const [view, setView] = useState<ViewKey>("matches");
+  const [view, setView] = useState<ViewKey>("bracket");
 
   const tabs: TabItem[] = useMemo(
     () => [
@@ -299,9 +299,17 @@ export default function TournamentClient() {
           />
         </div>
 
+        {/* Контент вкладок */}
+        <div>
+          <ScrollableTabs
+            items={tabs}
+            value={view}
+            onChange={(k) => setView(k as ViewKey)}
+            ariaLabel="Разделы турнира"
+          />
 
-        {/* Добавление матча — карточка */}
-        {tournament.isPyramid() && (
+                  {/* Добавление матча — карточка */}
+        {tournament.isPyramid() && (view === "bracket" || view === "matches") && (
           <LoggedIn>
             <AddMatchCard
               options={options}
@@ -317,15 +325,6 @@ export default function TournamentClient() {
             />
           </LoggedIn>
         )}
-
-        {/* Контент вкладок */}
-        <div>
-          <ScrollableTabs
-            items={tabs}
-            value={view}
-            onChange={(k) => setView(k as ViewKey)}
-            ariaLabel="Разделы турнира"
-          />
 
           <div>
             {view === "bracket" &&             
