@@ -2,6 +2,7 @@ export enum UserRole  {
     SiteAdmin = "site_admin",
     TournamentAdmin = "tournament_admin",
     Player = "player",
+    Guest = "guest"
 }
 
 export class User {

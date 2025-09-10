@@ -5,7 +5,7 @@ import { UsersRepository } from "@/app/repositories/UsersRepository";
 
 export async function POST(req: Request) {
   try {
-    const { fullName, phone, ntrp, nickname, password, role, email } = await req.json();
+    const { fullName, phone, ntrp, password, role, email } = await req.json();
 
     if (!fullName || typeof fullName !== "string" || !fullName.trim()) {
       return NextResponse.json({ error: "Укажите имя и фамилию" }, { status: 400 });
@@ -30,7 +30,6 @@ export async function POST(req: Request) {
         data: {
           full_name: fullName,
           role,
-          nickname: nickname ?? null,
           phone: phone ?? null,
           ntrp: ntrp ?? null,
         },
@@ -52,7 +51,6 @@ export async function POST(req: Request) {
         phone,
         ntrp,
         auth_id: authId, // убедитесь, что внутри репозитория пишется в колонку auth_user_id
-        nickname: nickname ?? null,
         email,
       });
     }

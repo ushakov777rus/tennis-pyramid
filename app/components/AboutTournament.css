@@ -10,9 +10,6 @@
 .card.about-grid,
 .card.about-text,
 .card.about-contacts {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 12px;
   padding: 12px;
 }
 
@@ -85,7 +82,7 @@
 }
 @media (min-width: 1100px) {
   .about-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 .info-item {

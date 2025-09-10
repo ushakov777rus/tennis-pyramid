@@ -4,7 +4,6 @@ import { User, UserRole } from "../models/Users";
 
 export type RegisterPayload = {
   fullName: string;           // ФИО для карточки игрока
-  nickname?: string | null;   // никнейм (пойдёт в users.name, если задан)
   password?: string | null;   // ⚠️ сейчас хранится как есть (позже уберём)
   role: UserRole;             // 'player' | 'tournament_admin' | 'site_admin'
   phone?: string | null;      // если нужно, можно сохранить в players
@@ -36,7 +35,6 @@ export class UsersRepository {
 
   /** Зарегистрировать пользователя и, если роль player, создать привязанного игрока */
 static async register(payload: RegisterPayload): Promise<RegisterResult> {
-  const nickname = payload.nickname?.trim();
   const fullName = payload.fullName.trim();
 
   // helper: берём последние 10 цифр (без +7/8 и любых разделителей)
@@ -51,7 +49,7 @@ static async register(payload: RegisterPayload): Promise<RegisterResult> {
   const { data: newUser, error: uerror } = await supabase
     .from("users")
     .insert({
-      name: nickname && nickname.length > 0 ? nickname : fullName,
+      name: fullName,
       role: payload.role,
       auth_user_id: payload.auth_id,
     })

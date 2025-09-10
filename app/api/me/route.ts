@@ -47,7 +47,6 @@ const user = {
   name:
     userData?.name ||
     session.user.user_metadata.full_name ||
-    session.user.user_metadata.nickname ||
     session.user.email,
   role: userData?.role || session.user.user_metadata.role || UserRole.Player,
   player_id: userData?.players?.[0]?.id || null,

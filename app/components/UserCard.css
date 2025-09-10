@@ -1,0 +1,68 @@
+.ucard {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 16px;
+  align-items: start;
+}
+
+.ucard__title {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ucard__avatar {
+  width: 40px; height: 40px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  display: grid; place-items: center;
+  font-size: 12px; color: rgba(255,255,255,0.8);
+}
+
+.ucard__text 
+{ 
+    min-width: 0; 
+    text-align: left;
+    display: grid;
+    gap: 10px;
+}
+.ucard__name { font-weight: 600; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ucard__role { font-size: 14px; color: rgba(255,255,255,0.6) }
+
+.ucard__icons {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+    .ucard__icons {
+        margin: auto;
+    }
+
+}
+
+/* Контейнер иконки — одинаковый размер, ровные края */
+.ucard__icon {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  transition: transform .12s ease, background-color .12s ease, border-color .12s ease, opacity .12s ease;
+}
+
+.ucard__icon:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.18); }
+.ucard__icon:active { transform: scale(0.96); }
+
+/* Неактивные — без цветного фона, просто приглушаем */
+.ucard__icon--inactive {
+  opacity: .45;
+  border-color: rgba(255,255,255,0.08);
+  pointer-events: none;
+}
+
+/* Чтобы SVG не «проваливался» по baseline */
+.ucard__svgwrap { display: block; }
+.ucard__svgwrap svg { width: 18px; height: 18px; display: block; fill: currentColor; }
