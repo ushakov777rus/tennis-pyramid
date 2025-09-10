@@ -13,10 +13,6 @@ function formatDateRange(start?: string | null, end?: string | null) { /* как
 export function AboutTournament() {
   const { tournament, creator } = useTournament();
 
-  if (!tournament) {
-    return <div className="card about-card">Нет данных о турнире</div>;
-  }
-
   const {
     venue, city, surface, fee,
     format, tournament_type, categories, tags,
@@ -40,6 +36,10 @@ export function AboutTournament() {
     if (Array.isArray(tags)) arr.push(...tags);
     return arr.slice(0, 12);
   }, [format, tournament_type, surface, categories, tags]);
+
+  if (!tournament) {
+    return <div className="card about-card">Нет данных о турнире</div>;
+  }
 
   return (
     <div className="about-root">
