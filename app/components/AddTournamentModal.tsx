@@ -26,6 +26,10 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
   const [endDate, setEndDate] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  // новое: диапазон NTRP
+  const [minNTRP, setMinNTRP] = useState<number | null>(null);
+  const [maxNTRP, setMaxNTRP] = useState<number | null>(null);
+
   // доп. опции
   const [advOpen, setAdvOpen] = useState(false);
   const [pyramidMaxLevel, setPyramidMaxLevel] = useState<number>(15);
@@ -61,6 +65,8 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
     setGroupsPlayoffGroupsCount(2);
     setAdvOpen(false);
     setError(null);
+    setMinNTRP(null);
+    setMaxNTRP(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -81,6 +87,11 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
       }
     }
 
+    if (minNTRP != null && maxNTRP != null && minNTRP > maxNTRP) {
+      setError("Минимальный NTRP не может быть больше максимального");
+      return;
+    }
+
     const payload: TournamentCreateInput & { settings?: any } = {
       name: trimmed,
       format,
@@ -88,8 +99,24 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
       start_date: startDate || null,
       end_date: endDate || null,
       is_public: isPublic,
-      creator_id: 0, // заполни на сервере фактическим userId
+      creator_id: 0,
     };
+
+    payload.settings = {
+      ...payload.settings,
+      restrictions: {
+        minNTRP,
+        maxNTRP,
+      },
+    };
+
+    // Добавляем форматные настройки
+    if (format === TournamentFormat.Pyramid) {
+      payload.settings.pyramid = { maxLevel: pyramidMaxLevel };
+    }
+    if (format === TournamentFormat.GroupsPlayoff) {
+      payload.settings.groupsplayoff = { groupsCount: groupsPlayoffGroupsCount };
+    }
 
     // Добавляем настройки только для актуального формата
     if (format === TournamentFormat.Pyramid) {
@@ -208,6 +235,30 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
             className={`adv-panel ${advOpen ? "open" : ""}`}
             hidden={!advOpen}
           >
+            {/* Общие */}
+            <div className="modal-grid-2">
+              <input
+                type="number"
+                step={0.25}
+                min={0}
+                max={10}
+                value={minNTRP ?? ""}
+                onChange={(e) => setMinNTRP(e.target.value ? Number(e.target.value) : null)}
+                className="input"
+                placeholder="Мин. NTRP"
+              />
+              <input
+                type="number"
+                step={0.25}
+                min={0}
+                max={10}
+                value={maxNTRP ?? ""}
+                onChange={(e) => setMaxNTRP(e.target.value ? Number(e.target.value) : null)}
+                className="input"
+                placeholder="Макс. NTRP"
+              />
+            </div>
+
             {/* Опция для формата Пирамида */}
             {format === TournamentFormat.Pyramid && (
               <div className="adv-row">

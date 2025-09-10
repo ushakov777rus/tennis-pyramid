@@ -43,3 +43,8 @@
   gap: 8px;
   margin-bottom: 12px;
 }
+
+.adv-toggle {
+  color: #cf6;
+  cursor: pointer;
+}
