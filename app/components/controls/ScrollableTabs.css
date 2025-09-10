@@ -9,15 +9,15 @@
 /* горизонтальный скролл с маской-градиентом по краям */
 .tabs-scroll {
   display: flex;
-  /*gap: 8px;*/
   overflow-x: auto;
+  overflow-y: hidden; /* 👈 блокируем вертикальный скролл */
   overscroll-behavior-x: contain;
-  scrollbar-width: none;      /* Firefox */
-  -ms-overflow-style: none;   /* IE/Edge */
+  -webkit-overflow-scrolling: touch; /* для iOS плавность */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   padding: 0 12px;
   position: relative;
 
-  /* градиентные фейды по краям (маска) */
   -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
   mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
 }
@@ -39,6 +39,7 @@
   gap: 8px;
   cursor: pointer;
   outline: none;
+  touch-action: pan-x; /* 👈 свайпы только по горизонтали */
 }
 
 .tab-btn:is(:hover, :focus-visible) {
