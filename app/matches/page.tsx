@@ -52,8 +52,6 @@ export default function MatchListView() {
 
   return (
     <div className="page-container">
-      <NavigationBar />
-
       <h1 className="page-title">Список матчей</h1>
 
       <div className="page-content-container">

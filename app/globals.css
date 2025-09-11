@@ -113,29 +113,30 @@ body {
 }
 
 .page-title {
-  margin-bottom: 20px;
-  margin-top: 20px;
+  margin: 20px 20px;
   text-align: center;
 }
 
 
 /* Контейнер */
+/* отступ под фиксированный хедер + безопасная зона iOS */
+
 .page-container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 30px 10px;
-  background-color: #1f1f1f;
+  padding-top: calc(var(--header-height) + env(safe-area-inset-top));
+  background-color: var(--background);
   width: 100%;
 }
 
+
 .page-content-container {
-    max-width: 900px;
+    width: 100%;
     gap: 20px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     margin: 0 auto;
     font-size: 14px;
+    padding: 5px;
 }
 
 /* затемнённый фон */

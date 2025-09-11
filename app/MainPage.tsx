@@ -171,8 +171,6 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      <NavigationBar />
-
       {/* H1 содержит главную ключевую группу, но читабельно */}
       <h1 className="page-title">
         Платформа для проведения любительских теннисных турниров

@@ -15,7 +15,7 @@
   -webkit-overflow-scrolling: touch; /* для iOS плавность */
   scrollbar-width: none;
   -ms-overflow-style: none;
-  padding: 0 12px;
+  padding: 0px 12px;
   position: relative;
 
   -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
@@ -27,7 +27,7 @@
 .tab-btn {
   position: relative;
   flex: 0 0 auto;
-  height: 40px;
+  height: 30px;
   padding: 0 12px;
   border: 0;
   background: transparent;

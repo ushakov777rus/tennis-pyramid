@@ -169,7 +169,6 @@ export default function PlayerListView() {
 
   return (
     <div className="page-container">
-      <NavigationBar />
       <h1 className="page-title">Рейтинг игроков</h1>
 
       <div className="page-content-container">

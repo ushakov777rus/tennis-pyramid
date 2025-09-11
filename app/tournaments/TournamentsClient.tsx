@@ -117,8 +117,6 @@ const filtered = useMemo(() => {
 
   return (
     <div className="page-container">
-      <NavigationBar />
-
       <h1 className="page-title">Турниры</h1>
 
       <div className="page-content-container">

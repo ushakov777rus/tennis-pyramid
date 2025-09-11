@@ -1,25 +1,21 @@
-/* === Базовые стили === */
-.menu-bar {
-  position: sticky;   /* ✅ закрепляем */
-  top: 0;             /* фиксируем к верхушке окна */
-  background: #fff;   /* белый фон, чтобы перекрывать */
-  z-index: 100;       /* поверх таблицы */
+:root {
+  /* высота хедера: регулируйте в одном месте */
+  --header-height: 7rem;
+}
 
+/* ваш текущий .header */
+.header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 15px 16px;
-  background: #ccff66; /* цвет как у теннисного мяча */
-}
-
-.menu-bar a {
-  text-decoration: none;
-  font-weight: 500;
-  color: #333; /* indigo */
-}
-
-.nav-right {
-  margin-left: auto;
+  justify-content: space-around;
+  height: var(--header-height);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--background);
+  z-index: 200;
+  border-bottom: 1px solid rgba(0, 0, 0, .1);
 }
 
 .logo {
@@ -29,6 +25,7 @@
   align-self: center;
   width: 212px;
 }
+
 
 .nav {
   display: flex;
@@ -42,30 +39,31 @@
   text-decoration: none;
 }
 
+.nav a.active {
+  color: var(--green);
+  border-bottom: 2px solid var(--green-main);
+}
+
 .nav a:hover {
-  color: #fff;
+  color: var(--green);
+  text-shadow: 0 0 6px rgba(106,191,46,0.6);
+  transition: width 0.3s ease;
 }
 
-.page-menu {
-  display: grid;
-  grid-template-columns: 25% 50% 25%;
-  align-items: center; /* вертикальное выравнивание по центру */
-  max-width: 900px;
-  align-items: center;
-  margin: 0 auto;
-}
 
-.page-menu > :nth-child(1) {
+
+
+.header > :nth-child(1) {
   justify-self: start;  /* влево */
   text-align: left;
 }
 
-.page-menu > :nth-child(2) {
+.header > :nth-child(2) {
   justify-self: center; /* по центру */
   text-align: center;
 }
 
-.page-menu > :nth-child(3) {
+.header > :nth-child(3) {
   justify-self: end;    /* вправо */
   text-align: right;
 }
@@ -79,11 +77,12 @@
     align-self: center;
   }
 
-  .page-menu {
+  .header {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+    max-width: 100%;
   }
 
   .logo {

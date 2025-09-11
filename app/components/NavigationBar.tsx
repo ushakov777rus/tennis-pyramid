@@ -7,10 +7,17 @@ import { UserBadge } from "@/app/components/UserBadge";
 import "./NavigationBar.css";
 
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 export function NavigationBar() {
+  const pathname = usePathname();
+
+  function isActive(href: string) {
+    return pathname === href || pathname.startsWith(href + "/");
+  }
+ 
   return (
-    <header className="page-menu">
+    <header className="header">
       <div className="logo">
         <Link href="/">
           <Image
@@ -23,10 +30,11 @@ export function NavigationBar() {
         </Link>
       </div>
       <nav className="nav">
-        <Link href="/">Главная</Link>
-        <Link href="/tournaments">Турниры</Link>
-        <Link href="/rating">Игроки</Link>
-        <Link href="/matches">Матчи</Link>
+        <Link href="/" className={isActive("/") ? "active" : ""}>Главная</Link>
+        <Link href="/tournaments" className={isActive("/tournaments") ? "active" : ""}>Турниры</Link>
+        <Link href="/clubs" className={isActive("/clubs") ? "active" : ""}>Клубы</Link>
+        <Link href="/rating" className={isActive("/rating") ? "active" : ""}>Игроки</Link>
+        <Link href="/matches" className={isActive("/matches") ? "active" : ""}>Матчи</Link>
       </nav>
       <UserBadge />
     </header>

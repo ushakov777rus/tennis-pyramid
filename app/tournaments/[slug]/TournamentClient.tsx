@@ -286,7 +286,6 @@ export default function TournamentClient() {
 
   return (
     <div className="page-container">
-      <NavigationBar />
       <h1 className="page-title">{tournament.name}</h1>
 
       <div className="page-content-container">
