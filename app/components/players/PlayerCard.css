@@ -1,0 +1,111 @@
+.match-card-player-row {
+    display: flex;
+}
+
+
+/* MatchCard.css — стиль карточки матча */
+
+/* контейнер */
+.card.match-card {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  padding: 12px;
+}
+
+/* шапка */
+.match-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.match-card-bottom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+
+.match-card-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  flex: 1;
+}
+
+.match-card-date {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+/* тело */
+.player-card-body {
+  display: grid;
+  gap: 8px;
+}
+
+.player-card-stats {
+  display: grid;
+}
+
+/* строка: аватар | игрок | S1 | S2 | S3 ... */
+.player-card-first-row {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.06);
+}
+
+.player-card-second-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.06);
+}
+
+/* ячейки */
+.cell { min-width: 0; }
+.cell--player {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cell--set {
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.85;
+}
+.cell--score {
+  text-align: center;
+
+  font-size: 15px;
+}
+
+/* hover для всей карточки */
+.card.match-card:hover {
+  border-color: rgba(204,255,102,0.35);
+  transform: translateY(-1px);
+  transition: 120ms ease;
+}
+
+/* адаптив */
+@media (max-width: 480px) {
+  .match-card-row {
+    grid-template-columns: 40px 1fr repeat(var(--sets-count, 3), 20px);
+  }
+  .cell--score { font-size: 14px; }
+}
+
+.cell--score.winner {
+  color: var(--green);
+  font-weight: 700;
+}
+

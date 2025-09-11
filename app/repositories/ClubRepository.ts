@@ -7,40 +7,65 @@ export type Club = {
   description: string | null;
   city: string | null;
   logo_url: string | null;
-  members_count: number | null;
+  members_count: number | null;   // из view club_stats
   created_at: string;
   updated_at: string;
 };
 
+export type ClubCreateInput = {
+  name: string;
+  slug: string;
+  city?: string | null;
+  description?: string | null;
+  logo_url?: string | null;
+};
+
 export class ClubsRepository {
-  // Получить список клубов с пагинацией/поиском
-  static async list(params?: { search?: string; limit?: number; offset?: number }): Promise<Club[]> {
-    const limit = params?.limit ?? 20;
-    const offset = params?.offset ?? 0;
-    const search = (params?.search ?? "").trim();
-
-    let query = supabase.from("club_stats").select("*").order("created_at", { ascending: false }).range(offset, offset + limit - 1);
-
-    if (search.length > 0) {
-      // простой поиск по имени/городу
-      query = query.ilike("name", `%${search}%`);
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      console.error("ClubsRepository.list error:", error);
-      return [];
-    }
-    return (data as Club[]) ?? [];
+  static async loadAll(): Promise<Club[]> {
+    const { data, error } = await supabase
+      .from("club_stats")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as Club[];
   }
 
-  // Получить клуб по slug
-  static async getBySlug(slug: string): Promise<Club | null> {
-    const { data, error } = await supabase.from("club_stats").select("*").eq("slug", slug).single();
-    if (error) {
-      console.error("ClubsRepository.getBySlug error:", error);
-      return null;
+  static async search(params?: { q?: string }): Promise<Club[]> {
+    const q = (params?.q ?? "").trim();
+    let query = supabase.from("club_stats").select("*").order("created_at", { ascending: false });
+    if (q.length) {
+      query = query.or(`name.ilike.%${q}%,city.ilike.%${q}%`);
     }
-    return data as Club;
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data ?? []) as Club[];
+  }
+
+  static async create(input: ClubCreateInput): Promise<Club> {
+    const { data, error } = await supabase
+      .from("clubs")
+      .insert({
+        name: input.name,
+        slug: input.slug,
+        city: input.city ?? null,
+        description: input.description ?? null,
+        logo_url: input.logo_url ?? null
+      })
+      .select("id, slug, name, description, city, logo_url, created_at, updated_at")
+      .single();
+    if (error) throw error;
+
+    // дотягиваем members_count из вьюхи
+    const { data: v } = await supabase.from("club_stats").select("*").eq("id", (data as any).id).single();
+    return (v ?? data) as Club;
+  }
+
+  static async delete(id: number): Promise<void> {
+    const { error } = await supabase.from("clubs").delete().eq("id", id);
+    if (error) throw error;
+  }
+
+  static clubUrl(c: Pick<Club, "slug">): string {
+    return `/clubs/${c.slug}`;
   }
 }

@@ -178,7 +178,7 @@ const filtered = useMemo(() => {
         {loading && <div className="card">Загрузка…</div>}
         {error && <div className="card card-error">Ошибка: {error}</div>}
 
-        <div className="card-grid">
+        <div className="card-grid-new">
           {/* Карточка создания турниров — только для админов */}
           <AdminOnly>
             <TournamentCard

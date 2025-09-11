@@ -5,11 +5,10 @@ import { useEffect, useState } from "react";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { Match } from "@/app/models/Match";
 
-import { NavigationBar } from "@/app/components/NavigationBar";
-import { MatchHistoryView } from "@/app/components/MatchHistoryView";
+import { MatchHistoryView } from "@/app/components/matches/MatchHistoryView";
 
 import "./page.css";
-import "@/app/components/MatchHistoryView.css";
+import "@/app/components/matches/MatchHistoryView.css";
 
 export default function MatchListView() {
   const [matches, setMatches] = useState<Match[]>([]);

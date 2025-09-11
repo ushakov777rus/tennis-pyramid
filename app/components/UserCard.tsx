@@ -42,7 +42,7 @@ export function UserCard({
   return (
     <div className={`ucard ${className}`}>
       <div className="ucard__title">
-        <div className="ucard__avatar">{(fullName?.[0] ?? "U").toUpperCase()}</div>
+        <div className="avatar">{(fullName?.[0] ?? "U").toUpperCase()}</div>
         <div className="ucard__text">
           <div className="ucard__role">{roleLabel(role)}</div>
           <div className="ucard__name" title={fullName}>{fullName || "—"}</div>

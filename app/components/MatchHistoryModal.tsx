@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { Match } from "@/app/models/Match";
 import { Participant } from "@/app/models/Participant";
 
-import { MatchHistoryView } from "@/app/components/MatchHistoryView";
+import { MatchHistoryView } from "@/app/components/matches/MatchHistoryView";
 
 import "@/app/components/MatchHistoryModal.css";
 

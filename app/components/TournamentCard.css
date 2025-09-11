@@ -2,42 +2,6 @@
   margin: 5px;
   line-height: 1.5; 
 }
-/*
-.tournament-details table {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.tournament-details p {
-  margin: 5px 0;
-}
-
-.tournament-details table td:nth-child(2) {
-  text-align: right;
-  white-space: nowrap; 
-  padding-right: 10px;  
-}
-
-.tournament-details table td:nth-child(1) {
-  padding-right: 5px;  
-}
-
-.tournament-details table td:nth-child(3) {
-  text-align: left;
-  white-space: nowrap; 
-  padding-right: 8px;  
-}
- */
-.big-plus {
-  font-size: 64px;
-  color: #ccff66;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  width: 100;
-  margin: 0 auto;
-}
 
 .bucket {
     color: #fff;

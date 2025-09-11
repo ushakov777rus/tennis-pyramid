@@ -1,0 +1,114 @@
+.match-card-player-row {
+    display: flex;
+}
+
+
+/* MatchCard.css — стиль карточки матча */
+
+/* контейнер */
+.card.match-card {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  padding: 12px;
+}
+
+/* шапка */
+.match-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.match-card-bottom {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+
+.match-card-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  flex: 1;
+}
+
+.match-card-date {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+/* тело */
+.match-card-body {
+  display: grid;
+  gap: 8px;
+}
+
+/* строка: аватар | игрок | S1 | S2 | S3 ... */
+.match-card-row {
+  display: grid;
+  grid-template-columns: 40px 1fr repeat(var(--sets-count, 3), 30px);
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.06);
+}
+.match-card-row:last-child { border-bottom: 0; }
+
+/* строка с заголовком колонок (S1, S2...) */
+.match-card-row--head {
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+  opacity: 0.9;
+}
+
+/* ячейки */
+.cell { min-width: 0; }
+.cell--avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--purple-bg, #EEE1FF);
+  color: #1f1f1f;
+  font-weight: 700;
+  font-size: 14px;
+}
+.cell--player {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cell--set {
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.85;
+}
+.cell--score {
+  text-align: center;
+
+  font-size: 15px;
+}
+
+/* hover для всей карточки */
+.card.match-card:hover {
+  border-color: rgba(204,255,102,0.35);
+  transform: translateY(-1px);
+  transition: 120ms ease;
+}
+
+/* адаптив */
+@media (max-width: 480px) {
+  .match-card-row {
+    grid-template-columns: 40px 1fr repeat(var(--sets-count, 3), 20px);
+  }
+  .cell--score { font-size: 14px; }
+}
+
+.cell--score.winner {
+  color: var(--green);
+  font-weight: 700;
+}
+

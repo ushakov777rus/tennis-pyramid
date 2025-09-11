@@ -15,7 +15,7 @@ import { LoggedIn } from "@/app/components/RoleGuard";
 
 import { RatingView } from "@/app/components/RatingView";
 import { MatchHistoryModal } from "@/app/components/MatchHistoryModal";
-import { MatchHistoryView } from "@/app/components/MatchHistoryView";
+import { MatchHistoryView } from "@/app/components/matches/MatchHistoryView";
 import { ParticipantsView } from "@/app/components/ParticipantsView";
 import { AddMatchCard } from "@/app/components/AddMatchCard";
 

@@ -109,6 +109,51 @@ export function DeleteIconButton(props: Omit<IconButtonProps, "children">) {
   );
 }
 
+export function CommentIconButton(props: Omit<IconButtonProps, "children">) {
+  const merged = cx("comment", props.className);
+  return (
+    <IconButton {...props} className={merged}>
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        {/* speech bubble icon */}
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
+    </IconButton>
+  );
+}
+
+export function LikeIconButton(props: Omit<IconButtonProps, "children">) {
+  const merged = cx("like", props.className);
+  return (
+    <IconButton {...props} className={merged}>
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        {/* иконка лайка (палец вверх) */}
+        <path d="M14 9V5a3 3 0 0 0-6 0v4H4v12h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-4z" />
+        <path d="M22 11h-4" />
+      </svg>
+    </IconButton>
+  );
+}
+
 /** Кнопка "Kebab" (⋮) для мобильного меню */
 export function KebabIconButton(props: Omit<IconButtonProps, "children">) {
   return (

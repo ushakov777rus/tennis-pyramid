@@ -137,6 +137,7 @@ body {
     margin: 0 auto;
     font-size: 14px;
     padding: 5px;
+    max-width: 1900px;
 }
 
 /* затемнённый фон */
@@ -167,7 +168,7 @@ body {
 }
 
 .modal-content-match-history {
-    max-width: 900px;
+    width: 900px;
 }
 
 @media (max-width: 768px) {
@@ -332,7 +333,6 @@ body {
   border-radius: 8px;
   padding: 5px;
   width: 100%;
-  max-width: 900px;
   
   text-align: center;
   box-shadow: 0 0 10px rgba(166, 255, 0, 0.1);
@@ -340,6 +340,18 @@ body {
 
   color: #ccc;
 }
+
+.card-add {
+  font-size: 64px;
+  color: #ccff66;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100;
+  margin: 0 auto;
+}
+
 
 /* Добавляем анимации и плавность */
 .card {
@@ -371,10 +383,6 @@ body {
 
 .card-font-12px {
   font-size: 12px;
-}
-
-.card-width-32p {
-  width: 32%;
 }
 
 .card-all {
@@ -634,7 +642,28 @@ button,
 }
 
 
+.avatar {
+  width: 40px; height: 40px;
+  border-radius: 999px;
+  
+  display: grid; 
+  place-items: center;
+  font-size: 12px;
 
+  color: rgb(166, 255, 0);
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+}
+
+/* победитель всего матча */
+.avatar.match-winner {
+  color: var(--green);
+  font-weight: 700;
+
+  color: rgb(166, 255, 0);
+  background: rgba(166, 255, 0, 0.1);
+  border: 1px solid rgba(166, 255, 0, 0.3);
+}
 
 .container { max-width: 1180px; margin: 0 auto; padding: 24px; }
 

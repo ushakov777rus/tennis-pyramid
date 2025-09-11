@@ -7,7 +7,7 @@ import "./PlayerProfileModal.css";
 import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
 
-import { MatchHistoryView } from "@/app/components/MatchHistoryView"
+import { MatchHistoryView } from "@/app/components/matches/MatchHistoryView"
 
 type PlayerStats = {
   wins: number;

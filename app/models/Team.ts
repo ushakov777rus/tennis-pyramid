@@ -12,7 +12,7 @@ export class Team {
     this.player2 = player2;
   }
 
-  displayName(mask: boolean): string {
+  displayName(mask: boolean = false): string {
     return mask ? maskFullName(this.player1.name) + "\n" + maskFullName(this.player2.name) : this.player1.name + "\n" + this.player2.name;
   }
   

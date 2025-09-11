@@ -127,3 +127,55 @@
   overflow: hidden;
   text-overflow: ellipsis;   /* если не помещается — три точки */
 }
+
+
+/* Стиль карточки клуба (отдельный файл) */
+.club-card {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  overflow: hidden;
+}
+.club-card-main {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 12px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+}
+.club-card:hover {
+  border-color: rgba(204,255,102,0.35);
+  transform: translateY(-1px);
+  transition: 120ms ease;
+}
+.club-card-logo {
+  width: 64px; height: 64px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  display: grid; place-items: center;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.club-card-logo img { width: 100%; height: 100%; object-fit: cover; }
+.club-card-info { min-width: 0; display: grid; gap: 4px; }
+.club-card-name { font-weight: 600; font-size: 16px; }
+.club-card-city { font-size: 14px; opacity: .85; }
+.club-card-meta { font-size: 13px; opacity: .8; }
+.club-card-desc { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.club-card-actions {
+  display: flex; justify-content: flex-end; padding: 8px 12px; gap: 8px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.club-card-delete {
+  border: 1px solid var(--red-main);
+  background: transparent;
+  color: var(--red-main);
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.club-card-delete:hover { background: var(--red-hover); color: #1f1f1f; }

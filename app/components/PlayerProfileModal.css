@@ -26,18 +26,6 @@
   margin-bottom: 16px;
 }
 
-.avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: #eaf8d0;            /* светло-зелёный в тему мяча, подправь при желании */
-  display: grid;
-  place-items: center;
-  font-weight: 700;
-  font-size: 24px;
-  letter-spacing: 0.5px;
-}
-
 .title-block { min-width: 0; }
 
 .name-row {
@@ -200,7 +188,7 @@
   .profile-header {
     grid-template-columns: 56px 1fr auto;
   }
-  .avatar { width: 56px; height: 56px; font-size: 18px; }
+  
   .stats-grid { grid-template-columns: repeat(3, 1fr); }
   .match-line { grid-template-columns: 64px 1fr max-content; }
 }
