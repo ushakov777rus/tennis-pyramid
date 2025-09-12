@@ -24,13 +24,17 @@ if (club == null) {
 
   return (
     <div className="card"  onClick={onClick} aria-label={`Открыть клуб ${club.name}`}>
+      <div className="card-head">
+        <h3>{club.name}</h3>
+        <div className="match-card-date">{club.city}</div>
+      </div>
+      
+      
       <button className="club-card-main">
         <div className="club-card-logo">
           {club.logo_url ? <img src={club.logo_url} alt={club.name} /> : <span>🏆</span>}
         </div>
         <div className="club-card-info">
-          <div className="club-card-name">{club.name}</div>
-          {club.city && <div className="club-card-city">{club.city}</div>}
           <div className="club-card-meta">Участников: {club.members_count ?? 0}</div>
           {club.description && <div className="club-card-desc" title={club.description}>{club.description}</div>}
         </div>

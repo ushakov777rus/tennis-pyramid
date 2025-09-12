@@ -793,3 +793,12 @@ button,
   max-width: 400px;
   margin: 20px auto;
 }
+
+/* шапка */
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
