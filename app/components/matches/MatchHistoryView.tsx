@@ -65,7 +65,7 @@ export function MatchHistoryView({
   return (
     <div>
       {/* Панель поиска */}
-      <div className="history-toolbar">
+      <div className="card page-toolbar">
         <input
           className="input"
           type="text"

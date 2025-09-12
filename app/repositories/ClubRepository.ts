@@ -1,20 +1,8 @@
 import { supabase } from "@/lib/supabaseClient";
-
-export type Club = {
-  id: number;
-  slug: string;
-  name: string;
-  description: string | null;
-  city: string | null;
-  logo_url: string | null;
-  members_count: number | null;   // из view club_stats
-  created_at: string;
-  updated_at: string;
-};
+import { Club } from "../models/Club";
 
 export type ClubCreateInput = {
   name: string;
-  slug: string;
   city?: string | null;
   description?: string | null;
   logo_url?: string | null;
@@ -46,7 +34,6 @@ export class ClubsRepository {
       .from("clubs")
       .insert({
         name: input.name,
-        slug: input.slug,
         city: input.city ?? null,
         description: input.description ?? null,
         logo_url: input.logo_url ?? null

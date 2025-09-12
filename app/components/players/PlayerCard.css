@@ -1,32 +1,4 @@
-.match-card-player-row {
-    display: flex;
-}
 
-
-/* MatchCard.css — стиль карточки матча */
-
-/* контейнер */
-.card.match-card {
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
-  background: rgba(255,255,255,0.02);
-  padding: 12px;
-}
-
-/* шапка */
-.match-card-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.match-card-bottom {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  justify-content: flex-end;
-}
 
 
 .match-card-title {
@@ -55,7 +27,7 @@
 /* строка: аватар | игрок | S1 | S2 | S3 ... */
 .player-card-first-row {
   display: grid;
-  grid-template-columns: 40px 1fr;
+  grid-template-columns: 50px 1fr;
   align-items: center;
   gap: 8px;
   padding: 6px 0;
@@ -64,7 +36,7 @@
 
 .player-card-second-row {
   display: grid;
-  grid-template-columns: 40px 1fr 1fr 1fr;
+  grid-template-columns: 50px 1fr 1fr 1fr;
   align-items: center;
   gap: 8px;
   padding: 6px 0;

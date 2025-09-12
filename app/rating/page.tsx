@@ -157,7 +157,7 @@ export default function PlayerListView() {
 
       <div className="page-content-container">
         {/* Панель добавления + поиск (имя используется и как строка поиска) */}
-        <div className="card players-controls">
+        <div className="card players-controls page-toolbar">
           <input
             name="player-name"
             type="text"

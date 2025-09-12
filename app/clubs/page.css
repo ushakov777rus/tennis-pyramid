@@ -2,11 +2,6 @@
 .clubs-page { max-width: 960px; margin: 0 auto; padding: 16px; }
 .clubs-title { font-size: 28px; line-height: 1.2; margin: 8px 0 16px; }
 .clubs-toolbar { display: flex; gap: 8px; margin-bottom: 16px; }
-.clubs-search {
-  flex: 1; min-height: 40px; font-size: 16px; padding: 8px 12px;
-  border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.03); color: inherit;
-}
 .clubs-btn {
   min-height: 40px; padding: 0 14px; font-size: 16px; border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.15);

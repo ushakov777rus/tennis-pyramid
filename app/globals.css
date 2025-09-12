@@ -333,12 +333,12 @@ body {
   border-radius: 8px;
   padding: 5px;
   width: 100%;
-  
   text-align: center;
   box-shadow: 0 0 10px rgba(166, 255, 0, 0.1);
   box-sizing: border-box;
-
   color: #ccc;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.2s ease-in-out;
 }
 
 .card-add {
@@ -361,14 +361,16 @@ body {
 .card:hover {
   /*transform: translateY(-5px);*/
   box-shadow: 0 0 20px rgba(166, 255, 0, 0.3);
+  border-color: rgba(204,255,102,0.35);
+  transform: translateY(-1px);
+  transition: 120ms ease;
 }
 
-.card-with-status {
-  padding: 5px 5px 5px 5px;
-}
-
-.card-250px {
-  max-width: 250px;
+.card-bottom-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-end;
 }
 
 .card-register {
@@ -655,6 +657,19 @@ button,
   border: 1px solid #3a3a3a;
 }
 
+.avatar-medium {
+  width: 50px; height: 50px;
+  border-radius: 999px;
+  
+  display: grid; 
+  place-items: center;
+  font-size: 12px;
+
+  color: rgb(166, 255, 0);
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+}
+
 /* победитель всего матча */
 .avatar.match-winner {
   color: var(--green);
@@ -767,4 +782,14 @@ button,
   font-weight: bold;
   color: #cf6;
   text-shadow: 0 0 6px rgba(0,0,0,0.8); /* для читабельности */
+}
+
+/* Панель поиска */
+.page-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+  max-width: 400px;
+  margin: 20px auto;
 }

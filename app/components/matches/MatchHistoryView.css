@@ -240,15 +240,3 @@ tr.editing { background: rgba(166, 255, 0, 0.05); }
 }
 
 
-
-/* Панель поиска */
-.history-toolbar {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-bottom: 12px;
-  max-width: 400px;
-  margin: 20px auto;
-}
-
-

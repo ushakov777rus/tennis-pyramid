@@ -23,7 +23,7 @@ export function TournamentCard({
   onClick,
   onDelete
 }: TournamentCardProps) {
-  const className = `card card-with-status ${onClick ? "clickable" : ""}`;
+  const className = `card ${onClick ? "clickable" : ""}`;
   const style: React.CSSProperties = {
     cursor: onClick ? "pointer" : "default",
   };

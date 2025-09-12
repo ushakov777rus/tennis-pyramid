@@ -46,7 +46,7 @@ export function MatchCard({ match, onClick, onDelete }: MatchCardProps) {
 
   return (
     <div
-      className="card match-card"
+      className="card"
       onClick={onClick}
       role={onClick ? "button" : undefined}
     >
@@ -114,7 +114,7 @@ export function MatchCard({ match, onClick, onDelete }: MatchCardProps) {
       </div>
 
       {/* нижняя панель с действиями */}
-      <div className="match-card-bottom">
+      <div className="card-bottom-toolbar">
         {/* кнопка лайка */}
         <LikeIconButton
           title="Поставить лайк"

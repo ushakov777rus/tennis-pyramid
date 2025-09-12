@@ -25,7 +25,7 @@ export function PlayerCard({ player, stats, onClick, onDelete }: PlayerCardProps
 
   return (
     <div
-      className="card match-card"
+      className="card"
       onClick={onClick}
       role={onClick ? "button" : undefined}
     >
@@ -34,7 +34,7 @@ export function PlayerCard({ player, stats, onClick, onDelete }: PlayerCardProps
       <div className="player-card-body">
         {/* строка игрока A */}
         <div className="player-card-first-row">
-          <div className="avatar">
+          <div className="avatar-medium">
             {(player.displayName()?.[0] ?? "U").toUpperCase()}
           </div>        
           <div className="player">
@@ -45,12 +45,12 @@ export function PlayerCard({ player, stats, onClick, onDelete }: PlayerCardProps
             <div className="badge">NTRP {Number(player.ntrp).toFixed(1)}</div>
             <div>Игр: {stats.matches ?? 0}</div>
             <div>Побед: {stats.wins ?? 0}</div>
-            <div>WinRate: {winrate(stats.winrate)}</div>
+            <div>WR: {winrate(stats.winrate)}</div>
         </div>
       </div>
 
       {/* нижняя панель с действиями */}
-      <div className="match-card-bottom">
+      <div className="card-bottom-toolbar">
         {/* кнопка лайка */}
         <LikeIconButton
           title="Поставить лайк"
