@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { ClubsRepository, Club, ClubCreateInput } from "@/app/repositories/ClubRepository";
+import { ClubsRepository, ClubCreateInput } from "@/app/repositories/ClubRepository";
+import { Club } from "../models/Club";
 
 type ClubsContextValue = {
   clubs: Club[];
@@ -43,7 +44,7 @@ export function ClubsProvider({ children }: { children: React.ReactNode }) {
     const tmpId = -Math.floor(Math.random() * 1e9);
     const optimistic: Club = {
       id: tmpId,
-      slug: p.slug,
+      slug: p.name, //TODO нужно что то сделать
       name: p.name,
       description: p.description ?? null,
       city: p.city ?? null,
