@@ -5,7 +5,7 @@ import { TournamentsClient } from "@/app/tournaments/TournamentsClient";
 export default function TournamentsPage() {
   return (
     <TournamentsProvider>
-      <TournamentsClient />
+      <TournamentsClient clubId={null}/>
     </TournamentsProvider>
   );
 }

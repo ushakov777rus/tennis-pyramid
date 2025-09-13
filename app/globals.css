@@ -127,6 +127,11 @@ body {
   width: 100%;
 }
 
+.page-container-no-padding {
+  background-color: var(--background);
+  width: 100%;
+}
+
 
 .page-content-container {
     width: 100%;

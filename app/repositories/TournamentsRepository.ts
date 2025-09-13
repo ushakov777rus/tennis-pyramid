@@ -119,6 +119,35 @@ export class TournamentsRepository {
     );
   }
 
+    /** Загрузить все турниры */
+  static async loadByClub(clubId: number): Promise<Tournament[]> {
+    const { data, error } = await supabase.
+      from("tournaments").
+      select("*").
+      eq("club_id", clubId).
+      order("start_date", { ascending: true });
+    if (error) {
+      console.error("Ошибка загрузки турниров:", error);
+      return [];
+    }
+    return (data ?? []).map(
+      (row: Tournament) =>
+        new Tournament(
+          Number(row.id),
+          row.name,
+          row.format,
+          row.status,
+          row.tournament_type,
+          row.start_date,
+          row.end_date,
+          row.is_public,
+          row.creator_id,
+          row.slug,
+          row.settings
+        )
+    );
+  }
+
   /** Вернуть турниры, доступные пользователю согласно его роли */
   static async loadAccessible(userId: number | undefined, userRole: string | undefined): Promise<Tournament[]> {
     // гости — все турниры (как у тебя сделано)

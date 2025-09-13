@@ -51,7 +51,7 @@ export function AddClubModal({ isOpen, onClose, onCreate }: Props) {
 
     const trimmed = name.trim();
     if (!trimmed) { setError("Введите название клуба"); return; }
-    if (!user) { setError("Неоходимо залогиниться"); return; }
+    if (!user) { setError("Необходимо залогиниться"); return; }
 
     const payload: ClubCreateInput = {
       name: trimmed,

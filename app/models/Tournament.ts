@@ -84,6 +84,7 @@ export type TournamentCreateInput = {
   creator_id: number;
   /** true - видят абсолютно все, false - только организатор и участники */
   is_public: boolean;
+  club_id: number | null;
   settings?: any;
 };
 

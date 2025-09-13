@@ -21,7 +21,9 @@ type TournamentsContextValue = {
 
 const TournamentsContext = createContext<TournamentsContextValue | undefined>(undefined);
 
-export function TournamentsProvider({ children }: { children: React.ReactNode }) {
+export function TournamentsProvider({ 
+  children, clubId } : 
+  { children: React.ReactNode; clubId?: number }) {
   const { user } = useUser();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +56,11 @@ const refresh = useCallback(
     if (!background) setLoading(true);
     setError(null);
     try {
-      const list = await TournamentsRepository.loadAll();
+      let list;
+      if(clubId)
+       list = await TournamentsRepository.loadByClub(clubId);
+      else
+        list = await TournamentsRepository.loadAll();
 
       // ⬇️ НЕ ЗАТИРАЕМ оптимистичные элементы (id < 0)
       setTournaments(prev => {
@@ -116,6 +122,7 @@ const createTournament = useCallback(async (p: TournamentCreateInput) => {
       status: p.status ?? TournamentStatus.Draft,
       creator_id: p.creator_id,
       is_public: p.is_public,
+      club_id: p.club_id,
       settings: p.settings
     });
 

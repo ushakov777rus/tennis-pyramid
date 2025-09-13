@@ -1,5 +1,8 @@
 "use client";
 
+import "./page.css";
+import "@/app/MainPage.css";
+
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -14,7 +17,6 @@ import {
   STATUS_OPTIONS,
 } from "@/app/models/Tournament";
 
-import { NavigationBar } from "@/app/components/NavigationBar";
 import { AdminOnly, LoggedIn, NotAdminOnly } from "@/app/components/RoleGuard";
 import { TournamentCard } from "@/app/components/TournamentCard";
 import { useUser } from "@/app/components/UserContext";
@@ -25,14 +27,15 @@ import { Tournament, TournamentCreateInput } from "@/app/models/Tournament";
 
 import { canDeleteTournament, canViewTournament } from "@/app/lib/permissions";
 
-
-import "./page.css";
-import "@/app/MainPage.css";
 import { CustomSelect } from "../components/CustomSelect";
-import { UserRole } from "../models/Users";
 import { tournamentUrl } from "../repositories/TournamentsRepository";
 
-export function TournamentsClient() {
+type Props = {
+  clubId: number | null;
+};
+
+
+export function TournamentsClient({clubId} : Props) {
   const { user } = useUser();
   const router = useRouter();
   const { tournaments, loading, error, createTournament, deleteTournament, stats } = useTournaments();
@@ -65,6 +68,7 @@ export function TournamentsClient() {
       status: TournamentStatus.Draft,
       creator_id: user.id,
       is_public: payload.is_public,
+      club_id: clubId,
       settings: payload.settings,
     });
 
@@ -113,11 +117,11 @@ const filtered = useMemo(() => {
     return true;
   });
 }, [tournaments, q, fltType, fltFormat, fltStatus, fltMy, user?.id]);
-  
+  const className = clubId === null ? "page-container" : "page-container-no-padding";
 
   return (
-    <div className="page-container">
-      <h1 className="page-title">Турниры</h1>
+    <div className={className}>
+      {clubId === null && <h1 className="page-title">Турниры</h1>}
 
       <div className="page-content-container">
         {/* Панель фильтров */}
