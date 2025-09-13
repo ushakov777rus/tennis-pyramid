@@ -1,6 +1,7 @@
 
 .clubs-loading,
-.clubs-empty {
+.clubs-empty,
+.clubs-error {
   opacity: 0.8;
   padding: 8px 0;
 }
