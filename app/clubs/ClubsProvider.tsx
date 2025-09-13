@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { ClubsRepository, ClubCreateInput } from "@/app/repositories/ClubsRepository";
+import { ClubsRepository } from "@/app/repositories/ClubsRepository";
+import { ClubCreateInput } from "@/app/models/Club";
 import { Club } from "../models/Club";
 
 type ClubsContextValue = {
