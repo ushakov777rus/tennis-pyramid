@@ -31,3 +31,40 @@ export class Club {
     this.updated_at = data.updated_at;
   }
 }
+
+export type ClubPlain = {
+  id: number;
+  slug: string;
+  name: string;
+  description: string | null;
+  city: string | null;
+  logo_url: string | null;
+  members_count: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+
+export type ClubCreateInput = {
+  name: string;
+  city?: string | null;
+  description?: string | null;
+  logo_url?: string | null;
+};
+
+
+// helper: собираем модель из plain-объекта
+// helper: собираем модель из plain-объекта
+export function toModel(club: ClubPlain): Club {
+  return new Club({
+    id: club.id,
+    slug: club.slug,
+    name: club.name,
+    description: club.description,
+    city: club.city,
+    logo_url: club.logo_url,
+    members_count: club.members_count,
+    created_at: club.created_at,
+    updated_at: club.updated_at,
+  });
+}

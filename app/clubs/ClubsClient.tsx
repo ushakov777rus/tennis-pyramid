@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useClubs } from "./ClubsProvider";
-import { ClubCreateInput, ClubsRepository } from "@/app/repositories/ClubRepository";
+import { ClubCreateInput, ClubsRepository } from "@/app/repositories/ClubsRepository";
 import { ClubCard } from "@/app/clubs/ClubCard";
 
 import "./page.css";

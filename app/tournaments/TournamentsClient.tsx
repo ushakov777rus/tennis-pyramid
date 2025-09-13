@@ -121,7 +121,7 @@ const filtered = useMemo(() => {
 
       <div className="page-content-container">
         {/* Панель фильтров */}
-        <div className="card card-controls">
+        <div className="card page-toolbar">
           <input
             type="text"
             value={q}

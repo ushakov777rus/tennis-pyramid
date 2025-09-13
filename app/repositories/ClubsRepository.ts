@@ -1,12 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
-import { Club } from "../models/Club";
-
-export type ClubCreateInput = {
-  name: string;
-  city?: string | null;
-  description?: string | null;
-  logo_url?: string | null;
-};
+import { Club, ClubCreateInput, ClubPlain } from "../models/Club";
 
 export class ClubsRepository {
   static async loadAll(): Promise<Club[]> {
@@ -55,4 +48,35 @@ export class ClubsRepository {
   static clubUrl(c: Pick<Club, "slug">): string {
     return `/clubs/${c.slug}`;
   }
+
+    static async getBySlug(slug: string): Promise<ClubPlain | null> {
+      const { data, error } = await supabase
+        .from("clubs")
+        .select(
+          "*"
+        )
+        .eq("slug", slug)
+        .maybeSingle();
+  
+      if (error) {
+        console.error("ClubsRepository.getBySlug:", error);
+        return null;
+      }
+      if (!data) return null;
+  
+      // ВАЖНО: возвращаем именно plain-object
+      return {
+  id: data.id,
+  slug: data.slug,
+  name: data.name,
+  description: data.description,
+  city: data.city,
+  logo_url: data.logo_url,
+  members_count: data.members_count,   // из view club_stats
+  created_at: data.created_at,
+  updated_at: data.updated_at,
+
+      };
+    }
+  
 }
