@@ -212,7 +212,7 @@
   width: 100%;
 }
 
-.filters-bar .card-btn {
+.filters-bar {
   justify-self: start;
 }
 
@@ -226,7 +226,7 @@
   .filters-bar {
     grid-template-columns: 1.2fr 0.8fr 1fr 0.8fr auto auto;
   }
-  .filters-bar .card-btn {
+  .filters-bar {
     justify-self: end;
   }
 }

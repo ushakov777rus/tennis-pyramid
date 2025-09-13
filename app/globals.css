@@ -352,12 +352,6 @@ body {
   margin: 0 auto;
 }
 
-
-/* Добавляем анимации и плавность */
-.card {
-  transition: all 0.2s ease-in-out;
-}
-
 .card:hover {
   /*transform: translateY(-5px);*/
   box-shadow: 0 0 20px rgba(166, 255, 0, 0.3);
@@ -377,22 +371,6 @@ body {
   max-width: 48%;
   cursor: pointer;
   padding: 10px;
-}
-
-.card-80px {
-  max-width: 80px;
-}
-
-.card-font-12px {
-  font-size: 12px;
-}
-
-.card-all {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #cf6;
-  cursor: pointer;
 }
 
 /* ✅ Адаптивность для мобилок */
