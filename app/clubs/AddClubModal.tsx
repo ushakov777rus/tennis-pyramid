@@ -2,7 +2,7 @@
 
 
 import { useEffect, useRef, useState } from "react";
-import { ClubCreateInput } from "../repositories/ClubsRepository";
+import { ClubCreateInput } from "@/app/models/Club";
 
 
 type Props = {

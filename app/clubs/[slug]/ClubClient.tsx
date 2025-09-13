@@ -9,7 +9,7 @@ import { ScrollableTabs, TabItem } from "@/app/components/controls/ScrollableTab
 import { AboutClub } from "@/app/components/AboutClub";
 import { ParticipantsView } from "@/app/components/ParticipantsView";
 
-type ViewKey = "about" | "participants" | "tournaments";
+type ViewKey = "about" | "participants" | "tournaments" | "rating";
 
 export default function ClubClient() {
   const { club, reload } = useClub(); // предполагаем, что провайдер отдаёт club (+ при желании reload)
@@ -21,6 +21,7 @@ export default function ClubClient() {
       { key: "about", label: "О клубе" },
       { key: "participants", label: "Участники" },
       { key: "tournaments", label: "Турниры" },
+      { key: "rating", label: "Рейтинг" },
     ],
     []
   );
