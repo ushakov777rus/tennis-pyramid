@@ -40,26 +40,6 @@
   height: calc( (1.25em * 2) + 8px ); /* 2 строки * line-height + вертикальные паддинги */
 }
 
-
-
-.pairs-tab {
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-}
-
-.pairs-column {
-  flex: 1;
-}
-
-.button-right {
-  margin-left: auto;
-}
-
-.create-btn {
-  margin-top: 10px;
-}
-
 /* Унаследованные классы, чтобы стиль был одинаковым */
 
 .add-team-btn {
