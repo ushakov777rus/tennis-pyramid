@@ -7,7 +7,7 @@ import { ClubCard } from "../ClubCard";
 
 import { ScrollableTabs, TabItem } from "@/app/components/controls/ScrollableTabs";
 import { AboutClub } from "@/app/components/AboutClub";
-import { ParticipantsView } from "@/app/components/ParticipantsView";
+import { ClubParticipantsView, ParticipantsView } from "@/app/components/ParticipantsView";
 
 type ViewKey = "about" | "participants" | "tournaments" | "rating";
 
@@ -35,7 +35,7 @@ export default function ClubClient() {
       <div className="page-content-container">
         {/* Карточка клуба */}
         <div className="card-grid">
-          <ClubCard club={club} />
+          <ClubCard club={club} displayName={false}/>
         </div>
 
         {/* Вкладки */}
@@ -49,6 +49,8 @@ export default function ClubClient() {
 
           <div>
             {view === "about" && <AboutClub />}
+            {view === "participants" && <ClubParticipantsView />}
+            
           </div>
         </div>
       </div>

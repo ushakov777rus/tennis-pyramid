@@ -31,7 +31,8 @@ export function ClubsClient() {
 
     await createClub({ 
       name: payload.name, 
-      city: payload.city });
+      city: payload.city,
+      director_id: payload.director_id });
 
     setModalOpen(false);
   };
@@ -60,6 +61,7 @@ export function ClubsClient() {
         <AdminOnly>
         <ClubCard
             club={null}
+            displayName={false}
             onClick={() => setModalOpen(true)}
         />
         </AdminOnly>
@@ -68,6 +70,7 @@ export function ClubsClient() {
           <li key={c.id}>
             <ClubCard
               club={c}
+              displayName={true}
               onClick={() => router.push(ClubsRepository.clubUrl(c))}
               onDelete={() => {
                 if (confirm(`Удалить клуб «${c.name}»?`)) void deleteClub(c.id);

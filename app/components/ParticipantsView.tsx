@@ -1,99 +1,134 @@
 "use client";
 
 import "@/app/components/ParticipantsView.css";
-
-import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
-import { useMemo, useState } from "react";
-import { Player } from "../models/Player";
+import React, { useMemo, useState } from "react";
+import { Player } from "@/app/models/Player";
+import { Participant } from "@/app/models/Participant";
 import { CreateTeamIconButton, DeleteIconButton, PlusIconButton } from "./IconButtons";
 import { AdminOnly } from "./RoleGuard";
 
-// очень простой inline-спиннер (можете заменить своим компонентом)
+/* ===================== Типы пропсов (два режима) ===================== */
+
+type TournamentModeProps = {
+  mode: "tournament";
+  // состояния
+  initialLoading: boolean;
+  refreshing: boolean;
+  mutating: boolean;
+  // данные
+  isDouble: boolean;
+  participants: Participant[]; // участники турнира (Player/Team внутри)
+  players: Player[];           // все доступные игроки (для добавления)
+  // действия
+  onAddPlayerToTournament?: (playerId: number) => void | Promise<void>;
+  onRemoveParticipant?: (participant: Participant) => void | Promise<void>;
+  onCreateTeam?: (player1Id: number, player2Id: number) => void | Promise<void>;
+};
+
+type ClubModeProps = {
+  mode: "club";
+  // состояния
+  initialLoading: boolean;
+  refreshing: boolean;
+  mutating: boolean;
+  // данные
+  members: Player[]; // члены клуба
+  players: Player[]; // все доступные игроки (для добавления в клуб)
+  // действия
+  onAddMember?: (playerId: number) => void | Promise<void>;
+  onRemoveMember?: (playerId: number) => void | Promise<void>;
+};
+
+export type ParticipantsViewProps = TournamentModeProps | ClubModeProps;
+
+/* ===================== Вспомогательные ===================== */
+
 function InlineSpinner() {
   return <span className="inline-spinner" aria-label="Loading" />;
 }
 
-export function ParticipantsView() {
-  const {
-    initialLoading, // первая загрузка
-    refreshing,     // тихий рефетч
-    mutating,       // идёт мутация
-    tournament,
-    players,
-    participants,
-    createAndAddTeamToTournament,
-    addPlayerToTournament,
-    removeParticipant,
-  } = useTournament();
+function nameOfPlayerOrParticipant(x: Player | Participant): string {
+  if ((x as Player).displayName) {
+    return (x as Player).displayName(false);
+  }
+  return (x as Participant).displayName(false);
+}
 
-  // фильтры
+/* ===================== Универсальный UI ===================== */
+
+export function ParticipantsView(props: ParticipantsViewProps) {
+  const { initialLoading, refreshing, mutating } = props;
+
+  // Фильтры
   const [leftFilter, setLeftFilter] = useState("");
   const [rightFilter, setRightFilter] = useState("");
   const lf = leftFilter.trim().toLowerCase();
   const rf = rightFilter.trim().toLowerCase();
 
-  // выбранные игроки для формирования пары
+  // TUR: список уже в турнире; CLUB: список членов клуба
+  const rightList: (Participant | Player)[] = useMemo(() => {
+    if (props.mode === "tournament") {
+      return rf
+        ? props.participants.filter((p) => p.displayName(false).toLowerCase().includes(rf))
+        : props.participants;
+    } else {
+      return rf
+        ? props.members.filter((p) => p.displayName(false).toLowerCase().includes(rf))
+        : props.members;
+    }
+  }, [props, rf]);
+
+  // TUR: свободные игроки = players \ participantIds; CLUB: доступные игроки = players \ memberIds
+  const leftBasePlayers: Player[] = useMemo(() => {
+    if (props.mode === "tournament") {
+      const participantIds = new Set<number>(
+        props.participants.flatMap((p) => (p.player ? [p.player.id] : []))
+      );
+      return props.players.filter((pl) => !participantIds.has(pl.id));
+    } else {
+      const memberIds = new Set<number>(props.members.map((m) => m.id));
+      return props.players.filter((pl) => !memberIds.has(pl.id));
+    }
+  }, [props]);
+
+  const leftList: Player[] = useMemo(
+    () => (lf ? leftBasePlayers.filter((p) => p.displayName(false).toLowerCase().includes(lf)) : leftBasePlayers),
+    [leftBasePlayers, lf]
+  );
+
+  // Поддержка выбора 2 игроков для создания команды (только в турнире 2×)
   const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
+  const lastSelectedId = selectedPlayers.length ? selectedPlayers[selectedPlayers.length - 1].id : undefined;
 
-  const filteredParticipants = useMemo(
-    () =>
-      rf
-        ? participants.filter((p) =>
-            p.displayName(false).toLowerCase().includes(rf)
-          )
-        : participants,
-    [participants, rf]
-  );
-
-  // одиночки: свободные игроки (не в участниках)
-  const participantIds = new Set<number>(
-    participants.flatMap((p) => {
-      if (p.player) return [p.player.id];
-      return [];
-    })
-  );
-
-  const availablePlayers = players.filter((p) => !participantIds.has(p.id));
-
-  const filteredPlayers = useMemo(
-    () =>
-      lf
-        ? availablePlayers.filter((p) =>
-            p.displayName(false).toLowerCase().includes(lf)
-          )
-        : availablePlayers,
-    [availablePlayers, lf]
-  );
-
-  const maxRows = Math.max(filteredPlayers.length, filteredParticipants.length);
-
-  // выбор игроков
   const toggleSelectPlayer = (player: Player) => {
     setSelectedPlayers((sel) => {
-      if (sel.some((sp) => sp.id === player.id)) {
-        return sel.filter((sp) => sp.id !== player.id);
-      }
+      if (sel.some((sp) => sp.id === player.id)) return sel.filter((sp) => sp.id !== player.id);
       if (sel.length === 2) return [player];
       return [...sel, player];
     });
   };
 
-  const lastSelectedId =
-    selectedPlayers.length > 0
-      ? selectedPlayers[selectedPlayers.length - 1].id
-      : undefined;
-
   const createTeam = () => {
-    if (selectedPlayers.length === 2 && tournament?.id) {
-      createAndAddTeamToTournament?.(tournament.id, selectedPlayers[0].id, selectedPlayers[1].id);
+    if (props.mode !== "tournament") return;
+    if (!props.isDouble || !props.onCreateTeam) return;
+    if (selectedPlayers.length === 2) {
+      void props.onCreateTeam(selectedPlayers[0].id, selectedPlayers[1].id);
       setSelectedPlayers([]);
     }
   };
 
-  // показываем сплэш только при первой загрузке
-  if (initialLoading || !tournament) {
-    return <p>Загрузка...</p>;
-  }
+  if (initialLoading) return <p>Загрузка...</p>;
+
+  const maxRows = Math.max(leftList.length, rightList.length);
+
+  const leftTitle =
+    props.mode === "tournament"
+      ? props.isDouble
+        ? "Игроки (для пар)"
+        : "Игроки"
+      : "Игроки (добавить в клуб)";
+
+  const rightTitle = props.mode === "tournament" ? "Участники турнира" : "Члены клуба";
 
   return (
     <table className="participants-table" aria-busy={refreshing || mutating}>
@@ -106,12 +141,9 @@ export function ParticipantsView() {
 
       <thead>
         <tr>
-          <th colSpan={2} style={{ width: "50%" }}>
-            {tournament.isDouble() ? "Игроки (для пар)" : "Игроки"}
-          </th>
+          <th colSpan={2} style={{ width: "50%" }}>{leftTitle}</th>
           <th colSpan={2} style={{ width: "50%", position: "relative" }}>
-            Участники турнира{" "}
-            {(refreshing || mutating) ? <InlineSpinner /> : null}
+            {rightTitle} {(refreshing || mutating) ? <InlineSpinner /> : null}
           </th>
         </tr>
       </thead>
@@ -123,7 +155,7 @@ export function ParticipantsView() {
             <input
               type="text"
               className="input"
-              placeholder={tournament.isDouble() ? "Фильтр: игрок" : "Фильтр: игрок/пара"}
+              placeholder="Фильтр слева"
               value={leftFilter}
               onChange={(e) => setLeftFilter(e.target.value)}
             />
@@ -133,7 +165,7 @@ export function ParticipantsView() {
             <input
               type="text"
               className="input"
-              placeholder="Фильтр: участник"
+              placeholder="Фильтр справа"
               value={rightFilter}
               onChange={(e) => setRightFilter(e.target.value)}
             />
@@ -144,41 +176,38 @@ export function ParticipantsView() {
         {/* контент */}
         {maxRows === 0 ? (
           <tr>
-            <td colSpan={4} style={{ textAlign: "center", opacity: 0.7 }}>
-              Ничего не найдено
-            </td>
+            <td colSpan={4} style={{ textAlign: "center", opacity: 0.7 }}>Ничего не найдено</td>
           </tr>
         ) : (
           Array.from({ length: maxRows }).map((_, i) => {
-            const free = filteredPlayers[i];
-            const part = filteredParticipants[i];
+            const free = leftList[i];     // Player | undefined
+            const inRight = rightList[i]; // Participant | Player | undefined
+
+            // только в турнире 2× есть выбор пары
+            const isSelectable =
+              props.mode === "tournament" && props.isDouble && !!free;
 
             const isSelected =
-              tournament.isDouble() &&
-              free instanceof Object && // Player
-              selectedPlayers.some((sp) => sp.id === (free as Player).id);
+              isSelectable && !!selectedPlayers.find((sp) => sp.id === free!.id);
 
             const showCreateHere =
-              tournament.isDouble() &&
-              free instanceof Object &&
+              props.mode === "tournament" &&
+              props.isDouble &&
+              !!free &&
               isSelected &&
-              (free as Player).id === lastSelectedId &&
+              free.id === lastSelectedId &&
               selectedPlayers.length === 2;
 
             return (
               <tr key={i}>
-                {/* свободные */}
+                {/* левая колонка */}
                 <td>
                   {free ? (
                     <span
-                      className={`player ${tournament.isDouble() ? "clickable" : ""} ${isSelected ? "active" : ""}`}
-                      onClick={() =>
-                        tournament.isDouble()
-                          ? toggleSelectPlayer(free as Player)
-                          : undefined
-                      }
+                      className={`player ${isSelectable ? "clickable" : ""} ${isSelected ? "active" : ""}`}
+                      onClick={() => (isSelectable ? toggleSelectPlayer(free) : undefined)}
                     >
-                      {(free as any).displayName(false)}
+                      {free.displayName(false)}
                     </span>
                   ) : (
                     ""
@@ -187,19 +216,29 @@ export function ParticipantsView() {
 
                 <td>
                   <AdminOnly>
-                    {tournament.isDouble() ? (
-                      showCreateHere && (
-                        <CreateTeamIconButton
-                          title="Создать команду"
-                          onClick={createTeam}
-                          disabled={mutating}
-                        />
+                    {props.mode === "tournament" ? (
+                      props.isDouble ? (
+                        showCreateHere && (
+                          <CreateTeamIconButton
+                            title="Создать команду"
+                            onClick={createTeam}
+                            disabled={mutating}
+                          />
+                        )
+                      ) : (
+                        free && (
+                          <PlusIconButton
+                            title="Добавить"
+                            onClick={() => props.onAddPlayerToTournament?.(free.id)}
+                            disabled={mutating}
+                          />
+                        )
                       )
                     ) : (
                       free && (
                         <PlusIconButton
-                          title="Добавить"
-                          onClick={() => addPlayerToTournament?.((free as Player).id)}
+                          title="Добавить в клуб"
+                          onClick={() => props.onAddMember?.(free.id)}
                           disabled={mutating}
                         />
                       )
@@ -207,18 +246,33 @@ export function ParticipantsView() {
                   </AdminOnly>
                 </td>
 
-                {/* уже в турнире */}
-                <td>{part ? <span className="player">{part.displayName(false)}</span> : ""}</td>
+                {/* правая колонка */}
                 <td>
-                  {part && (
-                    <AdminOnly>
-                      <DeleteIconButton
-                        title="Убрать"
-                        onClick={() => removeParticipant?.(part)}
-                        disabled={mutating}
-                      />
-                    </AdminOnly>
+                  {inRight ? (
+                    <span className="player">{nameOfPlayerOrParticipant(inRight)}</span>
+                  ) : (
+                    ""
                   )}
+                </td>
+                <td>
+                  <AdminOnly>
+                    {inRight &&
+                      (props.mode === "tournament" ? (
+                        <DeleteIconButton
+                          title="Убрать из турнира"
+                          onClick={() => props.onRemoveParticipant?.(inRight as Participant)}
+                          disabled={mutating}
+                        />
+                      ) : (
+                        <DeleteIconButton
+                          title="Убрать из клуба"
+                          onClick={() =>
+                            props.onRemoveMember?.((inRight as Player).id)
+                          }
+                          disabled={mutating}
+                        />
+                      ))}
+                  </AdminOnly>
                 </td>
               </tr>
             );
@@ -226,5 +280,81 @@ export function ParticipantsView() {
         )}
       </tbody>
     </table>
+  );
+}
+
+/* ===================== Обёртчик для ТУРНИРА ===================== */
+
+import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
+
+export function TournamentParticipantsView() {
+  const {
+    initialLoading,
+    refreshing,
+    mutating,
+    tournament,
+    players,
+    participants,
+    createAndAddTeamToTournament,
+    addPlayerToTournament,
+    removeParticipant,
+  } = useTournament();
+
+  if (!tournament) return <p>Загрузка...</p>;
+
+  const isDouble =
+    typeof tournament.isDouble === "function"
+      ? tournament.isDouble()
+      : tournament.tournament_type === "double";
+
+  return (
+    <ParticipantsView
+      mode="tournament"
+      initialLoading={initialLoading || !tournament}
+      refreshing={refreshing}
+      mutating={mutating}
+      isDouble={isDouble}
+      players={players}
+      participants={participants}
+      onAddPlayerToTournament={addPlayerToTournament}
+      onRemoveParticipant={removeParticipant}
+      onCreateTeam={
+        isDouble && createAndAddTeamToTournament
+          ? (p1, p2) => createAndAddTeamToTournament(tournament.id, p1, p2)
+          : undefined
+      }
+    />
+  );
+}
+
+/* ===================== Обёртчик для КЛУБА ===================== */
+
+import { useClub } from "@/app/clubs/[slug]/ClubProvider";
+
+export function ClubParticipantsView() {
+  const {
+    initialLoading,
+    refreshing,
+    mutating,
+    club,
+    players,
+    members,
+    addMember,
+    removeMember,
+  } = useClub();
+
+  if (!club) return <p>Загрузка...</p>;
+
+  return (
+    <ParticipantsView
+      mode="club"
+      initialLoading={initialLoading || !club}
+      refreshing={refreshing}
+      mutating={mutating}
+      players={players}
+      members={members}
+      onAddMember={addMember}
+      onRemoveMember={removeMember}
+    />
   );
 }

@@ -2,16 +2,18 @@
 
 import "./clubs.css";
 import { Club } from "../models/Club";
-import { DeleteIconButton } from "../components/IconButtons";
+import { ApplyIconButton, DeleteIconButton } from "../components/IconButtons";
+import { AdminOnly, PlayerOnly } from "../components/RoleGuard";
 
 type Props = {
   club: Club | null;
+  displayName: boolean;
   onClick?: () => void;
   onDelete?: (clubId: number) => void;
 };
 
-export function ClubCard({ club, onClick, onDelete }: Props) {
-const className = `card ${onClick ? "clickable" : ""}`;
+export function ClubCard({ club, displayName, onClick, onDelete }: Props) {
+const className = `card card-800px ${onClick ? "clickable" : ""}`;
 
 if (club == null) {
   return (
@@ -26,7 +28,10 @@ if (club == null) {
   return (
     <div className={className} onClick={onClick} aria-label={`Открыть клуб ${club.name}`}>
       <div className="card-head">
-        <h3>{club.name}</h3>
+        {displayName && (
+          <h3>{club.name}</h3>
+        )}
+
         <div className="match-card-date">{club.city}</div>
       </div>
       
@@ -41,17 +46,31 @@ if (club == null) {
         </div>
       </button>
 
-      <div className="card-bottom-toolbar">
-        {onDelete && (
-          <DeleteIconButton
-            title="Удалить турнир"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(club.id);
-            }}
-          />
-        )}
-      </div>
+      <PlayerOnly>
+            <ApplyIconButton
+              title="Подать заявку на участие"
+              onClick={(e) => {
+                e.stopPropagation();
+
+              }}
+            />
+
+
+      </PlayerOnly>
+
+      <AdminOnly>
+        <div className="card-bottom-toolbar">
+          {onDelete && (
+            <DeleteIconButton
+              title="Удалить турнир"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(club.id);
+              }}
+            />
+          )}
+        </div>
+      </AdminOnly>
       
     </div>
   );

@@ -38,6 +38,13 @@ export function AboutClub() {
     <div className="about-root">
       {/* Инфо-грид */}
       <section className="card about-grid">
+        <div>
+          Директор клуба
+        </div>
+        <div>
+          Участники клуба
+        </div>
+
       </section>
 
       {/* остальной контент AboutTournament — без изменений */}

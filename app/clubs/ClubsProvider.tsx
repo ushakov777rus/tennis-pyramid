@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { ClubsRepository } from "@/app/repositories/ClubsRepository";
 import { ClubCreateInput } from "@/app/models/Club";
 import { Club } from "../models/Club";
+import { useUser } from "../components/UserContext";
 
 type ClubsContextValue = {
   clubs: Club[];
@@ -17,10 +18,12 @@ type ClubsContextValue = {
 const ClubsContext = createContext<ClubsContextValue | undefined>(undefined);
 
 export function ClubsProvider({ children }: { children: React.ReactNode }) {
+
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [initialLoaded, setInitialLoaded] = useState(false);
+  const { user } = useUser();
 
   const refresh = useCallback(async (opts?: { background?: boolean }) => {
     const bg = !!opts?.background && initialLoaded;
@@ -42,9 +45,14 @@ export function ClubsProvider({ children }: { children: React.ReactNode }) {
 
   const createClub = useCallback(async (p: ClubCreateInput) => {
     // простой optimistic: добавим заглушку
+    if (!user) {
+      console.log("User undefined");
+      return;
+    }
     const tmpId = -Math.floor(Math.random() * 1e9);
     const optimistic: Club = {
       id: tmpId,
+      director_id: user.id,
       slug: p.name, //TODO нужно что то сделать
       name: p.name,
       description: p.description ?? null,

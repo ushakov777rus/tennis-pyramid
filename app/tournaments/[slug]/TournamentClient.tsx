@@ -9,14 +9,13 @@ import { Team } from "@/app/models/Team";
 import { Match, PhaseType } from "@/app/models/Match";
 import { Participant } from "@/app/models/Participant";
 
-import { NavigationBar } from "@/app/components/NavigationBar";
 import { TournamentCard } from "@/app/components/TournamentCard";
 import { LoggedIn } from "@/app/components/RoleGuard";
 
 import { RatingView } from "@/app/components/RatingView";
 import { MatchHistoryModal } from "@/app/components/MatchHistoryModal";
 import { MatchHistoryView } from "@/app/components/matches/MatchHistoryView";
-import { ParticipantsView } from "@/app/components/ParticipantsView";
+import { ParticipantsView, TournamentParticipantsView } from "@/app/components/ParticipantsView";
 import { AddMatchCard } from "@/app/components/AddMatchCard";
 
 import { ScrollableTabs, TabItem } from "@/app/components/controls/ScrollableTabs";
@@ -345,7 +344,7 @@ export default function TournamentClient() {
                 onDeleteMatch={handleDeleteMatch} />}
 
             {view === "participants" && 
-              <ParticipantsView />}
+              <TournamentParticipantsView />}
 
             {view === "results" &&             
               <RatingView

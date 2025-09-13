@@ -23,7 +23,7 @@ export function TournamentCard({
   onClick,
   onDelete
 }: TournamentCardProps) {
-  const className = `card ${onClick ? "clickable" : ""}`;
+  const className = `card card-800px ${onClick ? "clickable" : ""}`;
 
 // Пустая карточка-скелет, если турнира нет (null/undefined)
 if (tournament == null) {

@@ -8,6 +8,7 @@ import Script from "next/script";
 import type { Metadata } from "next";
 import { TournamentsProvider } from "./tournaments/TournamentsProvider";
 import { NavigationBar } from "./components/NavigationBar";
+import { ClubsProvider } from "./clubs/ClubsProvider";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://honeycup.ru"),
@@ -123,8 +124,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <UserProvider>
-          <NavigationBar />
-          <TournamentsProvider>{children}</TournamentsProvider>
+          <ClubsProvider>
+            <TournamentsProvider>
+              <NavigationBar />
+              {children}
+            </TournamentsProvider>
+          </ClubsProvider>
         </UserProvider>
       </body>
     </html>

@@ -1,5 +1,6 @@
 export class Club {
   id: number;
+  director_id: number;
   slug: string;
   name: string;
   description: string | null;
@@ -11,6 +12,7 @@ export class Club {
 
   constructor(data: {
     id: number;
+    director_id: number;
     slug: string;
     name: string;
     description?: string | null;
@@ -21,6 +23,7 @@ export class Club {
     updated_at: string;
   }) {
     this.id = data.id;
+    this.director_id = data.director_id;
     this.slug = data.slug;
     this.name = data.name;
     this.description = data.description ?? null;
@@ -34,6 +37,7 @@ export class Club {
 
 export type ClubPlain = {
   id: number;
+  director_id: number;
   slug: string;
   name: string;
   description: string | null;
@@ -46,6 +50,7 @@ export type ClubPlain = {
 
 
 export type ClubCreateInput = {
+  director_id: number;
   name: string;
   city?: string | null;
   description?: string | null;
@@ -58,6 +63,7 @@ export type ClubCreateInput = {
 export function toModel(club: ClubPlain): Club {
   return new Club({
     id: club.id,
+    director_id: club.director_id,
     slug: club.slug,
     name: club.name,
     description: club.description,
