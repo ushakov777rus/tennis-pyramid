@@ -24,14 +24,11 @@ export function TournamentCard({
   onDelete
 }: TournamentCardProps) {
   const className = `card ${onClick ? "clickable" : ""}`;
-  const style: React.CSSProperties = {
-    cursor: onClick ? "pointer" : "default",
-  };
 
 // Пустая карточка-скелет, если турнира нет (null/undefined)
 if (tournament == null) {
   return (
-    <div className={className} onClick={onClick} style={style}>
+    <div className={className} onClick={onClick}>
       <div className="card-add">
         +
       </div>
@@ -40,7 +37,7 @@ if (tournament == null) {
 }
 
   return (
-    <div className={className} onClick={onClick} style={style}>
+    <div className={className} onClick={onClick}>
       <div className="tournament-header">
         {displayName && (
           <h3>{tournament.name}</h3>

@@ -11,10 +11,11 @@ type Props = {
 };
 
 export function ClubCard({ club, onClick, onDelete }: Props) {
-    // Пустая карточка-скелет, если турнира нет (null/undefined)
+const className = `card ${onClick ? "clickable" : ""}`;
+
 if (club == null) {
   return (
-    <div className="card" onClick={onClick}>
+    <div className={className} onClick={onClick}>
       <div className="card-add">
         +
       </div>
@@ -23,7 +24,7 @@ if (club == null) {
 }
 
   return (
-    <div className="card"  onClick={onClick} aria-label={`Открыть клуб ${club.name}`}>
+    <div className={className} onClick={onClick} aria-label={`Открыть клуб ${club.name}`}>
       <div className="card-head">
         <h3>{club.name}</h3>
         <div className="match-card-date">{club.city}</div>
