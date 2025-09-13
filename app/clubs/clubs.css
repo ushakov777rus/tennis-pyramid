@@ -11,17 +11,6 @@
   gap: 4px;
 }
 
-.club-name {
-  font-weight: 600;
-  font-size: 16px;
-  line-height: 1.25;
-}
-
-.club-city {
-  font-size: 14px;
-  opacity: 0.85;
-}
-
 .club-meta {
   font-size: 13px;
   opacity: 0.8;
@@ -65,16 +54,3 @@
     margin: auto;
 }
 .club-card-desc { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.club-card-actions {
-  display: flex; justify-content: flex-end; padding: 8px 12px; gap: 8px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-}
-.club-card-delete {
-  border: 1px solid var(--red-main);
-  background: transparent;
-  color: var(--red-main);
-  padding: 6px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.club-card-delete:hover { background: var(--red-hover); color: #1f1f1f; }

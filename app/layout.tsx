@@ -12,7 +12,8 @@ import { NavigationBar } from "./components/NavigationBar";
 export const metadata: Metadata = {
   metadataBase: new URL("https://honeycup.ru"),
   title: {
-    default: "HoneyCup — генератор турнирной сетки онлайн и любительские теннисные турниры",
+    default:
+      "HoneyCup — генератор турнирной сетки онлайн и любительские теннисные турниры",
     template: "%s — HoneyCup",
   },
   description:
@@ -36,7 +37,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
     languages: {
-      "ru": "https://honeycup.ru/",
+      ru: "https://honeycup.ru/",
     },
   },
   openGraph: {
@@ -47,7 +48,14 @@ export const metadata: Metadata = {
     description:
       "Создавайте и проводите любительские теннисные турниры: сетки, таблицы, расписания, статистика, рейтинги и онлайн-табло.",
     siteName: "HoneyCup",
-    images: [{ url: "/og-default.png", width: 1200, height: 630, alt: "HoneyCup — турнирная платформа для тенниса" }],
+    images: [
+      {
+        url: "/og-default.png",
+        width: 1200,
+        height: 630,
+        alt: "HoneyCup — турнирная платформа для тенниса",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -57,8 +65,24 @@ export const metadata: Metadata = {
     images: ["/og-default.png"],
   },
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-icon.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-48x48.png", sizes: "48x48", type: "image/png" },
+      { url: "/icon-64x64.png", sizes: "64x64", type: "image/png" },
+      { url: "/icon-96x96.png", sizes: "96x96", type: "image/png" },
+      { url: "/icon-128x128.png", sizes: "128x128", type: "image/png" },
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-256x256.png", sizes: "256x256", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icon-180x180.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      { rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#0d0f10" },
+    ],
   },
   robots: {
     index: true,
@@ -66,17 +90,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "SportsOrganization",
-    "name": "HoneyCup",
-    "url": "https://honeycup.ru",
-    "logo": "https://honeycup.ru/apple-icon.png",
-    "sport": ["Tennis", "TableTennis", "Padel", "Badminton"],
-    "description":
+    name: "HoneyCup",
+    url: "https://honeycup.ru",
+    logo: "https://honeycup.ru/icon-180x180.png",
+    sport: ["Tennis", "TableTennis", "Padel", "Badminton"],
+    description:
       "Платформа для организации любительских турниров и генератор турнирной сетки онлайн.",
-    "sameAs": [
+    sameAs: [
       // добавь свои соцсети при наличии
     ],
   };
@@ -84,8 +112,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const webSiteJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "HoneyCup",
-    "url": "https://honeycup.ru",
+    name: "HoneyCup",
+    url: "https://honeycup.ru",
     // Если есть страница поиска — раскомментируй блок ниже и замени URL
     // "potentialAction": {
     //   "@type": "SearchAction",
