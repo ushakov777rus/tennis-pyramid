@@ -53,7 +53,7 @@ export default function ClubClient() {
             {view === "about" && <AboutClub />}
             {view === "participants" && <ClubParticipantsView />}
             {view === "tournaments" && 
-                <TournamentsProvider>
+                <TournamentsProvider clubId={club.id}>
                   <TournamentsClient clubId={club.id}/>
                 </TournamentsProvider>
             }

@@ -58,7 +58,7 @@ const refresh = useCallback(
     try {
       let list;
       if(clubId)
-       list = await TournamentsRepository.loadByClub(clubId);
+        list = await TournamentsRepository.loadByClub(clubId);
       else
         list = await TournamentsRepository.loadAll();
 

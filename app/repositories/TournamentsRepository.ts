@@ -7,6 +7,7 @@ import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
 import { PlayersRepository } from "./PlayersRepository";
 import { UserRole } from "../models/Users";
+import { da } from "date-fns/locale";
 
 
 
@@ -130,6 +131,9 @@ export class TournamentsRepository {
       console.error("Ошибка загрузки турниров:", error);
       return [];
     }
+
+    console.log("TournamentsRepository.loadByClub",data);
+
     return (data ?? []).map(
       (row: Tournament) =>
         new Tournament(
