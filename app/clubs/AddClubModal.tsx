@@ -3,6 +3,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ClubCreateInput } from "@/app/models/Club";
+import { useUser } from "../components/UserContext";
 
 
 type Props = {
@@ -19,6 +20,7 @@ export function AddClubModal({ isOpen, onClose, onCreate }: Props) {
   const [name, setName] = useState("");
   const [city, setCity] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const { user } = useUser();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -49,10 +51,12 @@ export function AddClubModal({ isOpen, onClose, onCreate }: Props) {
 
     const trimmed = name.trim();
     if (!trimmed) { setError("Введите название клуба"); return; }
+    if (!user) { setError("Неоходимо залогиниться"); return; }
 
     const payload: ClubCreateInput = {
       name: trimmed,
-      city: city
+      city: city,
+      director_id: user?.id
     };
 
     onCreate(payload);
