@@ -9,11 +9,12 @@ import { CustomSelect } from "./CustomSelect";
 
 type Props = {
   isOpen: boolean;
+  clubId: number | null;
   onClose: () => void;
   onCreate: (payload: TournamentCreateInput & { settings?: any }) => void;
 };
 
-export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
+export function AddTournamentModal({ isOpen, clubId, onClose, onCreate }: Props) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const titleId = "add-tournament-title";
 
@@ -100,6 +101,7 @@ export function AddTournamentModal({ isOpen, onClose, onCreate }: Props) {
       end_date: endDate || null,
       is_public: isPublic,
       creator_id: 0,
+      club_id: clubId
     };
 
     payload.settings = {

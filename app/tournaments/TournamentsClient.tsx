@@ -215,6 +215,7 @@ const filtered = useMemo(() => {
 
         <AddTournamentModal
           isOpen={modalOpen}
+          clubId={clubId}
           onClose={() => setModalOpen(false)}
           onCreate={onCreate}  // ✅ теперь передаём правильный handler
         />
