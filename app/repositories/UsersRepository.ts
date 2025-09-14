@@ -1,20 +1,34 @@
 // app/repositories/UsersRepository.ts
 import { supabase } from "@/lib/supabaseClient";
 import { User, UserRole } from "../models/Users";
+import { Player } from "../models/Player";
 
 export type RegisterPayload = {
-  fullName: string;           // ФИО для карточки игрока
-  password?: string | null;   // ⚠️ сейчас хранится как есть (позже уберём)
-  role: UserRole;             // 'player' | 'tournament_admin' | 'site_admin'
-  phone?: string | null;      // если нужно, можно сохранить в players
-  ntrp?: number | null;       // если нужно, можно сохранить в players
+  fullName: string;
+  password?: string | null;
+  role: UserRole;
+  phone?: string | null;
+  ntrp?: string | null;
   auth_id: string;
   email: string;
 };
 
+// Теперь возвращаем целого пользователя с вложенным player, а не player_id
 export type RegisterResult = {
-  user: { id: number; name: string; role: UserRole; player_id: number | null };
+  user: User;
 };
+
+function mapUserRow(row: any): User {
+  // PostgREST вернёт users + players[] (массив). Берём первого как 1:1.
+  const playerRow = Array.isArray(row.players) ? row.players[0] : undefined;
+  const mapped = {
+    id: row.id,
+    name: row.name,
+    role: row.role as UserRole,
+    player: playerRow ? new Player(playerRow) : null, // <- если нет — null
+  };
+  return new User(mapped as any);
+}
 
 export class UsersRepository {
   /** Проверить, занят ли никнейм (users.name) */
@@ -27,134 +41,127 @@ export class UsersRepository {
 
     if (error) {
       console.error("UsersRepository.isNameTaken error:", error);
-      // на ошибке лучше не разрешать регистрацию с таким ником
       return true;
     }
     return !!data;
   }
 
-  /** Зарегистрировать пользователя и, если роль player, создать привязанного игрока */
-static async register(payload: RegisterPayload): Promise<RegisterResult> {
-  const fullName = payload.fullName.trim();
+  /** Зарегистрировать пользователя и, если нужно, создать/привязать игрока */
+  static async register(payload: RegisterPayload): Promise<RegisterResult> {
+    const fullName = payload.fullName.trim();
 
-  // helper: берём последние 10 цифр (без +7/8 и любых разделителей)
-  const norm10 = (phone?: string | null): string | null => {
-    if (!phone) return null;
-    const digits = phone.replace(/\D/g, "");
-    if (!digits) return null;
-    return digits.slice(-10); // последние 10 цифр
-  };
+    const norm10 = (phone?: string | null): string | null => {
+      if (!phone) return null;
+      const digits = phone.replace(/\D/g, "");
+      return digits ? digits.slice(-10) : null;
+    };
 
-  // 1) создаём пользователя
-  const { data: newUser, error: uerror } = await supabase
-    .from("users")
-    .insert({
-      name: fullName,
-      role: payload.role,
-      auth_user_id: payload.auth_id,
-    })
-    .select("id, name, role")
-    .single();
+    // 1) создаём пользователя
+    const { data: newUser, error: uerror } = await supabase
+      .from("users")
+      .insert({
+        name: fullName,
+        role: payload.role,
+        auth_user_id: payload.auth_id,
+        // email/пароль — по твоей схеме, если нужно
+      })
+      .select("id, name, role")
+      .single();
 
-  if (uerror || !newUser) {
-    console.error("UsersRepository.register: cannot insert user:", uerror);
-    throw new Error("USER_CREATE_FAILED");
-  }
+    if (uerror || !newUser) {
+      console.error("UsersRepository.register: cannot insert user:", uerror);
+      throw new Error("USER_CREATE_FAILED");
+    }
 
-  console.log("User created", payload);
+    let playerId: number | null = null;
 
-  let playerId: number | null = null;
+    // 2) для ролей с профилем игрока — пытаемся привязать существующего по телефону
+    if (payload.role === UserRole.Player || payload.role === UserRole.TournamentAdmin) {
+      const wanted10 = norm10(payload.phone);
 
-  // 2) если роль предполагает профиль игрока — пытаемся найти существующего по телефону
-  if (payload.role === UserRole.Player || payload.role === UserRole.TournamentAdmin) {
-    const wanted10 = norm10(payload.phone);
+      let linkedExisting = false;
+      if (wanted10) {
+        const { data: candidates, error: serror } = await supabase
+          .from("players")
+          .select("id, user_id, phone")
+          .eq("phone", wanted10);
 
-    console.log("Lookup by phone", wanted10);
-
-    let linkedExisting = false;
-
-    if (wanted10) {
-      // предварительный поиск по "хвосту" (на уровне БД),
-      // затем точная проверка нормализацией на клиенте
-      const { data: candidates, error: serror } = await supabase
-        .from("players")
-        .select("id, user_id, phone")
-        .eq("phone", wanted10);
-
-      console.log("Candidates for linking", candidates);
-
-      if (!serror && candidates && candidates.length > 0) {
-        const exact = candidates.find((p) => norm10(p.phone) === wanted10);
-
-        console.log("Exact", exact);
-
-        if (exact) {
-          // если у найденного нет user_id — привяжем
-          if (!exact.user_id) {
-            const { error: uperr } = await supabase
-              .from("players")
-              .update({ user_id: newUser.id })
-              .eq("id", exact.id);
-
-            if (uperr) {
-              console.error("UsersRepository.register: cannot link existing player:", uperr);
-              // падаем назад к созданию нового игрока
-            } else {
-              playerId = exact.id;
-              linkedExisting = true;
-              console.log("Linked success");
+        if (!serror && candidates?.length) {
+          const exact = candidates.find((p) => norm10(p.phone) === wanted10);
+          if (exact) {
+            if (!exact.user_id) {
+              const { error: uperr } = await supabase
+                .from("players")
+                .update({ user_id: newUser.id })
+                .eq("id", exact.id);
+              if (!uperr) {
+                playerId = exact.id;
+                linkedExisting = true;
+              } else {
+                console.error("UsersRepository.register: link existing player failed:", uperr);
+              }
             }
-          } else {
-            // у найденного уже есть user_id — не трогаем, создадим нового игрока ниже
           }
         }
       }
-    }
 
-    // если не привязали существующего — создаём нового
-    if (!linkedExisting) {
-      const { data: newPlayer, error: perror } = await supabase
-        .from("players")
-        .insert({
-          name: fullName,
-          user_id: newUser.id,
-          phone: payload.phone ?? null, // храним как ввели (можно сохранять и нормализовано — на твой вкус)
-          ntrp: payload.ntrp ?? null,
-        })
-        .select("id")
-        .single();
+      // 3) если не привязали существующего — создаём нового
+      if (!linkedExisting) {
+        const { data: newPlayer, error: perror } = await supabase
+          .from("players")
+          .insert({
+            name: fullName,
+            user_id: newUser.id,
+            phone: payload.phone ?? null,
+            ntrp: payload.ntrp ?? null,
+          })
+          .select("id")
+          .single();
 
-      if (perror || !newPlayer) {
-        console.error("UsersRepository.register: cannot insert player:", perror);
-        throw new Error("PLAYER_CREATE_FAILED");
+        if (perror || !newPlayer) {
+          console.error("UsersRepository.register: cannot insert player:", perror);
+          throw new Error("PLAYER_CREATE_FAILED");
+        }
+        playerId = newPlayer.id;
       }
-      playerId = newPlayer.id;
     }
+
+    // 4) возвращаем пользователя уже с вложенным player
+    const full = await this.findById(newUser.id);
+    if (!full) {
+      // крайний случай: смэппим вручную без запроса
+      return {
+        user: new User({
+          id: newUser.id,
+          name: newUser.name,
+          role: newUser.role,
+          player: playerId
+            ? new Player({ id: playerId, name: fullName, phone: payload.phone ?? null, ntrp: payload.ntrp ?? null, sex: null })
+            : null,
+        } as any),
+      };
+    }
+    return { user: full };
   }
 
-  return {
-    user: {
-      id: newUser.id,
-      name: newUser.name,
-      role: newUser.role as UserRole,
-      player_id: playerId,
-    },
-  };
-}
-
-  /** ================== Остальные методы (как у тебя были) ================== */
+  /** ===== CRUD/поиск с вложенным players ===== */
 
   static async loadAll(): Promise<User[]> {
     const { data, error } = await supabase
       .from("users")
-      .select("id, name, role")
+      .select(`
+        id, name, role,
+        players (
+          id, name, phone, sex, ntrp, user_id
+        )
+      `)
       .order("name", { ascending: true });
 
     if (error) {
       console.error("Ошибка загрузки пользователей:", error);
       return [];
     }
-    return (data ?? []).map((row: any) => new User(row));
+    return (data ?? []).map(mapUserRow);
   }
 
   static async add(payload: { name: string; role?: UserRole; authId: string }): Promise<number | null> {
@@ -188,7 +195,12 @@ static async register(payload: RegisterPayload): Promise<RegisterResult> {
   static async findById(id: number): Promise<User | null> {
     const { data, error } = await supabase
       .from("users")
-      .select("id, name, role")
+      .select(`
+        id, name, role,
+        players!players_user_id_fkey (
+          id, name, phone, sex, ntrp, user_id
+        )
+      `)
       .eq("id", id)
       .maybeSingle();
 
@@ -196,13 +208,18 @@ static async register(payload: RegisterPayload): Promise<RegisterResult> {
       console.error("Ошибка поиска пользователя по id:", error);
       return null;
     }
-    return data ? new User(data) : null;
+    return data ? mapUserRow(data) : null;
   }
 
   static async findByName(name: string): Promise<User | null> {
     const { data, error } = await supabase
       .from("users")
-      .select("id, name, role")
+      .select(`
+        id, name, role,
+        players (
+          id, name, phone, sex, ntrp, user_id
+        )
+      `)
       .eq("name", name)
       .maybeSingle();
 
@@ -210,7 +227,7 @@ static async register(payload: RegisterPayload): Promise<RegisterResult> {
       console.error("Ошибка поиска пользователя по имени:", error);
       return null;
     }
-    return data ? new User(data) : null;
+    return data ? mapUserRow(data) : null;
   }
 
   static async getPasswordHashByName(name: string): Promise<string | null> {
@@ -224,7 +241,7 @@ static async register(payload: RegisterPayload): Promise<RegisterResult> {
       console.error("Ошибка получения пароля пользователя:", error);
       return null;
     }
-    return data?.password ?? null;
+    return (data as any)?.password ?? null;
   }
 
   static async changePassword(id: number, newPassword: string): Promise<void> {
@@ -242,9 +259,15 @@ static async register(payload: RegisterPayload): Promise<RegisterResult> {
   }
 
   static async authenticate(name: string, password: string): Promise<User | null> {
+    // 1) достаём пользователя с players
     const { data, error } = await supabase
       .from("users")
-      .select("id, name, role, password")
+      .select(`
+        id, name, role, password,
+        players (
+          id, name, phone, sex, ntrp, user_id
+        )
+      `)
       .eq("name", name)
       .maybeSingle();
 
@@ -252,8 +275,9 @@ static async register(payload: RegisterPayload): Promise<RegisterResult> {
       console.error("Ошибка аутентификации:", error);
       return null;
     }
-    if (!data || data.password !== password) return null;
+    if (!data || (data as any).password !== password) return null;
+
     const { password: _pw, ...safe } = data as any;
-    return new User(safe);
+    return mapUserRow(safe);
   }
 }

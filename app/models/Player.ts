@@ -4,11 +4,11 @@ import { maskFullName } from "../utils/maskName";
 export class Player {
   id: number;
   name: string;
-  phone: string;
-  sex: string;
-  ntrp: string;
+  phone: string | null;
+  sex: string | null;
+  ntrp: string | null;
 
-  constructor({id, name, phone, sex, ntrp}: {id: number, name: string, phone: string, sex: string, ntrp: string}) {
+  constructor({id, name, phone, sex, ntrp}: {id: number, name: string, phone: string | null, sex: string | null, ntrp: string | null}) {
     this.id = id;
     this.name = name;
     this.phone = phone;

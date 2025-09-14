@@ -25,9 +25,9 @@ export function AboutClub() {
   const organizer_telegram = (club as any)?.organizer_telegram as string | undefined;
 
   const fullName = director?.name ?? organizer_name ?? "Директор клуба";
-  const phone    = (director as any)?.phone ?? organizer_phone ?? undefined;
+  const phone    = (director as any)?.player.phone ?? organizer_phone ?? undefined;
   const email    = (director as any)?.email ?? organizer_email ?? undefined;
-  const whatsapp = (director as any)?.whatsapp ?? organizer_whatsapp ?? undefined;
+  const whatsapp = (director as any)?.player.whatsapp ?? organizer_whatsapp ?? undefined;
   const telegram = (director as any)?.telegram ?? organizer_telegram ?? undefined;
 
   // Если в enum нет явной роли директора клуба — используем TournamentAdmin
