@@ -179,6 +179,17 @@ static async createNewClub(input: ClubCreateInput): Promise<Club> {
     };
   }
 
+  static async getByCreatorId(id: number): Promise<Club[]> {
+    const { data, error } = await supabase
+      .from("club_stats")
+      .select("*")
+      .eq("created_by", id)
+      .maybeSingle();
+    if (error) throw error;
+
+    return (data ?? []) as Club[];
+  }
+
   /* ======================= ЧЛЕНЫ КЛУБА ======================= */
 
   /**

@@ -1,0 +1,35 @@
+/* app/app-shell.css */
+
+/* Базовый контейнер приложения под навбаром */
+.app-shell {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+/* Контентная область */
+.app-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* На мобилке — без отступов (панель выезжает поверх) */
+  padding-left: 0;
+}
+
+/* На десктопе делаем отступ под панель */
+@media (min-width: 900px) {
+  /* ширина раскрытой/свернутой панели — через CSS-переменные */
+  :root {
+    --sidenav-expanded: 260px;
+    --sidenav-collapsed: 64px;
+  }
+
+  .app-main {
+    /*padding-left: var(--sidenav-expanded);*/
+    transition: padding-left 180ms ease;
+  }
+
+  /* когда панель свернута — уменьшаем отступ */
+  .sidenav-collapsed ~ .app-main {
+    /*padding-left: var(--sidenav-collapsed);*/
+  }
+}

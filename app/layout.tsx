@@ -2,6 +2,7 @@
 import "./colors.css";
 import "./globals.css";
 import "./cards.css";
+import "./app-shell.css"; // 👈 добавим стили оболочки
 
 import { UserProvider } from "./components/UserContext";
 import Script from "next/script";
@@ -10,6 +11,7 @@ import type { Metadata } from "next";
 import { TournamentsProvider } from "./tournaments/TournamentsProvider";
 import { NavigationBar } from "./components/NavigationBar";
 import { ClubsProvider } from "./clubs/ClubsProvider";
+import { SideNavigationBar } from "./components/SideNavigationBar";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://honeycup.ru"),
@@ -125,13 +127,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <UserProvider>
-          <ClubsProvider>
+          <ClubsProvider creatorId={null}>
             <TournamentsProvider>
               <NavigationBar />
-              {children}
+
+              {/* APP SHELL: sidebar + main */}
+              <div className="app-shell">
+                <SideNavigationBar />
+
+                <main id="app-main" className="app-main">
+                  {children}
+                </main>
+              </div>
             </TournamentsProvider>
           </ClubsProvider>
         </UserProvider>
+
       </body>
     </html>
   );

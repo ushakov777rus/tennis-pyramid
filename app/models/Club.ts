@@ -60,22 +60,3 @@ export type ClubCreateInput = {
   description?: string | null;
   logo_url?: string | null;
 };
-
-
-// helper: собираем модель из plain-объекта
-// helper: собираем модель из plain-объекта
-export function toModel(club: ClubPlain): Club {
-  return new Club({
-    id: club.id,
-    director_id: club.director_id,
-    slug: club.slug,
-    name: club.name,
-    description: club.description,
-    city: club.city,
-    logo_url: club.logo_url,
-    members_count: club.members_count,
-    tournaments_count: club.tournaments_count,
-    created_at: club.created_at,
-    updated_at: club.updated_at,
-  });
-}

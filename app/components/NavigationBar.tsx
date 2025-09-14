@@ -8,13 +8,18 @@ import "./NavigationBar.css";
 
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useUser } from "./UserContext";
 
 export function NavigationBar() {
+  const { user } = useUser();
   const pathname = usePathname();
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(href + "/");
   }
+
+  // Залогинен это меню не нужно
+  if (user) return null;
  
   return (
     <header className="header">

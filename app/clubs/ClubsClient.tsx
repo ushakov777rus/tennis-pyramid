@@ -2,7 +2,7 @@
 
 import "./clubs.css";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useClubs } from "./ClubsProvider";
 import { ClubsRepository } from "@/app/repositories/ClubsRepository";
@@ -11,84 +11,151 @@ import { ClubCard } from "@/app/clubs/ClubCard";
 import { AdminOnly } from "../components/RoleGuard";
 import { AddClubModal } from "./AddClubModal";
 
-export function ClubsClient() {
-  const { clubs, loading, error, createClub, deleteClub } = useClubs();
+/**
+ * Компонент списка клубов.
+ * Отображает:
+ *  - поиск
+ *  - список клубов
+ *  - кнопку добавления нового клуба
+ *  - модалку для создания клуба
+ */
+export function ClubsClient({ creatorId }: { creatorId: number | null }) {
+  const { clubs, loading, error, createClub, deleteClub, initialLoaded } = useClubs();
   const router = useRouter();
 
+  // состояние строки поиска
   const [q, setQ] = useState("");
+
+  // состояние открытия модалки создания клуба
   const [modalOpen, setModalOpen] = useState(false);
 
+  /**
+   * Отфильтрованные клубы по строке поиска.
+   * Если q пустая строка → возвращаем все клубы.
+   */
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s) return clubs;
-    return clubs.filter(c =>
-      c.name.toLowerCase().includes(s) ||
-      (c.city ?? "").toLowerCase().includes(s)
+    return clubs.filter(
+      (c) =>
+        c.name.toLowerCase().includes(s) ||
+        (c.city ?? "").toLowerCase().includes(s)
     );
   }, [clubs, q]);
 
+  /**
+   * Обработчик создания нового клуба.
+   * После создания → закрываем модалку и делаем переход по slug.
+   */
   const onCreate = async (payload: ClubCreateInput) => {
-
-    await createClub({ 
-      name: payload.name, 
+    const newClub = await createClub({
+      name: payload.name,
       city: payload.city,
-      director_id: payload.director_id });
+      director_id: payload.director_id,
+    });
 
     setModalOpen(false);
+
+    if (newClub?.slug) {
+      router.push(ClubsRepository.clubUrl(newClub));
+    }
   };
 
-  console.log("ClubsClient.clubs",clubs);
+  /**
+   * Автоматический переход:
+   * если у пользователя есть creatorId и ровно один клуб — редиректим сразу в него.
+   */
+  const redirectedRef = useRef(false);
 
+  // Автопереход в единственный клуб
+  useEffect(() => {
+    if (initialLoaded && !loading && creatorId && clubs.length === 1) {
+      router.replace(ClubsRepository.clubUrl(clubs[0]));
+    }
+  }, [initialLoaded, loading, creatorId, clubs, router]);
+
+  /**
+   * Если это первый клуб и у пользователя есть creatorId —
+   * показываем экран «создания клуба» вместо списка.
+   */
+  console.log("ClubsClient-------", creatorId, clubs.length, loading);
+// ClubsClient.tsx
+if (creatorId && initialLoaded && clubs.length === 0 && !loading) {
+  return (
+    <div className="page-container">
+      <h1 className="page-title">Создание нового клуба...</h1>
+      <div className="page-content-container">
+        <ul className="card-grid-new">
+          <AdminOnly>
+            <li>
+              <ClubCard
+                club={null}
+                displayName={false}
+                onClick={() => setModalOpen(true)}
+              />
+            </li>
+          </AdminOnly>
+        </ul>
+
+        <AddClubModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          onCreate={onCreate}
+        />
+      </div>
+    </div>
+  );
+}
+
+  /**
+   * Основной экран со списком клубов.
+   */
   return (
     <div className="page-container">
       <h1 className="page-title">Клубы</h1>
 
       <div className="page-content-container">
+        {/* Панель поиска */}
+        <div className="card page-toolbar">
+          <input
+            className="input"
+            type="text"
+            placeholder="Поиск по названию или городу…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+          />
+        </div>
 
-      <div className="card page-toolbar">
-        <input
-          className="input"
-          type="text"
-          placeholder="Поиск по названию или городу…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-        />
-      </div>
+        {/* Состояния загрузки / ошибки */}
+        {loading && <p className="clubs-loading">Загрузка…</p>}
+        {error && <p className="clubs-error">Ошибка: {error}</p>}
 
-      {loading && <p className="clubs-loading">Загрузка…</p>}
-      {error && <p className="clubs-error">Ошибка: {error}</p>}
-
-      <ul className="card-grid-new">
-        <AdminOnly>
-        <ClubCard
-            club={null}
-            displayName={false}
-            onClick={() => setModalOpen(true)}
-        />
-        </AdminOnly>
         {/* Список клубов */}
-        {filtered.map((c) => (
-          <li key={c.id}>
-            <ClubCard
-              club={c}
-              displayName={true}
-              onClick={() => router.push(ClubsRepository.clubUrl(c))}
-              onDelete={() => {
-                if (confirm(`Удалить клуб «${c.name}»?`)) void deleteClub(c.id);
-              }}
-            />
-          </li>
-        ))}
-      </ul>
+        <ul className="card-grid-new">
+          {filtered.map((c) => (
+            <li key={c.id}>
+              <ClubCard
+                club={c}
+                displayName={true}
+                onClick={() => router.push(ClubsRepository.clubUrl(c))}
+                onDelete={() => {
+                  if (confirm(`Удалить клуб «${c.name}»?`)) {
+                    void deleteClub(c.id);
+                  }
+                }}
+              />
+            </li>
+          ))}
+        </ul>
 
-      {/* Простая модалка (MVP) */}
+        {/* Модалка добавления нового клуба */}
         <AddClubModal
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
-          onCreate={onCreate}  // ✅ теперь передаём правильный handler
+          onCreate={onCreate}
         />
-    </div>
+      </div>
     </div>
   );
 }

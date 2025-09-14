@@ -10,7 +10,7 @@ import "./UserBadge.css";
 
 export function UserBadge() {
   const { user, setUser } = useUser();
-  const router = useRouter()
+  const router = useRouter();
 
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);

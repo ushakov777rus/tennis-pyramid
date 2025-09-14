@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // Добавьте этот импорт
 
 import { useUser } from "@/app/components/UserContext";
 
@@ -9,18 +10,19 @@ import "./LoginModal.css";
 type LoginModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSwitchToRegister?: () => void; // есть в типе
+  onSwitchToRegister?: () => void;
 };
 
 export function LoginModal({
   isOpen,
   onClose,
-  onSwitchToRegister,       // <-- деструктурируем
+  onSwitchToRegister,
 }: LoginModalProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const { setUser } = useUser();
+  const router = useRouter(); // Добавьте useRouter
 
   if (!isOpen) return null;
 
@@ -42,6 +44,7 @@ export function LoginModal({
 
     setUser(data.user);
     onClose();
+    router.push("/admin/clubs"); // Добавьте редирект после успешного логина
   }
 
   return (
@@ -83,7 +86,7 @@ export function LoginModal({
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              onSwitchToRegister?.(); // теперь доступен
+              onSwitchToRegister?.();
             }}
           >
             Зарегистрируйтесь
