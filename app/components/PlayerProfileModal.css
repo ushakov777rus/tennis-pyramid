@@ -1,6 +1,6 @@
 /* базовая совместимость с твоими модалками */
 .profile-modal {
-  width: min(820px, 92vw);
+  width: min(900px, 92vw);
   max-height: 86vh;
   overflow: auto;
   padding: 24px;

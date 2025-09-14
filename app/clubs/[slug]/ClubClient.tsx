@@ -6,7 +6,7 @@ import { useClub } from "./ClubProvider";
 import { ClubCard } from "../ClubCard";
 
 import { ScrollableTabs, TabItem } from "@/app/components/controls/ScrollableTabs";
-import { AboutClub } from "@/app/components/AboutClub";
+import { AboutClub } from "@/app/clubs/[slug]/AboutClub";
 import { ClubParticipantsView, ParticipantsView } from "@/app/components/ParticipantsView";
 import { TournamentsProvider } from "@/app/tournaments/TournamentsProvider";
 import { TournamentsClient } from "@/app/tournaments/TournamentsClient";

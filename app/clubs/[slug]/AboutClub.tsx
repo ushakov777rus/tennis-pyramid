@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import "./AboutTournament.css";
 import { useClub } from "@/app/clubs/[slug]/ClubProvider";
 import { UserCard } from "@/app/components/UserCard";
-import { UserRole } from "../models/Users";
+import { UserRole } from "../../models/Users";
 
 function formatDate(d?: string | null) { /* как у тебя */ }
 function formatDateRange(start?: string | null, end?: string | null) { /* как у тебя */ }
@@ -35,16 +35,17 @@ export function AboutClub() {
   }
 
   return (
-    <div className="about-root">
+    <div className="page-content-container">
       {/* Инфо-грид */}
-      <section className="card about-grid">
-        <div>
-          Директор клуба
-        </div>
-        <div>
-          Участники клуба
-        </div>
-
+      <section className="card-grid">
+          <UserCard
+            fullName={"ФИО"}
+            role={UserRole.TournamentAdmin}
+            phone={"Телефон"}
+            email={"Почта"}
+            whatsapp={"WA"}
+            telegram={"TG"}
+          />
       </section>
 
       {/* остальной контент AboutTournament — без изменений */}

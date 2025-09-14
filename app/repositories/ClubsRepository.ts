@@ -27,29 +27,45 @@ export class ClubsRepository {
 
   /* ======================= CRUD КЛУБОВ ======================= */
 
-  static async create(input: ClubCreateInput): Promise<Club> {
-    const { data, error } = await supabase
-      .from("clubs")
-      .insert({
-        name: input.name,
-        city: input.city ?? null,
-        created_by: input.director_id,
-        description: input.description ?? null,
-        logo_url: input.logo_url ?? null,
-      })
-      .select("id, slug, name, description, city, logo_url, created_at, updated_at")
-      .single();
-    if (error) throw error;
+static async createNewClub(input: ClubCreateInput): Promise<Club> {
+  console.log("Добавление клуба", input);
+  const { data, error: insertError } = await supabase
+    .from("clubs")
+    .insert({
+      name: input.name,
+      city: input.city ?? null,
+      created_by: input.director_id,
+      description: input.description ?? null,
+      logo_url: input.logo_url ?? null,
+    })
+    .select("id, slug, name, description, city, logo_url, created_at, updated_at")
+    .single();
 
-    // дотягиваем members_count из вьюхи
-    const { data: v } = await supabase
-      .from("club_stats")
-      .select("*")
-      .eq("id", (data as any).id)
-      .single();
+  if (insertError) throw insertError;
 
-    return (v ?? data) as Club;
+  const { error: adminError } = await supabase
+    .from("club_admins")
+    .insert({
+      club_id: (data as any).id,
+      user_id: input.director_id,
+      role: "director",
+    });
+
+  if (adminError) 
+  {
+    console.error("Не удалось добавить админа клуба", adminError);
+    throw adminError;
   }
+
+  // дотягиваем members_count из вьюхи
+  const { data: v } = await supabase
+    .from("club_stats")
+    .select("*")
+    .eq("id", (data as any).id)
+    .single();
+
+  return (v ?? data) as Club;
+}
 
   static async update(
     id: number,

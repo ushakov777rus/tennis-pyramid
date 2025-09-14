@@ -43,35 +43,35 @@ export function ClubsProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { void refresh(); }, [refresh]);
 
-  const createClub = useCallback(async (p: ClubCreateInput) => {
-    // простой optimistic: добавим заглушку
-    if (!user) {
-      console.log("User undefined");
-      return;
-    }
-    const tmpId = -Math.floor(Math.random() * 1e9);
-    const optimistic: Club = {
-      id: tmpId,
-      director_id: user.id,
-      slug: p.name, //TODO нужно что то сделать
-      name: p.name,
-      description: p.description ?? null,
-      city: p.city ?? null,
-      logo_url: p.logo_url ?? null,
-      members_count: 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    setClubs(prev => [optimistic, ...prev]);
-    try {
-      const real = await ClubsRepository.create(p);
-      setClubs(prev => [real, ...prev.filter(c => c.id !== tmpId)]);
-    } catch (e) {
-      console.error("createClub error:", e);
-      setClubs(prev => prev.filter(c => c.id !== tmpId));
-      throw e;
-    }
-  }, []);
+const createClub = useCallback(async (p: ClubCreateInput) => {
+  if (!user) throw new Error("Нужно войти в систему, чтобы создать клуб.");
+
+  const payload: ClubCreateInput = { ...p, director_id: user.id };
+
+  const tmpId = -Math.floor(Math.random() * 1e9);
+  const optimistic: Club = {
+    id: tmpId,
+    director_id: user.id,
+    slug: p.name, // TODO: нормализовать slug
+    name: p.name,
+    description: p.description ?? null,
+    city: p.city ?? null,
+    logo_url: p.logo_url ?? null,
+    members_count: 0,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+  setClubs(prev => [optimistic, ...prev]);
+
+  try {
+    const real = await ClubsRepository.createNewClub(payload);
+    setClubs(prev => [real, ...prev.filter(c => c.id !== tmpId)]);
+  } catch (e) {
+    console.error("createClub error:", e);
+    setClubs(prev => prev.filter(c => c.id !== tmpId));
+    throw e;
+  }
+}, [user]); // ← важное добавление
 
   const deleteClub = useCallback(async (id: number) => {
     const snap = clubs;

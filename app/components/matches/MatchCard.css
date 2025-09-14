@@ -22,10 +22,7 @@
 .match-card-row {
   display: grid;
   grid-template-columns: 40px 1fr repeat(var(--sets-count, 3), 30px);
-  align-items: center;
   gap: 8px;
-  padding: 6px 0;
-  border-bottom: 1px dashed rgba(255,255,255,0.06);
 }
 
 /* строка с заголовком колонок (S1, S2...) */

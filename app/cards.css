@@ -1,0 +1,20 @@
+/* Карточки */
+.card {
+  position: relative;
+  background: #1b1b1b;
+  border-radius: 8px;
+  padding: 5px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(166, 255, 0, 0.1);
+  box-sizing: border-box;
+  color: #ccc;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.2s ease-in-out;
+}
+
+.card-row {
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, .06);
+}

@@ -1,6 +1,7 @@
 // app/layout.tsx
 import "./colors.css";
 import "./globals.css";
+import "./cards.css";
 
 import { UserProvider } from "./components/UserContext";
 import Script from "next/script";

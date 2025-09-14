@@ -59,7 +59,7 @@ export function MatchCard({ match, onClick, onDelete }: MatchCardProps) {
       {/* тело карточки со счетом */}
       <div className="match-card-body">
         {/* строка игрока A */}
-        <div className="match-card-row">
+        <div className="card-row match-card-row">
           <div
             className={`avatar ${
               matchWinnerId && matchWinnerId === match.player1?.id ? "match-winner" : ""
@@ -86,7 +86,7 @@ export function MatchCard({ match, onClick, onDelete }: MatchCardProps) {
         </div>
 
         {/* строка игрока B */}
-        <div className="match-card-row">
+        <div className="card-row match-card-row">
           <div
             className={`avatar ${
               matchWinnerId && matchWinnerId === match.player2?.id ? "match-winner" : ""
