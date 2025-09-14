@@ -13,6 +13,11 @@
   transition: all 0.2s ease-in-out;
 }
 
+.card-800px {
+  max-width: 800px;
+}
+
+
 .card-row {
     align-items: center;
     padding: 6px 0;

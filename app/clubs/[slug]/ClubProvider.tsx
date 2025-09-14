@@ -1,3 +1,4 @@
+// app/clubs/[slug]/ClubProvider.tsx
 "use client";
 
 import React, {
@@ -15,10 +16,11 @@ import type { ClubPlain } from "@/app/models/Club";
 
 import { ClubsRepository } from "@/app/repositories/ClubsRepository";
 import { PlayersRepository } from "@/app/repositories/PlayersRepository";
+import { UsersRepository } from "@/app/repositories/UsersRepository"; // 👈
 
 import { Player } from "@/app/models/Player";
 import { useUser } from "@/app/components/UserContext";
-
+import type { User } from "@/app/models/Users"; // 👈
 
 /** Исходные данные из сервера/роутера */
 type InitialData = {
@@ -29,18 +31,19 @@ type InitialData = {
 /** Публичный интерфейс контекста клуба */
 export type ClubContextShape = {
   // meta
-  loading: boolean;         // общий флаг загрузки (синоним initialLoading)
-  initialLoading: boolean;  // первичная загрузка
-  refreshing: boolean;      // фоновый рефреш
-  mutating: boolean;        // мутации (добавление/удаление)
+  loading: boolean;
+  initialLoading: boolean;
+  refreshing: boolean;
+  mutating: boolean;
 
   clubId: number | null;
   slug: string;
 
   // данные
   club: Club | null;
-  members: Player[];  // члены клуба
-  players: Player[];  // доступные игроки (каталог игроков для добавления)
+  director: User | null;        // 👈 добавили
+  members: Player[];
+  players: Player[];
 
   // действия
   reload: (opts?: { silent?: boolean }) => Promise<void>;
@@ -74,44 +77,54 @@ export function ClubProvider({
   initial: InitialData;
   children: React.ReactNode;
 }) {
-  const { user, loading: userLoading } = useUser();
+  const { loading: userLoading } = useUser();
   const { slug, clubPlain } = initial;
 
   // state
   const [club, setClub] = useState<Club | null>(toModelFromPlain(clubPlain));
   const clubId = club?.id ?? null;
 
+  const [director, setDirector] = useState<User | null>(null); // 👈
   const [members, setMembers] = useState<Player[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
 
-  const needInitialFetch=true;//!clubPlain;
+  const needInitialFetch = true; // !clubPlain;
 
   // флаги загрузки
   const [initialLoading, setInitialLoading] = useState<boolean>(needInitialFetch);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [mutating, setMutating] = useState<boolean>(false);
 
-  /** Перезагрузка по slug: тянем club + членов клуба + доступных игроков */
+  /** Перезагрузка по slug: тянем club + директора + членов клуба + доступных игроков */
   const reload = useCallback(
     async (opts?: { silent?: boolean }) => {
       const silent = !!opts?.silent;
       silent ? setRefreshing(true) : setInitialLoading(true);
       try {
         // 1) сам клуб
-        console.log("ClubProvider.reload", slug);
         const plain = await ClubsRepository.getBySlug(slug); // ожидается ClubPlain | null
         const next = toModelFromPlain(plain);
         setClub(next);
 
-        // 2) если есть клуб — грузим членов и каталог игроков
+        // 2) директор
+        if (next?.director_id) {
+          try {
+            const d = await UsersRepository.findById(next.director_id); // -> User | null
+            setDirector(d ?? null);
+          } catch (err) {
+            console.error("ClubProvider.reload: cannot load director", err);
+            setDirector(null);
+          }
+        } else {
+          setDirector(null);
+        }
+
+        // 3) члены клуба + каталог игроков
         if (next?.id) {
           const [membersNext, allPlayers] = await Promise.all([
-            // предполагаемые методы реп — замени на свои, если отличаются
-            ClubsRepository.loadMembers(next.id),                       // -> Player[]
-            PlayersRepository.loadAll() //loadAccessiblePlayers(user?.id, user?.role), // -> Player[]
+            ClubsRepository.loadMembers(next.id), // -> Player[]
+            PlayersRepository.loadAll(),          // -> Player[]
           ]);
-
-          console.log("ClubProvider.reload", membersNext, allPlayers);
 
           setMembers(membersNext ?? []);
           setPlayers(allPlayers ?? []);
@@ -123,7 +136,7 @@ export function ClubProvider({
         silent ? setRefreshing(false) : setInitialLoading(false);
       }
     },
-    [slug, user?.id, user?.role]
+    [slug]
   );
 
   // первичная загрузка, если с сервера не пришёл clubPlain
@@ -180,6 +193,7 @@ export function ClubProvider({
       slug,
 
       club,
+      director,     // 👈 пробрасываем
       members,
       players,
 
@@ -194,6 +208,7 @@ export function ClubProvider({
       clubId,
       slug,
       club,
+      director,     // 👈 зависимость
       members,
       players,
       reload,

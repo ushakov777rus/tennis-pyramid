@@ -325,10 +325,6 @@ body {
   cursor: pointer;
 }
 
-.card-800px {
-  max-width: 800px;
-}
-
 .card-add {
   font-size: 64px;
   color: #ccff66;

@@ -41,7 +41,7 @@ export function UserCard({
 
   return (
     <div className="card">
-      <div className="card-row">
+      <div className="card-row user-card-row">
         <div className="avatar">{(fullName?.[0] ?? "U").toUpperCase()}</div>
         <div className="ucard__text">
           <div className="ucard__role">{roleLabel(role)}</div>
