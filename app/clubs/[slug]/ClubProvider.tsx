@@ -65,6 +65,7 @@ function toModelFromPlain(plain: ClubPlain | null | undefined): Club | null {
     city: plain.city ?? null,
     logo_url: plain.logo_url ?? null,
     members_count: plain.members_count ?? null,
+    tournaments_count: plain.tournaments_count ?? null,
     created_at: plain.created_at,
     updated_at: plain.updated_at,
   });

@@ -7,6 +7,7 @@ export class Club {
   city: string | null;
   logo_url: string | null;
   members_count: number | null;   // из view club_stats
+  tournaments_count: number | null;   // из view club_stats
   created_at: string;
   updated_at: string;
 
@@ -19,6 +20,7 @@ export class Club {
     city?: string | null;
     logo_url?: string | null;
     members_count?: number | null;
+    tournaments_count?: number | null;
     created_at: string;
     updated_at: string;
   }) {
@@ -30,6 +32,7 @@ export class Club {
     this.city = data.city ?? null;
     this.logo_url = data.logo_url ?? null;
     this.members_count = data.members_count ?? null;
+    this.tournaments_count = data.tournaments_count ?? null;
     this.created_at = data.created_at;
     this.updated_at = data.updated_at;
   }
@@ -44,6 +47,7 @@ export type ClubPlain = {
   city: string | null;
   logo_url: string | null;
   members_count: number | null;
+  tournaments_count: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -70,6 +74,7 @@ export function toModel(club: ClubPlain): Club {
     city: club.city,
     logo_url: club.logo_url,
     members_count: club.members_count,
+    tournaments_count: club.tournaments_count,
     created_at: club.created_at,
     updated_at: club.updated_at,
   });

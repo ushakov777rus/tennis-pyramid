@@ -37,6 +37,8 @@ export function ClubsClient() {
     setModalOpen(false);
   };
 
+  console.log("ClubsClient.clubs",clubs);
+
   return (
     <div className="page-container">
       <h1 className="page-title">Клубы</h1>

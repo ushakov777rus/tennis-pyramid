@@ -98,6 +98,7 @@ static async createNewClub(input: ClubCreateInput): Promise<Club> {
       city: data.city,
       logo_url: data.logo_url,
       members_count: (stat as any)?.members_count ?? null,
+      tournaments_count: (stat as any)?.tournaments_count ?? null,
       created_at: data.created_at,
       updated_at: data.updated_at,
     };
@@ -148,6 +149,7 @@ static async createNewClub(input: ClubCreateInput): Promise<Club> {
       city: (data as any).city,
       logo_url: (data as any).logo_url,
       members_count: (data as any).members_count ?? 0,
+      tournaments_count: (data as any)?.tournaments_count ?? null,
       created_at: (data as any).created_at,
       updated_at: (data as any).updated_at,
     };
@@ -171,6 +173,7 @@ static async createNewClub(input: ClubCreateInput): Promise<Club> {
       city: (data as any).city,
       logo_url: (data as any).logo_url,
       members_count: (data as any).members_count ?? 0,
+      tournaments_count: (data as any)?.tournaments_count ?? null,
       created_at: (data as any).created_at,
       updated_at: (data as any).updated_at,
     };

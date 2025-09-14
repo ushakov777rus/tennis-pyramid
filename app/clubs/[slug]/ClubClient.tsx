@@ -36,6 +36,8 @@ export default function ClubClient() {
 
   if (!club) return <p>Загрузка...</p>;
 
+  console.log("ClubClient.club",club);
+
   return (
     <div className="page-container">
       <h1 className="page-title">{club.name}</h1>

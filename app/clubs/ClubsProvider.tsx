@@ -58,6 +58,7 @@ const createClub = useCallback(async (p: ClubCreateInput) => {
     city: p.city ?? null,
     logo_url: p.logo_url ?? null,
     members_count: 0,
+    tournaments_count: 0,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };

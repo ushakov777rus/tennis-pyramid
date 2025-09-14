@@ -4,6 +4,7 @@ import "./clubs.css";
 import { Club } from "../models/Club";
 import { ApplyIconButton, DeleteIconButton } from "../components/IconButtons";
 import { AdminOnly, PlayerOnly } from "../components/RoleGuard";
+import { ClubFallbackLogo } from "./ClubLogo";
 
 type Props = {
   club: Club | null;
@@ -38,10 +39,13 @@ if (club == null) {
       
       <button className="club-card-main">
         <div className="club-card-logo">
-          {club.logo_url ? <img src={club.logo_url} alt={club.name} /> : <span>🏆</span>}
+          {club.logo_url
+            ? <img src={club.logo_url} alt={club.name} />
+            : <ClubFallbackLogo title={club.name} className="club-fallback" />}
         </div>
         <div className="club-card-info">
           <div className="club-card-meta">Участников: {club.members_count ?? 0}</div>
+          <div className="club-card-meta">Турниров: {club.tournaments_count ?? 0}</div>
           {club.description && <div className="club-card-desc" title={club.description}>{club.description}</div>}
         </div>
       </button>
