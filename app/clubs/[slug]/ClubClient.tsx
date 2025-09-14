@@ -12,10 +12,13 @@ import { TournamentsProvider } from "@/app/tournaments/TournamentsProvider";
 import { TournamentsClient } from "@/app/tournaments/TournamentsClient";
 import { AdminOnly } from "@/app/components/RoleGuard";
 import { PlayerListView } from "@/app/rating/PlayerListView";
+import { useUser } from "@/app/components/UserContext";
+import { UserRole } from "@/app/models/Users";
 
 type ViewKey = "about" | "participants" | "tournaments" | "rating";
 
 export default function ClubClient() {
+  const { user } = useUser();
   const { club, reload } = useClub(); // предполагаем, что провайдер отдаёт club (+ при желании reload)
 
   const [view, setView] = useState<ViewKey>("about");
@@ -23,11 +26,12 @@ export default function ClubClient() {
   const tabs: TabItem[] = useMemo(
     () => [
       { key: "about", label: "О клубе" },
-      { key: "participants", label: "Участники" },
+      (user?.role === UserRole.SiteAdmin || user?.role === UserRole.TournamentAdmin) && 
+        { key: "participants", label: "Участники" },
       { key: "tournaments", label: "Турниры" },
       { key: "rating", label: "Рейтинг" },
-    ],
-    []
+    ].filter(Boolean) as TabItem[],
+    [user?.role]
   );
 
   if (!club) return <p>Загрузка...</p>;

@@ -47,15 +47,13 @@ if (club == null) {
       </button>
 
       <PlayerOnly>
-            <ApplyIconButton
-              title="Подать заявку на участие"
-              onClick={(e) => {
-                e.stopPropagation();
+        <ApplyIconButton
+          title="Подать заявку на участие"
+          onClick={(e) => {
+            e.stopPropagation();
 
-              }}
-            />
-
-
+          }}
+        />
       </PlayerOnly>
 
       <AdminOnly>
