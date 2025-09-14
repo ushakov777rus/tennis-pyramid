@@ -1,14 +1,21 @@
-// UserContext.tsx
+// app/components/UserContext.tsx
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import { User } from "../models/Users";
 
 type Ctx = {
   user: User | null;
   setUser: (user: User | null) => void;
   loading: boolean;
-  refresh: () => Promise<void>;   // <- Promise<void>
+  refresh: () => Promise<void>;
   error: string | null;
 };
 
@@ -25,11 +32,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // храним текущий AbortController, чтобы отменять предыдущие запросы
   const inFlight = useRef<AbortController | null>(null);
 
   const refresh = useCallback(async () => {
-    // отменяем предыдущий запрос, если ещё идёт
     inFlight.current?.abort();
     const ac = new AbortController();
     inFlight.current = ac;
@@ -43,15 +48,20 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         credentials: "include",
         signal: ac.signal,
       });
+
+      // 401/500 — тоже читаем JSON ради ошибки
       const data = await res.json();
 
-      console.log("UserProvider:user", data);
-
-      setUser(data.user);
+      if (!res.ok) {
+        setError(data?.error ?? "Не удалось загрузить пользователя");
+        setUser(null);
+      } else {
+        // кладём в контекст модель User c полем player (объект/ null)
+        setUser(data?.user ? new User(data.user) : null);
+      }
     } catch (e: any) {
-      // если это именно abort — игнорируем
       if (e?.name !== "AbortError") {
-        console.error("Ошибка загрузки user:", e);
+        console.error("UserProvider: refresh error:", e);
         setError(e?.message ?? "Не удалось загрузить пользователя");
         setUser(null);
       }
@@ -64,7 +74,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void refresh();
     return () => {
-      // отменим запрос при размонтировании провайдера
       inFlight.current?.abort();
     };
   }, [refresh]);

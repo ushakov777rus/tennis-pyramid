@@ -6,22 +6,24 @@ import { UserRole } from "@/app/models/Users";
 export async function GET() {
   try {
     const supabase = await createClient();
-    
-    // Получаем текущую сессию
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-    console.log("api:me:user:begin",session?.user);
-    
-    if (sessionError || !session) {
+    // 1) текущая сессия
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.user) {
       return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
     }
 
-    console.log("api:me get user by auth id", session.user.id);
+    const authUser = session.user;
 
-    // Получаем информацию о пользователе
+    // 2) тянем пользователя с вложенным players (массивом), далее возьмём [0]
     const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select(`
+      .from("users")
+      .select(
+        `
         id,
         name,
         role,
@@ -32,33 +34,51 @@ export async function GET() {
           sex,
           ntrp
         )
-      `)
-      .eq('auth_user_id', session.user.id)
+      `
+      )
+      .eq("auth_user_id", authUser.id)
       .maybeSingle();
 
     if (userError) {
-      console.error("Error fetching user data:", userError);
+      console.error("api/me: fetch user error:", userError);
     }
 
-// app/api/me/route.ts
-const user = {
-  id: userData?.id,
-  email: session.user.email,
-  name:
-    userData?.name ||
-    session.user.user_metadata.full_name ||
-    session.user.email,
-  role: userData?.role || session.user.user_metadata.role || UserRole.Player,
-  player_id: userData?.players?.[0]?.id || null,
-  full_name: userData?.name || session.user.user_metadata.full_name,
-};
+    // 3) собираем player-объект (а не player_id)
+    const player =
+      (userData as any)?.players?.[0]
+        ? {
+            id: userData!.players[0].id,
+            name: userData!.players[0].name,
+            phone: userData!.players[0].phone,
+            sex: userData!.players[0].sex,
+            ntrp: userData!.players[0].ntrp,
+          }
+        : null;
 
-    console.log("me:user", user);
+    // 4) итоговый объект user для клиента
+    const user = {
+      id: userData?.id ?? null,
+      email: authUser.email ?? null,
+      name:
+        userData?.name ||
+        (authUser.user_metadata as any)?.full_name ||
+        authUser.email ||
+        "",
+      role:
+        (userData?.role as UserRole | undefined) ||
+        ((authUser.user_metadata as any)?.role as UserRole | undefined) ||
+        UserRole.Player,
+      player, // 👈 вложенный объект или null
+      full_name:
+        userData?.name || (authUser.user_metadata as any)?.full_name || null,
+    };
 
     return NextResponse.json({ user });
-
   } catch (e: any) {
-    console.error("User route error:", e);
-    return NextResponse.json({ error: "Внутренняя ошибка сервера" }, { status: 500 });
+    console.error("api/me: server error:", e);
+    return NextResponse.json(
+      { error: "Внутренняя ошибка сервера" },
+      { status: 500 }
+    );
   }
 }

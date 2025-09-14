@@ -32,6 +32,7 @@ import { RoundRobinView } from "@/app/components/tournaments/RoundRobinView";
 import { SwissView } from "@/app/components/tournaments/SwissView";
 // app/tournaments/[slug]/TournamentClient.tsx (фрагмент)
 import { AboutTournament } from "@/app/components/AboutTournament";
+import { UserRole } from "@/app/models/Users";
 
 
 const todayISO = new Date().toISOString().split("T")[0];
@@ -52,6 +53,8 @@ export default function TournamentClient() {
   } = useTournament();
 
   const { user } = useUser();
+
+  console.log("TournamentClient.useUser", user);
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -79,7 +82,7 @@ export default function TournamentClient() {
     const isSingle =
       typeof tournament?.isSingle === "function" ? tournament.isSingle() : tournament?.tournament_type === "single";
 
-    if (user?.role === "player" && user.player.id && isSingle) {
+    if (user?.role === UserRole.Player && user.player.id && isSingle) {
       const isInTournament = participants.some((p) => p.player?.id === user.player.id);
       setSelectedIds(isInTournament ? [user.player.id] : []);
     } else {
@@ -145,7 +148,7 @@ export default function TournamentClient() {
       // только UI-сброс
       setMatchDate(todayISO);
       setMatchScore("");
-      setSelectedIds(user?.role === "player" && user.player.id ? [user.player.id] : []);
+      setSelectedIds(user?.role === UserRole.Player && user.player.id ? [user.player.id] : []);
     } catch (e) {
       console.error(e);
       alert("Не удалось добавить матч");
@@ -281,7 +284,7 @@ export default function TournamentClient() {
   if (!tournament) return <p>Загрузка...</p>;
 
   const isAnon = user?.role === undefined;
-  const isPlayerWithFixedAttacker = user?.role === "player" && !!user?.player.id;
+  const isPlayerWithFixedAttacker = user?.role === UserRole.Player && !!user?.player.id;
 
   return (
     <div className="page-container">
