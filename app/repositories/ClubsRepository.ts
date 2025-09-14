@@ -238,4 +238,15 @@ static async createNewClub(input: ClubCreateInput): Promise<Club> {
 
     if (error) throw error;
   }
+
+    /** Количество всех турниров в базе */
+  static async countAll(): Promise<number> {
+    const { count, error } = await supabase.from("clubs").select("id", { count: "exact", head: true });
+    if (error) {
+      console.error("Ошибка подсчёта клубов:", error);
+      return 0;
+    }
+    return count ?? 0;
+  }
+
 }

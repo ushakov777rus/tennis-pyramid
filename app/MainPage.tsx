@@ -12,6 +12,7 @@ import { TournamentsRepository } from "./repositories/TournamentsRepository";
 
 import Script from "next/script";
 import "./MainPage.css";
+import { ClubsRepository } from "./repositories/ClubsRepository";
 
 type Stat = { label: string; value: number | string };
 type Feature = { icon: React.ReactNode; label: string; text?: string };
@@ -59,6 +60,7 @@ export default function HomePage() {
   const [matchesCount, setMatchesCount] = useState<number | null>(null);
   const [playersCount, setPlayersCount] = useState<number | null>(null);
   const [tournamentsCount, setTournamentsCount] = useState<number | null>(null);
+  const [clubsCount, setClubsCount] = useState<number | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -68,18 +70,21 @@ export default function HomePage() {
         const m = await MatchRepository.countAll();
         const p = await PlayersRepository.countAll();
         const t = await TournamentsRepository.countAll();
+        const c = await ClubsRepository.countAll();
 
         if (!alive) return;
 
         setMatchesCount(m ?? 0);
         setPlayersCount(p ?? 0);
         setTournamentsCount(t ?? 0);
+        setClubsCount(c ?? 0);
       } catch (e) {
         console.error("Не удалось загрузить статистику:", e);
         if (!alive) return;
         setMatchesCount((v) => v ?? 0);
         setPlayersCount((v) => v ?? 0);
         setTournamentsCount((v) => v ?? 0);
+        setClubsCount((v) => v ?? 0);
       }
     }
 
@@ -94,9 +99,9 @@ export default function HomePage() {
       { label: "МАТЧЕЙ", value: matchesCount ?? "…" },
       { label: "УЧАСТНИКОВ", value: playersCount ?? "…" },
       { label: "ТУРНИРОВ", value: tournamentsCount ?? "…" },
-      { label: "КЛУБОВ", value: 0 },
+      { label: "КЛУБОВ", value: clubsCount  ?? "…" },
     ],
-    [matchesCount, playersCount, tournamentsCount]
+    [matchesCount, playersCount, tournamentsCount, clubsCount]
   );
 
   const features: Feature[] = [
