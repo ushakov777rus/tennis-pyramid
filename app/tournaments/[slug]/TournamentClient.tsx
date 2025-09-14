@@ -79,13 +79,13 @@ export default function TournamentClient() {
     const isSingle =
       typeof tournament?.isSingle === "function" ? tournament.isSingle() : tournament?.tournament_type === "single";
 
-    if (user?.role === "player" && user.player_id && isSingle) {
-      const isInTournament = participants.some((p) => p.player?.id === user.player_id);
-      setSelectedIds(isInTournament ? [user.player_id] : []);
+    if (user?.role === "player" && user.player.id && isSingle) {
+      const isInTournament = participants.some((p) => p.player?.id === user.player.id);
+      setSelectedIds(isInTournament ? [user.player.id] : []);
     } else {
       setSelectedIds([]);
     }
-  }, [user?.role, user?.player_id, tournament?.tournament_type, participants, tournament]);
+  }, [user?.role, user?.player.id, tournament?.tournament_type, participants, tournament]);
 
   // Доступные для выбора — только участники турнира
   const selectableItems = useMemo(() => {
@@ -145,7 +145,7 @@ export default function TournamentClient() {
       // только UI-сброс
       setMatchDate(todayISO);
       setMatchScore("");
-      setSelectedIds(user?.role === "player" && user.player_id ? [user.player_id] : []);
+      setSelectedIds(user?.role === "player" && user.player.id ? [user.player.id] : []);
     } catch (e) {
       console.error(e);
       alert("Не удалось добавить матч");
@@ -156,7 +156,7 @@ export default function TournamentClient() {
     matchDate,
     matchScore,
     user?.role,
-    user?.player_id,
+    user?.player.id,
     addMatchAndMaybeSwap,
     determineWinnerLoser,
   ]);
@@ -281,7 +281,7 @@ export default function TournamentClient() {
   if (!tournament) return <p>Загрузка...</p>;
 
   const isAnon = user?.role === undefined;
-  const isPlayerWithFixedAttacker = user?.role === "player" && !!user?.player_id;
+  const isPlayerWithFixedAttacker = user?.role === "player" && !!user?.player.id;
 
   return (
     <div className="page-container">
