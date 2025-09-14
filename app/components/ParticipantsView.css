@@ -28,10 +28,6 @@
   background: #1b1b1b;
 }
 
-
-/* 1) фиксированная раскладка, чтобы ширины колонок были предсказуемы */
-.participants-table { table-layout: fixed; width: 100%; }
-
 /* 2) вертикальный центр */
 .participants-table td, .participants-table th { vertical-align: middle; }
 
