@@ -51,8 +51,10 @@ export class Participant extends ParticipantBase {
     return 0;
   }
 
-  get ntrp(): string | undefined {
-    return this.player?.ntrp;
+  get ntrp(): string | null {
+    if (this.player)
+      return this.player.ntrp;
+    return null;
   }
 
   splitName(mask: boolean): string[] {

@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 
 import { UserRole } from "./models/Users";
 
-import { NavigationBar } from "@/app/components/NavigationBar";
 import { AuthContainer } from "@/app/components/AuthContainer";
 
 import { MatchRepository } from "./repositories/MatchRepository";
