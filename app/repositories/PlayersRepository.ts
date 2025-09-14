@@ -23,6 +23,26 @@ export class PlayersRepository {
     });
   }
 
+  static async loadByClubId(clubId: number): Promise<Player[]> {
+  const { data, error } = await supabase
+    .from("players")
+    .select(`
+      id, name, phone, sex, ntrp,
+      club_members!inner(club_id)
+    `)
+    .eq("club_members.club_id", clubId)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Ошибка загрузки игроков клуба:", error);
+    return [];
+  }
+
+  console.log("PlayersRepository-loadByClubId:", { clubId, count: data?.length ?? 0 });
+
+  return (data ?? []).map((row: any) => new Player(row));
+}
+
   static async loadAccessiblePlayers(
     organiserUserId: number | undefined,
     userRole: string | undefined
@@ -89,33 +109,58 @@ export class PlayersRepository {
     }
   }
 
-  static async add(player: Partial<Player>, adminId?: number): Promise<number | null> {
-    const { data, error } = await supabase
-      .from("players")
-      .insert([
-        {
-          name: player.name,
-          phone: player.phone,
-          sex: player.sex,
-          ntrp: player.ntrp,
-        },
-      ])
-      .select("id")   // 👈 вернёт id созданных строк
-      .single();      // 👈 берём одну строку
+static async createNewPlayer(
+  player: Partial<Player>,
+  clubId: number | null,
+  adminId?: number,
+  
+): Promise<number | null> {
+  // 1. создаём игрока
+  const { data, error } = await supabase
+    .from("players")
+    .insert([
+      {
+        name: player.name,
+        phone: player.phone,
+        sex: player.sex,
+        ntrp: player.ntrp,
+      },
+    ])
+    .select("id")
+    .single();
 
-    if (error) {
-      console.error("Ошибка добавления игрока:", error);
-      return null;
-    }
-
-    const playerId = data?.id ?? null;
-
-    if (adminId && playerId) {
-      await OrganizerContactsRepository.addVisiblePlayer(adminId, playerId);
-    }
-
-    return playerId;
+  if (error) {
+    console.error("Ошибка добавления игрока:", error);
+    return null;
   }
+
+  const playerId = data?.id ?? null;
+
+  if (!playerId) return null;
+
+  // 2. если указан adminId — делаем его видимым
+  if (adminId) {
+    await OrganizerContactsRepository.addVisiblePlayer(adminId, playerId);
+  }
+
+  // 3. если указан clubId — добавляем в клуб
+  if (clubId) {
+    const { error: cmError } = await supabase.from("club_members").insert([
+      {
+        club_id: clubId,
+        player_id: playerId,
+        role: "player",  // можно варьировать
+        status: "active" // по умолчанию
+      },
+    ]);
+
+    if (cmError) {
+      console.error("Ошибка добавления игрока в клуб:", cmError);
+    }
+  }
+
+  return playerId;
+}
  
   static async delete(id: number): Promise<void> {
     const { error } = await supabase.from("players").delete().eq("id", id);

@@ -3,7 +3,7 @@
 import "./PlayerCard.css";
 
 import { formatDate } from "@/app/components/Utils";
-import { CommentIconButton, DeleteIconButton, LikeIconButton } from "@/app/components/IconButtons";
+import { CommentIconButton, DeleteIconButton, EditIconButton, LikeIconButton } from "@/app/components/IconButtons";
 import { AdminOnly } from "../RoleGuard";
 import { useState } from "react";
 import { Player } from "@/app/models/Player";
@@ -12,7 +12,7 @@ type PlayerCardProps = {
   player: Player;
   stats: { matches: number; wins: number; winrate: number }
   onClick?: () => void;
-  onDelete?: (tournamentId: number) => void;
+  onDelete?: () => void;
 };
 
 export function PlayerCard({ player, stats, onClick, onDelete }: PlayerCardProps) {
@@ -73,14 +73,21 @@ export function PlayerCard({ player, stats, onClick, onDelete }: PlayerCardProps
 
         {/* кнопка удаления доступна только админам */}
         <AdminOnly>
+          <EditIconButton 
+            title="Удалить игрока"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowTooltip(true);
+              setTimeout(() => setShowTooltip(false), 2000); // показываем тултип на 2 сек
+            }}
+          />
+
           {onDelete && (
             <DeleteIconButton
-              title="Удалить матч"
+              title="Удалить игрока"
               onClick={(e) => {
                 e.stopPropagation();
-                setShowTooltip(true);
-                setTimeout(() => setShowTooltip(false), 2000); // показываем тултип на 2 сек
-              }}
+                onDelete()}}
             />
           )}
         </AdminOnly>

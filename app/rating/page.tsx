@@ -17,7 +17,12 @@ import { AdminOnly } from "../components/RoleGuard";
 import { OrganizerContactsRepository } from "@/app/repositories/OrganizerContactRepository";
 import { PlayerCard } from "../components/players/PlayerCard";
 
-export default function PlayerListView() {
+type Props = {
+  clubId: number | null;
+};
+
+
+export default function PlayerListView({clubId = null} : Props) {
   const { user } = useUser();
 
   // список игроков и мапа статистики
@@ -43,7 +48,11 @@ export default function PlayerListView() {
   }, []);
 
   const loadPlayers = async () => {
-    const list = await PlayersRepository.loadAll();
+    let list;
+    if (clubId)
+      list = await PlayersRepository.loadByClubId(clubId);
+    else
+      list = await PlayersRepository.loadAll();
     const matches: Match[] = await MatchRepository.loadAll();
     const s = Player.getPlayerStats(matches);
     setStats(s);
@@ -63,7 +72,7 @@ export default function PlayerListView() {
 
   const addPlayer = async () => {
     if (!newPlayer.name?.trim()) return;
-    await PlayersRepository.add(newPlayer, user?.id);
+    await PlayersRepository.createNewPlayer(newPlayer, clubId, user?.id);
     setNewPlayer({ name: "", ntrp: "" });
     void loadPlayers();
   };
@@ -94,24 +103,6 @@ export default function PlayerListView() {
     void loadPlayers();
   };
 
-  const addToMyPlayers = async (id: number) => {
-    if (!user?.id) return;
-    await OrganizerContactsRepository.addVisiblePlayer(user.id, id);
-    setMyMap((m) => ({ ...m, [id]: true }));
-  };
-
-  const removeFromMyPlayers = async (id: number) => {
-    if (!user?.id) return;
-    await OrganizerContactsRepository.removeVisiblePlayer(id, user.id);
-    setMyMap((m) => ({ ...m, [id]: false }));
-  };
-
-  const ensureMyStatus = async (playerId: number) => {
-    if (myMap[playerId] !== undefined) return;
-    const res = await OrganizerContactsRepository.isMyPlayer(playerId, user?.id);
-    setMyMap((m) => ({ ...m, [playerId]: res }));
-  };
-
   // поиск (отложенное значение для плавного ввода)
   const searchText = newPlayer.name ?? "";
   const deferredSearch = useDeferredValue(searchText);
@@ -127,33 +118,11 @@ export default function PlayerListView() {
     setPage(1);
   }, [deferredSearch, pageSize]);
 
-  // пагинация
-  const total = filteredPlayers.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const safePage = Math.min(page, totalPages);
-
-  useEffect(() => {
-    if (page !== safePage) setPage(safePage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalPages]);
-
-  const from = (safePage - 1) * pageSize;
-  const to = Math.min(from + pageSize, total);
-  const pageItems = filteredPlayers.slice(from, to);
-
-  // номера страниц вокруг текущей (простая пагинация)
-  const pageNumbers = useMemo(() => {
-    const spread = 1;
-    const start = Math.max(1, safePage - spread);
-    const end = Math.min(totalPages, safePage + spread);
-    const arr: number[] = [];
-    for (let i = start; i <= end; i++) arr.push(i);
-    return arr;
-  }, [safePage, totalPages]);
+  const className = clubId === null ? "page-container" : "page-container-no-padding";
 
   return (
-    <div className="page-container">
-      <h1 className="page-title">Рейтинг игроков</h1>
+    <div className={className}>
+      {clubId === null && <h1 className="page-title">Рейтинг игроков</h1>}
 
       <div className="page-content-container">
         {/* Панель добавления + поиск (имя используется и как строка поиска) */}
@@ -183,13 +152,14 @@ export default function PlayerListView() {
 
         {/* Грид карточек игроков */}
         <div className="card-grid-one-column">
-          {pageItems.map((p) => {
+          {filteredPlayers.map((p) => {
             const playerStats = stats[p.id] ?? { matches: 0, wins: 0, winrate: 0 };
             return (
               <PlayerCard
                 key={p.id}
                 player={p}
                 stats={playerStats} 
+                onDelete={() => deletePlayer(p.id)}
               />
             );
           })}

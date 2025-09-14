@@ -10,6 +10,8 @@ import { AboutClub } from "@/app/components/AboutClub";
 import { ClubParticipantsView, ParticipantsView } from "@/app/components/ParticipantsView";
 import { TournamentsProvider } from "@/app/tournaments/TournamentsProvider";
 import { TournamentsClient } from "@/app/tournaments/TournamentsClient";
+import PlayerListView from "@/app/rating/page";
+import { AdminOnly } from "@/app/components/RoleGuard";
 
 type ViewKey = "about" | "participants" | "tournaments" | "rating";
 
@@ -51,12 +53,15 @@ export default function ClubClient() {
 
           <div>
             {view === "about" && <AboutClub />}
-            {view === "participants" && <ClubParticipantsView />}
+            <AdminOnly>
+              {view === "participants" && <ClubParticipantsView />}
+            </AdminOnly>
             {view === "tournaments" && 
                 <TournamentsProvider clubId={club.id}>
                   <TournamentsClient clubId={club.id}/>
                 </TournamentsProvider>
             }
+            {view === "rating" && <PlayerListView  clubId={club.id}/>}
             
           </div>
         </div>
