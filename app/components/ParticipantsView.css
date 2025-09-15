@@ -29,40 +29,18 @@
 }
 
 /* 2) вертикальный центр */
-.participants-table td, .participants-table th { vertical-align: middle; }
+.participants-table td, 
+.participants-table th { 
+  vertical-align: middle; 
+}
 
 /* 4) задаём высоту строки исходя из 2 строк текста + паддинги */
 .participants-table tbody tr {
   height: calc( (1.25em * 2) + 8px ); /* 2 строки * line-height + вертикальные паддинги */
 }
 
-/* Унаследованные классы, чтобы стиль был одинаковым */
-
-.add-team-btn {
-  padding: 4px 8px;
-  font-size: 14px;
-  border: 1px solid #888;
-  border-radius: 4px;
-  background-color: #f0f0f0;
-  cursor: pointer;
-}
-
-.add-team-btn:hover {
-  background-color: #ddd;
-}
-
-/* контейнер рядом с чекбоксом уже есть */
-.create-inline-wrap {
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
 /* на мобиле немного ужмём */
 @media (max-width: 720px) {
-  .create-inline-wrap { gap: 6px; }
-  .create-inline-wrap svg { width: 20px; height: 20px; }
   .participants-table {
     table-layout: fixed;
   }
@@ -76,18 +54,6 @@
 .players-list .row-actions, .teams-list .row-actions {
   display: inline-flex; gap: 4px; opacity: 0; transition: opacity .15s ease;
 }
-
-/* Кнопка «создать пару» снизу — в зелёном стиле */
-.add-team-btn, .cta-btn {
-  background: rgba(166,255,0,0.15);
-  border: 1px solid rgba(166,255,0,0.4);
-  color: #a6ff00;
-  border-radius: 6px;
-  padding: 10px 14px;
-  cursor: pointer;
-}
-.add-team-btn:hover, .cta-btn:hover { background: rgba(166,255,0,0.25); }
-
 
 .player.clickable {
   cursor: pointer;
