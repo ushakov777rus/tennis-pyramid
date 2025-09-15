@@ -310,7 +310,7 @@ export default function TournamentClient() {
           />
 
                   {/* Добавление матча — карточка */}
-        {tournament.isPyramid() && (view === "bracket" || view === "matches") && (
+        {tournament.isPyramid() && view === "bracket" && (
           <LoggedIn>
             <AddMatchCard
               options={options}

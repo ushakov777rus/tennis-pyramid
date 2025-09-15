@@ -33,20 +33,9 @@
 
 /* ячейки */
 .cell { min-width: 0; }
-.cell--player {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.cell--set {
-  text-align: center;
-  font-size: 12px;
-  opacity: 0.85;
-}
 .cell--score {
   text-align: center;
-
-  font-size: 15px;
+  font-size: 16px;
 }
 
 /* hover для всей карточки */

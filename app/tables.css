@@ -10,7 +10,7 @@
   box-shadow: 0 0 10px rgba(166, 255, 0, 0.1); /* зелёная подсветка */
 }
 
-@media (min-width: 720px) {
+@media (max-width: 720px) {
   .table {
     table-layout: fixed;
   }
