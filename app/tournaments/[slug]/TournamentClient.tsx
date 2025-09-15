@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useUser } from "@/app/components/UserContext";
+import { useSearchParams } from "next/navigation"; // Добавьте этот импорт
 
 import { Tournament } from "@/app/models/Tournament";
 import { Player } from "@/app/models/Player";
@@ -15,7 +16,7 @@ import { LoggedIn } from "@/app/components/RoleGuard";
 import { RatingView } from "@/app/components/RatingView";
 import { MatchHistoryModal } from "@/app/components/MatchHistoryModal";
 import { MatchHistoryView } from "@/app/components/matches/MatchHistoryView";
-import { ParticipantsView, TournamentParticipantsView } from "@/app/components/ParticipantsView";
+import { TournamentParticipantsView } from "@/app/components/ParticipantsView"; // Исправил импорт
 import { AddMatchCard } from "@/app/components/AddMatchCard";
 
 import { ScrollableTabs, TabItem } from "@/app/components/controls/ScrollableTabs";
@@ -33,6 +34,8 @@ import { SwissView } from "@/app/components/tournaments/SwissView";
 // app/tournaments/[slug]/TournamentClient.tsx (фрагмент)
 import { AboutTournament } from "@/app/components/AboutTournament";
 import { UserRole } from "@/app/models/Users";
+import { SimpleBreadcrumbs } from "@/app/components/BreadCrumbs";
+import { useClub } from "@/app/clubs/[slug]/ClubProvider";
 
 
 const todayISO = new Date().toISOString().split("T")[0];
@@ -53,7 +56,7 @@ export default function TournamentClient() {
   } = useTournament();
 
   const { user } = useUser();
-
+  const searchParams = useSearchParams(); // Добавьте это
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -75,6 +78,13 @@ export default function TournamentClient() {
     []
   );
 
+  // Синхронизация с URL параметром tab
+  useEffect(() => {
+    const urlTab = searchParams.get("tab");
+    if (urlTab && tabs.some(tab => tab.key === urlTab)) {
+      setView(urlTab as ViewKey);
+    }
+  }, [searchParams, tabs]);
 
   // если игрок залогинен и участвует — закрепляем как нападающего
   useEffect(() => {
@@ -288,7 +298,7 @@ export default function TournamentClient() {
 
   return (
     <div className={className}>
-      <h1 className="page-title">{tournament.name}</h1>
+      <SimpleBreadcrumbs tournamentName={tournament.name}/>
 
       <div className="page-content-container">
         <div className="card-grid">
@@ -309,23 +319,23 @@ export default function TournamentClient() {
             ariaLabel="Разделы турнира"
           />
 
-                  {/* Добавление матча — карточка */}
-        {tournament.isPyramid() && view === "bracket" && (
-          <LoggedIn>
-            <AddMatchCard
-              options={options}
-              selectedIds={selectedIds}
-              setSelectedIds={setSelectedIds}
-              matchDate={matchDate}
-              setMatchDate={setMatchDate}
-              matchScore={matchScore}
-              setMatchScore={setMatchScore}
-              isAnon={isAnon}
-              isPlayerWithFixedAttacker={isPlayerWithFixedAttacker}
-              onAddMatch={handleAddMatch}
-            />
-          </LoggedIn>
-        )}
+          {/* Добавление матча — карточка */}
+          {tournament.isPyramid() && view === "bracket" && (
+            <LoggedIn>
+              <AddMatchCard
+                options={options}
+                selectedIds={selectedIds}
+                setSelectedIds={setSelectedIds}
+                matchDate={matchDate}
+                setMatchDate={setMatchDate}
+                matchScore={matchScore}
+                setMatchScore={setMatchScore}
+                isAnon={isAnon}
+                isPlayerWithFixedAttacker={isPlayerWithFixedAttacker}
+                onAddMatch={handleAddMatch}
+              />
+            </LoggedIn>
+          )}
 
           <div>
             {view === "bracket" &&             

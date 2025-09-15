@@ -1,25 +1,28 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation"; // Добавьте этот импорт
 
 import { useClub } from "./ClubProvider";
 import { ClubCard } from "../ClubCard";
 
 import { ScrollableTabs, TabItem } from "@/app/components/controls/ScrollableTabs";
 import { AboutClub } from "@/app/clubs/[slug]/AboutClub";
-import { ClubParticipantsView, ParticipantsView } from "@/app/components/ParticipantsView";
+import { ClubParticipantsView } from "@/app/components/ParticipantsView"; // Исправил импорт
 import { TournamentsProvider } from "@/app/tournaments/TournamentsProvider";
 import { TournamentsClient } from "@/app/tournaments/TournamentsClient";
 import { AdminOnly } from "@/app/components/RoleGuard";
 import { PlayerListView } from "@/app/rating/PlayerListView";
 import { useUser } from "@/app/components/UserContext";
 import { UserRole } from "@/app/models/Users";
+import { SimpleBreadcrumbs } from "@/app/components/BreadCrumbs";
 
 type ViewKey = "about" | "participants" | "tournaments" | "rating";
 
 export default function ClubClient() {
   const { user } = useUser();
-  const { club, reload } = useClub(); // предполагаем, что провайдер отдаёт club (+ при желании reload)
+  const { club } = useClub();
+  const searchParams = useSearchParams(); // Добавьте это
 
   const [view, setView] = useState<ViewKey>("about");
 
@@ -34,13 +37,21 @@ export default function ClubClient() {
     [user?.role]
   );
 
+  // Синхронизация с URL параметром tab
+  useEffect(() => {
+    const urlTab = searchParams.get("tab");
+    if (urlTab && tabs.some(tab => tab.key === urlTab)) {
+      setView(urlTab as ViewKey);
+    }
+  }, [searchParams, tabs]);
+
   if (!club) return <p>Загрузка...</p>;
 
   const className = user ? "page-container-no-padding" : "page-container";
 
   return (
     <div className={className}>
-      <h1 className="page-title">{club.name}</h1>
+      <SimpleBreadcrumbs clubName={club.name} />
 
       <div className="page-content-container">
         {/* Карточка клуба */}
@@ -68,7 +79,7 @@ export default function ClubClient() {
               </TournamentsProvider>
             }
             {view === "rating" && 
-              <PlayerListView  clubId={club.id}/>
+              <PlayerListView clubId={club.id}/>
             }
           </div>
         </div>

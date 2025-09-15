@@ -17,8 +17,8 @@ export default async function TournamentPage(
   if (!tPlain) notFound();
 
   return (
-    <TournamentProvider initial={{ slug, tournamentPlain: tPlain }}>
-      <TournamentClient />
-    </TournamentProvider>
+      <TournamentProvider initial={{ slug, tournamentPlain: tPlain }}>
+        <TournamentClient />
+      </TournamentProvider>
   );
 }

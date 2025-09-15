@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"; // Добавьте этот имп
 import { useUser } from "@/app/components/UserContext";
 
 import "./LoginModal.css";
+import { UserRole } from "../models/Users";
 
 type LoginModalProps = {
   isOpen: boolean;
@@ -44,7 +45,10 @@ export function LoginModal({
 
     setUser(data.user);
     onClose();
-    router.push("/admin/clubs"); // Добавьте редирект после успешного логина
+    if (data.user.role === UserRole.TournamentAdmin)
+      router.push("/tadmin");
+    else
+      router.push("/player");
   }
 
   return (

@@ -11,6 +11,8 @@ import { ClubCard } from "@/app/clubs/ClubCard";
 import { AdminOnly } from "../components/RoleGuard";
 import { AddClubModal } from "./AddClubModal";
 import { useUser } from "../components/UserContext";
+import { UserRole } from "../models/Users";
+import ClubPage from "./[slug]/page";
 
 /**
  * Компонент списка клубов.
@@ -20,10 +22,11 @@ import { useUser } from "../components/UserContext";
  *  - кнопку добавления нового клуба
  *  - модалку для создания клуба
  */
-export function ClubsClient({ creatorId }: { creatorId: number | null }) {
+export function ClubsClient() {
+  const { user } = useUser();
   const { clubs, loading, error, createClub, deleteClub, initialLoaded } = useClubs();
   const router = useRouter();
-
+  
   // состояние строки поиска
   const [q, setQ] = useState("");
 
@@ -67,48 +70,46 @@ export function ClubsClient({ creatorId }: { creatorId: number | null }) {
    * если у пользователя есть creatorId и ровно один клуб — редиректим сразу в него.
    */
   const redirectedRef = useRef(false);
+  const isAdmin = user?.role === UserRole.TournamentAdmin;
 
   // Автопереход в единственный клуб
   useEffect(() => {
-    if (initialLoaded && !loading && creatorId && clubs.length === 1) {
+    if (initialLoaded && !loading && isAdmin && clubs.length === 1) {
       router.replace(ClubsRepository.clubUrl(clubs[0]));
     }
-  }, [initialLoaded, loading, creatorId, clubs, router]);
+  }, [initialLoaded, loading, isAdmin, clubs, router]);
 
   /**
    * Если это первый клуб и у пользователя есть creatorId —
    * показываем экран «создания клуба» вместо списка.
    */
-  const { user } = useUser();
   const className = user ? "page-container-no-padding" : "page-container";
 
-// ClubsClient.tsx
-if (creatorId && initialLoaded && clubs.length === 0 && !loading) {
-  return (
-    <div className={className}>
-      <h1 className="page-title">Создание нового клуба...</h1>
-      <div className="page-content-container">
-        <ul className="card-grid-new">
-          <AdminOnly>
-            <li>
+  // ClubsClient.tsx
+  if (isAdmin && initialLoaded && clubs.length === 0 && !loading) {
+    return (
+      <div className={className}>
+        <h1 className="page-title">Создание нового клуба...</h1>
+        <div className="page-content-container">
+          <ul className="card-grid-new">
+            <AdminOnly>
               <ClubCard
                 club={null}
                 displayName={false}
                 onClick={() => setModalOpen(true)}
               />
-            </li>
-          </AdminOnly>
-        </ul>
+            </AdminOnly>
+          </ul>
 
-        <AddClubModal
-          isOpen={modalOpen}
-          onClose={() => setModalOpen(false)}
-          onCreate={onCreate}
-        />
+          <AddClubModal
+            isOpen={modalOpen}
+            onClose={() => setModalOpen(false)}
+            onCreate={onCreate}
+          />
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   /**
    * Основной экран со списком клубов.

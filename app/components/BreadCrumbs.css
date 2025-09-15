@@ -1,0 +1,64 @@
+/* breadcrumbs.css */
+.breadcrumbs {
+  padding: 20px;
+  margin-bottom: 1rem;
+}
+
+.breadcrumbs-list {
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  gap: 0.5rem;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  width: 800px;
+  margin: auto;
+}
+
+.breadcrumbs-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.breadcrumbs-link {
+  color: var(--green);
+  text-decoration: none;
+  transition: color 0.2s;
+  font-weight: 500;
+}
+
+.breadcrumbs-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.breadcrumbs-current {
+  color: #2c2c2c;
+  font-weight: 600;
+  font-size: 1.1em;
+}
+
+.breadcrumbs-separator {
+  color: #999;
+  font-weight: 300;
+}
+
+/* Специфичные стили для иерархии */
+.breadcrumbs-item:nth-last-child(2) .breadcrumbs-link {
+  font-size: 0.95em;
+  opacity: 0.9;
+}
+
+.breadcrumbs-item:nth-last-child(3) .breadcrumbs-link {
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
+.breadcrumbs-item:nth-last-child(4) .breadcrumbs-link {
+  font-size: 0.8em;
+  opacity: 0.7;
+}
+
+

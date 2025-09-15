@@ -2,29 +2,62 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import "./ScrollableTabs.css";
 
 export type TabItem = {
   key: string;
   label: string;
-  badge?: number | string; // например, количество матчей
+  badge?: number | string;
 };
 
 type Props = {
   items: TabItem[];
-  value: string;                  // активный ключ
-  onChange: (key: string) => void;
+  value: string;
+  onChange?: (key: string) => void; // сделаем опциональным
   ariaLabel?: string;
+  paramName?: string; // имя параметра в URL (по умолчанию 'tab')
 };
 
-export function ScrollableTabs({ items, value, onChange, ariaLabel }: Props) {
+export function ScrollableTabs({ 
+  items, 
+  value, 
+  onChange, 
+  ariaLabel, 
+  paramName = "tab" 
+}: Props) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const scrollerRef = useRef<HTMLDivElement>(null);
+  
   const activeIndex = useMemo(
     () => Math.max(0, items.findIndex((t) => t.key === value)),
     [items, value]
   );
 
-  // автопрокрутка активного таба в видимую область
+  // Автоматически синхронизируем URL при изменении вкладки
+  const handleTabChange = (key: string) => {
+    // Создаем новый URLSearchParams
+    const params = new URLSearchParams(searchParams.toString());
+    
+    if (key === items[0]?.key) {
+      // Если это первая вкладка, удаляем параметр
+      params.delete(paramName);
+    } else {
+      // Иначе устанавливаем параметр
+      params.set(paramName, key);
+    }
+
+    // Обновляем URL
+    const newUrl = `${pathname}?${params.toString()}`;
+    router.push(newUrl, { scroll: false });
+
+    // Вызываем переданный callback если есть
+    onChange?.(key);
+  };
+
+  // Автопрокрутка активного таба
   useEffect(() => {
     const scroller = scrollerRef.current;
     if (!scroller) return;
@@ -65,7 +98,7 @@ export function ScrollableTabs({ items, value, onChange, ariaLabel }: Props) {
               role="tab"
               aria-selected={active}
               className={`tab-btn ${active ? "is-active" : ""}`}
-              onClick={() => onChange(t.key)}
+              onClick={() => handleTabChange(t.key)}
               type="button"
             >
               <span className="tab-label">{t.label}</span>

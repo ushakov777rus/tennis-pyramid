@@ -13,6 +13,7 @@ import { TournamentsProvider } from "./tournaments/TournamentsProvider";
 import { NavigationBar } from "./components/NavigationBar";
 import { ClubsProvider } from "./clubs/ClubsProvider";
 import { SideNavigationBar } from "./components/SideNavigationBar";
+import { SimpleBreadcrumbs } from "./components/BreadCrumbs";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://honeycup.ru"),
