@@ -35,9 +35,6 @@ import { SwissView } from "@/app/components/tournaments/SwissView";
 import { AboutTournament } from "@/app/components/AboutTournament";
 import { UserRole } from "@/app/models/Users";
 import { SimpleBreadcrumbs } from "@/app/components/BreadCrumbs";
-import { useClub } from "@/app/clubs/[slug]/ClubProvider";
-import { Club } from "@/app/models/Club";
-
 
 const todayISO = new Date().toISOString().split("T")[0];
 

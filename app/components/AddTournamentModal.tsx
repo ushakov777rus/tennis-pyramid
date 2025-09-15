@@ -6,15 +6,16 @@ import "./AddTournamentModal.css";
 import { TYPE_OPTIONS, FORMAT_OPTIONS } from "@/app/models/Tournament";
 import { CheckBoxIcon } from "./IconButtons";
 import { CustomSelect } from "./CustomSelect";
+import { Club } from "../models/Club";
 
 type Props = {
   isOpen: boolean;
-  clubId: number | null;
+  club: Club | null;
   onClose: () => void;
   onCreate: (payload: TournamentCreateInput & { settings?: any }) => void;
 };
 
-export function AddTournamentModal({ isOpen, clubId, onClose, onCreate }: Props) {
+export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const titleId = "add-tournament-title";
 
@@ -101,7 +102,7 @@ export function AddTournamentModal({ isOpen, clubId, onClose, onCreate }: Props)
       end_date: endDate || null,
       is_public: isPublic,
       creator_id: 0,
-      club_id: clubId
+      club: club
     };
 
     payload.settings = {
