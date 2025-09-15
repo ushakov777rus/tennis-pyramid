@@ -75,7 +75,7 @@ export default function ClubClient() {
             </AdminOnly>
             {view === "tournaments" && 
               <TournamentsProvider clubId={club.id}>
-                <TournamentsClient clubId={club.id}/>
+                <TournamentsClient club={club}/>
               </TournamentsProvider>
             }
             {view === "rating" && 

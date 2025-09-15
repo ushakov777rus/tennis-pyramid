@@ -29,13 +29,14 @@ import { canDeleteTournament, canViewTournament } from "@/app/lib/permissions";
 
 import { CustomSelect } from "../components/CustomSelect";
 import { tournamentUrl } from "../repositories/TournamentsRepository";
+import { Club } from "../models/Club";
 
 type Props = {
-  clubId: number | null;
+  club: Club | null;
 };
 
 
-export function TournamentsClient({clubId} : Props) {
+export function TournamentsClient({club} : Props) {
   const { user } = useUser();
   const router = useRouter();
   const { tournaments, loading, error, createTournament, deleteTournament, stats } = useTournaments();
@@ -68,7 +69,7 @@ export function TournamentsClient({clubId} : Props) {
       status: TournamentStatus.Draft,
       creator_id: user.id,
       is_public: payload.is_public,
-      club_id: clubId,
+      club: club,
       settings: payload.settings,
     });
 
@@ -118,11 +119,11 @@ const filtered = useMemo(() => {
   });
 }, [tournaments, q, fltType, fltFormat, fltStatus, fltMy, user?.id]);
 
-  const className = clubId === null || !user ? "page-container" : "page-container-no-padding";
+  const className = club === null || !user ? "page-container" : "page-container-no-padding";
 
   return (
     <div className={className}>
-      {clubId === null && <h1 className="page-title">Турниры</h1>}
+      {club === null && <h1 className="page-title">Турниры</h1>}
 
       <div className="page-content-container">
         {/* Панель фильтров */}
@@ -216,7 +217,7 @@ const filtered = useMemo(() => {
 
         <AddTournamentModal
           isOpen={modalOpen}
-          clubId={clubId}
+          club={club}
           onClose={() => setModalOpen(false)}
           onCreate={onCreate}  // ✅ теперь передаём правильный handler
         />
