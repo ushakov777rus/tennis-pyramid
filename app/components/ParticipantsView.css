@@ -63,34 +63,10 @@
 @media (max-width: 720px) {
   .create-inline-wrap { gap: 6px; }
   .create-inline-wrap svg { width: 20px; height: 20px; }
+  .participants-table {
+    table-layout: fixed;
+  }
 }
-
-
-.players-2-columnt-table tr {
-  display: grid;
-  grid-template-columns: 33% 10% 47% 10%;
-  margin: 0 auto;
-}
-
-.players-2-columnt-table td {
-  white-space: normal;   /* разрешаем перенос строк */
-  word-wrap: break-word; /* старое свойство, для совместимости */
-  word-break: break-word; /* современные браузеры */
-  width: 100%;
-}
-
-.participants-2-columnt-table tr {
-  display: grid;
-  grid-template-columns: 40% 10% 40% 10%;
-  margin: 0 auto;
-}
-
-.participants-2-columnt-table td {
-  white-space: normal;   /* разрешаем перенос строк */
-  word-wrap: break-word; /* старое свойство, для совместимости */
-  word-break: break-word; /* современные браузеры */
-}
-
 
 .row-left { display: flex; align-items: center; gap: 10px; }
 .name { color: #ccc; }
