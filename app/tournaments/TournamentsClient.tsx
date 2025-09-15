@@ -117,7 +117,8 @@ const filtered = useMemo(() => {
     return true;
   });
 }, [tournaments, q, fltType, fltFormat, fltStatus, fltMy, user?.id]);
-  const className = clubId === null ? "page-container" : "page-container-no-padding";
+
+  const className = clubId === null || !user ? "page-container" : "page-container-no-padding";
 
   return (
     <div className={className}>

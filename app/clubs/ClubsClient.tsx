@@ -10,6 +10,7 @@ import { ClubCreateInput } from "@/app/models/Club";
 import { ClubCard } from "@/app/clubs/ClubCard";
 import { AdminOnly } from "../components/RoleGuard";
 import { AddClubModal } from "./AddClubModal";
+import { useUser } from "../components/UserContext";
 
 /**
  * Компонент списка клубов.
@@ -78,11 +79,13 @@ export function ClubsClient({ creatorId }: { creatorId: number | null }) {
    * Если это первый клуб и у пользователя есть creatorId —
    * показываем экран «создания клуба» вместо списка.
    */
-  console.log("ClubsClient-------", creatorId, clubs.length, loading);
+  const { user } = useUser();
+  const className = user ? "page-container-no-padding" : "page-container";
+
 // ClubsClient.tsx
 if (creatorId && initialLoaded && clubs.length === 0 && !loading) {
   return (
-    <div className="page-container">
+    <div className={className}>
       <h1 className="page-title">Создание нового клуба...</h1>
       <div className="page-content-container">
         <ul className="card-grid-new">
@@ -111,7 +114,7 @@ if (creatorId && initialLoaded && clubs.length === 0 && !loading) {
    * Основной экран со списком клубов.
    */
   return (
-    <div className="page-container">
+    <div className={className}>
       <h1 className="page-title">Клубы</h1>
 
       <div className="page-content-container">

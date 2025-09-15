@@ -54,7 +54,6 @@ export default function TournamentClient() {
 
   const { user } = useUser();
 
-  console.log("TournamentClient.useUser", user);
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -285,9 +284,10 @@ export default function TournamentClient() {
 
   const isAnon = user?.role === undefined;
   const isPlayerWithFixedAttacker = user?.role === UserRole.Player && !!user?.player.id;
+  const className = user ? "page-container-no-padding" : "page-container";
 
   return (
-    <div className="page-container">
+    <div className={className}>
       <h1 className="page-title">{tournament.name}</h1>
 
       <div className="page-content-container">

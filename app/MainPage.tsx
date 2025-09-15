@@ -13,6 +13,7 @@ import { TournamentsRepository } from "./repositories/TournamentsRepository";
 import Script from "next/script";
 import "./MainPage.css";
 import { ClubsRepository } from "./repositories/ClubsRepository";
+import { useUser } from "./components/UserContext";
 
 type Stat = { label: string; value: number | string };
 type Feature = { icon: React.ReactNode; label: string; text?: string };
@@ -53,6 +54,7 @@ const IconUser = (
 );
 
 export default function HomePage() {
+  const { user } = useUser();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [signupRole, setSignupRole] =
     useState<UserRole.Player | UserRole.TournamentAdmin>(UserRole.Player);
@@ -159,8 +161,10 @@ export default function HomePage() {
     ]
   };
 
+  const className = user ? "page-container-no-padding" : "page-container";
+
   return (
-    <div className="page-container">
+    <div className={className}>
       {/* JSON-LD вставляем через Script (SEO) */}
       <Script
         id="ld-faq"

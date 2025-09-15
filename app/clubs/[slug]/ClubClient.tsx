@@ -36,10 +36,10 @@ export default function ClubClient() {
 
   if (!club) return <p>Загрузка...</p>;
 
-  console.log("ClubClient.club",club);
+  const className = user ? "page-container-no-padding" : "page-container";
 
   return (
-    <div className="page-container">
+    <div className={className}>
       <h1 className="page-title">{club.name}</h1>
 
       <div className="page-content-container">
