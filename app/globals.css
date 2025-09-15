@@ -485,50 +485,6 @@ button,
   font-weight: 600;
 }
 
-
-
-
-
-
-/* Таблицы */
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-  background: #1b1b1b;
-  border-radius: 8px;
-  overflow: hidden;
-  color: #ccc;
-  box-shadow: 0 0 10px rgba(166, 255, 0, 0.1); /* зелёная подсветка */
-  table-layout: fixed;
-}
-
-.table th {
-  background: #222; /* тёмный хедер */
-  text-align: left;
-  font-weight: 600;
-  padding: 10px 2px;
-  border-bottom: 1px solid #2a2a2a;
-  color: #aaff55; /* мягкий зелёный акцент */
-  z-index: 1;
-}
-
-.table td {
-  padding: 5px 2px;
-  border-bottom: 1px solid #2a2a2a;
-  vertical-align: middle;
-  
-}
-
-.table tbody tr:hover {
-  background: rgba(166, 255, 0, 0.05); /* лёгкий зелёный ховер */
-}
-
-.table tbody tr:hover .row-actions,
-.table tbody tr:focus-within .row-actions {
-  opacity: 1;
-}
-
 .input-error {
   border: 1px solid #e53935;   /* красная рамка */
   outline: none;

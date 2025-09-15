@@ -2,6 +2,7 @@
 import "./colors.css";
 import "./globals.css";
 import "./cards.css";
+import "./tables.css";
 import "./app-shell.css"; // 👈 добавим стили оболочки
 
 import { UserProvider } from "./components/UserContext";
