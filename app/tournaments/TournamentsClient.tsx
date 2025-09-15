@@ -48,7 +48,7 @@ export function TournamentsClient({clubId} : Props) {
   const [fltType, setFltType] = useState<FilterType>("");
   const [fltFormat, setFltFormat] = useState<FilterFormat>("");
   const [fltStatus, setFltStatus] = useState<FilterStatus>("");
-  const [fltMy, setFltMy] = useState<boolean>(true);
+  const [fltMy, setFltMy] = useState<boolean>(false);
 
   const [modalOpen, setModalOpen] = useState(false);
 
