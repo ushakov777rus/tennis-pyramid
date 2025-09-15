@@ -46,15 +46,6 @@
   }
 }
 
-.row-left { display: flex; align-items: center; gap: 10px; }
-.name { color: #ccc; }
-.plus { color: #777; }
-
-/* Появление кнопок как у матчей */
-.players-list .row-actions, .teams-list .row-actions {
-  display: inline-flex; gap: 4px; opacity: 0; transition: opacity .15s ease;
-}
-
 .player.clickable {
   cursor: pointer;
   user-select: none;
