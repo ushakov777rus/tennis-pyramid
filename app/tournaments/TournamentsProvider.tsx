@@ -105,6 +105,8 @@ const createTournament = useCallback(async (p: TournamentCreateInput) => {
     p.end_date ?? null,
     p.is_public ?? false,
     p.creator_id,
+    "SLUG",
+    p.club,
     p.settings
   );
 
@@ -122,7 +124,7 @@ const createTournament = useCallback(async (p: TournamentCreateInput) => {
       status: p.status ?? TournamentStatus.Draft,
       creator_id: p.creator_id,
       is_public: p.is_public,
-      club_id: p.club_id,
+      club: p.club,
       settings: p.settings
     });
 

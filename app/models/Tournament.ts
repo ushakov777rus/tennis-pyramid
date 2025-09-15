@@ -1,5 +1,7 @@
 // models/Tournament.ts
 
+import { Club } from "./Club";
+
 /** Тип турнира */
 export enum TournamentType {
   Single = "single",
@@ -84,7 +86,7 @@ export type TournamentCreateInput = {
   creator_id: number;
   /** true - видят абсолютно все, false - только организатор и участники */
   is_public: boolean;
-  club_id: number | null;
+  club: Club | null;
   settings?: any;
 };
 
@@ -109,6 +111,7 @@ export class Tournament {
   is_public: boolean;
   creator_id: number;
   slug:string;
+  club: Club | null;
   settings?: any;
   
   constructor(
@@ -121,7 +124,8 @@ export class Tournament {
     end_date: string | null,
     is_public: boolean = false,
     creator_id: number,
-    slug:string,
+    slug: string,
+    club: Club | null,
     settings?: any
   ) {
     this.id = id;
@@ -134,6 +138,7 @@ export class Tournament {
     this.is_public = is_public;
     this.creator_id = creator_id;
     this.settings = settings;
+    this.club = club;
     this.slug = slug;
   }
 

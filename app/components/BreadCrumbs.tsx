@@ -32,7 +32,7 @@ export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumb
           .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
           .join(" ");
 
-      breadcrumbs.push({ href: `/clubs/${clubSlug}`, label });
+      breadcrumbs.push({ href: `/tadmin`, label });
     }
 
     // ---------- Клубы ----------
@@ -48,14 +48,6 @@ export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumb
           : "Мой клуб");
 
       breadcrumbs.push({ href: `/clubs/${clubSlug}`, label });
-
-      if (pathname.includes("/about")) {
-        breadcrumbs.push({ href: "", label: "О клубе" });
-      } else if (pathname.includes("/members")) {
-        breadcrumbs.push({ href: "", label: "Участники" });
-      } else if (pathname.includes("/tournaments")) {
-        breadcrumbs.push({ href: "", label: "Турниры" });
-      }
     }
 
     // ---------- Турниры ----------
@@ -73,6 +65,8 @@ export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumb
       }
 
       breadcrumbs.push({ href: "", label });
+
+      console.log("breadcrumbs for tournamrnt", clubName, breadcrumbs);
     }
 
     // ---------- Общий случай ----------
@@ -88,6 +82,9 @@ export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumb
     }
 
     switch (tab) {
+      case "bracket":
+        breadcrumbs.push({ href: "", label: "Сетка" });
+        break;
       case "matches":
         breadcrumbs.push({ href: "", label: "Матчи" });
         break;
@@ -100,8 +97,11 @@ export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumb
       case "results":
         breadcrumbs.push({ href: "", label: "Результаты" });
         break;
-      case "about":
+      case "aboutt":
         breadcrumbs.push({ href: "", label: "О турнире" });
+        break;
+      case "aboutc":
+        breadcrumbs.push({ href: "", label: "О клубе" });
         break;
       case "rating":
         breadcrumbs.push({ href: "", label: "Рейтинг" });

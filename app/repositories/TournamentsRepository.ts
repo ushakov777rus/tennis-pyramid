@@ -1,5 +1,10 @@
 import { supabase } from "@/lib/supabaseClient";
-import { Tournament, TournamentFormat, TournamentStatus, TournamentType } from "@/app/models/Tournament";
+import {
+  Tournament,
+  TournamentFormat,
+  TournamentStatus,
+  TournamentType,
+} from "@/app/models/Tournament";
 
 import { Participant } from "@/app/models/Participant";
 import { TournamentCreateInput } from "@/app/models/Tournament";
@@ -7,49 +12,74 @@ import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
 import { PlayersRepository } from "./PlayersRepository";
 import { UserRole } from "../models/Users";
-import { da } from "date-fns/locale";
+import type { Club } from "@/app/models/Club";
 
-
-
-
-
-
+/* ---------- Plain-типы ---------- */
 
 export type TournamentPlain = {
   id: number;
   name: string;
-  format: string;
+  format: TournamentFormat | string;
   start_date: string | null;
   end_date: string | null;
-  status: string;
-  tournament_type: string;
+  status: TournamentStatus | string;
+  tournament_type: TournamentType | string;
   is_public: boolean;
   creator_id: number;
   slug: string;
   settings?: any;
+  /** новый: связанный клуб (может быть null) */
+  club: Club | null;
 };
 
+/* ---------- Вспомогательный маппер ---------- */
 
+function mapRowToTournament(row: any): Tournament {
+  // Приводим строковые enum'ы из БД к нашим типам, где это необходимо
+  const format = row.format as TournamentFormat;
+  const status = row.status as TournamentStatus;
+  const tournament_type = row.tournament_type as TournamentType;
 
+  // row.club — объект из алиаса club:clubs(*), может быть undefined
+  const club: Club | null = row.club ?? null;
+
+  return new Tournament(
+    Number(row.id),
+    row.name,
+    format,
+    status,
+    tournament_type,
+    row.start_date,
+    row.end_date,
+    row.is_public,
+    row.creator_id,
+    row.slug,
+    club,
+    row.settings
+  );
+}
 
 export class TournamentsRepository {
-
   static async loadParticipantsBySlug(slug: string) {
     const { data, error } = await supabase
       .from("tournaments")
-      .select("id, participants:participants(*)") // пример: джоин по slug
+      .select("id, participants:participants(*)")
       .eq("slug", slug)
       .maybeSingle();
 
     if (error || !data) return [];
-    return data.participants;
+    return (data as any).participants ?? [];
   }
 
+  /** Получить plain по slug (теперь с club) */
   static async getBySlug(slug: string): Promise<TournamentPlain | null> {
     const { data, error } = await supabase
       .from("tournaments")
       .select(
-        "id, name, format, start_date, end_date, status, tournament_type, is_public, creator_id, slug, settings"
+        `
+        id, name, format, start_date, end_date, status, tournament_type, is_public, creator_id, slug, settings,
+        club:clubs(*)
+      `
       )
       .eq("slug", slug)
       .maybeSingle();
@@ -60,7 +90,6 @@ export class TournamentsRepository {
     }
     if (!data) return null;
 
-    // ВАЖНО: возвращаем именно plain-object
     return {
       id: data.id,
       name: data.name,
@@ -73,265 +102,179 @@ export class TournamentsRepository {
       creator_id: data.creator_id,
       slug: data.slug,
       settings: data.settings,
+      club: (data as any).club ?? null,
     };
   }
-
-
 
   static async loadAllSlugs(): Promise<{ slug: string; updatedAt?: string }[]> {
     const { data, error } = await supabase
       .from("tournaments")
       .select("slug, updated_at")
-      .eq("is_public", true); // ⚠️ фильтруем только опубликованные
+      .eq("is_public", true);
 
     if (error) {
       console.error("TournamentsRepository.loadAllSlugs:", error);
       return [];
     }
 
-    return data.map((t) => ({
+    return (data ?? []).map((t: any) => ({
       slug: t.slug,
       updatedAt: t.updated_at,
     }));
   }
 
-  /** Загрузить все турниры */
+  /** Загрузить все турниры (с club) */
   static async loadAll(): Promise<Tournament[]> {
-    const { data, error } = await supabase.from("tournaments").select("*").order("start_date", { ascending: true });
+    const { data, error } = await supabase
+      .from("tournaments")
+      .select(`*, club:clubs(*)`)
+      .order("start_date", { ascending: true });
+
     if (error) {
       console.error("Ошибка загрузки турниров:", error);
       return [];
     }
-    return (data ?? []).map(
-      (row: Tournament) =>
-        new Tournament(
-          Number(row.id),
-          row.name,
-          row.format,
-          row.status,
-          row.tournament_type,
-          row.start_date,
-          row.end_date,
-          row.is_public,
-          row.creator_id,
-          row.slug,
-          row.settings
-        )
-    );
+
+    return (data ?? []).map(mapRowToTournament);
   }
 
-    /** Загрузить все турниры */
+  /** Загрузить турниры по клубу (с club) */
   static async loadByClub(clubId: number): Promise<Tournament[]> {
-    const { data, error } = await supabase.
-      from("tournaments").
-      select("*").
-      eq("club_id", clubId).
-      order("start_date", { ascending: true });
+    const { data, error } = await supabase
+      .from("tournaments")
+      .select(`*, club:clubs(*)`)
+      .eq("club_id", clubId)
+      .order("start_date", { ascending: true });
+
     if (error) {
       console.error("Ошибка загрузки турниров:", error);
       return [];
     }
 
-    console.log("TournamentsRepository.loadByClub",data);
-
-    return (data ?? []).map(
-      (row: Tournament) =>
-        new Tournament(
-          Number(row.id),
-          row.name,
-          row.format,
-          row.status,
-          row.tournament_type,
-          row.start_date,
-          row.end_date,
-          row.is_public,
-          row.creator_id,
-          row.slug,
-          row.settings
-        )
-    );
+    return (data ?? []).map(mapRowToTournament);
   }
 
-  /** Вернуть турниры, доступные пользователю согласно его роли */
-  static async loadAccessible(userId: number | undefined, userRole: string | undefined): Promise<Tournament[]> {
-    // гости — все турниры (как у тебя сделано)
+  /** Вернуть турниры, доступные пользователю согласно его роли (с club) */
+  static async loadAccessible(
+    userId: number | undefined,
+    userRole: string | undefined
+  ): Promise<Tournament[]> {
+    // Гость
     if (userId === undefined || userRole === undefined) {
-      const { data, error } = await supabase.from("tournaments").select("*").order("start_date", { ascending: true });
+      const { data, error } = await supabase
+        .from("tournaments")
+        .select(`*, club:clubs(*)`)
+        .order("start_date", { ascending: true });
+
       if (error) {
         console.error("Ошибка загрузки публичных турниров (гость):", error);
         return [];
       }
-      return (data ?? []).map(
-        (row: any) =>
-          new Tournament(
-            Number(row.id),
-            row.name,
-            row.format,
-            row.status,
-            row.tournament_type,
-            row.start_date,
-            row.end_date,
-            row.is_public,
-            row.creator_id,
-            row.slug,
-            row.settings
-          )
-      );
+      return (data ?? []).map(mapRowToTournament);
     }
 
     const role = userRole;
 
     if (role === "site_admin") {
-      const { data, error } = await supabase.from("tournaments").select("*").order("start_date", { ascending: true });
+      const { data, error } = await supabase
+        .from("tournaments")
+        .select(`*, club:clubs(*)`)
+        .order("start_date", { ascending: true });
+
       if (error) {
         console.error("Ошибка загрузки всех турниров:", error);
         return [];
       }
-      return (data ?? []).map(
-        (row: any) =>
-          new Tournament(
-            Number(row.id),
-            row.name,
-            row.format,
-            row.status,
-            row.tournament_type,
-            row.start_date,
-            row.end_date,
-            row.is_public,
-            row.creator_id,
-            row.slug,
-            row.settings
-          )
-      );
+      return (data ?? []).map(mapRowToTournament);
     }
 
     if (role === UserRole.TournamentAdmin) {
-      const { data, error } = await supabase.from("tournaments").select("*").order("start_date", { ascending: true });
+      const { data, error } = await supabase
+        .from("tournaments")
+        .select(`*, club:clubs(*)`)
+        .order("start_date", { ascending: true });
+
       if (error) {
         console.error("Ошибка загрузки турниров организатора:", error);
         return [];
       }
-      return (data ?? []).map(
-        (row: any) =>
-          new Tournament(
-            Number(row.id),
-            row.name,
-            row.format,
-            row.status,
-            row.tournament_type,
-            row.start_date,
-            row.end_date,
-            row.is_public,
-            row.creator_id,
-            row.slug,
-            row.settings
-          )
-      );
+      return (data ?? []).map(mapRowToTournament);
     }
 
     if (role === "player") {
       const player = await PlayersRepository.findByUserId(userId);
       if (!player) return [];
 
-      const personal = await TournamentsRepository.findTournamentsForPlayer(player.id);
-      const { data, error } = await supabase.from("tournaments").select("*").eq("is_public", true);
-      if (error) console.error("Ошибка загрузки публичных турниров:", error);
-
-      const publicOnes = (data ?? []).map(
-        (row: any) =>
-          new Tournament(
-            Number(row.id),
-            row.name,
-            row.format,
-            row.status,
-            row.tournament_type,
-            row.start_date,
-            row.end_date,
-            row.is_public,
-            row.creator_id,
-            row.slug,
-            row.settings
-          )
+      const personal = await TournamentsRepository.findTournamentsForPlayer(
+        player.id
       );
+
+      const { data, error } = await supabase
+        .from("tournaments")
+        .select(`*, club:clubs(*)`)
+        .eq("is_public", true);
+
+      if (error) {
+        console.error("Ошибка загрузки публичных турниров:", error);
+      }
+
+      const publicOnes = (data ?? []).map(mapRowToTournament);
 
       const all = [...personal, ...publicOnes];
       const unique = new Map(all.map((t) => [t.id, t]));
       return Array.from(unique.values()).sort(
-        (a, b) => new Date(a.start_date as any).getTime() - new Date(b.start_date as any).getTime()
+        (a, b) =>
+          new Date(a.start_date as any).getTime() -
+          new Date(b.start_date as any).getTime()
       );
     }
 
     // неизвестная роль — только публичные
     const { data, error } = await supabase
       .from("tournaments")
-      .select("*")
+      .select(`*, club:clubs(*)`)
       .eq("is_public", true)
       .order("start_date", { ascending: true });
 
     if (error) {
-      console.error("Ошибка загрузки публичных турниров (неизвестная роль):", error);
+      console.error(
+        "Ошибка загрузки публичных турниров (неизвестная роль):",
+        error
+      );
       return [];
     }
 
-    return (data ?? []).map(
-      (row: any) =>
-        new Tournament(
-          Number(row.id),
-          row.name,
-          row.format,
-          row.status,
-          row.tournament_type,
-          row.start_date,
-          row.end_date,
-          row.is_public,
-          row.creator_id,
-          row.slug,
-          row.settings
-        )
-    );
+    return (data ?? []).map(mapRowToTournament);
   }
 
-  /** Получить турнир по ID */
+  /** Получить турнир по ID (с club) */
   static async getTournamentById(id: number): Promise<Tournament | null> {
-    const { data, error } = await supabase.from("tournaments").select("*").eq("id", id).single();
+    const { data, error } = await supabase
+      .from("tournaments")
+      .select(`*, club:clubs(*)`)
+      .eq("id", id)
+      .single();
+
     if (error) {
       console.error("Ошибка getTournamentById:", error);
       return null;
     }
-    return data
-      ? new Tournament(
-          Number(data.id),
-          data.name,
-          data.format,
-          data.status,
-          data.tournament_type,
-          data.start_date,
-          data.end_date,
-          data.is_public,
-          data.creator_id,
-          data.slug,
-          data.settings
-        )
-      : null;
+
+    return data ? mapRowToTournament(data) : null;
   }
 
-  /** Создать турнир */
+  /** Создать турнир — возвращаем с club (если БД вернёт) */
   static async create(input: TournamentCreateInput): Promise<Tournament> {
-    const { data, error } = await supabase.from("tournaments").insert([input]).select().single();
+    const { data, error } = await supabase
+      .from("tournaments")
+      .insert([input])
+      .select(`*, club:clubs(*)`)
+      .single();
+
     if (error) throw error;
-    return new Tournament(
-      data.id,
-      data.name,
-      data.format,
-      data.status,
-      data.tournament_type,
-      data.start_date,
-      data.end_date,
-      data.creator_id,
-      data.is_public,
-      data.slug,
-      data.settings
-    );
+
+    // ВАЖНО: порядок аргументов конструктора — сначала is_public, потом creator_id
+    return mapRowToTournament(data);
   }
 
   /** Удалить турнир */
@@ -340,22 +283,22 @@ export class TournamentsRepository {
     if (error) console.error("Ошибка удаления турнира:", error);
   }
 
-  /** Загрузить участников турнира */
+  /** Загрузить участников турнира (без изменений) */
   static async loadParticipants(tournamentId: number): Promise<Participant[]> {
     const { data, error } = await supabase
       .from("tournament_participants")
       .select(
         `
-      id,
-      level,
-      position,
-      players ( id, name, ntrp, phone, sex ),
-      teams (
         id,
-        player1:players!teams_player1_id_fkey ( id, name, ntrp, phone, sex ),
-        player2:players!teams_player2_id_fkey ( id, name, ntrp, phone, sex )
-      )
-    `
+        level,
+        position,
+        players ( id, name, ntrp, phone, sex ),
+        teams (
+          id,
+          player1:players!teams_player1_id_fkey ( id, name, ntrp, phone, sex ),
+          player2:players!teams_player2_id_fkey ( id, name, ntrp, phone, sex )
+        )
+      `
       )
       .eq("tournament_id", tournamentId);
 
@@ -425,13 +368,18 @@ export class TournamentsRepository {
 
   /** Добавить команду */
   static async addTeam(tournamentId: number, teamId: number) {
-    const { error } = await supabase.from("tournament_participants").insert({ tournament_id: tournamentId, team_id: teamId });
+    const { error } = await supabase
+      .from("tournament_participants")
+      .insert({ tournament_id: tournamentId, team_id: teamId });
     if (error) console.error("Ошибка добавления команды:", error);
   }
 
   /** Удалить участника */
   static async removeParticipant(id: number) {
-    const { error } = await supabase.from("tournament_participants").delete().eq("id", id);
+    const { error } = await supabase
+      .from("tournament_participants")
+      .delete()
+      .eq("id", id);
     if (error) console.error("Ошибка удаления участника:", error);
   }
 
@@ -457,7 +405,9 @@ export class TournamentsRepository {
       level: p.level ?? null,
       position: p.position,
     }));
-    const { error } = await supabase.from("tournament_participants").upsert(updates, { onConflict: "id" });
+    const { error } = await supabase
+      .from("tournament_participants")
+      .upsert(updates, { onConflict: "id" });
     if (error) {
       console.error("Ошибка массового обновления:", error);
     }
@@ -468,10 +418,17 @@ export class TournamentsRepository {
     type PRow = { tournament_id: number; participants: number };
     type MRow = { tournament_id: number; matches: number };
 
-    const [{ data: p, error: pErr }, { data: m, error: mErr }] = await Promise.all([
-      supabase.from("participants_count_by_tournament").select("tournament_id, participants").in("tournament_id", tournamentIds),
-      supabase.from("matches_count_by_tournament").select("tournament_id, matches").in("tournament_id", tournamentIds),
-    ]);
+    const [{ data: p, error: pErr }, { data: m, error: mErr }] =
+      await Promise.all([
+        supabase
+          .from("participants_count_by_tournament")
+          .select("tournament_id, participants")
+          .in("tournament_id", tournamentIds),
+        supabase
+          .from("matches_count_by_tournament")
+          .select("tournament_id, matches")
+          .in("tournament_id", tournamentIds),
+      ]);
 
     if (pErr) console.error(pErr);
     if (mErr) console.error(mErr);
@@ -479,12 +436,16 @@ export class TournamentsRepository {
     const res: Record<number, { participants: number; matches: number }> = {};
     tournamentIds.forEach((id) => (res[id] = { participants: 0, matches: 0 }));
 
-    (p as PRow[] | null)?.forEach((r) => (res[r.tournament_id].participants = r.participants));
-    (m as MRow[] | null)?.forEach((r) => (res[r.tournament_id].matches = r.matches));
+    (p as PRow[] | null)?.forEach(
+      (r) => (res[r.tournament_id].participants = r.participants)
+    );
+    (m as MRow[] | null)?.forEach(
+      (r) => (res[r.tournament_id].matches = r.matches)
+    );
     return res;
   }
 
-  /** Турниры игрока (лично/в командах) */
+  /** Турниры игрока (лично/в командах) — тоже возвращаем с club */
   static async findTournamentsForPlayer(playerId: number): Promise<Tournament[]> {
     try {
       const { data: teamRows, error: teamErr } = await supabase
@@ -508,7 +469,10 @@ export class TournamentsRepository {
 
       let teamParts: { tournament_id: number | null }[] = [];
       if (teamIds.length > 0) {
-        const resp = await supabase.from("tournament_participants").select("tournament_id").in("team_id", teamIds);
+        const resp = await supabase
+          .from("tournament_participants")
+          .select("tournament_id")
+          .in("team_id", teamIds);
         if (resp.error) {
           console.error("Ошибка загрузки участий команды игрока:", resp.error);
           return [];
@@ -517,34 +481,27 @@ export class TournamentsRepository {
       }
 
       const ids = new Set<number>();
-      (directParts ?? []).forEach((r) => r.tournament_id != null && ids.add(r.tournament_id));
-      teamParts.forEach((r) => r.tournament_id != null && ids.add(r.tournament_id));
+      (directParts ?? []).forEach(
+        (r) => r.tournament_id != null && ids.add(r.tournament_id)
+      );
+      teamParts.forEach(
+        (r) => r.tournament_id != null && ids.add(r.tournament_id)
+      );
 
       const tournamentIds = Array.from(ids);
       if (tournamentIds.length === 0) return [];
 
-      const { data, error } = await supabase.from("tournaments").select("*").in("id", tournamentIds).order("start_date", { ascending: false });
+      const { data, error } = await supabase
+        .from("tournaments")
+        .select(`*, club:clubs(*)`)
+        .in("id", tournamentIds)
+        .order("start_date", { ascending: false });
       if (error) {
         console.error("Ошибка загрузки турниров по списку id:", error);
         return [];
       }
 
-      return (data ?? []).map(
-        (row: Tournament) =>
-          new Tournament(
-            Number(row.id),
-            row.name,
-            row.format,
-            row.status,
-            row.tournament_type,
-            row.start_date,
-            row.end_date,
-            row.is_public,
-            row.creator_id,
-            row.slug,
-            row.settings
-          )
-      );
+      return (data ?? []).map(mapRowToTournament);
     } catch (e) {
       console.error("Неожиданная ошибка findTournamentsForPlayer:", e);
       return [];
@@ -553,7 +510,10 @@ export class TournamentsRepository {
 
   /** Количество всех турниров в базе */
   static async countAll(): Promise<number> {
-    const { count, error } = await supabase.from("tournaments").select("id", { count: "exact", head: true });
+    const { count, error } = await supabase.from("tournaments").select("id", {
+      count: "exact",
+      head: true,
+    });
     if (error) {
       console.error("Ошибка подсчёта турниров:", error);
       return 0;
@@ -561,7 +521,7 @@ export class TournamentsRepository {
     return count ?? 0;
   }
 
-  // === ВАЖНО: быстрый RPC ===
+  // === RPC ===
   static async addMatchAndMaybeSwap(params: {
     tournamentId: number;
     isSingle: boolean;
@@ -595,8 +555,7 @@ export class TournamentsRepository {
   }
 }
 
-
-// хелпер, чтобы везде генерировать ссылки единообразно
+/** Генерация ссылки */
 export function tournamentUrl(t: { slug: string }) {
   return `/tournaments/${t.slug}`;
 }

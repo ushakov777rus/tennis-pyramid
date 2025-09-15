@@ -17,18 +17,18 @@ import { useUser } from "@/app/components/UserContext";
 import { UserRole } from "@/app/models/Users";
 import { SimpleBreadcrumbs } from "@/app/components/BreadCrumbs";
 
-type ViewKey = "about" | "participants" | "tournaments" | "rating";
+type ViewKey = "aboutc" | "participants" | "tournaments" | "rating";
 
 export default function ClubClient() {
   const { user } = useUser();
   const { club } = useClub();
   const searchParams = useSearchParams(); // Добавьте это
 
-  const [view, setView] = useState<ViewKey>("about");
+  const [view, setView] = useState<ViewKey>("aboutc");
 
   const tabs: TabItem[] = useMemo(
     () => [
-      { key: "about", label: "О клубе" },
+      { key: "aboutc", label: "О клубе" },
       (user?.role === UserRole.SiteAdmin || user?.role === UserRole.TournamentAdmin) && 
         { key: "participants", label: "Участники" },
       { key: "tournaments", label: "Турниры" },
@@ -69,7 +69,7 @@ export default function ClubClient() {
           />
 
           <div>
-            {view === "about" && <AboutClub />}
+            {view === "aboutc" && <AboutClub />}
             <AdminOnly>
               {view === "participants" && <ClubParticipantsView />}
             </AdminOnly>

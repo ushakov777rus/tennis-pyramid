@@ -36,11 +36,12 @@ import { AboutTournament } from "@/app/components/AboutTournament";
 import { UserRole } from "@/app/models/Users";
 import { SimpleBreadcrumbs } from "@/app/components/BreadCrumbs";
 import { useClub } from "@/app/clubs/[slug]/ClubProvider";
+import { Club } from "@/app/models/Club";
 
 
 const todayISO = new Date().toISOString().split("T")[0];
 
-type ViewKey = "bracket" | "matches" | "participants" | "results" | "about";
+type ViewKey = "bracket" | "matches" | "participants" | "results" | "aboutt";
 
 export default function TournamentClient() {
   const {
@@ -65,15 +66,15 @@ export default function TournamentClient() {
   const [matchDate, setMatchDate] = useState<string>(todayISO);
   const [matchScore, setMatchScore] = useState<string>("");
 
-  const [view, setView] = useState<ViewKey>("bracket");
+  const [view, setView] = useState<ViewKey>("aboutt");
 
   const tabs: TabItem[] = useMemo(
     () => [
+      { key: "aboutt",        label: "О турнире" },
       { key: "bracket",      label: "Сетка" },
-      { key: "matches",      label: "Матчи",      /* badge: 494 */ },
-      { key: "participants", label: "Участники",  /* badge: 172 */ },
-      { key: "results",      label: "Результаты" },
-      { key: "about",        label: "О турнире" },
+      { key: "matches",      label: "Матчи" },
+      { key: "participants", label: "Участники" },
+      { key: "results",      label: "Результаты" },      
     ],
     []
   );
@@ -298,7 +299,7 @@ export default function TournamentClient() {
 
   return (
     <div className={className}>
-      <SimpleBreadcrumbs tournamentName={tournament.name}/>
+      <SimpleBreadcrumbs clubName={tournament.club?.name} tournamentName={tournament.name}/>
 
       <div className="page-content-container">
         <div className="card-grid">
@@ -370,7 +371,7 @@ export default function TournamentClient() {
               matches={matches}
             />}
             
-            {view === "about" && 
+            {view === "aboutt" && 
               <AboutTournament />}
           </div>
         </div>

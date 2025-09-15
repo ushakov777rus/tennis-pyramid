@@ -120,6 +120,7 @@ function toModel(p?: TournamentPlain | null): Tournament | null {
     p.is_public,
     p.creator_id,
     p.slug,
+    p.club,
     p.settings
   );
 }

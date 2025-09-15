@@ -41,13 +41,7 @@ export function ScrollableTabs({
     // Создаем новый URLSearchParams
     const params = new URLSearchParams(searchParams.toString());
     
-    if (key === items[0]?.key) {
-      // Если это первая вкладка, удаляем параметр
-      params.delete(paramName);
-    } else {
-      // Иначе устанавливаем параметр
-      params.set(paramName, key);
-    }
+    params.set(paramName, key);
 
     // Обновляем URL
     const newUrl = `${pathname}?${params.toString()}`;
