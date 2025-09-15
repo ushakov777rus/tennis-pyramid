@@ -5,7 +5,7 @@ import { ClubsClient } from "./ClubsClient";
 export default function ClubsPage() {
   return (
     <ClubsProvider creatorId={null}>
-      <ClubsClient  creatorId={null}/>
+      <ClubsClient />
     </ClubsProvider>
   );
 }

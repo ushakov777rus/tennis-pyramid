@@ -33,27 +33,6 @@ export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumb
           .join(" ");
 
       breadcrumbs.push({ href: `/clubs/${clubSlug}`, label });
-
-      switch (tab) {
-        case "matches":
-          breadcrumbs.push({ href: "", label: "Матчи" });
-          break;
-        case "participants":
-          breadcrumbs.push({ href: "", label: "Участники" });
-          break;
-        case "tournaments":
-          breadcrumbs.push({ href: "", label: "Турниры" });
-          break;
-        case "results":
-          breadcrumbs.push({ href: "", label: "Результаты" });
-          break;
-        case "about":
-          breadcrumbs.push({ href: "", label: "О турнире" });
-          break;
-        case "rating":
-          breadcrumbs.push({ href: "", label: "Рейтинг" });
-          break;
-      }
     }
 
     // ---------- Клубы ----------
@@ -106,6 +85,27 @@ export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumb
           segment.slice(1).replace(/-/g, " ");
         breadcrumbs.push({ href, label });
       });
+    }
+
+    switch (tab) {
+      case "matches":
+        breadcrumbs.push({ href: "", label: "Матчи" });
+        break;
+      case "participants":
+        breadcrumbs.push({ href: "", label: "Участники" });
+        break;
+      case "tournaments":
+        breadcrumbs.push({ href: "", label: "Турниры" });
+        break;
+      case "results":
+        breadcrumbs.push({ href: "", label: "Результаты" });
+        break;
+      case "about":
+        breadcrumbs.push({ href: "", label: "О турнире" });
+        break;
+      case "rating":
+        breadcrumbs.push({ href: "", label: "Рейтинг" });
+        break;
     }
 
     return breadcrumbs;
