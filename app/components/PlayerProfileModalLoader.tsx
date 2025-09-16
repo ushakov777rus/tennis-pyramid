@@ -43,7 +43,7 @@ export function PlayerProfileModalLoader({
         }
 
         if (!p) {
-          throw new Error("Игрок с таким пользователем не найден");
+          throw new Error("Игрок с таким пользователем не найден 1");
         }
 
         // 2) подтягиваем матчи игрока

@@ -4,14 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { ClubsClient } from "@/app/clubs/ClubsClient";
 import { useUser } from "@/app/components/UserContext";
 import { UserRole } from "@/app/models/Users";
-import { useClubs } from "@/app/clubs/ClubsProvider";
+import { ClubsProvider, useClubs } from "@/app/clubs/ClubsProvider";
 import { ClubsRepository } from "@/app/repositories/ClubsRepository";
 import { ClubProvider } from "@/app/clubs/[slug]/ClubProvider";
 import ClubClient from "@/app/clubs/[slug]/ClubClient";
 
 type ClubInitial = { slug: string; clubPlain: any }; // подставь свой тип
 
-export function TournamentAdminClientPage() {
+export function PlayerClientPage() {
   const { user } = useUser();
   const isAdmin = user?.role === UserRole.TournamentAdmin;
 
@@ -42,23 +42,24 @@ export function TournamentAdminClientPage() {
     };
   }, [loading, error, clubs]);
 
-  if (!isAdmin) {
-    return <div>Залогиньтесь под администратором!</div>;
-  }
-
   // пока грузим список клубов или произошла ошибка — покажем общий клиент
-  if (loading) return <div>Загрузка информации по клубу!</div>;
+  if (loading) return <div>Загрузка информации по игроку!</div>;
   if (error) return <div>Ошибка: {String(error)}</div>;
-  if (!clubs || clubs.length === 0) return <ClubsClient />;
 
   // клуб выбран, но его данные ещё едет — лоадер
   if (busy || !initial) {
     return <div>Загружаем данные клуба…</div>;
   }
 
-  return (
-    <ClubProvider initial={initial}>
-      <ClubClient />
-    </ClubProvider>
-  );
+  if (clubs && clubs.length === 1) {
+    return (
+      <ClubProvider initial={initial}>
+        <ClubClient />
+      </ClubProvider>
+    );
+  } else {
+    return (
+      <ClubsClient />
+    )
+  }
 }

@@ -37,11 +37,13 @@ export function SideNavigationBar() {
       : null,*/
   ].filter(Boolean) as { href: string; label: string; icon: string }[];
 
-  const adminNav = isAdmin
+  const userNav = isAdmin
     ? [
         { href: "/tadmin", label: "Мой клуб", icon: "🏆" },
       ]
-    : [];
+    : [
+        { href: "/player", label: "Мои клубы", icon: "🏆" },
+      ];
 
   const close = useCallback(() => setOpen(false), []);
   const toggle = useCallback(() => setOpen((v) => !v), []);
@@ -188,21 +190,19 @@ const drawerClass = [
 
         {/* Навигация */}
         <div className="drawer-scroll">
-          {isAdmin && (
-            <Section title="Администрирование" collapsed={collapsed}>
-              {adminNav.map((it) => (
-                <NavLink
-                  key={it.href}
-                  href={it.href}
-                  icon={it.icon}
-                  label={it.label}
-                  collapsed={collapsed}
-                  onClick={!isDesktop ? close : undefined}
-                  active={pathname === it.href}
-                />
-              ))}
-            </Section>
-          )}
+          <Section title="Администрирование" collapsed={collapsed}>
+            {userNav.map((it) => (
+              <NavLink
+                key={it.href}
+                href={it.href}
+                icon={it.icon}
+                label={it.label}
+                collapsed={collapsed}
+                onClick={!isDesktop ? close : undefined}
+                active={pathname === it.href}
+              />
+            ))}
+          </Section>
 
           <Section title="Мой профиль" collapsed={collapsed}>
             {profileNav.map((it) => (

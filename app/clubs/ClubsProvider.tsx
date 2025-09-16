@@ -11,8 +11,9 @@ import {
 } from "react";
 import { ClubsRepository } from "@/app/repositories/ClubsRepository";
 import type { ClubCreateInput } from "@/app/models/Club";
-import type { Club } from "../models/Club";
-import { useUser } from "../components/UserContext";
+import type { Club } from "@/app/models/Club";
+import { useUser } from "@/app/components/UserContext";
+import { UserRole } from "@/app/models/Users";
 
 type ClubsContextValue = {
   clubs: Club[];
@@ -26,68 +27,84 @@ type ClubsContextValue = {
 
 const ClubsContext = createContext<ClubsContextValue | undefined>(undefined);
 
-export function ClubsProvider({
-  children,
-  creatorId,
-}: {
-  children: React.ReactNode;
-  creatorId: number | null;
-}) {
+export function ClubsProvider({ children }: { children: React.ReactNode }) {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [initialLoaded, setInitialLoaded] = useState(false);
+
+  // берём текущего пользователя из контекста
   const { user } = useUser();
 
-const refresh = useCallback(async (opts?: { background?: boolean }) => {
-  const bg = !!opts?.background;
-  if (!bg) setLoading(true);
-  setError(null);
+  /**
+   * Загружаем список клубов.
+   * Если передан { background: true } — не показываем общий лоадер (для тихих обновлений).
+   * Источник данных зависит от роли пользователя:
+   * - TournamentAdmin → клубы, созданные этим пользователем
+   * - Player → клубы, в которых состоит игрок
+   * - гость/прочее → все клубы
+   */
+  const refresh = useCallback(
+    async (opts?: { background?: boolean }) => {
+      const bg = !!opts?.background;
+      if (!bg) setLoading(true);
+      setError(null);
 
-  try {
-    console.log("Загрузка клубов для creatorId:", creatorId);
-    const response = creatorId
-      ? await ClubsRepository.getByCreatorId(creatorId)
-      : await ClubsRepository.loadAll();
+      try {
+        let loadedClubs: Club[] | Club | null = [];
 
-    console.log("Загруженные клубы:", response);
-    
-    // Обрабатываем случай, когда возвращается один объект вместо массива
-    let clubsList: Club[] = [];
-    if (Array.isArray(response)) {
-      clubsList = response;
-    } else if (response && typeof response === 'object') {
-      // Если возвращается один клуб как объект, создаем массив из него
-      clubsList = [response];
-    }
+        if (user?.role === UserRole.TournamentAdmin) {
+          // клубы, которые создал организатор
+          loadedClubs = await ClubsRepository.getByCreatorId(user.id);
+        } else if (user?.role === UserRole.Player && user.player?.id) {
+          // клубы, в которых состоит игрок
+          loadedClubs = await ClubsRepository.loadClubsForPlayer(user.player.id);
+        } else {
+          // гость или другая роль — показать все клубы
+          loadedClubs = await ClubsRepository.loadAll();
+        }
 
-    console.log("Преобразованные клубы:", clubsList);
-    setClubs(clubsList);
-  } catch (e: any) {
-    console.error("Ошибка загрузки:", e);
-    setError(e?.message ?? "Не удалось загрузить клубы");
-  } finally {
-    if (!bg) setLoading(false);
-    setInitialLoaded(true);
-  }
-}, [creatorId]);
+        // нормализуем к массиву
+        const clubsList: Club[] = Array.isArray(loadedClubs)
+          ? loadedClubs
+          : loadedClubs
+          ? [loadedClubs]
+          : [];
 
-  // Загружаем при маунте и на смену creatorId
+        setClubs(clubsList);
+      } catch (e: any) {
+        console.error("ClubsProvider.refresh error:", e);
+        setError(e?.message ?? "Не удалось загрузить клубы");
+      } finally {
+        if (!bg) setLoading(false);
+        setInitialLoaded(true);
+      }
+    },
+    // Зависим от user: при смене пользователя или его роли — перезагружаем
+    [user]
+  );
+
+  // Загружаем при маунте и при смене user/роли
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
+  /**
+   * Создать клуб с оптимистичным апдейтом.
+   * director_id проставляем из текущего пользователя.
+   */
   const createClub = useCallback(
     async (p: ClubCreateInput): Promise<Club> => {
       if (!user) throw new Error("Нужно войти в систему, чтобы создать клуб.");
 
       const payload: ClubCreateInput = { ...p, director_id: user.id };
 
+      // оптимистичная карточка
       const tmpId = -Math.floor(Math.random() * 1e9);
       const optimistic: Club = {
         id: tmpId,
         director_id: user.id,
-        slug: p.name, // TODO: нормализовать slug
+        slug: p.name, // TODO: нормализовать slug (транслит/кириллица)
         name: p.name,
         description: p.description ?? null,
         city: p.city ?? null,
@@ -113,6 +130,7 @@ const refresh = useCallback(async (opts?: { background?: boolean }) => {
     [user]
   );
 
+  /** Удалить клуб с откатом при ошибке */
   const deleteClub = useCallback(
     async (id: number) => {
       const snapshot = clubs;

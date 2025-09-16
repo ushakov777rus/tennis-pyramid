@@ -128,7 +128,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <UserProvider>
-          <ClubsProvider creatorId={null}>
+          <ClubsProvider>
             <TournamentsProvider>
               <NavigationBar />
 

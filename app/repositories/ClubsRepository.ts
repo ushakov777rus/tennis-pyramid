@@ -216,6 +216,42 @@ static async createNewClub(input: ClubCreateInput): Promise<Club> {
   }
 
   /**
+   * Все клубы, где состоит игрок.
+   * @param playerId ID игрока
+   */
+  static async loadClubsForPlayer(playerId: number): Promise<Club[]> {
+    const { data, error } = await supabase
+      .from("club_members")
+      .select(
+        `
+        club:clubs (
+          id,
+          name,
+          slug,
+          description,
+          created_at,
+          updated_at
+        )
+      `
+      )
+      .eq("player_id", playerId)
+      .eq("status", "active")
+      .order("joined_at", { ascending: true });
+
+    if (error) {
+      console.error("loadClubsForPlayer error:", error);
+      return [];
+    }
+
+    // Преобразуем plain → Club
+    const clubs = (data ?? [])
+      .map((row: any) => (row.club ? new Club(row.club) : null))
+      .filter(Boolean) as Club[];
+
+    return clubs;
+  }
+
+  /**
    * Добавить игрока в клуб (upsert).
    * Если запись уже есть — обновим статус на active и роль на player (если нужно).
    */

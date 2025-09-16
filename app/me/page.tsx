@@ -14,7 +14,7 @@ import { useUser } from "@/app/components/UserContext";
  * Показывает профиль текущего пользователя и его последние матчи.
  * Страница: /me (или любая другая, куда подключишь компонент)
  */
-export default function MatchListView() {
+export default function UserPage() {
   const { user } = useUser();
 
   const [loading, setLoading] = useState(false);
