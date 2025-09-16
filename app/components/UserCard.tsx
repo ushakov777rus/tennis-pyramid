@@ -2,11 +2,11 @@
 
 import React from "react";
 import "./UserCard.css"
+import { roleLabel, UserRole } from "../models/Users";
 
-export type UserRole = "site_admin" | "tournament_admin" | "player" | "guest";
 type Props = {
   fullName: string;
-  role?: UserRole | null;
+  role: UserRole | null;
   phone?: string | null;
   email?: string | null;
   whatsapp?: string | null;
@@ -23,7 +23,7 @@ const BRAND = {
 
 export function UserCard({
   fullName,
-  role = "tournament_admin",
+  role,
   phone,
   email,
   whatsapp,
@@ -79,14 +79,6 @@ export function UserCard({
   );
 }
 
-function roleLabel(r?: UserRole | null) {
-  switch (r) {
-    case "site_admin": return "Администратор сайта";
-    case "tournament_admin": return "Организатор";
-    case "player": return "Игрок";
-    default: return "Пользователь";
-  }
-}
 
 type IconProps = {
   href?: string;

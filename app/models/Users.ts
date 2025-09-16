@@ -7,6 +7,15 @@ export enum UserRole  {
     Guest = "guest"
 }
 
+export function roleLabel(role: UserRole | null) {
+  switch (role) {
+    case "site_admin": return "Администратор";
+    case "tournament_admin": return "Организатор";
+    case "player": return "Игрок";
+    default: return "Пользователь";
+  }
+}
+
 export class User {
   id: number; 
   name: string; 

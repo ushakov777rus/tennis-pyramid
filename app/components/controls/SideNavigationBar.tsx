@@ -7,7 +7,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/app/components/UserContext";
-import { UserRole } from "@/app/models/Users";
+import { roleLabel, UserRole } from "@/app/models/Users";
 import { useRouter } from "next/navigation";
 
 export function SideNavigationBar() {
@@ -182,7 +182,7 @@ const drawerClass = [
                 <div className="who-name" title={user.name}>
                 {user.name}
                 </div>
-                <div className="who-role">{user.role}</div>
+                <div className="who-role">{roleLabel(user.role)}</div>
             </div>)
             }
           </div>

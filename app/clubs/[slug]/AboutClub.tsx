@@ -1,7 +1,6 @@
 // app/tournaments/[slug]/components/AboutTournament.tsx
 "use client";
 
-import { useMemo } from "react";
 import "./AboutClub.css";
 import { useClub } from "@/app/clubs/[slug]/ClubProvider";
 import { UserCard } from "@/app/components/UserCard";

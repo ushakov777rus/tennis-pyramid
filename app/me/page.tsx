@@ -92,7 +92,7 @@ export default function UserPage() {
   if (loading) {
     return (
       <div className={className}>
-        <h1 className="page-title">{user.name}</h1>
+        <h1 className="page-title">Профиль пользователя</h1>
         <div className="page-content-container">Загрузка…</div>
       </div>
     );
@@ -100,7 +100,7 @@ export default function UserPage() {
   if (error) {
     return (
       <div className={className}>
-        <h1 className="page-title">{user.name}</h1>
+        <h1 className="page-title">Профиль пользователя</h1>
         <div className="page-content-container" style={{ color: "#f04438" }}>
           Ошибка: {error}
         </div>
@@ -110,7 +110,7 @@ export default function UserPage() {
 
   return (
     <div className={className}>
-      <h1 className="page-title">{user.name}</h1>
+      <h1 className="page-title">Профиль пользователя</h1>
       <UserProfileView
         user={user}
         stats={{ wins, losses, winRate, rank }}
