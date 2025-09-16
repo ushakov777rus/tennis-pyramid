@@ -115,7 +115,7 @@ const createTournament = useCallback(async (p: TournamentCreateInput) => {
   setStats(prev => ({ ...prev, [tmpId]: { participants: 0, matches: 0 } }));
 
   try {
-    const created = await TournamentsRepository.create({
+    const created = await TournamentsRepository.createNewTournament({
       name,
       format: p.format,
       tournament_type: p.tournament_type,

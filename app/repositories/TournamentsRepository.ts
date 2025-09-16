@@ -264,16 +264,17 @@ export class TournamentsRepository {
   }
 
   /** Создать турнир — возвращаем с club (если БД вернёт) */
-  static async create(input: TournamentCreateInput): Promise<Tournament> {
+  static async createNewTournament(input: TournamentCreateInput): Promise<Tournament> {
+    const payload = normalizeTournamentCreateInput(input);
+
     const { data, error } = await supabase
       .from("tournaments")
-      .insert([input])
-      .select(`*, club:clubs(*)`)
+      .insert([payload])
+      .select(`*, club:clubs(*)`) // подтягиваем связанный клуб
       .single();
 
     if (error) throw error;
 
-    // ВАЖНО: порядок аргументов конструктора — сначала is_public, потом creator_id
     return mapRowToTournament(data);
   }
 
@@ -558,4 +559,37 @@ export class TournamentsRepository {
 /** Генерация ссылки */
 export function tournamentUrl(t: { slug: string }) {
   return `/tournaments/${t.slug}`;
+}
+
+/** Преобразуем входной объект (с club) к payload для БД (с club_id) */
+function normalizeTournamentCreateInput(input: TournamentCreateInput) {
+  const club_id =
+    input.club === null
+      ? null
+      : typeof (input.club as any)?.id === "number"
+      ? (input.club as any).id
+      : null;
+
+  if (input.club && club_id == null) {
+    console.warn("createNewTournament: передан club без корректного id, выставляю club_id = null");
+  }
+
+  // статус по умолчанию — Draft, если не передан
+  const status = input.status ?? TournamentStatus.Draft;
+
+  // Собираем payload для таблицы tournaments
+  const payload = {
+    name: input.name,
+    format: input.format,
+    tournament_type: input.tournament_type,
+    start_date: input.start_date,
+    end_date: input.end_date,
+    status,
+    creator_id: input.creator_id,
+    is_public: input.is_public,
+    club_id,              // <-- ключевое: вместо club кладём club_id
+    settings: input.settings ?? null,
+  };
+
+  return payload;
 }
