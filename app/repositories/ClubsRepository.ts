@@ -299,4 +299,15 @@ static async createNewClub(input: ClubCreateInput): Promise<Club> {
     return count ?? 0;
   }
 
+  static async loadAllSlugs(): Promise<{ slug: string; updatedAt?: string }[]> {
+    const { data, error } = await supabase
+      .from("clubs")
+      .select("slug, updated_at");
+
+    if (error) throw error;
+    return data.map((row) => ({
+      slug: row.slug,
+      updatedAt: row.updated_at,
+    }));
+  }
 }
