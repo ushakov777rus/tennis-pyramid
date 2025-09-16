@@ -2,7 +2,7 @@
 
 import "./clubs.css";
 
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useClubs } from "./ClubsProvider";
 import { ClubsRepository } from "@/app/repositories/ClubsRepository";
