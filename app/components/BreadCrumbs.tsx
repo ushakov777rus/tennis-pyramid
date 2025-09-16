@@ -57,11 +57,12 @@ export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumb
 
       if (clubName) {
         const clubSlug = (params.slug as string) || "moi-klub";
-        breadcrumbs.push({ href: `/clubs/${clubSlug}`, label: clubName });
-        breadcrumbs.push({
+        breadcrumbs.push({ href: "/tadmin?tab=tournaments", label: clubName });
+/*        breadcrumbs.push({
           href: `/clubs/${clubSlug}?tab=tournaments`,
           label: "Турниры",
         });
+        */
       }
 
       breadcrumbs.push({ href: "", label });
@@ -80,7 +81,7 @@ export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumb
         breadcrumbs.push({ href, label });
       });
     }
-
+/*
     switch (tab) {
       case "bracket":
         breadcrumbs.push({ href: "", label: "Сетка" });
@@ -107,21 +108,21 @@ export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumb
         breadcrumbs.push({ href: "", label: "Рейтинг" });
         break;
     }
-
+*/
     return breadcrumbs;
   };
 
   const raw = generateBreadcrumbs();
 
   // --- Раскладка в 7 ячеек ---
-  const slots: (Crumb | null)[] = new Array(7).fill(null);
+  const slots: (Crumb | null)[] = new Array(5).fill(null);
 
   // последняя крошка должна быть в 4-й ячейке (index = 3)
   const lastIndex = raw.length - 1;
-  const shift = 3 - lastIndex; // насколько сместить все крошки
+  const shift = 2 - lastIndex; // насколько сместить все крошки
   raw.forEach((crumb, i) => {
     const pos = i + shift;
-    if (pos >= 0 && pos < 7) {
+    if (pos >= 0 && pos < 5) {
       slots[pos] = crumb;
     }
   });
@@ -145,12 +146,10 @@ export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumb
                   <Link href={slot.href} className="breadcrumbs-link">
                     {slot.label}
                   </Link>
-                  <span className="breadcrumbs-separator">/</span>
                 </>
               ) : (
                 <>
                   <span className="breadcrumbs-text">{slot.label}</span>
-                  <span className="breadcrumbs-separator">/</span>
                 </>
               )}
             </li>
