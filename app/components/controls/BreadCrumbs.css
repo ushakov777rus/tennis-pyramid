@@ -30,6 +30,7 @@
   align-items: center;
   gap: 0.5rem;
   margin: auto;
+  text-align: center;
 }
 
 .breadcrumbs-link {
