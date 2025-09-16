@@ -15,7 +15,7 @@ import { AdminOnly } from "@/app/components/RoleGuard";
 import { PlayerListView } from "@/app/rating/PlayerListView";
 import { useUser } from "@/app/components/UserContext";
 import { UserRole } from "@/app/models/Users";
-import { SimpleBreadcrumbs } from "@/app/components/BreadCrumbs";
+import { SimpleBreadcrumbs } from "@/app/components/controls/BreadCrumbs";
 
 type ViewKey = "aboutc" | "participants" | "tournaments" | "rating";
 

@@ -3,7 +3,7 @@
 import "./PlayerCard.css";
 
 import { formatDate } from "@/app/components/Utils";
-import { CommentIconButton, DeleteIconButton, EditIconButton, LikeIconButton } from "@/app/components/IconButtons";
+import { CommentIconButton, DeleteIconButton, EditIconButton, LikeIconButton } from "@/app/components/controls/IconButtons";
 import { AdminOnly } from "../RoleGuard";
 import { useState } from "react";
 import { Player } from "@/app/models/Player";

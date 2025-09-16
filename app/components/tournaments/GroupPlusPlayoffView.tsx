@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
 
-import { SaveIconButton, CancelIconButton } from "@/app/components/IconButtons";
+import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
 
 import "./PyramidView.css";
 import "./RoundRobinView.css";

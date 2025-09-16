@@ -2,7 +2,7 @@
 
 import "./clubs.css";
 import { Club } from "../models/Club";
-import { ApplyIconButton, DeleteIconButton } from "../components/IconButtons";
+import { ApplyIconButton, DeleteIconButton } from "../components/controls/IconButtons";
 import { AdminOnly, PlayerOnly } from "../components/RoleGuard";
 import { ClubFallbackLogo } from "./ClubLogo";
 

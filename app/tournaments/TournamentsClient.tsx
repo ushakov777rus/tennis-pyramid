@@ -6,7 +6,7 @@ import "@/app/MainPage.css";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { CancelIconButton, CheckBoxIcon } from "../components/IconButtons";
+import { CancelIconButton, CheckBoxIcon } from "../components/controls/IconButtons";
 
 import {
   TournamentStatus,
@@ -27,7 +27,7 @@ import { Tournament, TournamentCreateInput } from "@/app/models/Tournament";
 
 import { canDeleteTournament, canViewTournament } from "@/app/lib/permissions";
 
-import { CustomSelect } from "../components/CustomSelect";
+import { CustomSelect } from "../components/controls/CustomSelect";
 import { tournamentUrl } from "../repositories/TournamentsRepository";
 import { Club } from "../models/Club";
 

@@ -2,8 +2,8 @@
 
 import React, { useCallback, useState } from "react";
 
-import { CustomSelect } from "@/app/components/CustomSelect";
-import { SaveIconButton } from "./IconButtons";
+import { CustomSelect } from "@/app/components/controls/CustomSelect";
+import { SaveIconButton } from "./controls/IconButtons";
 import { Match } from "../models/Match";
 
 import "./AddMatchCard.css"

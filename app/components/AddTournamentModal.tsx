@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { TournamentCreateInput, TournamentType, TournamentFormat } from "@/app/models/Tournament";
 import "./AddTournamentModal.css";
 import { TYPE_OPTIONS, FORMAT_OPTIONS } from "@/app/models/Tournament";
-import { CheckBoxIcon } from "./IconButtons";
-import { CustomSelect } from "./CustomSelect";
+import { CheckBoxIcon } from "./controls/IconButtons";
+import { CustomSelect } from "./controls/CustomSelect";
 import { Club } from "../models/Club";
 
 type Props = {

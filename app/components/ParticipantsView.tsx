@@ -4,7 +4,7 @@ import "@/app/components/ParticipantsView.css";
 import React, { useMemo, useState } from "react";
 import { Player } from "@/app/models/Player";
 import { Participant } from "@/app/models/Participant";
-import { CreateTeamIconButton, DeleteIconButton, PlusIconButton } from "./IconButtons";
+import { CreateTeamIconButton, DeleteIconButton, PlusIconButton } from "./controls/IconButtons";
 import { AdminOnly } from "./RoleGuard";
 
 /* ===================== Типы пропсов (два режима) ===================== */

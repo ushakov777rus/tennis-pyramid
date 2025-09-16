@@ -9,7 +9,7 @@ import { Match } from "@/app/models/Match";
 
 import {
   PlusIconButton,
-} from "@/app/components/IconButtons";
+} from "@/app/components/controls/IconButtons";
 
 import "@/app/components/matches/MatchHistoryView.css";
 import "./page.css";

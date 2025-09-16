@@ -2,7 +2,7 @@
 
 import { formatDate } from "@/app/components/Utils";
 import { Tournament } from "@/app/models/Tournament";
-import { DeleteIconButton } from "./IconButtons";
+import { DeleteIconButton } from "./controls/IconButtons";
 
 import "./TournamentCard.css";
 

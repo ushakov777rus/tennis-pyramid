@@ -4,7 +4,7 @@ import "./MatchCard.css";
 
 import { formatDate } from "@/app/components/Utils";
 import { Match } from "@/app/models/Match";
-import { CommentIconButton, DeleteIconButton, LikeIconButton } from "@/app/components/IconButtons";
+import { CommentIconButton, DeleteIconButton, LikeIconButton } from "@/app/components/controls/IconButtons";
 import { AdminOnly } from "../RoleGuard";
 import { useState } from "react";
 

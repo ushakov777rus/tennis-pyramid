@@ -34,7 +34,7 @@ import { SwissView } from "@/app/components/tournaments/SwissView";
 // app/tournaments/[slug]/TournamentClient.tsx (фрагмент)
 import { AboutTournament } from "@/app/components/AboutTournament";
 import { UserRole } from "@/app/models/Users";
-import { SimpleBreadcrumbs } from "@/app/components/BreadCrumbs";
+import { SimpleBreadcrumbs } from "@/app/components/controls/BreadCrumbs";
 
 const todayISO = new Date().toISOString().split("T")[0];
 

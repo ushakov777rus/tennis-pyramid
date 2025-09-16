@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useUser } from "@/app/components/UserContext";
-import { CustomSelect } from "@/app/components/CustomSelect";
+import { CustomSelect } from "@/app/components/controls/CustomSelect";
 import "./RegisterModal.css";
 import { UserRole } from "../models/Users";
 

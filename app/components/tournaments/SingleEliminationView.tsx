@@ -8,7 +8,7 @@ import { Match, PhaseType } from "@/app/models/Match";
 import "./PyramidView.css";    // чипы/бейджи/карточки
 import "./RoundRobinView.css"; // таблицы/гриды
 import "@/app/components/ParticipantsView.css";
-import { SaveIconButton, CancelIconButton } from "@/app/components/IconButtons";
+import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
 
 /* ========================================================================== */
 /*                                   TYPES                                    */
