@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ClubsClient } from "@/app/clubs/ClubsClient";
 import { useUser } from "@/app/components/UserContext";
 import { UserRole } from "@/app/models/Users";
-import { ClubsProvider, useClubs } from "@/app/clubs/ClubsProvider";
+import { useClubs } from "@/app/clubs/ClubsProvider";
 import { ClubsRepository } from "@/app/repositories/ClubsRepository";
 import { ClubProvider } from "@/app/clubs/[slug]/ClubProvider";
 import ClubClient from "@/app/clubs/[slug]/ClubClient";

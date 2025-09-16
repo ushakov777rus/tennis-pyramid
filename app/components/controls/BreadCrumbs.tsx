@@ -5,6 +5,8 @@ import "./BreadCrumbs.css";
 
 import Link from "next/link";
 import { usePathname, useParams, useSearchParams } from "next/navigation";
+import { useUser } from "../UserContext";
+import { UserRole } from "@/app/models/Users";
 
 type SimpleBreadcrumbsProps = {
   clubName?: string;
@@ -14,6 +16,7 @@ type SimpleBreadcrumbsProps = {
 type Crumb = { href: string; label: string };
 
 export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumbsProps) {
+  const { user } = useUser();
   const pathname = usePathname();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -56,13 +59,11 @@ export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumb
       const label = tournamentName ?? tournamentSlug;
 
       if (clubName) {
-        const clubSlug = (params.slug as string) || "moi-klub";
-        breadcrumbs.push({ href: "/tadmin?tab=tournaments", label: clubName });
-/*        breadcrumbs.push({
-          href: `/clubs/${clubSlug}?tab=tournaments`,
-          label: "Турниры",
-        });
-        */
+        if ( user?.role == UserRole.TournamentAdmin ) {
+          breadcrumbs.push({ href: "/tadmin?tab=tournaments", label: clubName });
+        } else {
+          breadcrumbs.push({ href: "/player?tab=tournaments", label: clubName });
+        }
       }
 
       breadcrumbs.push({ href: "", label });

@@ -141,12 +141,9 @@ export function UserProfileView({
 
       {/* Последние матчи */}
       <div className="card">
-        <h3>Последние матчи</h3>
-        {onShowFullHistory && player && (
-        <button className="btn ghost sm" onClick={() => onShowFullHistory(player)}>
-            Показать всё
-        </button>
-        )}
+        <div className="card-title">
+          <h3>Матчи</h3>
+        </div>
 
         {matches.length > 0 ? (
           <MatchHistoryView

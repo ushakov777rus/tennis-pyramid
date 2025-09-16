@@ -83,14 +83,14 @@ export default function UserPage() {
   }, [user?.player?.id, matches]);
 
   const rank: number | undefined = undefined;
-
+  const className = user ? "page-container-no-padding" : "page-container";
   // Состояния: нет пользователя / лоадер / ошибка
   if (!user) {
-    return <div className="page-container">Нужно войти в систему.</div>;
+    return <div className={className}>Нужно войти в систему.</div>;
   }
   if (loading) {
     return (
-      <div className="page-container">
+      <div className={className}>
         <h1 className="page-title">{user.name}</h1>
         <div className="page-content-container">Загрузка…</div>
       </div>
@@ -98,7 +98,7 @@ export default function UserPage() {
   }
   if (error) {
     return (
-      <div className="page-container">
+      <div className={className}>
         <h1 className="page-title">{user.name}</h1>
         <div className="page-content-container" style={{ color: "#f04438" }}>
           Ошибка: {error}
@@ -108,7 +108,7 @@ export default function UserPage() {
   }
 
   return (
-    <div className="page-container">
+    <div className={className}>
       <h1 className="page-title">{user.name}</h1>
       <UserProfileView
         user={user}
@@ -117,34 +117,4 @@ export default function UserPage() {
       />
     </div>
   );
-}
-
-/* ========================= helpers ========================= */
-
-/**
- * Возвращает true, если игрок с id=playerId выиграл матч m.
- * Работает как для одиночных матчей, так и для парных.
- * Требуется, чтобы у Match был метод getWinnerId():
- *  - в одиночке возвращает id победившего игрока,
- *  - в паре — id победившей команды.
- */
-function isWinner(playerId: number, match: Match): boolean {
-  const winnerId = match.getWinnerId?.();
-  if (!winnerId) return false;
-
-  // одиночный матч: сравниваем id игрока
-  if (match.player1 && match.player2) {
-    return winnerId === playerId;
-  }
-
-  // парный матч: нужно понять, в какой команде игрок
-  const inTeam1 =
-    match.team1?.player1?.id === playerId || match.team1?.player2?.id === playerId;
-  const inTeam2 =
-    match.team2?.player1?.id === playerId || match.team2?.player2?.id === playerId;
-
-  if (inTeam1) return winnerId === match.team1?.id;
-  if (inTeam2) return winnerId === match.team2?.id;
-
-  return false;
 }
