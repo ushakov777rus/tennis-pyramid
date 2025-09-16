@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { LoginModal } from "@/app/components/LoginModal";
 import { RegisterModal } from "@/app/components/RegisterModal";
 import { UserRole } from "../models/Users";
@@ -7,7 +8,7 @@ import { UserRole } from "../models/Users";
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  initialMode?: "login" | "register"; // 👈 новый параметр
+  initialMode?: "login" | "register";
   initialRole?: UserRole.Player | UserRole.TournamentAdmin;
 };
 
@@ -17,16 +18,24 @@ export function AuthContainer({
     initialMode = "login",
     initialRole: defaultRole = UserRole.Player,
   }: Props) {
+  const router = useRouter();
   const [mode, setMode] = useState<"login" | "register">(initialMode);
 
-  // если при открытии поменялся initialMode — применим его
   useEffect(() => {
     if (isOpen) setMode(initialMode);
   }, [isOpen, initialMode]);
 
-  const handleClose = () => {
-    setMode("login"); // сбрасываем на дефолт
+  const handleClose = (role?: UserRole) => {
+    setMode("login");
     onClose();
+
+    console.log("AuthContainer.handleClose", role);
+
+    if (role === UserRole.Player) {
+      router.push("/player");
+    } else if (role === UserRole.TournamentAdmin) {
+      router.push("/tadmin");
+    }
   };
 
   if (!isOpen) return null;
@@ -35,14 +44,15 @@ export function AuthContainer({
     <>
       <LoginModal
         isOpen={isOpen && mode === "login"}
-        onClose={handleClose}
+        onClose={() => handleClose()}  // 👈 если просто закрыли без логина
         onSwitchToRegister={() => setMode("register")}
+        onLoggedIn={(role) => handleClose(role)} // 👈 новый колбэк
       />
       <RegisterModal
         isOpen={isOpen && mode === "register"}
-        onClose={handleClose}
+        onClose={() => handleClose()}
         onSwitchToLogin={() => setMode("login")}
-        onRegistered={handleClose}
+        onRegistered={(role) => handleClose(role)} // 👈 роль прилетает при регистрации
         initialRole={defaultRole}
       />
     </>

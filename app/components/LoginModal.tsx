@@ -1,10 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // Добавьте этот импорт
-
 import { useUser } from "@/app/components/UserContext";
-
 import "./LoginModal.css";
 import { UserRole } from "../models/Users";
 
@@ -12,18 +9,20 @@ type LoginModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSwitchToRegister?: () => void;
+  /** Вызывается при успешном входе, отдаёт роль пользователя */
+  onLoggedIn?: (role: UserRole) => void;
 };
 
 export function LoginModal({
   isOpen,
   onClose,
   onSwitchToRegister,
+  onLoggedIn,
 }: LoginModalProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const { setUser } = useUser();
-  const router = useRouter(); // Добавьте useRouter
 
   if (!isOpen) return null;
 
@@ -44,11 +43,8 @@ export function LoginModal({
     }
 
     setUser(data.user);
-    onClose();
-    if (data.user.role === UserRole.TournamentAdmin)
-      router.push("/tadmin");
-    else
-      router.push("/player");
+    // вместо router.push — отдаём роль родителю
+    onLoggedIn?.(data.user.role as UserRole);
   }
 
   return (
@@ -80,9 +76,7 @@ export function LoginModal({
 
         {error && <p style={{ color: "red" }}>{error}</p>}
 
-        <button onClick={onClose} className="modal-close-btn">
-          ✖
-        </button>
+        <button onClick={onClose} className="modal-close-btn">✖</button>
 
         <p className="login-footer">
           Нет аккаунта?{" "}
