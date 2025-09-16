@@ -429,6 +429,18 @@ button,
   color: #a6ff00;
 }
 
+.badge-inform {
+  display: inline-flex;
+  padding: 2px 8px;
+  margin: 10px;
+  font-size: 14px;
+  background: rgba(166, 255, 0, 0.1);
+  border: 1px solid rgba(166, 255, 0, 0.3);
+  border-radius: 6px;
+  color: #a6ff00;
+}
+
+
 .badge-register {
   max-width: 75%;
   margin: 20px;

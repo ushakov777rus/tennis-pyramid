@@ -18,10 +18,13 @@ const className = `card card-800px ${onClick ? "clickable" : ""}`;
 
 if (club == null) {
   return (
-    <div className={className} onClick={onClick}>
-      <div>Клубы не найдены, для того чтобы начать работу - создайте клуб и добавьте в него игроков</div>
-      <div className="card-add">
-        +
+    <div>
+      <div className="badge-inform">Клубы не найдены, для того чтобы начать работу - создайте клуб и добавьте в него игроков</div>
+    
+      <div className={className} onClick={onClick}>      
+        <div className="card-add">
+          +
+        </div>
       </div>
     </div>
   );
