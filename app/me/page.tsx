@@ -27,6 +27,7 @@ export default function UserPage() {
     async function load() {
       // если пользователь не залогинен или нет связанного игрока — показываем ошибку
       if (!user?.player?.id) {
+        console.log("UserPage.load", user);
         setError("Игрок с таким пользователем не найден");
         setMatches([]);
         return;

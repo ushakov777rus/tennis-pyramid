@@ -62,13 +62,26 @@ export async function POST(req: Request) {
       // Не прерываем вход, но логируем ошибку
     }
 
+        // 3) собираем player-объект (а не player_id)
+    const player =
+      (userData as any)?.players?.[0]
+        ? {
+            id: userData!.players[0].id,
+            name: userData!.players[0].name,
+            phone: userData!.players[0].phone,
+            sex: userData!.players[0].sex,
+            ntrp: userData!.players[0].ntrp,
+          }
+        : null;
+
+
     // Формируем объект пользователя
     const user = {
       id: userData?.id,
       email: authData.user.email,
       name: userData?.name || authData.user.user_metadata.name || authData.user.email,
       role: userData?.role || authData.user.user_metadata.role || UserRole.Player,
-      player_id: userData?.players?.[0]?.id || null,
+      player,
       full_name: userData?.name || authData.user.user_metadata.full_name,
     };
 
