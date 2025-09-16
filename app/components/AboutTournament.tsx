@@ -7,9 +7,6 @@ import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 import { UserCard } from "@/app/components/UserCard";
 import { UserRole } from "../models/Users";
 
-function formatDate(d?: string | null) { /* как у тебя */ }
-function formatDateRange(start?: string | null, end?: string | null) { /* как у тебя */ }
-
 export function AboutTournament() {
   const { tournament, creator } = useTournament();
 

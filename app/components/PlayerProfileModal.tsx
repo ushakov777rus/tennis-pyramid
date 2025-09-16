@@ -8,6 +8,7 @@ import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
 
 import { MatchHistoryView } from "@/app/components/matches/MatchHistoryView"
+import { formatPhone } from "./Utils";
 
 type PlayerStats = {
   wins: number;
@@ -175,16 +176,5 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
       <div className="stat-value">{value}</div>
       <div className="stat-label">{label}</div>
     </div>
-  );
-}
-
-function formatPhone(phone: string) {
-  // на всякий случай легкая маска
-  const digits = phone.replace(/\D/g, "");
-  if (digits.length < 10) return phone;
-  const tail = digits.slice(-10);
-  return `+7${digits.slice(0, digits.length - 10)} (${tail.slice(0, 3)}) ${tail.slice(3, 6)}-${tail.slice(6, 8)}-${tail.slice(8)}`.replace(
-    /\(\)/,
-    ""
   );
 }

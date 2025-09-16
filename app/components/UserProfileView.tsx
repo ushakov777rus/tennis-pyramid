@@ -8,6 +8,7 @@ import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
 import { MatchHistoryView } from "@/app/components/matches/MatchHistoryView";
 import { User } from "@/app/models/Users";
+import { formatPhone } from "./Utils";
 
 /** Краткая статистика игрока для блока “о игроке” */
 type PlayerStats = {
@@ -170,13 +171,3 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-/** Простая маска телефона под формат +7 (...) ...-..-.. */
-function formatPhone(phone: string) {
-  const digits = phone.replace(/\D/g, "");
-  if (digits.length < 10) return phone;
-  const tail = digits.slice(-10);
-  return `+7${digits.slice(0, digits.length - 10)} (${tail.slice(0, 3)}) ${tail.slice(
-    3,
-    6
-  )}-${tail.slice(6, 8)}-${tail.slice(8)}`.replace(/\(\)/, "");
-}

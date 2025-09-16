@@ -7,3 +7,14 @@ export function formatDate(date: Date): string {
     year: "numeric",
   });
 }
+
+/** Простая маска телефона под формат +7 (...) ...-..-.. */
+export function formatPhone(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length < 10) return phone;
+  const tail = digits.slice(-10);
+  return `+7${digits.slice(0, digits.length - 10)} (${tail.slice(0, 3)}) ${tail.slice(
+    3,
+    6
+  )}-${tail.slice(6, 8)}-${tail.slice(8)}`.replace(/\(\)/, "");
+}
