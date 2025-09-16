@@ -1,3 +1,4 @@
+// app/me/MatchListView.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -6,54 +7,46 @@ import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { Match } from "@/app/models/Match";
 
 import "@/app/components/matches/MatchHistoryView.css";
-import { UserProfileView } from "../components/UserProfileView";
-import { User } from "../models/Users";
-import { UsersRepository } from "../repositories/UsersRepository";
-import { useUser } from "../components/UserContext";
+import { UserProfileView } from "@/app/components/UserProfileView";
+import { useUser } from "@/app/components/UserContext";
 
+/**
+ * Показывает профиль текущего пользователя и его последние матчи.
+ * Страница: /me (или любая другая, куда подключишь компонент)
+ */
 export default function MatchListView() {
   const { user } = useUser();
+
   const [loading, setLoading] = useState(false);
   const [matches, setMatches] = useState<Match[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-
     let cancelled = false;
 
     async function load() {
+      // если пользователь не залогинен или нет связанного игрока — показываем ошибку
+      if (!user?.player?.id) {
+        setError("Игрок с таким пользователем не найден");
+        setMatches([]);
+        return;
+      }
+
       setLoading(true);
       setError(null);
       try {
-        // 1) находим Player по userId
-        let p: User | null = null;
+        // ⚠️ ОБЯЗАТЕЛЬНО await — это асинхронный вызов к БД
+        const playerMatches = await MatchRepository.loadByPlayerId(user.player.id);
 
-        if ((UsersRepository as any).findByUserId) {
-          p = await (UsersRepository as any).findByUserId(user?.id);
-        }
-
-        if (!p) {
-          throw new Error("Игрок с таким пользователем не найден");
-        }
-
-        // 2) подтягиваем матчи игрока
-        let ms: Match[] = [];
-        if ((MatchRepository as any).loadForPlayer) {
-          ms = await (MatchRepository as any).loadForPlayer(p.id);
-        } else {
-          ms = await (MatchRepository as any).loadByPlayerId(p.id);
-        }
-
-        // сортируем по дате убыв.
-        ms.sort((a, b) => {
+        // Отсортируем по дате (новые сверху). Если у матча нет даты — считаем её как 0.
+        playerMatches.sort((a, b) => {
           const ad = a.date ? new Date(a.date as any).getTime() : 0;
           const bd = b.date ? new Date(b.date as any).getTime() : 0;
           return bd - ad;
         });
 
         if (!cancelled) {
-          
-          setMatches(ms);
+          setMatches(playerMatches);
         }
       } catch (e: any) {
         if (!cancelled) setError(e?.message ?? "Ошибка загрузки профиля");
@@ -63,14 +56,23 @@ export default function MatchListView() {
     }
 
     load();
-    return () => { cancelled = true; };
-  }, []);
 
+    // аккуратно завершаем setState при анмаунте
+    return () => {
+      cancelled = true;
+    };
+  }, [user]); // если user меняется, перегружаем
+
+  // Подсчёт статистики побед/поражений
   const { wins, losses, winRate } = useMemo(() => {
-    if (!user) return { wins: 0, losses: 0, winRate: 0 };
-    let w = 0, l = 0;
+    const pid = user?.player?.id;
+    if (!pid) return { wins: 0, losses: 0, winRate: 0 };
+
+    let w = 0,
+      l = 0;
     for (const m of matches) {
-      if (m.getWinnerId() === user.id) w++; else l++;
+      if (pid === m.getWinnerId()) w++;
+      else l++;
     }
     const total = w + l;
     return {
@@ -78,27 +80,71 @@ export default function MatchListView() {
       losses: l,
       winRate: total ? Math.round((w / total) * 100) : 0,
     };
-  }, [user, matches]);
+  }, [user?.player?.id, matches]);
 
-  // TODO: если у тебя есть система рангов — подставь реальный rank
   const rank: number | undefined = undefined;
 
-  if (!user) return null;
-
+  // Состояния: нет пользователя / лоадер / ошибка
+  if (!user) {
+    return <div className="page-container">Нужно войти в систему.</div>;
+  }
+  if (loading) {
+    return (
+      <div className="page-container">
+        <h1 className="page-title">{user.name}</h1>
+        <div className="page-content-container">Загрузка…</div>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="page-container">
+        <h1 className="page-title">{user.name}</h1>
+        <div className="page-content-container" style={{ color: "#f04438" }}>
+          Ошибка: {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">
       <h1 className="page-title">{user.name}</h1>
-
-      <div className="page-content-container">
-        <UserProfileView
-          user={user}
-          stats={{ wins, losses, winRate, rank }}
-          recentMatches={matches.slice(0, 8)}
-        />
-      </div>
+      <UserProfileView
+        user={user}
+        stats={{ wins, losses, winRate, rank }}
+        matches={matches.slice(0, 8)}
+      />
     </div>
   );
 }
 
+/* ========================= helpers ========================= */
 
+/**
+ * Возвращает true, если игрок с id=playerId выиграл матч m.
+ * Работает как для одиночных матчей, так и для парных.
+ * Требуется, чтобы у Match был метод getWinnerId():
+ *  - в одиночке возвращает id победившего игрока,
+ *  - в паре — id победившей команды.
+ */
+function isWinner(playerId: number, match: Match): boolean {
+  const winnerId = match.getWinnerId?.();
+  if (!winnerId) return false;
+
+  // одиночный матч: сравниваем id игрока
+  if (match.player1 && match.player2) {
+    return winnerId === playerId;
+  }
+
+  // парный матч: нужно понять, в какой команде игрок
+  const inTeam1 =
+    match.team1?.player1?.id === playerId || match.team1?.player2?.id === playerId;
+  const inTeam2 =
+    match.team2?.player1?.id === playerId || match.team2?.player2?.id === playerId;
+
+  if (inTeam1) return winnerId === match.team1?.id;
+  if (inTeam2) return winnerId === match.team2?.id;
+
+  return false;
+}

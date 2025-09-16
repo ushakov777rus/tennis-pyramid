@@ -150,7 +150,73 @@ export class MatchRepository {
 
     return (data ?? []).map((row: any) => this.mapRowToMatch(row));
   }
+    
+  static async loadByPlayerId(playerId: number): Promise<Match[]> {
+    // 1) найдём все команды, в которых состоит игрок
+    const { data: teams, error: teamErr } = await supabase
+      .from("teams")
+      .select("id")
+      .or(`player1_id.eq.${playerId},player2_id.eq.${playerId}`);
 
+    if (teamErr) {
+      console.error("loadByPlayerId: ошибка загрузки команд игрока:", teamErr);
+      return [];
+    }
+
+    const teamIds = (teams ?? []).map((t) => t.id as number);
+
+    // 2) соберём OR-фильтр:
+    // - одиночки: player1_id == playerId OR player2_id == playerId
+    // - пары: team1_id IN (teamIds) OR team2_id IN (teamIds)
+    const orParts: string[] = [
+      `player1_id.eq.${playerId}`,
+      `player2_id.eq.${playerId}`,
+    ];
+
+    if (teamIds.length > 0) {
+      // PostgREST синтаксис IN: column.in.(1,2,3)
+      const inList = `(${teamIds.join(",")})`;
+      orParts.push(`team1_id.in.${inList}`);
+      orParts.push(`team2_id.in.${inList}`);
+    }
+
+    const { data, error } = await supabase
+      .from("matches")
+      .select(`
+        id,
+        date,
+        scores,
+        match_type,
+        tournament_id,
+        phase,
+        group_index,
+        round_index,
+        tournaments ( * ),
+        player1:players!fk_player1(id, name, ntrp, phone, sex),
+        player2:players!fk_player2(id, name, ntrp, phone, sex),
+        team1:teams!fk_team1 (
+          id,
+          player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
+          player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
+        ),
+        team2:teams!fk_team2 (
+          id,
+          player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
+          player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
+        )
+      `)
+      .or(orParts.join(","))
+      .order("date", { ascending: false })
+      .order("id", { ascending: false });
+
+    if (error) {
+      console.error("loadByPlayerId: ошибка загрузки матчей:", error);
+      return [];
+    }
+
+    return (data ?? []).map((row: any) => this.mapRowToMatch(row));
+  }
+  
   // ------------------------------ read: by tournament ------------------------------
 
   static async loadMatches(tournamentId: number): Promise<Match[]> {
