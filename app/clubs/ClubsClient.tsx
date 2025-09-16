@@ -3,7 +3,7 @@
 import "./clubs.css";
 
 import { useMemo, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useClubs } from "./ClubsProvider";
 import { ClubsRepository } from "@/app/repositories/ClubsRepository";
 import { ClubCreateInput } from "@/app/models/Club";
@@ -25,6 +25,7 @@ import { UserRole } from "../models/Users";
 export function ClubsClient() {
   const { user } = useUser();
   const { clubs, loading, error, createClub, deleteClub, initialLoaded } = useClubs();
+  const pathname = usePathname();
   const router = useRouter();
   
   // состояние строки поиска
@@ -69,7 +70,7 @@ export function ClubsClient() {
    * Автоматический переход:
    * если у пользователя есть creatorId и ровно один клуб — редиректим сразу в него.
    */
-  const isAdmin = user?.role === UserRole.TournamentAdmin;
+  const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/tadmin");
 
   // Автопереход в единственный клуб
   useEffect(() => {
