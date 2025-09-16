@@ -12,7 +12,7 @@ import { AdminOnly } from "../components/RoleGuard";
 import { AddClubModal } from "./AddClubModal";
 import { useUser } from "../components/UserContext";
 import { UserRole } from "../models/Users";
-import ClubPage from "./[slug]/page";
+
 
 /**
  * Компонент списка клубов.
@@ -69,7 +69,6 @@ export function ClubsClient() {
    * Автоматический переход:
    * если у пользователя есть creatorId и ровно один клуб — редиректим сразу в него.
    */
-  const redirectedRef = useRef(false);
   const isAdmin = user?.role === UserRole.TournamentAdmin;
 
   // Автопереход в единственный клуб

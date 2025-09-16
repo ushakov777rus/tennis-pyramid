@@ -40,19 +40,7 @@
 }
 
 .breadcrumbs-link:hover {
-  color: #0056b3;
   text-decoration: underline;
-}
-
-.breadcrumbs-current {
-  color: #2c2c2c;
-  font-weight: 600;
-  font-size: 1.1em;
-}
-
-.breadcrumbs-separator {
-  color: #999;
-  font-weight: 300;
 }
 
 /* Специфичные стили для иерархии */
