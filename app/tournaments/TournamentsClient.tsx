@@ -119,7 +119,7 @@ const filtered = useMemo(() => {
   });
 }, [tournaments, q, fltType, fltFormat, fltStatus, fltMy, user?.id]);
 
-  const className = club === null || !user ? "page-container" : "page-container-no-padding";
+  const className = !user ? "page-container" : "page-container-no-padding";
 
   return (
     <div className={className}>
