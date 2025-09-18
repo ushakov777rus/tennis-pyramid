@@ -7,17 +7,17 @@ import TournamentClient from "./TournamentClient";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-type Params = { slug: string };
+type Params = { tournamentSlug: string };
 
 export default async function TournamentPage(
   { params }: { params: Promise<Params> } // 👈 меняем тип
 ) {
-  const { slug } = await params;           // 👈 дожидаемся params
-  const tPlain = await TournamentsRepository.getBySlug(slug);
+  const { tournamentSlug } = await params;           // 👈 дожидаемся params
+  const tPlain = await TournamentsRepository.getBySlug(tournamentSlug);
   if (!tPlain) notFound();
 
   return (
-      <TournamentProvider initial={{ slug, tournamentPlain: tPlain }}>
+      <TournamentProvider initial={{ tournamentSlug, tournamentPlain: tPlain }}>
         <TournamentClient />
       </TournamentProvider>
   );
