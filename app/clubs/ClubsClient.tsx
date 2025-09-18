@@ -5,7 +5,6 @@ import "./clubs.css";
 import { useMemo, useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useClubs } from "./ClubsProvider";
-import { ClubsRepository } from "@/app/repositories/ClubsRepository";
 import { ClubCreateInput } from "@/app/models/Club";
 import { ClubCard } from "@/app/clubs/ClubCard";
 import { AdminOnly } from "../components/RoleGuard";
@@ -62,7 +61,7 @@ export function ClubsClient() {
     setModalOpen(false);
 
     if (newClub?.slug) {
-      router.push(ClubsRepository.clubUrl(newClub));
+      router.push(`/admin/clubs/${newClub.slug}`);
     }
   };
 
@@ -70,12 +69,12 @@ export function ClubsClient() {
    * Автоматический переход:
    * если у пользователя есть creatorId и ровно один клуб — редиректим сразу в него.
    */
-  const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/tadmin");
+  const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/admin");
 
   // Автопереход в единственный клуб
   useEffect(() => {
     if (initialLoaded && !loading && isAdmin && clubs.length === 1) {
-      router.replace(ClubsRepository.clubUrl(clubs[0]));
+      router.replace(`/admin/clubs/${clubs[0].slug}`);
     }
   }, [initialLoaded, loading, isAdmin, clubs, router]);
 
@@ -142,7 +141,7 @@ export function ClubsClient() {
               <ClubCard
                 club={c}
                 displayName={true}
-                onClick={() => router.push(ClubsRepository.clubUrl(c))}
+                onClick={() => router.push(`/admin/clubs/${c.slug}`)}
                 onDelete={() => {
                   if (confirm(`Удалить клуб «${c.name}»?`)) {
                     void deleteClub(c.id);

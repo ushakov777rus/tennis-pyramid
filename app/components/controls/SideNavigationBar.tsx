@@ -39,7 +39,7 @@ export function SideNavigationBar() {
 
   const userNav = isAdmin
     ? [
-        { href: "/tadmin", label: "Мой клуб", icon: "🏆" },
+        { href: "/admin", label: "Мой клуб", icon: "🏆" },
       ]
     : [
         { href: "/player", label: "Мои клубы", icon: "🏆" },

@@ -556,11 +556,6 @@ export class TournamentsRepository {
   }
 }
 
-/** Генерация ссылки */
-export function tournamentUrl(t: { slug: string }) {
-  return `/tournaments/${t.slug}`;
-}
-
 /** Преобразуем входной объект (с club) к payload для БД (с club_id) */
 function normalizeTournamentCreateInput(input: TournamentCreateInput) {
   const club_id =

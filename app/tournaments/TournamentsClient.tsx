@@ -28,7 +28,6 @@ import { Tournament, TournamentCreateInput } from "@/app/models/Tournament";
 import { canDeleteTournament, canViewTournament } from "@/app/lib/permissions";
 
 import { CustomSelect } from "../components/controls/CustomSelect";
-import { tournamentUrl } from "../repositories/TournamentsRepository";
 import { Club } from "../models/Club";
 
 type Props = {
@@ -206,7 +205,7 @@ const filtered = useMemo(() => {
                 tournament={t}
                 participantsCount={stats[t.id]?.participants ?? 0}
                 matchesCount={stats[t.id]?.matches ?? 0}
-                {...(canView ? { onClick: () => router.push(tournamentUrl(t)) } : {})}
+                {...(canView ? { onClick: () => router.push(`/admin/clubs/${t.club?.slug}/${t.slug}`) } : {})}
                 {...(canDelete ? { onDelete } : {})}
                 displayName
               />

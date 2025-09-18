@@ -22,96 +22,50 @@ export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumb
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab");
 
-  const generateBreadcrumbs = (): Crumb[] => {
-    const breadcrumbs: Crumb[] = [];
+  function humanize(slug?: string, fallback = "—"): string {
+  if (!slug) return fallback;
+  return slug
+    .split("-")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
 
-    // ---------- tadmin ----------
-    if (pathname === "/tadmin") {
-      const clubSlug = (params.slug as string) || "moi-klub";
-      const label =
-        clubName ??
-        clubSlug
-          .split("-")
-          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-          .join(" ");
+const generateBreadcrumbs = (): Crumb[] => {
+  const breadcrumbs: Crumb[] = [];
 
-      breadcrumbs.push({ href: `/tadmin`, label });
-    }
+  const segments = pathname.split("/").filter(Boolean); // ["admin","clubs","klub-myacheva","turnir-myaeva", ...]
+  const isAdmin = segments[0] === "admin";
+  const isClubs = segments[1] === "clubs";
 
-    // ---------- Клубы ----------
-    else if (pathname.includes("/clubs/")) {
-      const clubSlug = params.slug as string;
-      const label =
-        clubName ??
-        (clubSlug
-          ? clubSlug
-              .split("-")
-              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-              .join(" ")
-          : "Мой клуб");
+  // из useParams(): { slug: string; tournamentSlug?: string }
+  const clubSlug = (params as any)?.slug as string | undefined;
+  const tournamentSlug = (params as any)?.tournamentSlug as string | undefined;
 
-      breadcrumbs.push({ href: `/clubs/${clubSlug}`, label });
-    }
+  // ----- /admin/clubs -----
+  if (isAdmin && isClubs) {
 
-    // ---------- Турниры ----------
-    else if (pathname.includes("/tournaments/")) {
-      const tournamentSlug = params.slug as string;
-      const label = tournamentName ?? tournamentSlug;
+    // ----- /admin/clubs/[slug] -----
+    if (clubSlug) {
+      const clubLabel = humanize(clubSlug, clubName ?? "Клуб");
+      breadcrumbs.push({ href: `/admin/clubs/${clubSlug}`, label: clubName ?? clubLabel });
 
-      if (clubName) {
-        if ( user?.role == UserRole.TournamentAdmin ) {
-          breadcrumbs.push({ href: "/tadmin?tab=tournaments", label: clubName });
-        } else {
-          breadcrumbs.push({ href: "/player?tab=tournaments", label: clubName });
-        }
+      // ----- /admin/clubs/[slug]/[tournamentSlug] -----
+      if (tournamentSlug) {
+        const tLabel = humanize(tournamentSlug, tournamentName ?? "Турнир");
+        // последняя крошка — без ссылки (href:"")
+        breadcrumbs.push({ href: "", label: tournamentName ?? tLabel });
       }
-
-      breadcrumbs.push({ href: "", label });
-
-      console.log("breadcrumbs for tournamrnt", clubName, breadcrumbs);
     }
 
-    // ---------- Общий случай ----------
-    else {
-      const segments = pathname.split("/").filter((s) => s !== "");
-      segments.forEach((segment, i) => {
-        const href = "/" + segments.slice(0, i + 1).join("/");
-        const label =
-          segment.charAt(0).toUpperCase() +
-          segment.slice(1).replace(/-/g, " ");
-        breadcrumbs.push({ href, label });
-      });
-    }
-/*
-    switch (tab) {
-      case "bracket":
-        breadcrumbs.push({ href: "", label: "Сетка" });
-        break;
-      case "matches":
-        breadcrumbs.push({ href: "", label: "Матчи" });
-        break;
-      case "participants":
-        breadcrumbs.push({ href: "", label: "Участники" });
-        break;
-      case "tournaments":
-        breadcrumbs.push({ href: "", label: "Турниры" });
-        break;
-      case "results":
-        breadcrumbs.push({ href: "", label: "Результаты" });
-        break;
-      case "aboutt":
-        breadcrumbs.push({ href: "", label: "О турнире" });
-        break;
-      case "aboutc":
-        breadcrumbs.push({ href: "", label: "О клубе" });
-        break;
-      case "rating":
-        breadcrumbs.push({ href: "", label: "Рейтинг" });
-        break;
-    }
-*/
     return breadcrumbs;
-  };
+  }
+
+  // ----- fallback (если понадобится для публичных путей) -----
+  // Здесь можно оставить прежнюю логику public / player веток, если нужно.
+  // Пока просто вернём то, что уже собрали.
+  return breadcrumbs;
+};
 
   const raw = generateBreadcrumbs();
 

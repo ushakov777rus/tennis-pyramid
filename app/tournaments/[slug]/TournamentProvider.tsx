@@ -44,7 +44,7 @@ export type AddMatchAndMaybeSwapArgs = {
 };
 
 type InitialData = {
-  slug: string;                         // роутим по slug
+  tournamentSlug: string;                         // роутим по slug
   tournamentPlain?: TournamentPlain | null; // получаем с сервера только POJO
   players?: Player[];
   participants?: Participant[];
@@ -75,7 +75,7 @@ export type TournamentContextShape = {
   mutating: boolean;
 
   tournamentId: number | null;          // до загрузки может быть null
-  slug: string;
+  tournamentSlug: string;
 
   // данные
   tournament: Tournament | null;
@@ -133,7 +133,7 @@ export function TournamentProvider({
   children: React.ReactNode;
 }) {
   const { user, loading: userLoading } = useUser();
-  const { slug } = initial;
+  const { tournamentSlug } = initial;
 
   // source of truth (на клиенте храним класс-модель)
   const [creator, setCreator] = useState<Player | null>(null);
@@ -168,7 +168,7 @@ export function TournamentProvider({
       silent ? setRefreshing(true) : setInitialLoading(true);
       try {
         // 1) турнир по slug → модель
-        const tPlain = await TournamentsRepository.getBySlug(slug);
+        const tPlain = await TournamentsRepository.getBySlug(tournamentSlug);
         const t = toModel(tPlain);
         setTournament(t);
 
@@ -208,7 +208,7 @@ export function TournamentProvider({
         silent ? setRefreshing(false) : setInitialLoading(false);
       }
     },
-    [slug, user?.id, user?.role]
+    [tournamentSlug, user?.id, user?.role]
   );
 
   // первичная загрузка
@@ -453,7 +453,7 @@ export function TournamentProvider({
       mutating,
 
       tournamentId,
-      slug,
+      tournamentSlug,
 
       creator,
       tournament,
@@ -484,7 +484,7 @@ export function TournamentProvider({
       refreshing,
       mutating,
       tournamentId,
-      slug,
+      tournamentSlug,
       creator,
       tournament,
       players,

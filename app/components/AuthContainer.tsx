@@ -34,7 +34,7 @@ export function AuthContainer({
     if (role === UserRole.Player) {
       router.push("/player");
     } else if (role === UserRole.TournamentAdmin) {
-      router.push("/tadmin");
+      router.push("/admin");
     }
   };
 

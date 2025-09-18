@@ -121,10 +121,6 @@ static async createNewClub(input: ClubCreateInput): Promise<Club> {
 
   /* ======================= GETTERS ======================= */
 
-  static clubUrl(c: Pick<Club, "slug">): string {
-    return `/clubs/${c.slug}`;
-  }
-
   /** Лучше брать из club_stats — там есть members_count */
   static async getBySlug(slug: string): Promise<ClubPlain | null> {
     // club_stats содержит все поля + members_count
