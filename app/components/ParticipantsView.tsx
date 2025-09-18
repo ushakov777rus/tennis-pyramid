@@ -40,7 +40,7 @@ type ClubModeProps = {
   members: Player[]; // члены клуба
   players: Player[]; // все доступные игроки (для добавления в клуб)
   // действия
-  onAddMember?: (playerId: number) => void | Promise<void>;
+  onAddPlayerToClub?: (playerId: number) => void | Promise<void>;
   onRemoveMember?: (playerId: number) => void | Promise<void>;
 };
 
@@ -158,7 +158,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
       if (props.mode === "tournament") {
         await props.onAddPlayerToTournament?.(newPlayerId);
       } else {
-        await props.onAddMember?.(newPlayerId);
+        await props.onAddPlayerToClub?.(newPlayerId);
       }
 
       // По желанию: очистим левый фильтр, чтобы показать свежий список
@@ -171,7 +171,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
   if (initialLoading) return <p>Загрузка...</p>;
 
   const maxRows = Math.max(leftList.length, rightList.length);
-
+  
   const leftTitle =
     props.mode === "tournament"
       ? props.isDouble
@@ -321,7 +321,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
                       free && (
                         <PlusIconButton
                           title="Добавить в клуб"
-                          onClick={() => props.onAddMember?.(free.id)}
+                          onClick={() => props.onAddPlayerToClub?.(free.id)}
                           disabled={mutating || creating}
                         />
                       )
@@ -440,7 +440,7 @@ export function ClubParticipantsView() {
       mutating={mutating}
       players={players}
       members={members}
-      onAddMember={addMember}
+      onAddPlayerToClub={addMember}
       onRemoveMember={removeMember}
     />
   );
