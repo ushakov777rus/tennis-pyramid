@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
 import { Player } from "../models/Player";
-import { OrganizerContactsRepository } from "./OrganizerContactRepository";
 import { UserRole } from "../models/Users";
 
 
@@ -137,11 +136,6 @@ static async createNewPlayer(
   const playerId = data?.id ?? null;
 
   if (!playerId) return null;
-
-  // 2. если указан adminId — делаем его видимым
-  if (adminId) {
-    await OrganizerContactsRepository.addVisiblePlayer(adminId, playerId);
-  }
 
   // 3. если указан clubId — добавляем в клуб
   if (clubId) {

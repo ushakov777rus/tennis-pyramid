@@ -9,8 +9,3 @@
   margin-top: 3px;
   max-width: 75px;
 }
-
-.players-table td:nth-child(n+2),
-.players-table th:nth-child(n+2) {
-  text-align: center;
-}

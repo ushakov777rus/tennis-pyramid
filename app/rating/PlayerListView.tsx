@@ -38,10 +38,6 @@ export function PlayerListView({clubId = null} : Props) {
   // состояние «мой игрок» (для меню)
   const [myMap, setMyMap] = useState<Record<number, boolean | undefined>>({});
 
-  // пагинация
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState<number>(25);
-
   useEffect(() => {
     void loadPlayers();
   }, []);
@@ -111,11 +107,6 @@ export function PlayerListView({clubId = null} : Props) {
     if (!q) return players;
     return players.filter((p) => p.name.toLowerCase().includes(q));
   }, [players, deferredSearch]);
-
-  // сброс страницы при изменении фильтра/размера страницы
-  useEffect(() => {
-    setPage(1);
-  }, [deferredSearch, pageSize]);
 
   const className = !user ? "page-container" : "page-container-no-padding";
 

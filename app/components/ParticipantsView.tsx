@@ -4,8 +4,13 @@ import "@/app/components/ParticipantsView.css";
 import React, { useMemo, useState } from "react";
 import { Player } from "@/app/models/Player";
 import { Participant } from "@/app/models/Participant";
-import { CreateTeamIconButton, DeleteIconButton, PlusIconButton } from "./controls/IconButtons";
+import {
+  CreateTeamIconButton,
+  DeleteIconButton,
+  PlusIconButton,
+} from "./controls/IconButtons";
 import { AdminOnly } from "./RoleGuard";
+import { PlayersRepository } from "@/app/repositories/PlayersRepository"; // [NEW] для создания игрока
 
 /* ===================== Типы пропсов (два режима) ===================== */
 
@@ -65,15 +70,22 @@ export function ParticipantsView(props: ParticipantsViewProps) {
   const lf = leftFilter.trim().toLowerCase();
   const rf = rightFilter.trim().toLowerCase();
 
+  // [NEW] Локальный статус «создаём игрока» (не трогаем внешний mutating)
+  const [creating, setCreating] = useState(false);
+
   // TUR: список уже в турнире; CLUB: список членов клуба
   const rightList: (Participant | Player)[] = useMemo(() => {
     if (props.mode === "tournament") {
       return rf
-        ? props.participants.filter((p) => p.displayName(false).toLowerCase().includes(rf))
+        ? props.participants.filter((p) =>
+            p.displayName(false).toLowerCase().includes(rf)
+          )
         : props.participants;
     } else {
       return rf
-        ? props.members.filter((p) => p.displayName(false).toLowerCase().includes(rf))
+        ? props.members.filter((p) =>
+            p.displayName(false).toLowerCase().includes(rf)
+          )
         : props.members;
     }
   }, [props, rf]);
@@ -92,13 +104,20 @@ export function ParticipantsView(props: ParticipantsViewProps) {
   }, [props]);
 
   const leftList: Player[] = useMemo(
-    () => (lf ? leftBasePlayers.filter((p) => p.displayName(false).toLowerCase().includes(lf)) : leftBasePlayers),
+    () =>
+      lf
+        ? leftBasePlayers.filter((p) =>
+            p.displayName(false).toLowerCase().includes(lf)
+          )
+        : leftBasePlayers,
     [leftBasePlayers, lf]
   );
 
   // Поддержка выбора 2 игроков для создания команды (только в турнире 2×)
   const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
-  const lastSelectedId = selectedPlayers.length ? selectedPlayers[selectedPlayers.length - 1].id : undefined;
+  const lastSelectedId = selectedPlayers.length
+    ? selectedPlayers[selectedPlayers.length - 1].id
+    : undefined;
 
   const toggleSelectPlayer = (player: Player) => {
     setSelectedPlayers((sel) => {
@@ -117,6 +136,38 @@ export function ParticipantsView(props: ParticipantsViewProps) {
     }
   };
 
+  // [NEW] Создать игрока по тексту фильтра слева и сразу прикрепить:
+  // - в турнир (mode="tournament") через onAddPlayerToTournament
+  // - в клуб   (mode="club")      через onAddMember
+  const handleCreatePlayerAndAttach = async () => {
+    const rawName = leftFilter.trim();
+    if (!rawName) return;
+
+    try {
+      setCreating(true);
+
+      // Минимальный набор полей для создания игрока
+      const newPlayerId = await PlayersRepository.createNewPlayer(
+        { name: rawName, ntrp: "" },
+        null,      // clubId: на этом шаге не привязываем (привязка произойдёт при добавлении в клуб)
+        undefined  // creatorId: опционально, если репозиторий поддерживает
+      );
+
+      if (!newPlayerId) return;
+
+      if (props.mode === "tournament") {
+        await props.onAddPlayerToTournament?.(newPlayerId);
+      } else {
+        await props.onAddMember?.(newPlayerId);
+      }
+
+      // По желанию: очистим левый фильтр, чтобы показать свежий список
+      // setLeftFilter("");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   if (initialLoading) return <p>Загрузка...</p>;
 
   const maxRows = Math.max(leftList.length, rightList.length);
@@ -128,10 +179,14 @@ export function ParticipantsView(props: ParticipantsViewProps) {
         : "Игроки"
       : "Игроки (добавить в клуб)";
 
-  const rightTitle = props.mode === "tournament" ? "Участники турнира" : "Члены клуба";
+  const rightTitle =
+    props.mode === "tournament" ? "Участники турнира" : "Члены клуба";
 
   return (
-    <table className="participants-table" aria-busy={refreshing || mutating}>
+    <table
+      className="participants-table"
+      aria-busy={refreshing || mutating || creating}
+    >
       <colgroup>
         <col style={{ width: "40%" }} />
         <col style={{ width: "10%" }} />
@@ -141,9 +196,12 @@ export function ParticipantsView(props: ParticipantsViewProps) {
 
       <thead>
         <tr>
-          <th colSpan={2} style={{ width: "50%" }}>{leftTitle}</th>
+          <th colSpan={2} style={{ width: "50%" }}>
+            {leftTitle}
+          </th>
           <th colSpan={2} style={{ width: "50%", position: "relative" }}>
-            {rightTitle} {(refreshing || mutating) ? <InlineSpinner /> : null}
+            {rightTitle}{" "}
+            {refreshing || mutating || creating ? <InlineSpinner /> : null}
           </th>
         </tr>
       </thead>
@@ -155,12 +213,29 @@ export function ParticipantsView(props: ParticipantsViewProps) {
             <input
               type="text"
               className="input"
-              placeholder="Фильтр слева"
+              placeholder="Фильтр слева (и имя для нового игрока)"
               value={leftFilter}
               onChange={(e) => setLeftFilter(e.target.value)}
             />
           </td>
-          <td />
+
+          {/* Если игрок не найден — показываем кнопку «Создать игрока» и сразу добавляем куда нужно */}
+          <td>
+            {leftList.length === 0 && leftFilter.trim().length > 0 && (
+              <AdminOnly>
+                <PlusIconButton
+                  title={
+                    props.mode === "tournament"
+                      ? "Создать игрока и добавить в турнир"
+                      : "Создать игрока и добавить в клуб"
+                  }
+                  onClick={handleCreatePlayerAndAttach}
+                  disabled={mutating || creating}
+                />
+              </AdminOnly>
+            )}
+          </td>
+
           <td>
             <input
               type="text"
@@ -173,14 +248,16 @@ export function ParticipantsView(props: ParticipantsViewProps) {
           <td />
         </tr>
 
-        {/* контент */}
+        {/* контент списков */}
         {maxRows === 0 ? (
           <tr>
-            <td colSpan={4} style={{ textAlign: "center", opacity: 0.7 }}>Ничего не найдено</td>
+            <td colSpan={4} style={{ textAlign: "center", opacity: 0.7 }}>
+              Ничего не найдено
+            </td>
           </tr>
         ) : (
           Array.from({ length: maxRows }).map((_, i) => {
-            const free = leftList[i];     // Player | undefined
+            const free = leftList[i]; // Player | undefined
             const inRight = rightList[i]; // Participant | Player | undefined
 
             // только в турнире 2× есть выбор пары
@@ -204,8 +281,12 @@ export function ParticipantsView(props: ParticipantsViewProps) {
                 <td>
                   {free ? (
                     <span
-                      className={`player ${isSelectable ? "clickable" : ""} ${isSelected ? "active" : ""}`}
-                      onClick={() => (isSelectable ? toggleSelectPlayer(free) : undefined)}
+                      className={`player ${
+                        isSelectable ? "clickable" : ""
+                      } ${isSelected ? "active" : ""}`}
+                      onClick={() =>
+                        isSelectable ? toggleSelectPlayer(free) : undefined
+                      }
                     >
                       {free.displayName(false)}
                     </span>
@@ -222,15 +303,17 @@ export function ParticipantsView(props: ParticipantsViewProps) {
                           <CreateTeamIconButton
                             title="Создать команду"
                             onClick={createTeam}
-                            disabled={mutating}
+                            disabled={mutating || creating}
                           />
                         )
                       ) : (
                         free && (
                           <PlusIconButton
                             title="Добавить"
-                            onClick={() => props.onAddPlayerToTournament?.(free.id)}
-                            disabled={mutating}
+                            onClick={() =>
+                              props.onAddPlayerToTournament?.(free.id)
+                            }
+                            disabled={mutating || creating}
                           />
                         )
                       )
@@ -239,7 +322,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
                         <PlusIconButton
                           title="Добавить в клуб"
                           onClick={() => props.onAddMember?.(free.id)}
-                          disabled={mutating}
+                          disabled={mutating || creating}
                         />
                       )
                     )}
@@ -249,7 +332,9 @@ export function ParticipantsView(props: ParticipantsViewProps) {
                 {/* правая колонка */}
                 <td>
                   {inRight ? (
-                    <span className="player">{nameOfPlayerOrParticipant(inRight)}</span>
+                    <span className="player">
+                      {nameOfPlayerOrParticipant(inRight)}
+                    </span>
                   ) : (
                     ""
                   )}
@@ -260,8 +345,10 @@ export function ParticipantsView(props: ParticipantsViewProps) {
                       (props.mode === "tournament" ? (
                         <DeleteIconButton
                           title="Убрать из турнира"
-                          onClick={() => props.onRemoveParticipant?.(inRight as Participant)}
-                          disabled={mutating}
+                          onClick={() =>
+                            props.onRemoveParticipant?.(inRight as Participant)
+                          }
+                          disabled={mutating || creating}
                         />
                       ) : (
                         <DeleteIconButton
@@ -269,7 +356,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
                           onClick={() =>
                             props.onRemoveMember?.((inRight as Player).id)
                           }
-                          disabled={mutating}
+                          disabled={mutating || creating}
                         />
                       ))}
                   </AdminOnly>
