@@ -5,6 +5,7 @@ import { Club } from "../models/Club";
 import { ApplyIconButton, DeleteIconButton } from "../components/controls/IconButtons";
 import { AdminOnly, PlayerOnly } from "../components/RoleGuard";
 import { ClubFallbackLogo } from "./ClubLogo";
+import { useState } from "react";
 
 type Props = {
   club: Club | null;
@@ -14,21 +15,24 @@ type Props = {
 };
 
 export function ClubCard({ club, displayName, onClick, onDelete }: Props) {
-const className = `card card-800px ${onClick ? "clickable" : ""}`;
+  // состояние для временного тултипа "Пока не реализовано"
+  const [showTooltip, setShowTooltip] = useState(false);
+  
+  const className = `card card-800px ${onClick ? "clickable" : ""}`;
 
-if (club == null) {
-  return (
-    <div>
-      <div className="badge-inform">Клубы не найдены, для того чтобы начать работу - создайте клуб и добавьте в него игроков</div>
-    
-      <div className={className} onClick={onClick}>      
-        <div className="card-add">
-          +
+  if (club == null) {
+    return (
+      <div>
+        <div className="badge-inform">Клубы не найдены, для того чтобы начать работу - создайте клуб и добавьте в него игроков</div>
+      
+        <div className={className} onClick={onClick}>      
+          <div className="card-add">
+            +
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   return (
     <div className={className} onClick={onClick} aria-label={`Открыть клуб ${club.name}`}>
@@ -59,7 +63,8 @@ if (club == null) {
           title="Подать заявку на участие"
           onClick={(e) => {
             e.stopPropagation();
-
+            setShowTooltip(true);
+            setTimeout(() => setShowTooltip(false), 2000); // показываем тултип на 2 сек
           }}
         />
       </PlayerOnly>
@@ -77,6 +82,9 @@ if (club == null) {
           )}
         </div>
       </AdminOnly>
+
+      {/* тултип "Пока не реализовано" */}
+      {showTooltip && <div className="invalid-tooltip">Пока не реализовано</div>}
       
     </div>
   );
