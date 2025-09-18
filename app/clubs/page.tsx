@@ -4,7 +4,7 @@ import { ClubsClient } from "./ClubsClient";
 
 export default function ClubsPage() {
   return (
-    <ClubsProvider>
+    <ClubsProvider mode="all">
       <ClubsClient />
     </ClubsProvider>
   );

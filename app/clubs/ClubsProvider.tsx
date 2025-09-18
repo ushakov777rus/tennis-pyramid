@@ -27,7 +27,16 @@ type ClubsContextValue = {
 
 const ClubsContext = createContext<ClubsContextValue | undefined>(undefined);
 
-export function ClubsProvider({ children }: { children: React.ReactNode }) {
+// mode:
+// - "auto" — прежнее поведение (по роли пользователя)
+// - "all"  — всегда грузим весь список клубов (для /clubs)
+export function ClubsProvider({
+  children,
+  mode = "auto",
+}: {
+  children: React.ReactNode;
+  mode?: "auto" | "all";
+}) {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,10 +48,11 @@ export function ClubsProvider({ children }: { children: React.ReactNode }) {
   /**
    * Загружаем список клубов.
    * Если передан { background: true } — не показываем общий лоадер (для тихих обновлений).
-   * Источник данных зависит от роли пользователя:
+   * Источник данных зависит от роли пользователя (в режиме "auto"):
    * - TournamentAdmin → клубы, созданные этим пользователем
    * - Player → клубы, в которых состоит игрок
    * - гость/прочее → все клубы
+   * В режиме "all" — всегда весь список клубов.
    */
   const refresh = useCallback(
     async (opts?: { background?: boolean }) => {
@@ -53,15 +63,19 @@ export function ClubsProvider({ children }: { children: React.ReactNode }) {
       try {
         let loadedClubs: Club[] | Club | null = [];
 
-        if (user?.role === UserRole.TournamentAdmin) {
-          // клубы, которые создал организатор
-          loadedClubs = await ClubsRepository.getByCreatorId(user.id);
-        } else if (user?.role === UserRole.Player && user.player?.id) {
-          // клубы, в которых состоит игрок
-          loadedClubs = await ClubsRepository.loadClubsForPlayer(user.player.id);
-        } else {
-          // гость или другая роль — показать все клубы
+        if (mode === "all") {
           loadedClubs = await ClubsRepository.loadAll();
+        } else {
+          if (user?.role === UserRole.TournamentAdmin) {
+            // клубы, которые создал организатор
+            loadedClubs = await ClubsRepository.getByCreatorId(user.id);
+          } else if (user?.role === UserRole.Player && user.player?.id) {
+            // клубы, в которых состоит игрок
+            loadedClubs = await ClubsRepository.loadClubsForPlayer(user.player.id);
+          } else {
+            // гость или другая роль — показать все клубы
+            loadedClubs = await ClubsRepository.loadAll();
+          }
         }
 
         // нормализуем к массиву
@@ -80,11 +94,11 @@ export function ClubsProvider({ children }: { children: React.ReactNode }) {
         setInitialLoaded(true);
       }
     },
-    // Зависим от user: при смене пользователя или его роли — перезагружаем
-    [user]
+    // Зависим от user и режима: при смене пользователя/роли/режима — перезагружаем
+    [user, mode]
   );
 
-  // Загружаем при маунте и при смене user/роли
+  // Загружаем при маунте и при смене user/роли/режима
   useEffect(() => {
     void refresh();
   }, [refresh]);

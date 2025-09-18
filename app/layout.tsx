@@ -128,7 +128,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <UserProvider>
-          <ClubsProvider>
             <TournamentsProvider>
               <NavigationBar />
 
@@ -141,7 +140,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </main>
               </div>
             </TournamentsProvider>
-          </ClubsProvider>
         </UserProvider>
 
       </body>
