@@ -14,7 +14,6 @@ import {
 import "@/app/components/matches/MatchHistoryView.css";
 import "./page.css";
 import { AdminOnly } from "../components/RoleGuard";
-import { OrganizerContactsRepository } from "@/app/repositories/OrganizerContactRepository";
 import { PlayerCard } from "../components/players/PlayerCard";
 
 type Props = {
