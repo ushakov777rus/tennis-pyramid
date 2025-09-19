@@ -46,8 +46,13 @@ const generateBreadcrumbs = (): Crumb[] => {
 
     // ----- /admin/clubs/[slug] -----
     if (clubSlug) {
-      const clubLabel = humanize(clubSlug, clubName ?? "Клуб");
-      breadcrumbs.push({ href: isAdmin ? `/admin/clubs/${clubSlug}?tab=tournaments` : `/player/clubs/${clubSlug}?tab=tournaments`, label: clubName ?? clubLabel });
+      if (clubSlug != "undefined") {
+        const clubLabel = humanize(clubSlug, clubName ?? "Клуб");
+        breadcrumbs.push({ href: isAdmin ? `/admin/clubs/${clubSlug}?tab=tournaments` : `/player/clubs/${clubSlug}?tab=tournaments`, label: clubName ?? clubLabel });
+      } else {
+        breadcrumbs.push({ href: `/tournaments`, label: "Турниры" });
+      }
+    
 
       // ----- /admin/clubs/[slug]/[tournamentSlug] -----
       if (tournamentSlug) {
