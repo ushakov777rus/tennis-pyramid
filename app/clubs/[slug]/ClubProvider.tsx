@@ -221,6 +221,11 @@ export function ClubProvider({
   return <ClubContext.Provider value={value}>{children}</ClubContext.Provider>;
 }
 
+// ✅ Безопасный вариант: вернёт null вместо throw, если провайдера нет
+export function useOptionalClub() {
+  return useContext(ClubContext) ?? null;
+}
+
 export function useClub(): ClubContextShape {
   const ctx = useContext(ClubContext);
   if (!ctx) throw new Error("useClub must be used within ClubProvider");

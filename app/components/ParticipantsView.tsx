@@ -394,14 +394,7 @@ export function TournamentParticipantsView() {
   } = useTournament();
 
   // [NEW] попробуем получить клуб (если есть ClubProvider)
-  const clubCtx = (() => {
-    try {
-      return useClub();
-    } catch {
-      console.log("TournamentParticipantsView clubCtx===null");
-      return null; // если нет провайдера — просто не будет "второго" добавления
-    }
-  })();
+  const clubCtx = useOptionalClub();
 
   if (!tournament) return <p>Загрузка...</p>;
 
@@ -436,7 +429,7 @@ export function TournamentParticipantsView() {
 
 /* ===================== Обёртчик для КЛУБА ===================== */
 
-import { useClub } from "@/app/clubs/[slug]/ClubProvider";
+import { useClub, useOptionalClub } from "@/app/clubs/[slug]/ClubProvider";
 
 export function ClubParticipantsView() {
   const {
