@@ -141,7 +141,7 @@ export function ClubsClient() {
               <ClubCard
                 club={c}
                 displayName={true}
-                onClick={() => router.push(`/admin/clubs/${c.slug}`)}
+                onClick={() => isAdmin ? router.push(`/admin/clubs/${c.slug}`) : router.push(`/player/clubs/${c.slug}`)}
                 onDelete={() => {
                   if (confirm(`Удалить клуб «${c.name}»?`)) {
                     void deleteClub(c.id);
