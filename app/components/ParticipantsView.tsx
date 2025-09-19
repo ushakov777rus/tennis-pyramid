@@ -150,7 +150,6 @@ export function ParticipantsView(props: ParticipantsViewProps) {
       const newPlayerId = await PlayersRepository.createNewPlayer(
         { name: rawName, ntrp: "" },
         null,      // clubId: на этом шаге не привязываем (привязка произойдёт при добавлении в клуб)
-        undefined  // creatorId: опционально, если репозиторий поддерживает
       );
 
       if (!newPlayerId) return;

@@ -4,23 +4,7 @@
 }
 
 .tournament-details p {
-  
   padding-bottom: 5px;
-  
-}
-
-
-.tournaments-container {
-  width: 96%;
-  margin: 0 auto;
-  color: #333;
-  max-width: 800px;
-}
-
-.tournaments-container h1 {
-  margin-bottom: 20px;
-  margin-top: 20px;
-  text-align: center;
 }
 
 /* --- Форма создания турнира --- */
