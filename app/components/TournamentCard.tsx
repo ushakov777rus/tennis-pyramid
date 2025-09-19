@@ -38,21 +38,17 @@ if (tournament == null) {
 
   return (
     <div className={className} onClick={onClick}>
-      <div className="tournament-header">
+      <div className="tournament-card-header">
+        <div>{tournament.club && tournament.club.name}</div>
         {displayName && (
           <h3>{tournament.name}</h3>
         )}
-        <div
-          className="tournament-status"
-          style={{ minWidth: 80, display: "flex", justifyContent: "flex-end" }}
-        >
+        <div>
           <span className={`status ${tournament.status}`}>{tournament.getStatus()}</span>
         </div>
       </div>
 
-      <div
-        className="tournament-details"
-      >
+      <div className="tournament-details  card-row">
         <table className="tournament-card-table">
           <tbody className="tournament-card-table-body">
             <tr  >
@@ -87,17 +83,17 @@ if (tournament == null) {
         </table>
       </div>
 
-      {onDelete && (
-        <DeleteIconButton
-          title="Удалить турнир"
-          className="bucket"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(tournament.id);
-          }}
-        />
-      )}
-      
+      <div className="card-bottom-toolbar">
+        {onDelete && (
+          <DeleteIconButton
+            title="Удалить турнир"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(tournament.id);
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }

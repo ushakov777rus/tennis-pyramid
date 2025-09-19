@@ -110,9 +110,7 @@ export class PlayersRepository {
 
 static async createNewPlayer(
   player: Partial<Player>,
-  clubId: number | null,
-  adminId?: number,
-  
+  clubId: number | null
 ): Promise<number | null> {
   // 1. создаём игрока
   const { data, error } = await supabase

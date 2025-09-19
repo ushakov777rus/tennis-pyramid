@@ -13,6 +13,22 @@
   transition: all 0.2s ease-in-out;
 }
 
+.card:hover {
+  /*transform: translateY(-5px);*/
+  box-shadow: 0 0 20px rgba(166, 255, 0, 0.3);
+  border-color: rgba(204,255,102,0.35);
+  transform: translateY(-1px);
+  transition: 120ms ease;
+}
+
+.card-bottom-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+
 .card-title {
   padding: 10px 10px;
   text-align: center;
@@ -22,7 +38,6 @@
 .card-800px {
   max-width: 800px;
 }
-
 
 .card-row {
     align-items: center;
