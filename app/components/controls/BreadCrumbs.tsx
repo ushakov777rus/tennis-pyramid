@@ -6,7 +6,6 @@ import "./BreadCrumbs.css";
 import Link from "next/link";
 import { usePathname, useParams, useSearchParams } from "next/navigation";
 import { useUser } from "../UserContext";
-import { UserRole } from "@/app/models/Users";
 
 type SimpleBreadcrumbsProps = {
   clubName?: string;
@@ -43,12 +42,12 @@ const generateBreadcrumbs = (): Crumb[] => {
   const tournamentSlug = (params as any)?.tournamentSlug as string | undefined;
 
   // ----- /admin/clubs -----
-  if (isAdmin && isClubs) {
+  if (isClubs) {
 
     // ----- /admin/clubs/[slug] -----
     if (clubSlug) {
       const clubLabel = humanize(clubSlug, clubName ?? "Клуб");
-      breadcrumbs.push({ href: `/admin/clubs/${clubSlug}`, label: clubName ?? clubLabel });
+      breadcrumbs.push({ href: isAdmin ? `/admin/clubs/${clubSlug}?tab=tournaments` : `/player/clubs/${clubSlug}?tab=tournaments`, label: clubName ?? clubLabel });
 
       // ----- /admin/clubs/[slug]/[tournamentSlug] -----
       if (tournamentSlug) {

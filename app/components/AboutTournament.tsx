@@ -39,10 +39,8 @@ export function AboutTournament() {
   }
 
   return (
-    <div className="about-root">
-      {/* Инфо-грид */}
-      <section className="card about-grid">
-        <div className="info-item">
+    <div className="page-content-container card-800px">
+      <section className="card-grid">
           <UserCard
             fullName={orgName}
             role={UserRole.TournamentAdmin}
@@ -52,15 +50,7 @@ export function AboutTournament() {
             telegram={orgTg}
             className="mt-1"
           />
-        </div>
-
-        <div className="info-item">
-          <div className="info-k">Взнос</div>
-          <div className="info-v">{fee != null ? `${fee} ₽` : "—"}</div>
-        </div>
       </section>
-
-      {/* остальной контент AboutTournament — без изменений */}
     </div>
   );
 }

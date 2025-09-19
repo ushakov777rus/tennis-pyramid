@@ -4,7 +4,7 @@ import "./page.css";
 import "@/app/MainPage.css";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { CancelIconButton, CheckBoxIcon } from "../components/controls/IconButtons";
 
@@ -29,6 +29,7 @@ import { canDeleteTournament, canViewTournament } from "@/app/lib/permissions";
 
 import { CustomSelect } from "../components/controls/CustomSelect";
 import { Club } from "../models/Club";
+import { UserRole } from "../models/Users";
 
 type Props = {
   club: Club | null;
@@ -38,6 +39,7 @@ type Props = {
 export function TournamentsClient({club} : Props) {
   const { user } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
   const { tournaments, loading, error, createTournament, deleteTournament, stats } = useTournaments();
 
   // --- фильтры
@@ -117,6 +119,8 @@ const filtered = useMemo(() => {
     return true;
   });
 }, [tournaments, q, fltType, fltFormat, fltStatus, fltMy, user?.id]);
+
+const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/admin");
 
   const className = !user ? "page-container" : "page-container-no-padding";
 
@@ -205,7 +209,7 @@ const filtered = useMemo(() => {
                 tournament={t}
                 participantsCount={stats[t.id]?.participants ?? 0}
                 matchesCount={stats[t.id]?.matches ?? 0}
-                {...(canView ? { onClick: () => router.push(`/admin/clubs/${t.club?.slug}/${t.slug}`) } : {})}
+                {...(canView ? { onClick: () => isAdmin ? router.push(`/admin/clubs/${t.club?.slug}/${t.slug}`) : router.push(`/player/clubs/${t.club?.slug}/${t.slug}`)} : {})}
                 {...(canDelete ? { onDelete } : {})}
                 displayName
               />
