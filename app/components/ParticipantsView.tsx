@@ -139,6 +139,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
   // [NEW] Создать игрока по тексту фильтра слева и сразу прикрепить:
   // - в турнир (mode="tournament") через onAddPlayerToTournament
   // - в клуб   (mode="club")      через onAddMember
+// [NEW] Создать игрока по тексту фильтра слева и сразу прикрепить:
   const handleCreatePlayerAndAttach = async () => {
     const rawName = leftFilter.trim();
     if (!rawName) return;
@@ -146,21 +147,27 @@ export function ParticipantsView(props: ParticipantsViewProps) {
     try {
       setCreating(true);
 
-      // Минимальный набор полей для создания игрока
       const newPlayerId = await PlayersRepository.createNewPlayer(
         { name: rawName, ntrp: "" },
-        null,      // clubId: на этом шаге не привязываем (привязка произойдёт при добавлении в клуб)
+        null // clubId не задаём здесь; членство оформим отдельным вызовом
       );
-
       if (!newPlayerId) return;
 
       if (props.mode === "tournament") {
+        // 1) всегда добавляем в турнир
         await props.onAddPlayerToTournament?.(newPlayerId);
+
+        // 2) если доступен коллбэк добавления в клуб — добавим и в клуб
+        //    (он появится, если есть ClubProvider и мы его пробросили из wrapper'а)
+        if ("onAddPlayerToClub" in props && typeof (props as any).onAddPlayerToClub === "function") {
+          await (props as any).onAddPlayerToClub(newPlayerId);
+        }
       } else {
+        // режим клуба — добавляем только в клуб
         await props.onAddPlayerToClub?.(newPlayerId);
       }
 
-      // По желанию: очистим левый фильтр, чтобы показать свежий список
+      // По желанию очистить фильтр, чтобы сразу увидеть обновлённый список
       // setLeftFilter("");
     } finally {
       setCreating(false);
@@ -386,6 +393,16 @@ export function TournamentParticipantsView() {
     removeParticipant,
   } = useTournament();
 
+  // [NEW] попробуем получить клуб (если есть ClubProvider)
+  const clubCtx = (() => {
+    try {
+      return useClub();
+    } catch {
+      console.log("TournamentParticipantsView clubCtx===null");
+      return null; // если нет провайдера — просто не будет "второго" добавления
+    }
+  })();
+
   if (!tournament) return <p>Загрузка...</p>;
 
   const isDouble =
@@ -409,6 +426,10 @@ export function TournamentParticipantsView() {
           ? (p1, p2) => createAndAddTeamToTournament(tournament.id, p1, p2)
           : undefined
       }
+      // [NEW] пробрасываем "добавить в клуб" только если контекст клуба есть
+      {...(clubCtx?.club
+        ? { onAddPlayerToClub: clubCtx.addMember }
+        : {})}
     />
   );
 }
