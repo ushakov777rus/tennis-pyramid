@@ -11,15 +11,15 @@ export const revalidate = 0;
 
 type Params = { slug: string; tournamentSlug?: string; tournamentsSlug?: string };
 
-export default async function TournamentPage({ params }: { params: Params }) {
-  const { slug } = params;
-
-  // На случай, если папка названа [tournamentsSlug] — подстрахуемся
-  const tournamentSlug = params.tournamentSlug ?? params.tournamentsSlug;
-  if (!tournamentSlug) notFound();
+export default async function TournamentPage(
+  { params }: { params: Promise<Params> } // ⬅️ как в твоём проекте ожидается
+) {
+  const { slug, tournamentSlug, tournamentsSlug } = await params; // ⬅️ дожидаемся
+  const tSlug = tournamentSlug ?? tournamentsSlug;
+  if (!tSlug) notFound();
 
   const [tPlain, clubPlain] = await Promise.all([
-    TournamentsRepository.getBySlug(tournamentSlug),
+    TournamentsRepository.getBySlug(tSlug),
     ClubsRepository.getBySlug(slug),
   ]);
 
@@ -27,7 +27,7 @@ export default async function TournamentPage({ params }: { params: Params }) {
 
   return (
     <ClubProvider initial={{ slug, clubPlain }}>
-      <TournamentProvider initial={{ tournamentSlug, tournamentPlain: tPlain }}>
+      <TournamentProvider initial={{ tournamentSlug: tSlug, tournamentPlain: tPlain }}>
         <TournamentClient />
       </TournamentProvider>
     </ClubProvider>
