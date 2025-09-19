@@ -14,6 +14,7 @@ import Script from "next/script";
 import "./MainPage.css";
 import { ClubsRepository } from "./repositories/ClubsRepository";
 import { useUser } from "./components/UserContext";
+import { Footer } from "./Footer";
 
 type Stat = { label: string; value: number | string };
 type Feature = { icon: React.ReactNode; label: string; text?: string };
@@ -301,20 +302,9 @@ export default function HomePage() {
             <p>Да, HoneyCup подходит для большого и настольного тенниса, падела и бадминтона.</p>
           </details>
         </section>
-      </main>
 
-      <footer className="card page-footer">
-        <div className="footer-section left">
-          <h3>Для связи</h3>
-          <p>
-            <a href="mailto:honey.cup@yandex.ru">honey.cup@yandex.ru</a>
-          </p>
-        </div>
-        <div className="footer-section right">
-          <h3>© {new Date().getFullYear()} HoneyCup</h3>
-          <p>Все права защищены</p>
-        </div>
-      </footer>
+        <Footer />
+      </main>
 
       <AuthContainer
         isOpen={isLoginOpen}
