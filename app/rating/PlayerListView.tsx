@@ -66,7 +66,7 @@ export function PlayerListView({clubId = null} : Props) {
 
   const addPlayer = async () => {
     if (!newPlayer.name?.trim()) return;
-    await PlayersRepository.createNewPlayer(newPlayer, clubId, user?.id);
+    await PlayersRepository.createNewPlayer(newPlayer, clubId);
     setNewPlayer({ name: "", ntrp: "" });
     void loadPlayers();
   };
