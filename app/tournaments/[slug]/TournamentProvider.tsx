@@ -508,6 +508,10 @@ export function TournamentProvider({
   return <TournamentContext.Provider value={value}>{children}</TournamentContext.Provider>;
 }
 
+export function useOptionalTournament() {
+  return useContext(TournamentContext);
+}
+
 export function useTournament(): TournamentContextShape {
   const ctx = useContext(TournamentContext);
   if (!ctx) throw new Error("useTournament must be used within TournamentProvider");

@@ -4,17 +4,15 @@ import { useMemo, useState } from "react";
 import type { KeyboardEvent } from "react";
 
 import { Participant } from "@/app/models/Participant";
-import { Match } from "@/app/models/Match";
+import type { Match } from "@/app/models/Match";
 import { User, UserRole } from "@/app/models/Users";
 
 import "./RatingView.css";
-import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
+import { useOptionalTournament } from "@/app/tournaments/[slug]/TournamentProvider";
+import { useOptionalClub } from "@/app/clubs/[slug]/ClubProvider";
+import { useOptionalMatches } from "@/app/matches/MatchesProvider";
 import { UserProfileModal } from "@/app/components/UserProfileModal";
 import type { UserProfileStats } from "./UserProfileView";
-
-type RatingViewProps = {
-  matches: Match[];
-};
 
 type ParticipantStats = {
   games: number;
@@ -32,17 +30,50 @@ type CardData = {
   rank: number;
 };
 
-export function RatingView({ matches }: RatingViewProps) {
-  const { loading, tournament, participants } = useTournament();
+const EMPTY_PARTICIPANTS: Participant[] = [];
+const EMPTY_MATCHES: Match[] = [];
+
+export function RatingView() {
+  const tournamentCtx = useOptionalTournament();
+  const clubCtx = useOptionalClub();
+  const matchesCtx = useOptionalMatches();
+
+  const tournament = tournamentCtx?.tournament ?? null;
+  const participants = tournamentCtx?.participants ?? EMPTY_PARTICIPANTS;
+  const tournamentMatches = tournamentCtx?.matches ?? EMPTY_MATCHES;
+  const tournamentLoading = tournamentCtx?.loading ?? false;
+
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [profileStats, setProfileStats] = useState<UserProfileStats | undefined>();
   const [profileMatches, setProfileMatches] = useState<Match[]>([]);
+  const resolvedMatches: Match[] = useMemo(() => {
+    if (tournament) {
+      return tournamentMatches;
+    }
+
+    const allMatches = matchesCtx?.matches ?? EMPTY_MATCHES;
+
+    if (clubCtx?.club) {
+      const clubId = clubCtx.club.id;
+      return allMatches.filter((match) => match.tournament?.club?.id === clubId);
+    }
+
+    return allMatches.length ? allMatches : EMPTY_MATCHES;
+  }, [tournament, tournamentMatches, matchesCtx?.matches, clubCtx?.club]);
 
   const pastMatches = useMemo(() => {
     const now = Date.now();
-    return (matches ?? []).filter((match) => match?.date && match.date.getTime() <= now);
-  }, [matches]);
+    return resolvedMatches.filter((match) => match?.date && match.date.getTime() <= now);
+  }, [resolvedMatches]);
+
+  const matchesInitialLoaded = matchesCtx?.initialLoaded ?? false;
+  const matchesError = matchesCtx?.error ?? null;
+  const matchesLoading = matchesCtx?.loading ?? false;
+
+  const isInitialLoading = tournament
+    ? tournamentLoading && !participants.length && !tournamentMatches.length
+    : matchesLoading && !matchesInitialLoaded;
 
   const statsById = useMemo(() => {
     const map = new Map<number, ParticipantStats>();
@@ -315,16 +346,18 @@ export function RatingView({ matches }: RatingViewProps) {
     return sorted.map((item, index) => ({ ...item, rank: index + 1 }));
   }, [participants, statsById, titlesById]);
 
-  if (loading) return <p>Загрузка…</p>;
-  if (!tournament) return <p>Турнир не найден</p>;
+  if (isInitialLoading) return <p>Загрузка…</p>;
+  if (tournamentCtx && !tournament) return <p>Турнир не найден</p>;
+  if (!tournament && matchesError) {
+    return <p style={{ color: "#f04438" }}>{matchesError}</p>;
+  }
 
   return (
-    <div className="page-container-no-padding">
-      <div className="page-content-container">
+    <div className="rating-view">
       {cardsData.length === 0 ? (
         <p>Пока нет участников.</p>
       ) : (
-        <div className="card-grid-new">
+        <div className="card-grid rating-grid">
           {cardsData.map((card) => {
             const canOpen = Boolean(card.hasHistory && card.participant.player);
 
@@ -350,7 +383,7 @@ export function RatingView({ matches }: RatingViewProps) {
                 rank: card.rank,
               };
 
-              const playerMatches = (matches ?? [])
+              const playerMatches = resolvedMatches
                 .filter((match) => {
                   const playerId = player.id;
                   if (!playerId) return false;
@@ -382,20 +415,19 @@ export function RatingView({ matches }: RatingViewProps) {
             return (
               <article
                 key={card.id || card.name}
-                className={`card`}
+                className={`card rating-card${canOpen ? " rating-card--clickable" : ""}`}
                 role={canOpen ? "button" : undefined}
                 tabIndex={canOpen ? 0 : undefined}
                 onClick={handleCardClick}
                 onKeyDown={handleKeyDown}
                 aria-disabled={canOpen ? undefined : true}
               >
-                <header className="card-head">
-                  <div className="card-title">
+                <header className="card-head rating-card__header">
+                  <h3 className="card-title rating-card__name" style={{ whiteSpace: "pre-line" }}>
                     {card.name}
-                  </div>
+                  </h3>
+                  <span className="rating-card__title">{card.title}</span>
                 </header>
-
-                <span className="badge">{card.title}</span>
 
                 <div className="rating-card__body">
                   <div className="card-row rating-card__row">
@@ -425,7 +457,6 @@ export function RatingView({ matches }: RatingViewProps) {
         stats={profileStats}
         matches={profileMatches}
       />
-    </div>
     </div>
   );
 }

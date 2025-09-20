@@ -98,3 +98,7 @@ export function useMatches() {
   if (!ctx) throw new Error("useMatches must be used within <MatchesProvider>");
   return ctx;
 }
+
+export function useOptionalMatches() {
+  return useContext(MatchesContext) ?? null;
+}

@@ -358,7 +358,7 @@ export default function TournamentClient() {
             {view === "participants" && 
               <TournamentParticipantsView />}
             </AdminOnly>
-            {view === "results" && <RatingView matches={matches} />}
+            {view === "results" && <RatingView />}
             
             {view === "aboutt" && 
               <AboutTournament />}
