@@ -243,7 +243,7 @@ body {
 @media (max-width: 768px) {
   .modal-content {
     width: 90%;
-    max-height: 90vh
+    max-height: 90dvh
   }
 
   /* Игроки */
