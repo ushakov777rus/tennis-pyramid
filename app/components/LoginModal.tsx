@@ -1,8 +1,9 @@
 "use client";
 
+import "./Auth.css";
+
 import { useState } from "react";
 import { useUser } from "@/app/components/UserContext";
-import "./LoginModal.css";
 import { UserRole } from "../models/Users";
 
 type LoginModalProps = {
@@ -50,14 +51,14 @@ export function LoginModal({
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content modal-content-login" onClick={(e) => e.stopPropagation()}>
-        <h2 className="modal-title">Вход</h2>
+        <div className="modal-title">Вход</div>
 
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="input"
+          className="input input-auth"
           autoComplete="email"
           inputMode="email"
         />
@@ -67,7 +68,7 @@ export function LoginModal({
           placeholder="Пароль"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="input"
+          className="input input-auth"
         />
 
         <button onClick={handleLogin} className="modal-submit-btn">

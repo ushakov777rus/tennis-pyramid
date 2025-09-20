@@ -84,7 +84,6 @@ body {
 }
 
 .input {
-  width: 100%;
   padding: 8px;
   margin: 2px;
   background: #222;
@@ -92,7 +91,7 @@ body {
   border-radius: 6px;
   color: #ccc;
   box-sizing: border-box;
-  font-size: 12px;
+  font-size: 14px;
   height: 32px;
 }
 
@@ -186,49 +185,6 @@ body {
 }
 }
 
-
-.modal-title {
-  font-size: 24px;
-  margin-bottom: 20px;
-  color: #ccff66;
-  text-align: center;
-}
-
-.modal-submit-btn {
-  width: 100%;
-  padding: 8px;
-  margin: 10px 2px;
-  background: #ccff66;
-  color: #000;
-  font-weight: bold;
-  font-size: 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: 0.2s ease-in-out;
-}
-
-.modal-submit-btn:hover {
-  background: #ccff66;
-  box-shadow: 0 0 10px #ccff66;
-}
-
-.modal-close-btn {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background: none;
-  border: none;
-  color: #777;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.modal-close-btn:hover {
-  color: #fff;
-}
-
-
 /* Стиль для отображении пары игроков в матче */
 .players {
   display: flex;
@@ -236,8 +192,6 @@ body {
   align-items: center;
   padding: 2px 2px;
 }
-
-
 
 /* ✅ Адаптивность для мобилок */
 @media (max-width: 768px) {

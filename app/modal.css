@@ -1,0 +1,40 @@
+.modal-title {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #ccff66;
+  text-align: center;
+}
+
+.modal-submit-btn {
+  width: 100%;
+  padding: 8px;
+  margin: 10px 2px;
+  background: #ccff66;
+  color: #000;
+  font-weight: bold;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+}
+
+.modal-submit-btn:hover {
+  background: #ccff66;
+  box-shadow: 0 0 10px #ccff66;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: none;
+  border: none;
+  color: #777;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.modal-close-btn:hover {
+  color: #fff;
+}

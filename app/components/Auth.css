@@ -1,7 +1,7 @@
 
 .login-footer {
   text-align: center;
-  font-size: 13px;
+  font-size: 14px;
   color: #aaa;
   margin-top: 15px;
 }
@@ -13,10 +13,6 @@
 
 .login-footer a:hover {
   text-decoration: underline;
-}
-
-.input[type="email"] {
-  /* Специфичные стили для поля email если нужно */
 }
 
 .form-error {
@@ -31,7 +27,6 @@
   padding: 25px;
 }
 
-.modal-title {
-  margin-bottom: 20px;
-  text-align: center;
+.input-auth {
+  width: 100%;
 }
