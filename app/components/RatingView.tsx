@@ -42,6 +42,7 @@ export function RatingView() {
   const participants = tournamentCtx?.participants ?? EMPTY_PARTICIPANTS;
   const tournamentMatches = tournamentCtx?.matches ?? EMPTY_MATCHES;
   const tournamentLoading = tournamentCtx?.loading ?? false;
+  const clubMatches = clubCtx?.matches ?? EMPTY_MATCHES;
 
   const [profileOpen, setProfileOpen] = useState(false);
   const [profileUser, setProfileUser] = useState<User | null>(null);
@@ -52,15 +53,19 @@ export function RatingView() {
       return tournamentMatches;
     }
 
-    const allMatches = matchesCtx?.matches ?? EMPTY_MATCHES;
-
     if (clubCtx?.club) {
-      const clubId = clubCtx.club.id;
-      return allMatches.filter((match) => match.tournament?.club?.id === clubId);
+      return clubMatches;
     }
 
+    const allMatches = matchesCtx?.matches ?? EMPTY_MATCHES;
     return allMatches.length ? allMatches : EMPTY_MATCHES;
-  }, [tournament, tournamentMatches, matchesCtx?.matches, clubCtx?.club]);
+  }, [
+    tournament,
+    tournamentMatches,
+    clubCtx?.club,
+    clubMatches,
+    matchesCtx?.matches,
+  ]);
 
   const pastMatches = useMemo(() => {
     const now = Date.now();

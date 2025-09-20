@@ -17,10 +17,12 @@ import type { ClubPlain } from "@/app/models/Club";
 import { ClubsRepository } from "@/app/repositories/ClubsRepository";
 import { PlayersRepository } from "@/app/repositories/PlayersRepository";
 import { UsersRepository } from "@/app/repositories/UsersRepository"; // 👈
+import { MatchRepository } from "@/app/repositories/MatchRepository";
 
 import { Player } from "@/app/models/Player";
 import { useUser } from "@/app/components/UserContext";
 import type { User } from "@/app/models/Users"; // 👈
+import type { Match } from "@/app/models/Match";
 
 /** Исходные данные из сервера/роутера */
 type InitialData = {
@@ -44,6 +46,7 @@ export type ClubContextShape = {
   director: User | null;        // 👈 добавили
   members: Player[];
   players: Player[];
+  matches: Match[];
 
   // действия
   reload: (opts?: { silent?: boolean }) => Promise<void>;
@@ -88,6 +91,7 @@ export function ClubProvider({
   const [director, setDirector] = useState<User | null>(null); // 👈
   const [members, setMembers] = useState<Player[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
 
   const needInitialFetch = true; // !clubPlain;
 
@@ -122,16 +126,19 @@ export function ClubProvider({
 
         // 3) члены клуба + каталог игроков
         if (next?.id) {
-          const [membersNext, allPlayers] = await Promise.all([
+          const [membersNext, allPlayers, clubMatches] = await Promise.all([
             ClubsRepository.loadMembers(next.id), // -> Player[]
             PlayersRepository.loadAll(),          // -> Player[]
+            MatchRepository.loadMatchesForClub(next.id),
           ]);
 
           setMembers(membersNext ?? []);
           setPlayers(allPlayers ?? []);
+          setMatches(clubMatches ?? []);
         } else {
           setMembers([]);
           setPlayers([]);
+          setMatches([]);
         }
       } finally {
         silent ? setRefreshing(false) : setInitialLoading(false);
@@ -197,6 +204,7 @@ export function ClubProvider({
       director,     // 👈 пробрасываем
       members,
       players,
+      matches,
 
       reload,
       addMember,
@@ -212,6 +220,7 @@ export function ClubProvider({
       director,     // 👈 зависимость
       members,
       players,
+      matches,
       reload,
       addMember,
       removeMember,

@@ -219,7 +219,7 @@ export class MatchRepository {
   
   // ------------------------------ read: by tournament ------------------------------
 
-  static async loadMatches(tournamentId: number): Promise<Match[]> {
+  static async loadMatchesForTournament(tournamentId: number): Promise<Match[]> {
     const { data, error } = await supabase
       .from("matches")
       .select(`
@@ -251,6 +251,46 @@ export class MatchRepository {
 
     if (error) {
       console.error("Ошибка загрузки матчей:", error);
+      return [];
+    }
+
+    return (data ?? []).map((row: any) => this.mapRowToMatch(row));
+  }
+
+  // ------------------------------ read: by club ------------------------------
+
+  static async loadMatchesForClub(clubId: number): Promise<Match[]> {
+    const { data, error } = await supabase
+      .from("matches")
+      .select(`
+        id,
+        date,
+        scores,
+        match_type,
+        tournament_id,
+        phase,
+        group_index,
+        round_index,
+        tournaments!inner ( * ),
+        player1:players!fk_player1(id, name, ntrp, phone, sex),
+        player2:players!fk_player2(id, name, ntrp, phone, sex),
+        team1:teams!fk_team1 (
+          id,
+          player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
+          player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
+        ),
+        team2:teams!fk_team2 (
+          id,
+          player1:players!teams_player1_id_fkey(id, name, ntrp, phone, sex),
+          player2:players!teams_player2_id_fkey(id, name, ntrp, phone, sex)
+        )
+      `)
+      .eq("tournaments.club_id", clubId)
+      .order("date", { ascending: false })
+      .order("id", { ascending: false });
+
+    if (error) {
+      console.error("Ошибка загрузки матчей клуба:", error);
       return [];
     }
 

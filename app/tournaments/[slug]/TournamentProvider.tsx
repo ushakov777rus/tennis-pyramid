@@ -198,7 +198,7 @@ export function TournamentProvider({
           PlayersRepository.loadAccessiblePlayers(user?.id, user?.role),
           TournamentsRepository.loadParticipants(t.id),
           TeamsRepository.loadTournamentTeams(t.id),
-          MatchRepository.loadMatches(t.id),
+          MatchRepository.loadMatchesForTournament(t.id),
         ]);
         setPlayers(ps);
         setParticipants(parts);
