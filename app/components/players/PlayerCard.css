@@ -13,6 +13,13 @@
   display: grid;
 }
 
+.player-card-row {
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.06);
+}
+
+
 /* строка: аватар | игрок | S1 | S2 | S3 ... */
 .player-card-first-row {
   display: grid;

@@ -9,12 +9,13 @@ import { Player } from "@/app/models/Player";
 
 type PlayerCardProps = {
   player: Player;
-  stats: { matches: number; wins: number; winrate: number }
+  stats: { matches: number; wins: number; winrate: number };
+  titles?: string;
   onClick?: () => void;
   onDelete?: () => void;
 };
 
-export function PlayerCard({ player, stats, onClick, onDelete }: PlayerCardProps) {
+export function PlayerCard({ player, stats, titles, onClick, onDelete }: PlayerCardProps) {
   // состояние для временного тултипа "Пока не реализовано"
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -45,6 +46,9 @@ export function PlayerCard({ player, stats, onClick, onDelete }: PlayerCardProps
             <div>Игр: {stats.matches ?? 0}</div>
             <div>Побед: {stats.wins ?? 0}</div>
             <div>WR: {winrate(stats.winrate)}</div>
+        </div>
+        <div className="player-card-row">
+          {titles && <div className="badge">{titles}</div>}
         </div>
       </div>
 

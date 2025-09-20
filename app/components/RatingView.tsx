@@ -12,6 +12,7 @@ import { useOptionalTournament } from "@/app/tournaments/[slug]/TournamentProvid
 import { useOptionalClub } from "@/app/clubs/[slug]/ClubProvider";
 import { useOptionalMatches } from "@/app/matches/MatchesProvider";
 import { UserProfileModal } from "@/app/components/UserProfileModal";
+import { PlayerCard } from "@/app/components/players/PlayerCard";
 import type { UserProfileStats } from "./UserProfileView";
 
 type ParticipantStats = {
@@ -358,18 +359,22 @@ export function RatingView() {
   }
 
   return (
-    <div className="rating-view">
+    <div className="page-content-container">
       {cardsData.length === 0 ? (
         <p>Пока нет участников.</p>
       ) : (
-        <div className="card-grid rating-grid">
+        <div className="card-grid-one-column">
           {cardsData.map((card) => {
-            const canOpen = Boolean(card.hasHistory && card.participant.player);
+            const player = card.participant.player;
+            if (!player) return null;
+
+            const matchesCount = card.games;
+            const wins = card.wins;
+            const winrateValue = matchesCount > 0 ? (wins / matchesCount) * 100 : 0;
+            const canOpen = card.hasHistory;
 
             const handleCardClick = () => {
               if (!canOpen) return;
-              const player = card.participant.player;
-              if (!player) return;
 
               const user = new User({
                 id: player.id ?? 0,
@@ -378,13 +383,10 @@ export function RatingView() {
                 player,
               });
 
-              const baseStats = statsById.get(card.id) ?? { games: 0, wins: 0 };
-              const games = baseStats.games;
-              const wins = baseStats.wins;
               const profileStatsValue: UserProfileStats = {
                 wins,
-                losses: Math.max(0, games - wins),
-                winRate: games > 0 ? Math.round((wins / games) * 100) : 0,
+                losses: Math.max(0, matchesCount - wins),
+                winRate: Math.round(winrateValue),
                 rank: card.rank,
               };
 
@@ -418,33 +420,25 @@ export function RatingView() {
             };
 
             return (
-              <article
+              <div
                 key={card.id || card.name}
-                className={`card rating-card${canOpen ? " rating-card--clickable" : ""}`}
+                className="rating-card-wrapper"
                 role={canOpen ? "button" : undefined}
                 tabIndex={canOpen ? 0 : undefined}
-                onClick={handleCardClick}
-                onKeyDown={handleKeyDown}
+                onClick={canOpen ? handleCardClick : undefined}
+                onKeyDown={canOpen ? handleKeyDown : undefined}
                 aria-disabled={canOpen ? undefined : true}
               >
-                <header className="card-head rating-card__header">
-                  <h3 className="card-title rating-card__name" style={{ whiteSpace: "pre-line" }}>
-                    {card.name}
-                  </h3>
-                  <span className="rating-card__title">{card.title}</span>
-                </header>
-
-                <div className="rating-card__body">
-                  <div className="card-row rating-card__row">
-                    <span className="rating-card__label">Матчей</span>
-                    <span className="rating-card__value">{card.games}</span>
-                  </div>
-                  <div className="card-row rating-card__row rating-card__row--last">
-                    <span className="rating-card__label">Побед</span>
-                    <span className="rating-card__value rating-card__value--wins">{card.wins}</span>
-                  </div>
-                </div>
-              </article>
+                <PlayerCard
+                  player={player}
+                  stats={{
+                    matches: matchesCount,
+                    wins,
+                    winrate: winrateValue,
+                  }}
+                  titles={card.title}
+                />
+              </div>
             );
           })}
         </div>
