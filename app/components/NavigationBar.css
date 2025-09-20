@@ -1,6 +1,6 @@
 :root {
   /* высота хедера: регулируйте в одном месте */
-  --header-height: 7rem;
+  --header-height: 8rem;
 }
 
 /* ваш текущий .header */

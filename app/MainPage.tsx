@@ -15,8 +15,9 @@ import "./MainPage.css";
 import { ClubsRepository } from "./repositories/ClubsRepository";
 import { useUser } from "./components/UserContext";
 import { Footer } from "./Footer";
+import Link from "next/link";
 
-type Stat = { label: string; value: number | string };
+type Stat = { label: string; value: number | string; link: string };
 type Feature = { icon: React.ReactNode; label: string; text?: string };
 
 const IconCalendar = (
@@ -99,10 +100,10 @@ export default function HomePage() {
 
   const stats = useMemo<Stat[]>(
     () => [
-      { label: "МАТЧЕЙ", value: matchesCount ?? "…" },
-      { label: "УЧАСТНИКОВ", value: playersCount ?? "…" },
-      { label: "ТУРНИРОВ", value: tournamentsCount ?? "…" },
-      { label: "КЛУБОВ", value: clubsCount  ?? "…" },
+      { label: "МАТЧЕЙ", value: matchesCount ?? "…", link: "/matches" },
+      { label: "УЧАСТНИКОВ", value: playersCount ?? "…", link: "/rating" },
+      { label: "ТУРНИРОВ", value: tournamentsCount ?? "…", link: "/tournaments" },
+      { label: "КЛУБОВ", value: clubsCount  ?? "…", link: "/clubs" },
     ],
     [matchesCount, playersCount, tournamentsCount, clubsCount]
   );
@@ -198,10 +199,14 @@ export default function HomePage() {
           <div className="about__grid">
             <div className="about__stats">
               {stats.map((s) => (
-                <div key={s.label} className="card">
-                  <div className="about__statValue">{s.value}</div>
-                  <div className="about__statLabel">{s.label}</div>
-                </div>
+                
+                  
+                    <Link key={s.label} href={s.link} className="card">
+                      <div className="about__statValue">{s.value}</div>
+                      <div className="about__statLabel">{s.label}</div>
+                    </Link>
+                  
+                
               ))}
             </div>
 
