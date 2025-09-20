@@ -1,11 +1,16 @@
 // server component (по умолчанию)
+
+import { Suspense } from "react";
+
 import { TournamentsProvider } from "@/app/tournaments/TournamentsProvider";
 import { TournamentsClient } from "@/app/tournaments/TournamentsClient";
 
 export default function TournamentsPage() {
   return (
     <TournamentsProvider>
-      <TournamentsClient club={null}/>
+      <Suspense fallback={null}>
+        <TournamentsClient club={null} />
+      </Suspense>
     </TournamentsProvider>
   );
 }
