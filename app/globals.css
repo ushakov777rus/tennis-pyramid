@@ -148,42 +148,6 @@ body {
     max-width: 1900px;
 }
 
-/* затемнённый фон */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6); /* 👈 тёмный полупрозрачный фон */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-}
-
-.modal-content {
-  position: relative;
-  background: #1b1b1b; /* тёмный фон */
-  border-radius: 8px;
-  border: 1px solid #1f1f1f;
-  padding: 20px;
-  max-height: 90vh;
-  overflow-y: auto;
-  z-index: 2001;         /* чуть выше overlay */
-  box-shadow: 0 0 20px rgba(204, 255, 102, 0.5);
-}
-
-.modal-content-login {
-    max-width: 400px;
-}
-
-.modal-content-match-history {
-    width: 900px;
-}
-
-@media (max-width: 768px) {
-.modal-content-w {
-  max-width: 90%;
-}
-}
 
 /* Стиль для отображении пары игроков в матче */
 .players {
@@ -193,12 +157,6 @@ body {
   padding: 2px 2px;
 }
 
-/* ✅ Адаптивность для мобилок */
-@media (max-width: 768px) {
-  .modal-content {
-    width: 90%;
-    max-height: 90dvh
-  }
 
   /* Игроки */
 .players {
@@ -208,80 +166,9 @@ body {
   flex-wrap: wrap;
 }
 
-}
-
-
-/* Page.css */
-.sticky-add-match-card {
-  position: sticky;
-  top: 20px; /* Отступ от верха */
-  z-index: 100;
-  background: white;
-  padding: 16px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-}
-
-/* Для мобильных устройств можно уменьшить отступ */
-@media (max-width: 768px) {
-  .sticky-add-match-card {
-    top: 10px;
-    padding: 12px;
-    margin-bottom: 16px;
-  }
-}
-
 .clickable {
   cursor: pointer;
 }
-
-.card-add {
-  font-size: 64px;
-  color: #ccff66;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  width: 100;
-  margin: 0 auto;
-}
-
-
-.card-register {
-  max-width: 48%;
-  cursor: pointer;
-  padding: 10px;
-}
-
-/* ✅ Адаптивность для мобилок */
-@media (max-width: 768px) {
-  .card {
-    width: 100%;
-    max-width: none;
-  }
-}
-
-/* Добавляем анимации и плавность */
-button,
-.card-btn {
-  transition: all 0.2s ease-in-out;
-}
-
-
-.card-icon,
-.card-avatar {
-  font-size: 32px;
-  margin-bottom: 10px;
-}
-
-.card-date,
-.card-name {
-  font-size: 14px;
-  margin-bottom: 12px;
-}
-
-
 
 .tournament-status {
   margin: 4px;
