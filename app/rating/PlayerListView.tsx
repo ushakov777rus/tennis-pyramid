@@ -15,6 +15,7 @@ import "@/app/components/matches/MatchHistoryView.css";
 import "./page.css";
 import { AdminOnly } from "../components/RoleGuard";
 import { PlayerCard } from "../components/players/PlayerCard";
+import { useSearchParams } from "next/navigation";
 
 type Props = {
   clubId: number | null;
@@ -107,7 +108,10 @@ export function PlayerListView({clubId = null} : Props) {
     return players.filter((p) => p.name.toLowerCase().includes(q));
   }, [players, deferredSearch]);
 
-  const className = !user ? "page-container" : "page-container-no-padding";
+  const searchParams = useSearchParams();
+  const tab = searchParams.get("tab");
+  const className = user || tab ? "page-container-no-padding" : "page-container";
+  
 
   return (
     <div className={className}>

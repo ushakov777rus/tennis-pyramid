@@ -4,7 +4,7 @@ import "./page.css";
 import "@/app/MainPage.css";
 
 import { useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { CancelIconButton, CheckBoxIcon } from "../components/controls/IconButtons";
 
@@ -122,7 +122,9 @@ const filtered = useMemo(() => {
 
 const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/admin");
 
-  const className = !user ? "page-container" : "page-container-no-padding";
+  const searchParams = useSearchParams();
+  const tab = searchParams.get("tab");
+  const className = user || tab ? "page-container-no-padding" : "page-container";
 
   return (
     <div className={className}>

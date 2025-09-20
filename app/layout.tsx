@@ -11,7 +11,6 @@ import Script from "next/script";
 import type { Metadata } from "next";
 import { TournamentsProvider } from "./tournaments/TournamentsProvider";
 import { NavigationBar } from "./components/NavigationBar";
-import { ClubsProvider } from "./clubs/ClubsProvider";
 import { SideNavigationBar } from "./components/controls/SideNavigationBar"; 
 
 export const metadata: Metadata = {
@@ -39,6 +38,7 @@ export const metadata: Metadata = {
     "организация турниров по теннису онлайн",
     "турнирная платформа для тенниса",
     "система управления теннисным клубом",
+    "теннис турнирная сетка",
   ],
   alternates: {
     canonical: "/",

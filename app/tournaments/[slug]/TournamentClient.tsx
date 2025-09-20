@@ -11,7 +11,7 @@ import { Match, PhaseType } from "@/app/models/Match";
 import { Participant } from "@/app/models/Participant";
 
 import { TournamentCard } from "@/app/components/TournamentCard";
-import { LoggedIn } from "@/app/components/RoleGuard";
+import { AdminOnly, LoggedIn } from "@/app/components/RoleGuard";
 
 import { RatingView } from "@/app/components/RatingView";
 import { MatchHistoryModal } from "@/app/components/MatchHistoryModal";
@@ -70,10 +70,11 @@ export default function TournamentClient() {
       { key: "aboutt",        label: "О турнире" },
       { key: "bracket",      label: "Сетка" },
       { key: "matches",      label: "Матчи" },
-      { key: "participants", label: "Участники" },
-      { key: "results",      label: "Результаты" },      
-    ],
-    []
+      (user?.role === UserRole.SiteAdmin || user?.role === UserRole.TournamentAdmin) && 
+        { key: "participants", label: "Участники" },
+      { key: "results",      label: "Рейтинг" },      
+    ].filter(Boolean) as TabItem[],
+        [user?.role]
   );
 
   // Синхронизация с URL параметром tab
@@ -353,20 +354,11 @@ export default function TournamentClient() {
                 matches={matches} 
                 onEditMatch={handleEditMatchSave} 
                 onDeleteMatch={handleDeleteMatch} />}
-
+            <AdminOnly>
             {view === "participants" && 
               <TournamentParticipantsView />}
-
-            {view === "results" &&             
-              <RatingView
-                onShowHistory={(participant) => {
-                  if (participant?.player !== undefined) {
-                    setHistoryParticipant(participant);
-                    setHistoryOpen(true);
-                }
-              }}
-              matches={matches}
-            />}
+            </AdminOnly>
+            {view === "results" && <RatingView matches={matches} />}
             
             {view === "aboutt" && 
               <AboutTournament />}

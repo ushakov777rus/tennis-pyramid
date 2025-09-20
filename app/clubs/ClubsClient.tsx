@@ -3,7 +3,7 @@
 import "./clubs.css";
 
 import { useMemo, useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useClubs } from "./ClubsProvider";
 import { ClubCreateInput } from "@/app/models/Club";
 import { ClubCard } from "@/app/clubs/ClubCard";
@@ -82,7 +82,9 @@ export function ClubsClient() {
    * Если это первый клуб и у пользователя есть creatorId —
    * показываем экран «создания клуба» вместо списка.
    */
-  const className = user ? "page-container-no-padding" : "page-container";
+  const searchParams = useSearchParams();
+  const tab = searchParams.get("tab");
+  const className = user || tab ? "page-container-no-padding" : "page-container";
 
   // ClubsClient.tsx
   if (isAdmin && initialLoaded && clubs.length === 0 && !loading) {

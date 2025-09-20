@@ -63,7 +63,7 @@ export function MatchHistoryView({
   const confirmDelete = (m: Match) => onDeleteMatch?.(m);
 
   return (
-    <div>
+    <div className="page-content-container">
       {/* Панель поиска */}
       <div className="card page-toolbar">
         <input

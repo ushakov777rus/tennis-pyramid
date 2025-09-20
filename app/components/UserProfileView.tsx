@@ -11,7 +11,7 @@ import { User } from "@/app/models/Users";
 import { formatPhone } from "./Utils";
 
 /** Краткая статистика игрока для блока “о игроке” */
-type PlayerStats = {
+export type UserProfileStats = {
   wins: number;
   losses: number;
   winRate?: number;   // 0..100
@@ -24,7 +24,7 @@ type Props = {
   user: User;
 
   /** Данные для блока статистики */
-  stats?: PlayerStats;
+  stats?: UserProfileStats;
 
   /** Последние матчи игрока (уже отсортированные снаружи) */
   matches?: Match[];
@@ -170,4 +170,3 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
     </div>
   );
 }
-

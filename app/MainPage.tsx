@@ -20,6 +20,54 @@ import Link from "next/link";
 type Stat = { label: string; value: number | string; link: string };
 type Feature = { icon: React.ReactNode; label: string; text?: string };
 
+/* ===========================
+   SVG 24x24, цвет #CFA
+   =========================== */
+function IconBase({ children }: { children: React.ReactNode }) {
+  return (
+    <svg
+      width={24}
+      height={24}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <g fill="#A6FF00">{children}</g>
+    </svg>
+  );
+}
+
+/** Медаль — для "участника" */
+function IconMedal() {
+  return (
+    <IconBase>
+      {/* ленточки */}
+      <path d="M7 2h4l1 3 1-3h4l-4 6h-2L7 2Z" />
+      {/* круг медали */}
+      <circle cx="12" cy="15" r="5" />
+      {/* звезда внутри */}
+      <path d="M12 12.8l.95 1.93 2.13.31-1.54 1.5.36 2.12L12 17.8l-1.9 1 .36-2.12-1.54-1.5 2.13-.31L12 12.8Z" />
+    </IconBase>
+  );
+}
+
+/** Кубок — для "организатора" */
+function IconTrophy() {
+  return (
+    <IconBase>
+      {/* чаша кубка */}
+      <path d="M7 4h10v2a5 5 0 0 1-10 0V4Z" />
+      {/* ручки */}
+      <path d="M4 6h3v1a3 3 0 0 1-3-3v2Zm16 0h-3v1a3 3 0 0 0 3-3v2Z" />
+      {/* ножка и подставка */}
+      <rect x="10" y="12" width="4" height="3" rx="0.5" />
+      <rect x="8" y="16" width="8" height="2" rx="0.5" />
+      <rect x="9" y="19" width="6" height="2" rx="0.5" />
+    </IconBase>
+  );
+}
+
+
 const IconCalendar = (
   <svg viewBox="0 0 24 24" aria-hidden="true">
     <path d="M7 2v2M17 2v2M3 9h18M5 6h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>
@@ -259,37 +307,54 @@ export default function HomePage() {
         </section>
 
         {/* CTA блоки */}
-        <section>
-          <div className="card-grid-cta">
-            <div
-              className="card card-register clickable"
-              onClick={() => {
-                setSignupRole(UserRole.Player);
-                setIsLoginOpen(true);
-              }}
-            >
-              <div className="card-icon" aria-hidden="true">🏅</div>
-              Зарегистрироваться как участник
-              <div className="badge badge-register">
-                Участвуй в турнирах, прокачивайся, побеждай, попади в рейтинг лучших
-              </div>
-            </div>
+<section>
+  <div className="card-grid-cta">
+    <div
+      className="card card-register clickable"
+      onClick={() => {
+        setSignupRole(UserRole.Player);
+        setIsLoginOpen(true);
+      }}
+    >
+      {/* ИКОНКА ВМЕСТО ЭМОДЗИ */}
+      <div
+        className="card-icon"
+        aria-hidden="true"
+      >
+        <IconMedal />
+      </div>
 
-            <div
-              className="card card-register clickable"
-              onClick={() => {
-                setSignupRole(UserRole.TournamentAdmin);
-                setIsLoginOpen(true);
-              }}
-            >
-              <div className="card-icon" aria-hidden="true">🏆</div>
-              Зарегистрироваться как организатор
-              <div className="badge badge-register">
-                Организовывай турниры, выбирай любой формат, управляй матчами и следи за результатами
-              </div>
-            </div>
-          </div>
-        </section>
+      Зарегистрироваться как участник
+
+      <div className="badge badge-register">
+        Участвуй в турнирах, прокачивайся, побеждай, попади в рейтинг лучших
+      </div>
+    </div>
+
+    <div
+      className="card card-register clickable"
+      onClick={() => {
+        setSignupRole(UserRole.TournamentAdmin);
+        setIsLoginOpen(true);
+      }}
+    >
+      {/* ИКОНКА ВМЕСТО ЭМОДЗИ */}
+      <div
+        className="card-icon"
+        aria-hidden="true"
+      >
+        <IconTrophy />
+      </div>
+
+      Зарегистрироваться как организатор
+
+      <div className="badge badge-register">
+        Организовывай турниры, выбирай любой формат, управляй матчами и следи за результатами
+      </div>
+    </div>
+  </div>
+</section>
+
 
         {/* FAQ для расширенных сниппетов */}
         <section className="section card" id="faq">

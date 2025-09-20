@@ -29,6 +29,13 @@
   justify-content: flex-end;
 }
 
+/* шапка */
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
 
 .card-title {
   padding: 10px 10px;
@@ -44,4 +51,53 @@
     align-items: center;
     padding: 6px 0;
     border-bottom: 1px dashed rgba(255, 255, 255, .06);
+}
+
+/* Сетка с карточками */
+.card-grid {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.card-grid-cta {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+/* ✅ Адаптивность для мобилок */
+@media (max-width: 768px) {
+  .card-grid,
+  .card-grid-cta {
+    flex-direction: column;
+    align-items: center;
+  }
+
+}
+
+
+.card-filter-controls {
+  width: 24%;
+  margin: auto;
+}
+
+.card-filter-controls-date {
+  width: 24%;
+  margin: auto;
+}
+
+/* ✅ Адаптивность для мобилок */
+@media (max-width: 768px) {
+  .card-filter-controls {
+    width: 49%;
+    margin: auto;
+  }
+
+  .card-filter-controls-date {
+    width: 44%;
+    margin: auto;
+  }
 }

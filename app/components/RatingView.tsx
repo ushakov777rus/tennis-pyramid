@@ -1,477 +1,431 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
+import type { KeyboardEvent } from "react";
 
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
+import { User, UserRole } from "@/app/models/Users";
 
 import "./RatingView.css";
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
+import { UserProfileModal } from "@/app/components/UserProfileModal";
+import type { UserProfileStats } from "./UserProfileView";
 
 type RatingViewProps = {
   matches: Match[];
-  onShowHistory?: (participant?: Participant) => void;
 };
 
-// локальный бейдж с подсказкой (для не-круговых форматов)
-function BadgeWithTip({ titleText, tooltip }: { titleText: string; tooltip: string }) {
-  const [open, setOpen] = useState(false);
-  const [isTouch, setIsTouch] = useState(false);
+type ParticipantStats = {
+  games: number;
+  wins: number;
+};
 
-  useEffect(() => {
-    const touch =
-      "ontouchstart" in window ||
-      (navigator as any).maxTouchPoints > 0 ||
-      (navigator as any).msMaxTouchPoints > 0;
-    setIsTouch(!!touch);
-  }, []);
+type CardData = {
+  id: number;
+  name: string;
+  games: number;
+  wins: number;
+  title: string;
+  participant: Participant;
+  hasHistory: boolean;
+  rank: number;
+};
 
-  return (
-    <span className="badge-with-tip">
-      <span className="badge-title" title={isTouch ? undefined : tooltip}>
-        {titleText}
-      </span>
-      {isTouch && (
-        <>
-          <button type="button" className="tip-btn" aria-label="Пояснение" onClick={() => setOpen((v) => !v)}>
-            i
-          </button>
-          {open && (
-            <div className="tip-popover" role="dialog" aria-label="Подсказка">
-              <div className="tip-popover-content">{tooltip}</div>
-              <button type="button" className="tip-close" aria-label="Закрыть" onClick={() => setOpen(false)}>
-                ×
-              </button>
-            </div>
-          )}
-        </>
-      )}
-    </span>
-  );
-}
-
-export function RatingView({ matches, onShowHistory }: RatingViewProps) {
+export function RatingView({ matches }: RatingViewProps) {
   const { loading, tournament, participants } = useTournament();
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileUser, setProfileUser] = useState<User | null>(null);
+  const [profileStats, setProfileStats] = useState<UserProfileStats | undefined>();
+  const [profileMatches, setProfileMatches] = useState<Match[]>([]);
 
-  // ===== helpers =====
-  const now = Date.now();
+  const pastMatches = useMemo(() => {
+    const now = Date.now();
+    return (matches ?? []).filter((match) => match?.date && match.date.getTime() <= now);
+  }, [matches]);
 
-  const pastMatches = useMemo(
-    () => (matches ?? []).filter((m) => m?.date && m.date.getTime() <= now),
-    [matches, now]
-  );
+  const statsById = useMemo(() => {
+    const map = new Map<number, ParticipantStats>();
 
-  const sideIds = (m: Match) => ({
-    p1: m.player1?.id ?? m.team1?.id,
-    p2: m.player2?.id ?? m.team2?.id,
-  });
+    for (const participant of participants) {
+      const id = participant.getId;
+      if (!map.has(id)) {
+        map.set(id, { games: 0, wins: 0 });
+      }
+    }
 
-  const tookPart = (participantId: number, m: Match) => {
-    const { p1, p2 } = sideIds(m);
-    return p1 === participantId || p2 === participantId;
-  };
+    for (const match of pastMatches) {
+      const sideA = match.player1?.id ?? match.team1?.id;
+      const sideB = match.player2?.id ?? match.team2?.id;
 
-  const isOnSide1 = (participantId: number, m: Match) =>
-    (m.player1?.id ?? m.team1?.id) === participantId;
+      if (sideA && map.has(sideA)) {
+        map.get(sideA)!.games += 1;
+      }
+      if (sideB && map.has(sideB)) {
+        map.get(sideB)!.games += 1;
+      }
 
-  const winnerId = (m: Match) => m.getWinnerId?.();
+      const winner = match.getWinnerId();
+      if (winner && map.has(winner)) {
+        map.get(winner)!.wins += 1;
+      }
+    }
 
-  /** ====== КРУГОВОЙ: игры/победы/выигранные сеты на участника ====== */
-  type StatRow = { id: number; name: string; games: number; wins: number; setsWon: number };
+    return map;
+  }, [participants, pastMatches]);
 
-  const roundRobinStats: StatRow[] = useMemo(() => {
-    if (!participants.length || !pastMatches.length) return [];
+  const titlesById = useMemo(() => {
+    const titles = new Map<number, string[]>();
+    if (!participants.length || !pastMatches.length) {
+      return titles;
+    }
 
-    const byId = new Map<number, StatRow>();
-    for (const p of participants) {
-      byId.set(p.getId, {
-        id: p.getId,
-        name: p.displayName(false),
-        games: 0,
-        wins: 0,
-        setsWon: 0,
+    const tookPart = (participantId: number, match: Match) => {
+      const sideA = match.player1?.id ?? match.team1?.id;
+      const sideB = match.player2?.id ?? match.team2?.id;
+      return sideA === participantId || sideB === participantId;
+    };
+
+    const isOnSide1 = (participantId: number, match: Match) =>
+      (match.player1?.id ?? match.team1?.id) === participantId;
+
+    const winnerId = (match: Match) => match.getWinnerId();
+
+    const pushTitle = (participant: Participant, title: string) => {
+      const key = participant.getId;
+      if (!titles.has(key)) {
+        titles.set(key, []);
+      }
+      const list = titles.get(key)!;
+      if (!list.includes(title)) {
+        list.push(title);
+      }
+    };
+
+    const registerWinners = (title: string, ids: number[]) => {
+      if (!ids.length) return;
+      for (const participant of participants) {
+        if (ids.includes(participant.getId)) {
+          pushTitle(participant, title);
+        }
+      }
+    };
+
+    const bagelsById = new Map<number, number>();
+    for (const participant of participants) {
+      let count = 0;
+      for (const match of pastMatches) {
+        if (!tookPart(participant.getId, match)) continue;
+        const onFirstSide = isOnSide1(participant.getId, match);
+        for (const [a, b] of match.scores ?? []) {
+          const mine = onFirstSide ? a : b;
+          const theirs = onFirstSide ? b : a;
+          if (mine === 6 && theirs === 0) {
+            count += 1;
+          }
+        }
+      }
+      bagelsById.set(participant.getId, count);
+    }
+    const bagelValues = Array.from(bagelsById.values());
+    const maxBagels = bagelValues.length ? Math.max(...bagelValues) : 0;
+    if (maxBagels > 0) {
+      const winners = Array.from(bagelsById.entries())
+        .filter(([, value]) => value === maxBagels)
+        .map(([id]) => id);
+      registerWinners("🥖 Бублик-мастер", winners);
+    }
+
+    const streakById = new Map<number, number>();
+    for (const participant of participants) {
+      const participantMatches = pastMatches
+        .filter((match) => tookPart(participant.getId, match))
+        .sort((a, b) => a.date.getTime() - b.date.getTime());
+      let current = 0;
+      let best = 0;
+      for (const match of participantMatches) {
+        if (winnerId(match) === participant.getId) {
+          current += 1;
+          if (current > best) best = current;
+        } else {
+          current = 0;
+        }
+      }
+      streakById.set(participant.getId, best);
+    }
+    const streakValues = Array.from(streakById.values());
+    const maxStreak = streakValues.length ? Math.max(...streakValues) : 0;
+    if (maxStreak > 0) {
+      const winners = Array.from(streakById.entries())
+        .filter(([, value]) => value === maxStreak)
+        .map(([id]) => id);
+      registerWinners("🧱 Стена", winners);
+    }
+
+    const matchesById = new Map<number, number>();
+    for (const participant of participants) {
+      let count = 0;
+      for (const match of pastMatches) {
+        if (tookPart(participant.getId, match)) count += 1;
+      }
+      matchesById.set(participant.getId, count);
+    }
+    const matchValues = Array.from(matchesById.values());
+    const maxMatches = matchValues.length ? Math.max(...matchValues) : 0;
+    if (maxMatches > 0) {
+      const winners = Array.from(matchesById.entries())
+        .filter(([, value]) => value === maxMatches)
+        .map(([id]) => id);
+      registerWinners("🐝 Самый активный", winners);
+    }
+
+    const attackWinsById = new Map<number, number>();
+    for (const participant of participants) {
+      let count = 0;
+      for (const match of pastMatches) {
+        if (!tookPart(participant.getId, match)) continue;
+        if (isOnSide1(participant.getId, match) && winnerId(match) === participant.getId) {
+          count += 1;
+        }
+      }
+      attackWinsById.set(participant.getId, count);
+    }
+    const attackValues = Array.from(attackWinsById.values());
+    const maxAttack = attackValues.length ? Math.max(...attackValues) : 0;
+    if (maxAttack > 0) {
+      const winners = Array.from(attackWinsById.entries())
+        .filter(([, value]) => value === maxAttack)
+        .map(([id]) => id);
+      registerWinners("⚡ Удачливый нападающий", winners);
+    }
+
+    const attackLossesById = new Map<number, number>();
+    for (const participant of participants) {
+      let count = 0;
+      for (const match of pastMatches) {
+        if (!tookPart(participant.getId, match)) continue;
+        const winner = winnerId(match);
+        if (isOnSide1(participant.getId, match) && winner && winner !== participant.getId) {
+          count += 1;
+        }
+      }
+      attackLossesById.set(participant.getId, count);
+    }
+    const attackLossValues = Array.from(attackLossesById.values());
+    const maxAttackLoss = attackLossValues.length ? Math.max(...attackLossValues) : 0;
+    if (maxAttackLoss > 0) {
+      const winners = Array.from(attackLossesById.entries())
+        .filter(([, value]) => value === maxAttackLoss)
+        .map(([id]) => id);
+      registerWinners("🙃 Неунывающий драчун", winners);
+    }
+
+    const longMatchById = new Map<number, number>();
+    for (const participant of participants) {
+      let count = 0;
+      for (const match of pastMatches) {
+        if (!tookPart(participant.getId, match)) continue;
+        if ((match.scores ?? []).length >= 3) {
+          count += 1;
+        }
+      }
+      longMatchById.set(participant.getId, count);
+    }
+    const longMatchValues = Array.from(longMatchById.values());
+    const maxLongMatches = longMatchValues.length ? Math.max(...longMatchValues) : 0;
+    if (maxLongMatches > 0) {
+      const winners = Array.from(longMatchById.entries())
+        .filter(([, value]) => value === maxLongMatches)
+        .map(([id]) => id);
+      registerWinners("🎢 Трёхсетовый боец", winners);
+    }
+
+    const defenseWinsById = new Map<number, number>();
+    for (const participant of participants) {
+      let count = 0;
+      for (const match of pastMatches) {
+        if (!tookPart(participant.getId, match)) continue;
+        const onDefense = !isOnSide1(participant.getId, match);
+        if (onDefense && winnerId(match) === participant.getId) {
+          count += 1;
+        }
+      }
+      defenseWinsById.set(participant.getId, count);
+    }
+    const defenseWinValues = Array.from(defenseWinsById.values());
+    const maxDefenseWins = defenseWinValues.length ? Math.max(...defenseWinValues) : 0;
+    if (maxDefenseWins > 0) {
+      const winners = Array.from(defenseWinsById.entries())
+        .filter(([, value]) => value === maxDefenseWins)
+        .map(([id]) => id);
+      registerWinners("🛡 Железный защитник", winners);
+    }
+
+    const defenseLossById = new Map<number, number>();
+    for (const participant of participants) {
+      let count = 0;
+      for (const match of pastMatches) {
+        if (!tookPart(participant.getId, match)) continue;
+        const onDefense = !isOnSide1(participant.getId, match);
+        const winner = winnerId(match);
+        if (onDefense && winner && winner !== participant.getId) {
+          count += 1;
+        }
+      }
+      defenseLossById.set(participant.getId, count);
+    }
+    const defenseLossValues = Array.from(defenseLossById.values());
+    const maxDefenseLoss = defenseLossValues.length ? Math.max(...defenseLossValues) : 0;
+    if (maxDefenseLoss > 0) {
+      const winners = Array.from(defenseLossById.entries())
+        .filter(([, value]) => value === maxDefenseLoss)
+        .map(([id]) => id);
+      registerWinners("🪫 Неудачный защитник", winners);
+    }
+
+    return titles;
+  }, [participants, pastMatches]);
+
+  const cardsData = useMemo(() => {
+    const data: Omit<CardData, "rank">[] = [];
+
+    for (const participant of participants) {
+      const id = participant.getId;
+      const stats = statsById.get(id) ?? { games: 0, wins: 0 };
+      const titles = titlesById.get(id) ?? [];
+      const titleText = titles.length ? titles.join(" • ") : "Без титула";
+
+      data.push({
+        id,
+        name: participant.displayName(false),
+        games: stats.games,
+        wins: stats.wins,
+        title: titleText,
+        participant,
+        hasHistory: Boolean(participant.player),
       });
     }
 
-    const winnerFromScores = (sets?: [number, number][]): 1 | 2 | null => {
-      if (!sets || !sets.length) return null;
-      let s1 = 0;
-      let s2 = 0;
-      for (const [x, y] of sets) {
-        if (x > y) s1++;
-        else if (y > x) s2++;
-      }
-      if (s1 === s2) return null;
-      return s1 > s2 ? 1 : 2;
-    };
-
-    for (const m of pastMatches) {
-      const a = m.player1?.id ?? m.team1?.id;
-      const b = m.player2?.id ?? m.team2?.id;
-      if (!a || !b) continue;
-      if (!byId.has(a) || !byId.has(b)) continue;
-
-      const sa = byId.get(a)!;
-      const sb = byId.get(b)!;
-
-      // + игры
-      sa.games += 1;
-      sb.games += 1;
-
-      // + победы
-      const w = winnerId(m);
-      if (w === a) sa.wins += 1;
-      else if (w === b) sb.wins += 1;
-      else {
-        const who = winnerFromScores(m.scores as [number, number][]);
-        if (who === 1) sa.wins += 1;
-        else if (who === 2) sb.wins += 1;
-      }
-
-      // + выигранные сеты
-      for (const [x, y] of (m.scores ?? []) as [number, number][]) {
-        if (x > y) sa.setsWon += 1;
-        else if (y > x) sb.setsWon += 1;
-      }
-    }
-
-    // сортировка: по победам ↓, затем по сетам ↓, затем по матчам ↓, затем по имени
-    return Array.from(byId.values()).sort((x, y) => {
-      if (y.wins !== x.wins) return y.wins - x.wins;
-      if (y.setsWon !== x.setsWon) return y.setsWon - x.setsWon;
-      if (y.games !== x.games) return y.games - x.games;
-      return x.name.localeCompare(y.name, "ru");
+    const sorted = data.sort((a, b) => {
+      if (b.wins !== a.wins) return b.wins - a.wins;
+      if (b.games !== a.games) return b.games - a.games;
+      return a.name.localeCompare(b.name, "ru");
     });
-  }, [participants, pastMatches]);
 
-  // лидеры для подсветки
-  const { maxWins, maxSetsWon } = useMemo(() => {
-    let mw = 0;
-    let ms = 0;
-    for (const s of roundRobinStats) {
-      if (s.wins > mw) mw = s.wins;
-      if (s.setsWon > ms) ms = s.setsWon;
-    }
-    return { maxWins: mw, maxSetsWon: ms };
-  }, [roundRobinStats]);
+    return sorted.map((item, index) => ({ ...item, rank: index + 1 }));
+  }, [participants, statsById, titlesById]);
 
-  /** ====== ТИТУЛЫ (для НЕ-круговых форматов) — оставлены как прежде ====== */
-type LeaderWin = { p: Participant; count: number };
-type LeadersRow = { title: string; winners: LeaderWin[]; tooltip: string };
-
-const leaders = useMemo<LeadersRow[]>(() => {
-  if (!participants.length) return [];
-
-  // 🥖 Бублик-мастер — больше всего сетов 6:0
-  const bagelsByPid = new Map<number, number>();
-  for (const p of participants) {
-    let cnt = 0;
-    for (const m of pastMatches) {
-      if (!tookPart(p.getId, m)) continue;
-      const on1 = isOnSide1(p.getId, m);
-      for (const [a, b] of m.scores ?? []) {
-        const my = on1 ? a : b;
-        const opp = on1 ? b : a;
-        if (my === 6 && opp === 0) cnt++;
-      }
-    }
-    bagelsByPid.set(p.getId, cnt);
-  }
-  const maxBagels = Math.max(...bagelsByPid.values(), 0);
-  const bagelWinners: LeaderWin[] =
-    maxBagels > 0
-      ? participants
-          .filter((p) => (bagelsByPid.get(p.getId) ?? 0) === maxBagels)
-          .map((p) => ({ p, count: bagelsByPid.get(p.getId)! }))
-      : [];
-
-  // 🧱 Стена — максимальный вин-стрик
-  const streakByPid = new Map<number, number>();
-  for (const p of participants) {
-    const ms = pastMatches
-      .filter((m) => tookPart(p.getId, m))
-      .sort((a, b) => a.date.getTime() - b.date.getTime());
-    let cur = 0;
-    let best = 0;
-    for (const m of ms) {
-      const w = winnerId(m);
-      if (!w) continue;
-      if (w === p.getId) best = Math.max(best, ++cur);
-      else cur = 0;
-    }
-    streakByPid.set(p.getId, best);
-  }
-  const maxStreak = Math.max(...streakByPid.values(), 0);
-  const wallWinners: LeaderWin[] =
-    maxStreak > 0
-      ? participants
-          .filter((p) => (streakByPid.get(p.getId) ?? 0) === maxStreak)
-          .map((p) => ({ p, count: streakByPid.get(p.getId)! }))
-      : [];
-
-  // 🐝 Гриндер — больше всего матчей за последние 7 дней (или за весь период, если так задумано)
-  const recentCountByPid = new Map<number, number>();
-  for (const p of participants) {
-    let cnt = 0;
-    for (const m of pastMatches) {
-      // при желании ограничь 7 днями:
-      // if (m.date.getTime() >= now - 7*24*3600*1000)
-      if (tookPart(p.getId, m)) cnt++;
-    }
-    recentCountByPid.set(p.getId, cnt);
-  }
-  const maxRecent = Math.max(...recentCountByPid.values(), 0);
-  const grinderWinners: LeaderWin[] =
-    maxRecent > 0
-      ? participants
-          .filter((p) => (recentCountByPid.get(p.getId) ?? 0) === maxRecent)
-          .map((p) => ({ p, count: recentCountByPid.get(p.getId)! }))
-      : [];
-
-  // ⚡ Удачливый нападающий — победы на стороне 1
-  const successfulAttacksByPid = new Map<number, number>();
-  for (const p of participants) {
-    let cnt = 0;
-    for (const m of pastMatches) {
-      if (!tookPart(p.getId, m)) continue;
-      if (isOnSide1(p.getId, m) && winnerId(m) === p.getId) cnt++;
-    }
-    successfulAttacksByPid.set(p.getId, cnt);
-  }
-  const maxSuccessfulAttacks = Math.max(...successfulAttacksByPid.values(), 0);
-  const luckyAttackers: LeaderWin[] =
-    maxSuccessfulAttacks > 0
-      ? participants
-          .filter((p) => (successfulAttacksByPid.get(p.getId) ?? 0) === maxSuccessfulAttacks)
-          .map((p) => ({ p, count: successfulAttacksByPid.get(p.getId)! }))
-      : [];
-
-  // 🙃 Неунывающий драчун — поражения на стороне 1
-  const failedAttacksByPid = new Map<number, number>();
-  for (const p of participants) {
-    let cnt = 0;
-    for (const m of pastMatches) {
-      if (!tookPart(p.getId, m)) continue;
-      const onAttack = isOnSide1(p.getId, m);
-      const w = winnerId(m);
-      if (onAttack && w && w !== p.getId) cnt++;
-    }
-    failedAttacksByPid.set(p.getId, cnt);
-  }
-  const maxFailedAttacks = Math.max(...failedAttacksByPid.values(), 0);
-  const unluckyAttackers: LeaderWin[] =
-    maxFailedAttacks > 0
-      ? participants
-          .filter((p) => (failedAttacksByPid.get(p.getId) ?? 0) === maxFailedAttacks)
-          .map((p) => ({ p, count: failedAttacksByPid.get(p.getId)! }))
-      : [];
-
-  // 🎢 Трёхсетовый боец — матчи в 3+ сета
-  const threeSetMatchesByPid = new Map<number, number>();
-  for (const p of participants) {
-    let cnt = 0;
-    for (const m of pastMatches) {
-      if (!tookPart(p.getId, m)) continue;
-      const setsCount = (m.scores ?? []).length;
-      if (setsCount >= 3) cnt++;
-    }
-    threeSetMatchesByPid.set(p.getId, cnt);
-  }
-  const maxThreeSet = Math.max(...threeSetMatchesByPid.values(), 0);
-  const threeSetWarriors: LeaderWin[] =
-    maxThreeSet > 0
-      ? participants
-          .filter((p) => (threeSetMatchesByPid.get(p.getId) ?? 0) === maxThreeSet)
-          .map((p) => ({ p, count: threeSetMatchesByPid.get(p.getId)! }))
-      : [];
-
-  // 🛡 Железный защитник — победы на стороне 2
-  const defenseWinsByPid = new Map<number, number>();
-  for (const p of participants) {
-    let cnt = 0;
-    for (const m of pastMatches) {
-      if (!tookPart(p.getId, m)) continue;
-      const onDefense = !isOnSide1(p.getId, m);
-      if (onDefense && winnerId(m) === p.getId) cnt++;
-    }
-    defenseWinsByPid.set(p.getId, cnt);
-  }
-  const maxDefenseWins = Math.max(...defenseWinsByPid.values(), 0);
-  const ironDefenders: LeaderWin[] =
-    maxDefenseWins > 0
-      ? participants
-          .filter((p) => (defenseWinsByPid.get(p.getId) ?? 0) === maxDefenseWins)
-          .map((p) => ({ p, count: defenseWinsByPid.get(p.getId)! }))
-      : [];
-
-  // 🪫 Неудачный защитник — поражения на стороне 2
-  const defenseLossesByPid = new Map<number, number>();
-  for (const p of participants) {
-    let cnt = 0;
-    for (const m of pastMatches) {
-      if (!tookPart(p.getId, m)) continue;
-      const onDefense = !isOnSide1(p.getId, m);
-      const w = winnerId(m);
-      if (onDefense && w && w !== p.getId) cnt++;
-    }
-    defenseLossesByPid.set(p.getId, cnt);
-  }
-  const maxDefenseLosses = Math.max(...defenseLossesByPid.values(), 0);
-  const unluckyDefenders: LeaderWin[] =
-    maxDefenseLosses > 0
-      ? participants
-          .filter((p) => (defenseLossesByPid.get(p.getId) ?? 0) === maxDefenseLosses)
-          .map((p) => ({ p, count: defenseLossesByPid.get(p.getId)! }))
-      : [];
-
-  const rows: LeadersRow[] = [];
-  if (bagelWinners.length)
-    rows.push({ title: "🥖 Бублик-мастер", winners: bagelWinners, tooltip: "Больше всего сетов, выигранных 6:0." });
-  if (wallWinners.length)
-    rows.push({ title: "🧱 Стена", winners: wallWinners, tooltip: "Самая длинная серия побед подряд." });
-  if (grinderWinners.length)
-    rows.push({ title: "🐝 Гриндер", winners: grinderWinners, tooltip: "Больше всего сыгранных матчей за период." });
-  if (luckyAttackers.length)
-    rows.push({ title: "⚡ Удачливый нападающий", winners: luckyAttackers, tooltip: "Больше всего побед в роли нападающего." });
-  if (unluckyAttackers.length)
-    rows.push({ title: "🙃 Неунывающий драчун", winners: unluckyAttackers, tooltip: "Больше всего поражений на стороне 1." });
-  if (threeSetWarriors.length)
-    rows.push({ title: "🎢 Трёхсетовый боец", winners: threeSetWarriors, tooltip: "Больше всего матчей в 3+ сета." });
-  if (ironDefenders.length)
-    rows.push({ title: "🛡 Железный защитник", winners: ironDefenders, tooltip: "Больше всего побед в роли защиты." });
-  if (unluckyDefenders.length)
-    rows.push({ title: "🪫 Неудачный защитник", winners: unluckyDefenders, tooltip: "Больше всего поражений в роли защищты." });
-
-  return rows;
-}, [participants, pastMatches, now]);
-
-  // ====== таблицы ======
-
-  const roundRobinTable = useMemo(() => {
-    if (!roundRobinStats.length) return <p>Пока нет сыгранных матчей.</p>;
-    return (
-      <table className="table match-history">
-        <colgroup>
-          <col style={{ width: "55%" }} />
-          <col style={{ width: "15%" }}/>
-          <col style={{ width: "15%" }} />
-          <col style={{ width: "15%" }} />
-        </colgroup>
-
-        <thead>
-          <tr>
-            <th style={{ textAlign: "left" }}>Игрок / Пара</th>
-            <th style={{ textAlign: "right" }}>Матчей</th>
-            <th style={{ textAlign: "right" }}>Побед</th>
-            <th style={{ textAlign: "right" }}>Сеты+</th>
-          </tr>
-        </thead>
-        <tbody>
-          {roundRobinStats.map((s) => {
-            const isLeaderWins = s.wins === maxWins && maxWins > 0;
-            const isLeaderSets = s.setsWon === maxSetsWon && maxSetsWon > 0;
-            const badges =
-              (isLeaderWins ? "🏆 по победам" : "") +
-              (isLeaderWins && isLeaderSets ? " • " : "") +
-              (isLeaderSets ? "🎾 по сетам" : "");
-
-            return (
-              <tr
-                key={s.id}
-                className={[
-                  isLeaderWins ? "leader-wins" : "",
-                  isLeaderSets ? "leader-sets" : "",
-                ].join(" ").trim()}
-                title={badges || undefined}
-              >
-                <td>
-                  <span className="player" title={`ID: ${s.id}`}>{s.name}</span>
-                  {badges && (
-                    <span className="badge" style={{ marginLeft: 8 }}>
-                      {badges}
-                    </span>
-                  )}
-                </td>
-                <td style={{ textAlign: "right" }}>{s.games}</td>
-                <td style={{ textAlign: "right", fontWeight: isLeaderWins ? 700 : 600 }}>{s.wins}</td>
-                <td style={{ textAlign: "right", fontWeight: isLeaderSets ? 700 : 600 }}>{s.setsWon}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    );
-  }, [roundRobinStats, maxWins, maxSetsWon]);
-
-const leadersTable = useMemo(() => {
-  if (leaders.length === 0) {
-    return <p>Пока нет лидеров — сыграйте ещё немного 😉</p>;
-  }
-  return (
-    <table className="table history-table">
-      <colgroup>
-        <col className="col-player" />
-        <col className="col-title" />
-        <col className="col-events" />
-      </colgroup>
-
-      <thead className="history-table-head">
-        <tr>
-          <th>Игрок(и)</th>
-          <th>Титул</th>
-          <th style={{ textAlign: "right", width: 120 }}>Случаев</th>
-        </tr>
-      </thead>
-      <tbody>
-        {leaders.map((row, idx) =>
-          row.winners.map(({ p, count }) => (
-            <tr key={`${row.title}-${p.getId}-${idx}`}>
-              <td>
-                <button
-                  type="button"
-                  className="player-link"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (p.player) onShowHistory?.(p);
-                  }}
-                  disabled={!p.player}
-                  aria-label={
-                    p.player
-                      ? `Показать историю матчей: ${p.displayName(false)}`
-                      : `${p.displayName(false)} — история доступна только для одиночных игроков`
-                  }
-                  title={p.player ? "История матчей" : "История доступна только для одиночных игроков"}
-                >
-                  {p.displayName(false)}
-                </button>
-              </td>
-              <td>
-                <BadgeWithTip titleText={row.title} tooltip={row.tooltip} />
-              </td>
-              <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{count}</td>
-            </tr>
-          ))
-        )}
-      </tbody>
-    </table>
-  );
-}, [leaders, onShowHistory]);
-
-  // ===== render =====
   if (loading) return <p>Загрузка…</p>;
   if (!tournament) return <p>Турнир не найден</p>;
 
-  const isRoundRobin = tournament.format === "round_robin";
-
   return (
-    <div className="history-wrap">
-      {participants.length === 0 ? (
+    <div className="page-container-no-padding">
+      <div className="page-content-container">
+      {cardsData.length === 0 ? (
         <p>Пока нет участников.</p>
-      ) : isRoundRobin ? (
-        roundRobinTable
       ) : (
-        leadersTable
+        <div className="card-grid-new">
+          {cardsData.map((card) => {
+            const canOpen = Boolean(card.hasHistory && card.participant.player);
+
+            const handleCardClick = () => {
+              if (!canOpen) return;
+              const player = card.participant.player;
+              if (!player) return;
+
+              const user = new User({
+                id: player.id ?? 0,
+                name: player.name ?? "Игрок",
+                role: UserRole.Player,
+                player,
+              });
+
+              const baseStats = statsById.get(card.id) ?? { games: 0, wins: 0 };
+              const games = baseStats.games;
+              const wins = baseStats.wins;
+              const profileStatsValue: UserProfileStats = {
+                wins,
+                losses: Math.max(0, games - wins),
+                winRate: games > 0 ? Math.round((wins / games) * 100) : 0,
+                rank: card.rank,
+              };
+
+              const playerMatches = (matches ?? [])
+                .filter((match) => {
+                  const playerId = player.id;
+                  if (!playerId) return false;
+                  return (
+                    match.player1?.id === playerId ||
+                    match.player2?.id === playerId ||
+                    match.team1?.player1?.id === playerId ||
+                    match.team1?.player2?.id === playerId ||
+                    match.team2?.player1?.id === playerId ||
+                    match.team2?.player2?.id === playerId
+                  );
+                })
+                .sort((a, b) => b.date.getTime() - a.date.getTime());
+
+              setProfileUser(user);
+              setProfileStats(profileStatsValue);
+              setProfileMatches(playerMatches);
+              setProfileOpen(true);
+            };
+
+            const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+              if (!canOpen) return;
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                handleCardClick();
+              }
+            };
+
+            return (
+              <article
+                key={card.id || card.name}
+                className={`card`}
+                role={canOpen ? "button" : undefined}
+                tabIndex={canOpen ? 0 : undefined}
+                onClick={handleCardClick}
+                onKeyDown={handleKeyDown}
+                aria-disabled={canOpen ? undefined : true}
+              >
+                <header className="card-head">
+                  <div className="card-title">
+                    {card.name}
+                  </div>
+                </header>
+
+                <span className="badge">{card.title}</span>
+
+                <div className="rating-card__body">
+                  <div className="card-row rating-card__row">
+                    <span className="rating-card__label">Матчей</span>
+                    <span className="rating-card__value">{card.games}</span>
+                  </div>
+                  <div className="card-row rating-card__row rating-card__row--last">
+                    <span className="rating-card__label">Побед</span>
+                    <span className="rating-card__value rating-card__value--wins">{card.wins}</span>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
       )}
+
+      <UserProfileModal
+        isOpen={profileOpen}
+        onClose={() => {
+          setProfileOpen(false);
+          setProfileUser(null);
+          setProfileStats(undefined);
+          setProfileMatches([]);
+        }}
+        user={profileUser}
+        stats={profileStats}
+        matches={profileMatches}
+      />
+    </div>
     </div>
   );
 }
