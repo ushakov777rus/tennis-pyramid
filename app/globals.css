@@ -379,8 +379,9 @@ button,
 
 
 .badge-register {
+  display: block;
   max-width: 75%;
-  margin: 20px;
+  margin: 20px auto;
   padding: 5px;
 }
 
@@ -625,5 +626,3 @@ button,
   border-style: solid;
   border-color: #f44336 transparent transparent transparent;
 }
-
-
