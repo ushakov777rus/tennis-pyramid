@@ -58,7 +58,7 @@ export function LoginModal({
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="input input-auth"
+          className="input input-100"
           autoComplete="email"
           inputMode="email"
         />
@@ -68,7 +68,7 @@ export function LoginModal({
           placeholder="Пароль"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="input input-auth"
+          className="input input-100"
         />
 
         <button onClick={handleLogin} className="modal-submit-btn">

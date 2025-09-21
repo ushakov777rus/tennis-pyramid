@@ -22,7 +22,7 @@ const SLIDES: Slide[] = [
   {
     title: "Создание клуба",
     description: "Добавляем новый клуб и настраиваем его карточку.",
-    src: "/videos/create-club.mp4",
+    src: "/videos/create club and trnmt.mp4",
   },
   {
     title: "Создание турнира",

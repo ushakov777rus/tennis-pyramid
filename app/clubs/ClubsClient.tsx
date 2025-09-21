@@ -123,7 +123,7 @@ export function ClubsClient() {
         {/* Панель поиска */}
         <div className="card page-toolbar">
           <input
-            className="input input-auth"
+            className="input input-100"
             type="text"
             placeholder="Поиск по названию или городу…"
             value={q}

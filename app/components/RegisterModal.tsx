@@ -126,7 +126,7 @@ export function RegisterModal({
         </h2>
 
         <CustomSelect
-          className="input input-auth"
+          className="input input-100"
           options={[
             { value: "player", label: "Игрок" },
             { value: "tournament_admin", label: "Организатор" },
@@ -143,7 +143,7 @@ export function RegisterModal({
           placeholder="Фамилия и Имя"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
-          className="input input-auth"
+          className="input input-100"
           disabled={pending}
           autoComplete="name"
         />
@@ -152,7 +152,7 @@ export function RegisterModal({
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="input input-auth"
+          className="input input-100"
           disabled={pending}
           autoComplete="email"
           inputMode="email"
@@ -162,7 +162,7 @@ export function RegisterModal({
           placeholder="Телефон (необязательно)"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="input input-auth"
+          className="input input-100"
           disabled={pending}
           autoComplete="tel"
           inputMode="tel"
@@ -173,7 +173,7 @@ export function RegisterModal({
           placeholder="NTRP (например 3.5)"
           value={ntrp}
           onChange={(e) => setNTRP(e.target.value)}
-          className="input input-auth"
+          className="input input-100"
           disabled={pending}
         />
 
@@ -182,7 +182,7 @@ export function RegisterModal({
           placeholder="Пароль (минимум 6 символов)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="input input-auth"
+          className="input input-100"
           disabled={pending}
           autoComplete="new-password"
         />
@@ -191,7 +191,7 @@ export function RegisterModal({
           placeholder="Повтор пароля"
           value={password2}
           onChange={(e) => setPassword2(e.target.value)}
-          className="input input-auth"
+          className="input input-100"
           disabled={pending}
           autoComplete="new-password"
         />
