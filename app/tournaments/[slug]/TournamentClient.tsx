@@ -65,17 +65,21 @@ export default function TournamentClient() {
 
   const [view, setView] = useState<ViewKey>("aboutt");
 
-  const tabs: TabItem[] = useMemo(
-    () => [
-      { key: "aboutt",        label: "О турнире" },
-      { key: "bracket",      label: "Сетка" },
-      { key: "matches",      label: "Матчи" },
-      (user?.role === UserRole.SiteAdmin || user?.role === UserRole.TournamentAdmin) && 
-        { key: "participants", label: "Участники" },
-      { key: "results",      label: "Рейтинг" },      
-    ].filter(Boolean) as TabItem[],
-        [user?.role]
-  );
+  const showBracketTab = tournament ? !tournament.isCustom() : true;
+
+  const tabs: TabItem[] = useMemo(() => {
+    const items: Array<TabItem | false> = [
+      { key: "aboutt", label: "О турнире" },
+      showBracketTab && { key: "bracket", label: "Сетка" },
+      { key: "matches", label: "Матчи" },
+      (user?.role === UserRole.SiteAdmin || user?.role === UserRole.TournamentAdmin) && {
+        key: "participants",
+        label: "Участники",
+      },
+      { key: "results", label: "Рейтинг" },
+    ];
+    return items.filter(Boolean) as TabItem[];
+  }, [showBracketTab, user?.role]);
 
   // Синхронизация с URL параметром tab
   useEffect(() => {
@@ -84,6 +88,13 @@ export default function TournamentClient() {
       setView(urlTab as ViewKey);
     }
   }, [searchParams, tabs]);
+
+  useEffect(() => {
+    if (!tabs.length) return;
+    if (tabs.every((tab) => tab.key !== view)) {
+      setView(tabs[0].key as ViewKey);
+    }
+  }, [tabs, view]);
 
   // если игрок залогинен и участвует — закрепляем как нападающего
   useEffect(() => {
@@ -336,6 +347,23 @@ export default function TournamentClient() {
             </LoggedIn>
           )}
 
+          {tournament.isCustom() && view === "matches" && (
+            <LoggedIn>
+              <AddMatchCard
+                options={options}
+                selectedIds={selectedIds}
+                setSelectedIds={setSelectedIds}
+                matchDate={matchDate}
+                setMatchDate={setMatchDate}
+                matchScore={matchScore}
+                setMatchScore={setMatchScore}
+                isAnon={isAnon}
+                isPlayerWithFixedAttacker={isPlayerWithFixedAttacker}
+                onAddMatch={handleAddMatch}
+              />
+            </LoggedIn>
+          )}
+
           <div>
             {view === "bracket" &&             
               <FormatView
@@ -412,6 +440,10 @@ const FormatView = React.memo(function FormatView({
     },
     [onShowHistoryPlayer]
   );
+
+  if (tournament.isCustom()) {
+    return null;
+  }
 
   if (tournament.isRoundRobin()) {
     return <RoundRobinView participants={participants} matches={matches} onSaveScore={onSaveScoreRoundRobin} />;

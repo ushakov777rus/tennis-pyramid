@@ -24,6 +24,7 @@ export enum TournamentFormat {
   DoubleElimination = "double_elimination",
   GroupsPlayoff = "groups_playoff",
   Swiss = "swiss",
+  Custom = "custom",
 }
 
 /** Опции для селектов (с первым пунктом «любой …» удобно для фильтров) */
@@ -35,6 +36,7 @@ export const FORMAT_OPTIONS = [
   { value: TournamentFormat.DoubleElimination, label: "Двойная олим." },
   { value: TournamentFormat.GroupsPlayoff, label: "Группы + плей-офф" },
   { value: TournamentFormat.Swiss, label: "Швейцарка" },
+  { value: TournamentFormat.Custom, label: "Произвольный" },
 ];
 
 export const TYPE_OPTIONS = [
@@ -59,6 +61,7 @@ const FORMAT_LABELS_RU: Record<TournamentFormat, string> = {
   [TournamentFormat.DoubleElimination]: "Плей-офф (2 вылета)",
   [TournamentFormat.GroupsPlayoff]: "Группы + плей-офф",
   [TournamentFormat.Swiss]: "Швейцарская система",
+  [TournamentFormat.Custom]: "Произвольный формат",
 };
 
 const STATUS_LABELS_RU: Record<TournamentStatus, string> = {
@@ -221,6 +224,10 @@ export class Tournament {
   }
   isSwiss(): boolean {
     return this.format === TournamentFormat.Swiss;
+  }
+
+  isCustom(): boolean {
+    return this.format === TournamentFormat.Custom;
   }
 
   // ---------- Геттеры лейблов для UI ----------
