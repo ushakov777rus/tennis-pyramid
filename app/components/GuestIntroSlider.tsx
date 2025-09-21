@@ -15,25 +15,10 @@ type Slide = {
 
 const SLIDES: Slide[] = [
   {
-    title: "Регистрация",
-    description: "Как быстро зарегистрироваться и войти в HoneyCup.",
-    src: "/videos/registration.mp4",
-  },
-  {
-    title: "Создание клуба",
-    description: "Добавляем новый клуб и настраиваем его карточку.",
+    title: "Быстрый запуск турнира",
+    description: "Добавляем новый клуб, создаем турнир и добавляем игроков.",
     src: "/videos/create club and trnmt.mp4",
-  },
-  {
-    title: "Создание турнира",
-    description: "Создаём новый турнир и выбираем нужный формат.",
-    src: "/videos/create-tournament.mp4",
-  },
-  {
-    title: "Добавление игроков",
-    description: "Как пригласить и добавить участников в турнир.",
-    src: "/videos/add-players.mp4",
-  },
+  }
 ];
 
 export function GuestIntroSlider() {
