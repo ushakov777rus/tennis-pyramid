@@ -43,7 +43,7 @@ export function GuestIntroSlider() {
 
     const timer = window.setTimeout(() => {
       setVisible(true);
-    }, 5000);
+    }, 3000);
 
     return () => window.clearTimeout(timer);
   }, [user, loading, shouldSkip]);
