@@ -15,6 +15,7 @@ import { useOptionalMatches } from "@/app/matches/MatchesProvider";
 import { UserProfileModal } from "@/app/components/UserProfileModal";
 import { PlayerCard } from "@/app/components/players/PlayerCard";
 import type { UserProfileStats } from "./UserProfileView";
+import { calculateParticipantTitles } from "./rating/calculateParticipantTitles";
 
 type ParticipantStats = {
   games: number;
@@ -112,217 +113,15 @@ export function RatingView() {
     return map;
   }, [participants, pastMatches]);
 
-  const titlesById = useMemo(() => {
-    const titles = new Map<number, string[]>();
-    if (!participants.length || !pastMatches.length) {
-      return titles;
-    }
-
-    const tookPart = (participantId: number, match: Match) => {
-      const sideA = match.player1?.id ?? match.team1?.id;
-      const sideB = match.player2?.id ?? match.team2?.id;
-      return sideA === participantId || sideB === participantId;
-    };
-
-    const isOnSide1 = (participantId: number, match: Match) =>
-      (match.player1?.id ?? match.team1?.id) === participantId;
-
-    const winnerId = (match: Match) => match.getWinnerId();
-
-    const pushTitle = (participant: Participant, title: string) => {
-      const key = participant.getId;
-      if (!titles.has(key)) {
-        titles.set(key, []);
-      }
-      const list = titles.get(key)!;
-      if (!list.includes(title)) {
-        list.push(title);
-      }
-    };
-
-    const registerWinners = (title: string, ids: number[]) => {
-      if (!ids.length) return;
-      for (const participant of participants) {
-        if (ids.includes(participant.getId)) {
-          pushTitle(participant, title);
-        }
-      }
-    };
-
-    const bagelsById = new Map<number, number>();
-    for (const participant of participants) {
-      let count = 0;
-      for (const match of pastMatches) {
-        if (!tookPart(participant.getId, match)) continue;
-        const onFirstSide = isOnSide1(participant.getId, match);
-        for (const [a, b] of match.scores ?? []) {
-          const mine = onFirstSide ? a : b;
-          const theirs = onFirstSide ? b : a;
-          if (mine === 6 && theirs === 0) {
-            count += 1;
-          }
-        }
-      }
-      bagelsById.set(participant.getId, count);
-    }
-    const bagelValues = Array.from(bagelsById.values());
-    const maxBagels = bagelValues.length ? Math.max(...bagelValues) : 0;
-    if (maxBagels > 0) {
-      const winners = Array.from(bagelsById.entries())
-        .filter(([, value]) => value === maxBagels)
-        .map(([id]) => id);
-      registerWinners("🥖 Бублик-мастер", winners);
-    }
-
-    const streakById = new Map<number, number>();
-    for (const participant of participants) {
-      const participantMatches = pastMatches
-        .filter((match) => tookPart(participant.getId, match))
-        .sort((a, b) => a.date.getTime() - b.date.getTime());
-      let current = 0;
-      let best = 0;
-      for (const match of participantMatches) {
-        if (winnerId(match) === participant.getId) {
-          current += 1;
-          if (current > best) best = current;
-        } else {
-          current = 0;
-        }
-      }
-      streakById.set(participant.getId, best);
-    }
-    const streakValues = Array.from(streakById.values());
-    const maxStreak = streakValues.length ? Math.max(...streakValues) : 0;
-    if (maxStreak > 0) {
-      const winners = Array.from(streakById.entries())
-        .filter(([, value]) => value === maxStreak)
-        .map(([id]) => id);
-      registerWinners("🧱 Стена", winners);
-    }
-
-    const matchesById = new Map<number, number>();
-    for (const participant of participants) {
-      let count = 0;
-      for (const match of pastMatches) {
-        if (tookPart(participant.getId, match)) count += 1;
-      }
-      matchesById.set(participant.getId, count);
-    }
-    const matchValues = Array.from(matchesById.values());
-    const maxMatches = matchValues.length ? Math.max(...matchValues) : 0;
-    if (maxMatches > 0) {
-      const winners = Array.from(matchesById.entries())
-        .filter(([, value]) => value === maxMatches)
-        .map(([id]) => id);
-      registerWinners("🐝 Самый активный", winners);
-    }
-
-    const attackWinsById = new Map<number, number>();
-    for (const participant of participants) {
-      let count = 0;
-      for (const match of pastMatches) {
-        if (!tookPart(participant.getId, match)) continue;
-        if (isOnSide1(participant.getId, match) && winnerId(match) === participant.getId) {
-          count += 1;
-        }
-      }
-      attackWinsById.set(participant.getId, count);
-    }
-    const attackValues = Array.from(attackWinsById.values());
-    const maxAttack = attackValues.length ? Math.max(...attackValues) : 0;
-    if (maxAttack > 0) {
-      const winners = Array.from(attackWinsById.entries())
-        .filter(([, value]) => value === maxAttack)
-        .map(([id]) => id);
-      registerWinners("⚡ Удачливый нападающий", winners);
-    }
-
-    const attackLossesById = new Map<number, number>();
-    for (const participant of participants) {
-      let count = 0;
-      for (const match of pastMatches) {
-        if (!tookPart(participant.getId, match)) continue;
-        const winner = winnerId(match);
-        if (isOnSide1(participant.getId, match) && winner && winner !== participant.getId) {
-          count += 1;
-        }
-      }
-      attackLossesById.set(participant.getId, count);
-    }
-    const attackLossValues = Array.from(attackLossesById.values());
-    const maxAttackLoss = attackLossValues.length ? Math.max(...attackLossValues) : 0;
-    if (maxAttackLoss > 0) {
-      const winners = Array.from(attackLossesById.entries())
-        .filter(([, value]) => value === maxAttackLoss)
-        .map(([id]) => id);
-      registerWinners("🙃 Неунывающий драчун", winners);
-    }
-
-    const longMatchById = new Map<number, number>();
-    for (const participant of participants) {
-      let count = 0;
-      for (const match of pastMatches) {
-        if (!tookPart(participant.getId, match)) continue;
-        if ((match.scores ?? []).length >= 3) {
-          count += 1;
-        }
-      }
-      longMatchById.set(participant.getId, count);
-    }
-    const longMatchValues = Array.from(longMatchById.values());
-    const maxLongMatches = longMatchValues.length ? Math.max(...longMatchValues) : 0;
-    if (maxLongMatches > 0) {
-      const winners = Array.from(longMatchById.entries())
-        .filter(([, value]) => value === maxLongMatches)
-        .map(([id]) => id);
-      registerWinners("🎢 Трёхсетовый боец", winners);
-    }
-
-    const defenseWinsById = new Map<number, number>();
-    for (const participant of participants) {
-      let count = 0;
-      for (const match of pastMatches) {
-        if (!tookPart(participant.getId, match)) continue;
-        const onDefense = !isOnSide1(participant.getId, match);
-        if (onDefense && winnerId(match) === participant.getId) {
-          count += 1;
-        }
-      }
-      defenseWinsById.set(participant.getId, count);
-    }
-    const defenseWinValues = Array.from(defenseWinsById.values());
-    const maxDefenseWins = defenseWinValues.length ? Math.max(...defenseWinValues) : 0;
-    if (maxDefenseWins > 0) {
-      const winners = Array.from(defenseWinsById.entries())
-        .filter(([, value]) => value === maxDefenseWins)
-        .map(([id]) => id);
-      registerWinners("🛡 Железный защитник", winners);
-    }
-
-    const defenseLossById = new Map<number, number>();
-    for (const participant of participants) {
-      let count = 0;
-      for (const match of pastMatches) {
-        if (!tookPart(participant.getId, match)) continue;
-        const onDefense = !isOnSide1(participant.getId, match);
-        const winner = winnerId(match);
-        if (onDefense && winner && winner !== participant.getId) {
-          count += 1;
-        }
-      }
-      defenseLossById.set(participant.getId, count);
-    }
-    const defenseLossValues = Array.from(defenseLossById.values());
-    const maxDefenseLoss = defenseLossValues.length ? Math.max(...defenseLossValues) : 0;
-    if (maxDefenseLoss > 0) {
-      const winners = Array.from(defenseLossById.entries())
-        .filter(([, value]) => value === maxDefenseLoss)
-        .map(([id]) => id);
-      registerWinners("🪫 Неудачный защитник", winners);
-    }
-
-    return titles;
-  }, [participants, pastMatches]);
+  const titlesById = useMemo(
+    () =>
+      calculateParticipantTitles({
+        participants,
+        matches: pastMatches,
+        tournament,
+      }),
+    [participants, pastMatches, tournament]
+  );
 
   const cardsData = useMemo(() => {
     const data: Omit<CardData, "rank">[] = [];
