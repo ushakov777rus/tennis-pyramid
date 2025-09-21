@@ -410,14 +410,72 @@ body {
 }
 
 /* Панель поиска */
+/* desktop: flex wrap с равномерными ячейками, кнопка сброса авто */
 .page-toolbar {
   display: flex;
-  gap: 5px;
-  align-items: center;
-  margin-bottom: 12px;
-  max-width: 800px;
-  margin: auto;
   flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 0 auto 12px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.page-toolbar > * {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.page-toolbar .input,
+.page-toolbar .cs-select {
+  width: 100%;
+}
+
+.page-toolbar .cs-trigger {
+  width: 100%;
+  margin: 0;
+}
+
+.page-toolbar__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+/* кнопка сброса остаётся компактной на широких экранах */
+.page-toolbar__reset {
+  flex: 0 0 auto;
+  display: flex;
+}
+
+.page-toolbar__reset .icon-btn {
+  width: auto;
+  margin: 0;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* mobile: две колонки, кнопка растягивается на 100% */
+@media (max-width: 640px) {
+  /* каждая ячейка занимает 50% ширины минус половина зазора (gap=12px),
+     чтобы две колонки ровно заполняли строку; если поменяешь gap — обнови и тут */
+  .page-toolbar > * {
+    flex: 1 1 calc(50% - 12px);
+  }
+
+  .page-toolbar__checkbox {
+    flex: 1 1 calc(50% - 12px);
+  }
+
+  .page-toolbar__reset {
+    flex: 1 1 100%;
+  }
+
+  .page-toolbar__reset .icon-btn {
+    width: 100%;
+  }
 }
 
 .invalid-tooltip {

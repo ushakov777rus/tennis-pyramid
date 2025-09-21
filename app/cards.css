@@ -79,31 +79,11 @@
 }
 
 
-.card-filter-controls {
-  width: 24%;
-  margin: auto;
-}
-
-.card-filter-controls-date {
-  width: 24%;
-  margin: auto;
-}
-
 /* ✅ Адаптивность для мобилок */
 @media (max-width: 768px) {
   .card {
     width: 100%;
     max-width: none;
-  }
-
-  .card-filter-controls {
-    width: 48%;
-    margin: auto;
-  }
-
-  .card-filter-controls-date {
-    width: 44%;
-    margin: auto;
   }
 }
 

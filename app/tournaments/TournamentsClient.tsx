@@ -138,11 +138,11 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Поиск по названию…"
-            className="input card-filter-controls"
+            className="input"
           />
 
           <CustomSelect
-            className="input card-filter-controls"
+            className="input"
             options={TYPE_OPTIONS}
             value={fltType}
             onChange={(val) => setFltType(val as TournamentType)}
@@ -152,7 +152,7 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
           />
 
           <CustomSelect
-            className="input card-filter-controls"
+            className="input"
             options={FORMAT_OPTIONS}
             value={fltFormat}
             onChange={(val) => setFltFormat(val as FilterFormat)}
@@ -162,7 +162,7 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
           />
 
           <CustomSelect
-            className="input card-filter-controls"
+            className="input"
             options={STATUS_OPTIONS}
             value={fltStatus}
             onChange={(val) => setFltStatus(val as FilterStatus)}
@@ -172,7 +172,7 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
           />
 
           <LoggedIn>
-            <div className="card-filter-controls">
+            <div className="page-toolbar__checkbox">
               <CheckBoxIcon
                 isSelected={fltMy}
                 onClick={() => setFltMy(v => !v)}
@@ -182,7 +182,12 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
             </div>
           </LoggedIn>
 
-          <CancelIconButton onClick={resetFilters} title="Сброс" />
+          <div className="page-toolbar__reset">
+            <CancelIconButton
+              onClick={resetFilters}
+              title="Сброс"
+            />
+          </div>
         </div>
 
         {/* Список турниров */}
