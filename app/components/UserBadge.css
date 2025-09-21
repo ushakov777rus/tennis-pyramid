@@ -3,14 +3,13 @@
   top: 0px;
   right: 0px; /* переносим в правый верхний угол */
   background: transparent; /* прозрачный фон */
-  padding: 6px 0px;
-  border-radius: 6px;
   font-size: 14px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   color: #333;
-  align-self: center;
+  width: 100%;
 }
 
 .user-badge-btn {
@@ -20,6 +19,8 @@
   border-radius: 6px;
   color: black;
   cursor: pointer;
+  width: 100%;
+  text-align: center;
 }
 
 .user-info {
@@ -41,4 +42,3 @@
 .user-btn:hover {
   background: #f0f0f0;
 }
-
