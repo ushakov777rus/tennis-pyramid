@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { TournamentCreateInput, TournamentType, TournamentFormat } from "@/app/models/Tournament";
 import "./AddTournamentModal.css";
 import { TYPE_OPTIONS, FORMAT_OPTIONS } from "@/app/models/Tournament";
-import { CheckBoxIcon } from "./controls/IconButtons";
 import { CustomSelect } from "./controls/CustomSelect";
 import { Club } from "../models/Club";
 
@@ -20,12 +19,12 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
   const titleId = "add-tournament-title";
 
   // базовые поля
-  const [isPublic, setIsPublic] = useState(false);
   const [name, setName] = useState("");
   const [type, setType] = useState<TournamentType>(TournamentType.Single);
   const [format, setFormat] = useState<TournamentFormat>(TournamentFormat.Pyramid);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const today = new Date().toISOString().slice(0, 10);
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
   const [error, setError] = useState<string | null>(null);
 
   // новое: диапазон NTRP
@@ -57,12 +56,11 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
   };
 
   const resetForm = () => {
-    setIsPublic(false);
     setName("");
     setType(TournamentType.Single);
     setFormat(TournamentFormat.Pyramid);
-    setStartDate("");
-    setEndDate("");
+    setStartDate(today);
+    setEndDate(today);
     setPyramidMaxLevel(15);
     setGroupsPlayoffGroupsCount(2);
     setAdvOpen(false);
@@ -100,7 +98,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
       tournament_type: type,
       start_date: startDate || null,
       end_date: endDate || null,
-      is_public: isPublic,
+      is_public: false,
       creator_id: 0,
       club: club
     };
@@ -167,15 +165,6 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
 
         <form onSubmit={handleSubmit} className="modal-form" noValidate>
           {/* ЧЕКБОКС — первым полем */}
-          <div className="checkbox-row">
-            <CheckBoxIcon
-              isSelected={isPublic}
-              onClick={() => setIsPublic((v) => !v)}
-              aria-label="Публичный турнир"
-            />
-            <span>Публичный турнир (виден всем)</span>
-          </div>
-
           <input
             type="text"
             placeholder="Название турнира"

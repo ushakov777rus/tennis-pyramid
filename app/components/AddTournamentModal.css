@@ -6,9 +6,32 @@
 
 .modal-grid-2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
+
+.modal-grid-2 .cs-select {
+  width: 100%;
+}
+
+.adv-row {
+  display: grid;
+  grid-template-columns: minmax(0, 160px) minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.adv-row .adv-label {
+  font-size: 14px;
+  color: #ccc;
+}
+
+.adv-row .adv-help {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: #888;
+}
+
 
 .modal-actions {
   display: flex;
@@ -37,14 +60,23 @@
   border-color: transparent;
 }
 
-.checkbox-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
 .adv-toggle {
   color: #cf6;
   cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .adv-row {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .modal-actions .modal-submit-btn,
+  .modal-actions button {
+    width: 100%;
+  }
 }
