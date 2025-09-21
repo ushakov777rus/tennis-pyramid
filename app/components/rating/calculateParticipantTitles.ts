@@ -253,8 +253,6 @@ function calculateRoundRobinTitles(
     const sideB = match.player2?.id ?? match.team2?.id ?? 0;
     if (!sideA && !sideB) continue;
 
-    const matchWinnerId = match.getWinnerId();
-
     let setsA = 0;
     let setsB = 0;
     let gamesA = 0;
@@ -272,9 +270,6 @@ function calculateRoundRobinTitles(
     track(sideA, gamesWon, gamesA);
     track(sideB, gamesWon, gamesB);
 
-    // Если матч завершился ничьей (getWinnerId вернул 0), дополнительную обработку не делаем —
-    // но данные по геймам и сетам остаются в общих счётчиках.
-    void matchWinnerId;
   }
 
   const push = (participantId: number, title: string) => {
