@@ -4,7 +4,7 @@ import "./PlayerCard.css";
 
 import { CommentIconButton, DeleteIconButton, EditIconButton, LikeIconButton } from "@/app/components/controls/IconButtons";
 import { AdminOnly } from "../RoleGuard";
-import { useState } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { Player } from "@/app/models/Player";
 
 type PlayerCardProps = {
@@ -41,11 +41,21 @@ export function PlayerCard({ players, stats, titles, onClick, onDelete }: Player
     })
     .join(isTeam ? " / " : "");
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!onClick) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onClick();
+    }
+  };
+
   return (
     <div
       className="card"
       onClick={onClick}
       role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={handleKeyDown}
     >
 
       {/* тело карточки со счетом */}

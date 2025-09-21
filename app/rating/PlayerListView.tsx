@@ -6,6 +6,7 @@ import { PlayersRepository } from "@/app/repositories/PlayersRepository";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { Player } from "@/app/models/Player";
 import { Match } from "@/app/models/Match";
+import { User, UserRole } from "@/app/models/Users";
 
 import {
   PlusIconButton,
@@ -16,6 +17,8 @@ import "./page.css";
 import { AdminOnly } from "../components/RoleGuard";
 import { PlayerCard } from "../components/players/PlayerCard";
 import { useSearchParams } from "next/navigation";
+import { UserProfileModal } from "../components/UserProfileModal";
+import type { UserProfileStats } from "../components/UserProfileView";
 
 type Props = {
   clubId: number | null;
@@ -28,6 +31,7 @@ export function PlayerListView({clubId = null} : Props) {
   // список игроков и мапа статистики
   const [players, setPlayers] = useState<Player[]>([]);
   const [stats, setStats] = useState<Record<number, { matches: number; wins: number; winrate: number }>>({});
+  const [allMatches, setAllMatches] = useState<Match[]>([]);
 
   // форма добавления/поиска
   const [newPlayer, setNewPlayer] = useState<Partial<Player>>({ name: "", ntrp: "" });
@@ -52,6 +56,7 @@ export function PlayerListView({clubId = null} : Props) {
     const matches: Match[] = await MatchRepository.loadAll();
     const s = Player.getPlayerStats(matches);
     setStats(s);
+    setAllMatches(matches);
 
     // сортировка: по числу матчей, затем по винрейту
     const sorted = [...list].sort((a, b) => {
@@ -109,6 +114,11 @@ export function PlayerListView({clubId = null} : Props) {
     return players.filter((p) => p.name.toLowerCase().includes(q));
   }, [players, deferredSearch]);
 
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileUser, setProfileUser] = useState<User | null>(null);
+  const [profileStats, setProfileStats] = useState<UserProfileStats | undefined>();
+  const [profileMatches, setProfileMatches] = useState<Match[]>([]);
+
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab");
   const className = user || tab ? "page-container-no-padding" : "page-container";
@@ -148,11 +158,50 @@ export function PlayerListView({clubId = null} : Props) {
         <div className="card-grid-one-column">
           {filteredPlayers.map((p) => {
             const playerStats = stats[p.id] ?? { matches: 0, wins: 0, winrate: 0 };
+            const matchesCount = playerStats.matches ?? 0;
+            const wins = playerStats.wins ?? 0;
+            const losses = Math.max(0, matchesCount - wins);
+
+            const handleCardClick = () => {
+              const userModel = new User({
+                id: p.id,
+                name: p.name,
+                role: UserRole.Player,
+                player: p,
+              });
+
+              const playerProfileStats: UserProfileStats = {
+                wins,
+                losses,
+                winRate: Math.round(playerStats.winrate ?? 0),
+              };
+
+              const playerMatches = allMatches
+                .filter((match) => {
+                  const playerId = p.id;
+                  return (
+                    match.player1?.id === playerId ||
+                    match.player2?.id === playerId ||
+                    match.team1?.player1?.id === playerId ||
+                    match.team1?.player2?.id === playerId ||
+                    match.team2?.player1?.id === playerId ||
+                    match.team2?.player2?.id === playerId
+                  );
+                })
+                .sort((a, b) => b.date.getTime() - a.date.getTime());
+
+              setProfileUser(userModel);
+              setProfileStats(playerProfileStats);
+              setProfileMatches(playerMatches);
+              setProfileOpen(true);
+            };
+
             return (
               <PlayerCard
                 key={p.id}
                 players={[p]}
                 stats={playerStats}
+                onClick={handleCardClick}
                 onDelete={() => deletePlayer(p.id)}
               />
             );
@@ -160,6 +209,19 @@ export function PlayerListView({clubId = null} : Props) {
         </div>
 
       </div>
+
+      <UserProfileModal
+        isOpen={profileOpen}
+        onClose={() => {
+          setProfileOpen(false);
+          setProfileUser(null);
+          setProfileStats(undefined);
+          setProfileMatches([]);
+        }}
+        user={profileUser}
+        stats={profileStats}
+        matches={profileMatches}
+      />
     </div>
   );
 }
