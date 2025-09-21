@@ -67,7 +67,7 @@ export function MatchHistoryView({
       {/* Панель поиска */}
       <div className="card page-toolbar">
         <input
-          className="input"
+          className="input input-auth"
           type="text"
           value={q}
           onChange={(e) => setQ(e.target.value)}
