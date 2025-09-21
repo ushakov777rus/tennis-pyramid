@@ -17,10 +17,10 @@ type PlayerCardProps = {
 
 export function PlayerCard({ players, stats, titles, onClick, onDelete }: PlayerCardProps) {
   const participants = players.filter((p): p is Player => Boolean(p));
-  if (!participants.length) return null;
-
   // состояние для временного тултипа "Пока не реализовано"
   const [showTooltip, setShowTooltip] = useState(false);
+
+  if (!participants.length) return null;
 
   const winrate = (winrate: number) => {
     return winrate.toFixed(1) + "%";
