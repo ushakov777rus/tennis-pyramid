@@ -39,10 +39,19 @@
   border-bottom: 1px dashed rgba(255,255,255,0.06);
 }
 
+.avatar-medium.avatar-medium-team {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  line-height: 1;
+}
+
 /* hover для всей карточки */
 .card.match-card:hover {
   border-color: rgba(204,255,102,0.35);
   transform: translateY(-1px);
   transition: 120ms ease;
 }
-

@@ -5,6 +5,7 @@ import type { KeyboardEvent } from "react";
 
 import { Participant } from "@/app/models/Participant";
 import type { Match } from "@/app/models/Match";
+import type { Player } from "@/app/models/Player";
 import { User, UserRole } from "@/app/models/Users";
 
 import "./RatingView.css";
@@ -339,7 +340,7 @@ export function RatingView() {
         wins: stats.wins,
         title: titleText,
         participant,
-        hasHistory: Boolean(participant.player),
+        hasHistory: Boolean(participant.player || participant.team),
       });
     }
 
@@ -365,22 +366,30 @@ export function RatingView() {
       ) : (
         <div className="card-grid-one-column">
           {cardsData.map((card) => {
-            const player = card.participant.player;
-            if (!player) return null;
+            const players = card.participant.player
+              ? [card.participant.player]
+              : [card.participant.team?.player1, card.participant.team?.player2].filter(
+                  (p): p is Player => Boolean(p)
+                );
+
+            if (!players.length) return null;
+
+            const isTeam = players.length > 1;
+            const primaryPlayer = players[0];
 
             const matchesCount = card.games;
             const wins = card.wins;
             const winrateValue = matchesCount > 0 ? (wins / matchesCount) * 100 : 0;
-            const canOpen = card.hasHistory;
+            const canOpen = card.hasHistory && !isTeam;
 
             const handleCardClick = () => {
               if (!canOpen) return;
 
               const user = new User({
-                id: player.id ?? 0,
-                name: player.name ?? "Игрок",
+                id: primaryPlayer.id ?? 0,
+                name: primaryPlayer.name ?? "Игрок",
                 role: UserRole.Player,
-                player,
+                player: primaryPlayer,
               });
 
               const profileStatsValue: UserProfileStats = {
@@ -392,7 +401,7 @@ export function RatingView() {
 
               const playerMatches = resolvedMatches
                 .filter((match) => {
-                  const playerId = player.id;
+                  const playerId = primaryPlayer.id;
                   if (!playerId) return false;
                   return (
                     match.player1?.id === playerId ||
@@ -430,7 +439,7 @@ export function RatingView() {
                 aria-disabled={canOpen ? undefined : true}
               >
                 <PlayerCard
-                  player={player}
+                  players={players}
                   stats={{
                     matches: matchesCount,
                     wins,

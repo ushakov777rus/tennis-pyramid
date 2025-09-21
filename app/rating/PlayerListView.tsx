@@ -21,6 +21,7 @@ type Props = {
   clubId: number | null;
 };
 
+/* Список игроков в рейтинге клуба и в общем рейтинге */
 export function PlayerListView({clubId = null} : Props) {
   const { user } = useUser();
 
@@ -150,8 +151,8 @@ export function PlayerListView({clubId = null} : Props) {
             return (
               <PlayerCard
                 key={p.id}
-                player={p}
-                stats={playerStats} 
+                players={[p]}
+                stats={playerStats}
                 onDelete={() => deletePlayer(p.id)}
               />
             );
