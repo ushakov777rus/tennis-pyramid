@@ -92,7 +92,7 @@ export function AddClubModal({ isOpen, onClose, onCreate }: Props) {
             placeholder="Название клуба"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="input"
+            className="input input-100"
             autoFocus
           />
 
@@ -101,7 +101,7 @@ export function AddClubModal({ isOpen, onClose, onCreate }: Props) {
             placeholder="Город"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            className="input"
+            className="input input-100"
           />
 
           {error && <div className="modal-error" role="alert">{error}</div>}
