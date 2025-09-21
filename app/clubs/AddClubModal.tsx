@@ -69,7 +69,7 @@ export function AddClubModal({ isOpen, onClose, onCreate }: Props) {
   return (
     <div className="modal-overlay" onClick={handleOverlayClick} aria-hidden={false}>
       <div
-        className="modal-content"
+        className="modal-content modal-base-width"
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
