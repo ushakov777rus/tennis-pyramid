@@ -25,8 +25,6 @@ export default async function TournamentPage(
 
   if (!tPlain) notFound();
 
-  console.log("TournamentPage-------------------------",clubPlain);
-
   return (
     <ClubProvider initial={{ slug, clubPlain }}>
       <TournamentProvider initial={{ tournamentSlug: tSlug, tournamentPlain: tPlain }}>

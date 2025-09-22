@@ -38,6 +38,7 @@ export function TournamentCard({
   );
   const [statusMenuOpen, setStatusMenuOpen] = useState(false);
   const [statusPending, setStatusPending] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState(tournament?.status ?? TournamentStatus.Draft);
   const statusRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -50,6 +51,11 @@ export function TournamentCard({
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, [statusMenuOpen]);
+
+  useEffect(() => {
+    if (!tournament) return;
+    setCurrentStatus(tournament.status);
+  }, [tournament?.status, tournament]);
 
   const className = `card card-800px ${onClick ? "clickable" : ""}`;
 
@@ -82,18 +88,25 @@ if (tournament == null) {
     event.stopPropagation();
     if (!tournament) return;
     setStatusMenuOpen(false);
-    if (nextStatus === tournament.status) return;
+    if (nextStatus === currentStatus) return;
 
     setStatusPending(true);
+    setCurrentStatus(nextStatus);
     try {
       await updateTournamentStatus(tournament.id, nextStatus);
     } catch (err) {
       console.error("Failed to update tournament status", err);
       alert("Не удалось обновить статус турнира");
+      setCurrentStatus(tournament.status);
     } finally {
       setStatusPending(false);
     }
   };
+
+  const currentStatusLabel = useMemo(() => {
+    const matched = statusOptions.find((option) => option.value === currentStatus);
+    return matched ? matched.label : tournament?.getStatus() ?? "";
+  }, [currentStatus, statusOptions, tournament]);
 
   return (
     <div className={className} onClick={onClick}>
@@ -107,13 +120,13 @@ if (tournament == null) {
             <div className="tournament-status-control" ref={statusRef} onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
-                className={`status ${tournament.status} tournament-status-control__button${statusPending ? " is-loading" : ""}`}
+                className={`status ${currentStatus} tournament-status-control__button${statusPending ? " is-loading" : ""}`}
                 onClick={handleToggleStatusMenu}
                 disabled={statusPending}
                 aria-haspopup="menu"
                 aria-expanded={statusMenuOpen}
               >
-                {tournament.getStatus()}
+                {currentStatusLabel}
               </button>
               {statusMenuOpen && (
                 <ul className="tournament-status-control__dropdown" role="menu">
@@ -122,9 +135,9 @@ if (tournament == null) {
                       <button
                         type="button"
                         role="menuitemradio"
-                        aria-checked={option.value === tournament.status}
+                        aria-checked={option.value === currentStatus}
                         className={`tournament-status-control__option${
-                          option.value === tournament.status ? " is-active" : ""
+                          option.value === currentStatus ? " is-active" : ""
                         }`}
                         onClick={(event) => handleStatusSelect(option.value, event)}
                         disabled={statusPending}
@@ -137,7 +150,7 @@ if (tournament == null) {
               )}
             </div>
           ) : (
-            <span className={`status ${tournament.status}`}>{tournament.getStatus()}</span>
+            <span className={`status ${currentStatus}`}>{currentStatusLabel}</span>
           )}
         </div>
       </div>

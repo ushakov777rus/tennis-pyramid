@@ -15,8 +15,6 @@ export class PlayersRepository {
       return [];
     }
 
-    console.log("PlayersRepository-loadAll:", data);
-
     return (data ?? []).map((row: any) => {
       return new Player(row);
     });
