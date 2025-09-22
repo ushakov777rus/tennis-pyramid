@@ -103,7 +103,16 @@ export function GuestIntroSlider() {
         </button>
 
         <div className="guest-slider__media">
-          <video key={slide.src} src={slide.src} controls playsInline preload="metadata" className="guest-slider__video" />
+          <video
+            key={slide.src}
+            src={slide.src}
+            controls
+            autoPlay
+            muted
+            playsInline
+            preload="metadata"
+            className="guest-slider__video"
+          />
         </div>
 
         <div className="guest-slider__content">
