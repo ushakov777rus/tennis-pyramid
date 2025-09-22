@@ -302,6 +302,8 @@ export default function TournamentClient() {
 
   if (!tournament) return <p>Загрузка...</p>;
 
+  console.log("TournamentClint", tournament);
+
   const isAnon = user?.role === undefined;
   const isPlayerWithFixedAttacker = user?.role === UserRole.Player && !!user?.player.id;
   const className = user ? "page-container-no-padding" : "page-container";

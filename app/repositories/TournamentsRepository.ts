@@ -12,7 +12,7 @@ import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
 import { PlayersRepository } from "./PlayersRepository";
 import { UserRole } from "../models/Users";
-import type { Club } from "@/app/models/Club";
+import { Club } from "@/app/models/Club";
 
 /* ---------- Plain-типы ---------- */
 
@@ -282,6 +282,19 @@ export class TournamentsRepository {
   static async delete(id: number): Promise<void> {
     const { error } = await supabase.from("tournaments").delete().eq("id", id);
     if (error) console.error("Ошибка удаления турнира:", error);
+  }
+
+  /** Обновить статус турнира */
+  static async updateStatus(id: number, status: TournamentStatus): Promise<Tournament | null> {
+    const { data, error } = await supabase
+      .from("tournaments")
+      .update({ status })
+      .eq("id", id)
+      .select(`*, club:clubs(*)`)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data ? mapRowToTournament(data) : null;
   }
 
   /** Загрузить участников турнира (без изменений) */

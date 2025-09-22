@@ -117,7 +117,7 @@ export function ClubsProvider({
       const tmpId = -Math.floor(Math.random() * 1e9);
       const optimistic: Club = {
         id: tmpId,
-        director_id: user.id,
+        created_by: user.id,
         slug: p.name, // TODO: нормализовать slug (транслит/кириллица)
         name: p.name,
         description: p.description ?? null,

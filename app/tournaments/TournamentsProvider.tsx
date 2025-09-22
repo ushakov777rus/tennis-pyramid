@@ -17,6 +17,7 @@ type TournamentsContextValue = {
   refresh: () => Promise<void>;
   createTournament: (p: TournamentCreateInput) => Promise<void>;
   deleteTournament: (id: number) => Promise<void>;
+  updateTournamentStatus: (id: number, status: TournamentStatus) => Promise<void>;
 };
 
 const TournamentsContext = createContext<TournamentsContextValue | undefined>(undefined);
@@ -199,6 +200,41 @@ const createTournament = useCallback(async (p: TournamentCreateInput) => {
     }
   }, [tournaments, stats]);
 
+  const updateTournamentStatus = useCallback(async (id: number, status: TournamentStatus) => {
+    const target = tournaments.find((t) => t.id === id);
+    if (!target) return;
+
+    const optimistic = new Tournament(
+      target.id,
+      target.name,
+      target.format,
+      status,
+      target.tournament_type,
+      target.start_date,
+      target.end_date,
+      target.is_public,
+      target.creator_id,
+      target.slug,
+      target.club,
+      target.settings
+    );
+
+    setTournaments((prev) => prev.map((t) => (t.id === id ? optimistic : t)));
+
+    try {
+      const updated = await TournamentsRepository.updateStatus(id, status);
+      if (updated) {
+        setTournaments((prev) => prev.map((t) => (t.id === id ? updated : t)));
+      } else {
+        await refresh({ background: true });
+      }
+    } catch (e) {
+      console.error("updateTournamentStatus error:", e);
+      setTournaments((prev) => prev.map((t) => (t.id === id ? target : t)));
+      throw e;
+    }
+  }, [tournaments, refresh]);
+
   const value = useMemo(() => ({
     tournaments,
     loading,
@@ -207,7 +243,8 @@ const createTournament = useCallback(async (p: TournamentCreateInput) => {
     refresh,
     createTournament,
     deleteTournament,
-  }), [tournaments, loading, error, stats, refresh, createTournament, deleteTournament]);
+    updateTournamentStatus,
+  }), [tournaments, loading, error, stats, refresh, createTournament, deleteTournament, updateTournamentStatus]);
 
   return <TournamentsContext.Provider value={value}>{children}</TournamentsContext.Provider>;
 }

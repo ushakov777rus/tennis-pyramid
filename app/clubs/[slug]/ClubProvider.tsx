@@ -112,9 +112,9 @@ export function ClubProvider({
         setClub(next);
 
         // 2) директор
-        if (next?.director_id) {
+        if (next?.created_by) {
           try {
-            const d = await UsersRepository.findById(next.director_id); // -> User | null
+            const d = await UsersRepository.findById(next.created_by); // -> User | null
             setDirector(d ?? null);
           } catch (err) {
             console.error("ClubProvider.reload: cannot load director", err);

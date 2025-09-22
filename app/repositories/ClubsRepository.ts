@@ -91,7 +91,7 @@ static async createNewClub(input: ClubCreateInput): Promise<Club> {
 
     return {
       id: data.id,
-      director_id: data.creted_by,
+      director_id: data.created_by,
       slug: data.slug,
       name: data.name,
       description: data.description,

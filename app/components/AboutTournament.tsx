@@ -38,6 +38,8 @@ export function AboutTournament() {
     return <div className="card about-card">Нет данных о турнире</div>;
   }
 
+  console.log("AboutTournament",tournament);
+
   return (
     <div className="page-content-container card-800px">
       <section className="card-grid">

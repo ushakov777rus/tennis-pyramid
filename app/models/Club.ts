@@ -1,6 +1,6 @@
 export class Club {
   id: number;
-  director_id: number;
+  created_by: number;
   slug: string;
   name: string;
   description: string | null;
@@ -25,7 +25,7 @@ export class Club {
     updated_at: string;
   }) {
     this.id = data.id;
-    this.director_id = data.director_id;
+    this.created_by = data.director_id;
     this.slug = data.slug;
     this.name = data.name;
     this.description = data.description ?? null;

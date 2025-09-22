@@ -170,6 +170,7 @@ export function TournamentProvider({
         // 1) турнир по slug → модель
         const tPlain = await TournamentsRepository.getBySlug(tournamentSlug);
         const t = toModel(tPlain);
+
         setTournament(t);
 
         if (!t) {

@@ -194,6 +194,10 @@ body {
   background-color: #666;
 }
 
+.status.registration {
+  background-color: #0074d9;
+}
+
 .status.ongoing {
   background-color: #6fa502;
 }

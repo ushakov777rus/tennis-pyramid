@@ -43,5 +43,72 @@
 .tournament-card-header > :nth-child(2) { text-align: center;}
 .tournament-card-header > :nth-child(3) { text-align: right; }
 
+.tournament-status-cell {
+  display: flex;
+  justify-content: flex-end;
+}
 
+.tournament-status-control {
+  position: relative;
+  display: inline-flex;
+}
+
+.tournament-status-control__button {
+  border: none;
+  cursor: pointer;
+  background: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.15s ease;
+}
+
+.tournament-status-control__button:disabled {
+  cursor: progress;
+}
+
+.tournament-status-control__button.is-loading {
+  opacity: 0.7;
+}
+
+.tournament-status-control__button::after {
+  content: "▾";
+  font-size: 10px;
+}
+
+.tournament-status-control__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 160px;
+  padding: 4px 0;
+  margin: 0;
+  list-style: none;
+  background: rgba(20, 22, 35, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+}
+
+.tournament-status-control__option {
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.tournament-status-control__option:hover,
+.tournament-status-control__option.is-active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tournament-status-control__option:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
 
