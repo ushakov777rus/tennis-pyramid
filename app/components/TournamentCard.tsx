@@ -20,6 +20,7 @@ type TournamentCardProps = {
   displayName: boolean;
   onClick?: () => void;
   onDelete?: (tournamentId: number) => void;
+  onStatusChange?: (status: TournamentStatus) => void;
 };
 
 export function TournamentCard({
@@ -28,7 +29,8 @@ export function TournamentCard({
   matchesCount,
   displayName = true,
   onClick,
-  onDelete
+  onDelete,
+  onStatusChange,
 }: TournamentCardProps) {
   const { user } = useUser();
   const { updateTournamentStatus } = useTournaments();
@@ -57,18 +59,21 @@ export function TournamentCard({
     setCurrentStatus(tournament.status);
   }, [tournament?.status, tournament]);
 
+  const currentStatusLabel = useMemo(() => {
+    const matched = statusOptions.find((option) => option.value === currentStatus);
+    return matched ? matched.label : tournament?.getStatus() ?? "";
+  }, [currentStatus, statusOptions, tournament]);
+
   const className = `card card-800px ${onClick ? "clickable" : ""}`;
 
-// Пустая карточка-скелет, если турнира нет (null/undefined)
-if (tournament == null) {
-  return (
-    <div className={className} onClick={onClick}>
-      <div className="card-add">
-        +
+  // Пустая карточка-скелет, если турнира нет (null/undefined)
+  if (tournament == null) {
+    return (
+      <div className={className} onClick={onClick}>
+        <div className="card-add">+</div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   const canChangeStatus = (() => {
     if (!tournament || !user) return false;
@@ -94,27 +99,24 @@ if (tournament == null) {
     setCurrentStatus(nextStatus);
     try {
       await updateTournamentStatus(tournament.id, nextStatus);
+      onStatusChange?.(nextStatus);
     } catch (err) {
       console.error("Failed to update tournament status", err);
       alert("Не удалось обновить статус турнира");
       setCurrentStatus(tournament.status);
+      onStatusChange?.(tournament.status);
     } finally {
       setStatusPending(false);
     }
   };
 
-  const currentStatusLabel = useMemo(() => {
-    const matched = statusOptions.find((option) => option.value === currentStatus);
-    return matched ? matched.label : tournament?.getStatus() ?? "";
-  }, [currentStatus, statusOptions, tournament]);
-
   return (
     <div className={className} onClick={onClick}>
       <div className="tournament-card-header">
         <div>{tournament.club && tournament.club.name}</div>
-        {displayName && (
+        {displayName ? (
           <h3>{tournament.name}</h3>
-        )}
+        ) : (<div></div>)}
         <div className="tournament-status-cell">
           {canChangeStatus ? (
             <div className="tournament-status-control" ref={statusRef} onClick={(e) => e.stopPropagation()}>

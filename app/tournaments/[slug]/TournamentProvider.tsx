@@ -9,7 +9,7 @@ import React, {
   useState,
 } from "react";
 
-import { Tournament as TournamentModel } from "@/app/models/Tournament";
+import { Tournament as TournamentModel, TournamentStatus } from "@/app/models/Tournament";
 import type { Tournament } from "@/app/models/Tournament";
 import type { Player } from "@/app/models/Player";
 import type { Team } from "@/app/models/Team";
@@ -87,6 +87,7 @@ export type TournamentContextShape = {
 
   // действия
   reload: (opts?: { silent?: boolean }) => Promise<void>;
+  setTournamentStatus: (status: TournamentStatus) => void;
 
   // классические мутации (оставлены как есть)
   addMatch: (args: AddMatchArgs) => Promise<void>;
@@ -446,6 +447,26 @@ export function TournamentProvider({
     [requireTid, tournament, participants, reload]
   );
 
+  const setTournamentStatus = useCallback((status: TournamentStatus) => {
+    setTournament((prev) => {
+      if (!prev) return prev;
+      return new TournamentModel(
+        prev.id,
+        prev.name,
+        prev.format,
+        status,
+        prev.tournament_type,
+        prev.start_date,
+        prev.end_date,
+        prev.is_public,
+        prev.creator_id,
+        prev.slug,
+        prev.club,
+        prev.settings
+      );
+    });
+  }, []);
+
   const value = useMemo<TournamentContextShape>(
     () => ({
       loading: initialLoading,
@@ -464,6 +485,7 @@ export function TournamentProvider({
       matches,
 
       reload,
+      setTournamentStatus,
 
       // стандартные экшены
       addMatch,
@@ -493,6 +515,7 @@ export function TournamentProvider({
       teams,
       matches,
       reload,
+      setTournamentStatus,
       addMatch,
       updateMatch,
       deleteMatch,

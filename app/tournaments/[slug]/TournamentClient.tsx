@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useUser } from "@/app/components/UserContext";
 import { useSearchParams } from "next/navigation"; // Добавьте этот импорт
 
-import { Tournament } from "@/app/models/Tournament";
+import { Tournament, TournamentStatus } from "@/app/models/Tournament";
 import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
 import { Match, PhaseType } from "@/app/models/Match";
@@ -51,6 +51,7 @@ export default function TournamentClient() {
     deleteMatch,
     updatePositions,
     addMatchAndMaybeSwap,
+    setTournamentStatus,
   } = useTournament();
 
   const { user } = useUser();
@@ -317,6 +318,7 @@ export default function TournamentClient() {
             participantsCount={participants.length}
             matchesCount={matches.length}
             displayName={false}
+            onStatusChange={setTournamentStatus}
           />
         </div>
 
@@ -330,7 +332,7 @@ export default function TournamentClient() {
           />
 
           {/* Добавление матча — карточка */}
-          {tournament.isPyramid() && view === "bracket" && (
+          {tournament.isPyramid() && tournament.status === TournamentStatus.Ongoing && view === "bracket" && (
             <LoggedIn>
               <AddMatchCard
                 options={options}
@@ -347,7 +349,7 @@ export default function TournamentClient() {
             </LoggedIn>
           )}
 
-          {tournament.isCustom() && view === "matches" && (
+          {tournament.isCustom() && tournament.status === TournamentStatus.Ongoing && view === "matches" && (
             <LoggedIn>
               <AddMatchCard
                 options={options}
