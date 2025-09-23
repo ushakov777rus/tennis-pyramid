@@ -219,10 +219,6 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
               </div>
             ))}
           </div>
-
-          <div className="match-card-edit__hint">
-            Укажите два сета и, при необходимости, тай-брейк (третья колонка). Пустые поля будут проигнорированы.
-          </div>
           {error && <div className="match-card-edit__error">{error}</div>}
         </div>
       ) : (
