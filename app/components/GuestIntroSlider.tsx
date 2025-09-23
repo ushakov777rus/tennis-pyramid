@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUser } from "@/app/components/UserContext";
 
 import "./GuestIntroSlider.css";
@@ -27,6 +27,7 @@ export function GuestIntroSlider() {
   const [dontShow, setDontShow] = useState(false);
   const [current, setCurrent] = useState(0);
   const [shouldSkip, setShouldSkip] = useState(true);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -86,9 +87,42 @@ export function GuestIntroSlider() {
     setCurrent((prev) => (prev + 1) % SLIDES.length);
   };
 
-  if (!visible) return null;
-
   const slide = SLIDES[current];
+
+  useEffect(() => {
+    if (!visible) return;
+    const node = videoRef.current;
+    if (!node) return;
+
+    const playSafely = () => {
+      const promise = node.play();
+      if (promise && typeof promise.then === "function") {
+        promise.catch(() => {
+          node.muted = true;
+          node.play().catch(() => {});
+        });
+      }
+    };
+
+    if (!node.paused) {
+      node.pause();
+    }
+    node.currentTime = 0;
+    node.load();
+
+    if (node.readyState >= 2) {
+      playSafely();
+    } else {
+      const handleLoaded = () => {
+        playSafely();
+        node.removeEventListener("loadeddata", handleLoaded);
+      };
+      node.addEventListener("loadeddata", handleLoaded);
+      return () => node.removeEventListener("loadeddata", handleLoaded);
+    }
+  }, [visible, slide.src]);
+
+  if (!visible) return null;
 
   return (
     <div className="guest-slider-overlay" role="dialog" aria-modal="true">
@@ -111,8 +145,12 @@ export function GuestIntroSlider() {
             muted
             playsInline
             preload="metadata"
+            ref={videoRef}
             className="guest-slider__video"
-          />
+          >
+            <source src={slide.src} type="video/mp4" />
+            Ваш браузер не поддерживает воспроизведение видео.
+          </video>
         </div>
 
         <div className="guest-slider__content">
