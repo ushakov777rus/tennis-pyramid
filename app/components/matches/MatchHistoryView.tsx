@@ -17,11 +17,6 @@ export function MatchHistoryView({
   onEditMatch,
   onDeleteMatch,
 }: MatchHistoryViewProps) {
-  // --- локальное состояние для редактирования (на будущее оставляем)
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editDate, setEditDate] = useState<string>("");
-  const [editScore, setEditScore] = useState<string>("");
-
   // --- строка поиска
   const [q, setQ] = useState("");
 
@@ -49,19 +44,6 @@ export function MatchHistoryView({
 
   if (matches.length === 0) return <p className="history-empty">Матчей пока нет</p>;
 
-  // ---- вспомогательные: редактирование/удаление (оставлены без изменений)
-  const startEditing = (m: Match) => {
-    setEditingId(m.id);
-    setEditDate(new Date(m.date as any).toISOString().split("T")[0]);
-    setEditScore(m.formatResult());
-  };
-  const cancelEditing = () => {
-    setEditingId(null);
-    setEditDate("");
-    setEditScore("");
-  };
-  const confirmDelete = (m: Match) => onDeleteMatch?.(m);
-
   return (
     <div className="page-content-container">
       {/* Панель поиска */}
@@ -82,7 +64,8 @@ export function MatchHistoryView({
           <MatchCard
             key={m.id}
             match={m}
-            onDelete={() => confirmDelete(m)}
+            onEdit={onEditMatch}
+            onDelete={onDeleteMatch}
           />
         ))}
       </div>

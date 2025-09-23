@@ -26,7 +26,6 @@ import {
 import { TeamsRepository } from "@/app/repositories/TeamsRepository";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { useUser } from "@/app/components/UserContext";
-import { User } from "@/app/models/Users";
 
 /** Аргументы «1 RPC: добавить матч + при необходимости свапнуть позиции в пирамиде» */
 export type AddMatchAndMaybeSwapArgs = {

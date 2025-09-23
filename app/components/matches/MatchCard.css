@@ -25,6 +25,10 @@
   gap: 8px;
 }
 
+.match-card-row--editing {
+  grid-template-columns: 40px 1fr repeat(3, 30px);
+}
+
 /* строка с заголовком колонок (S1, S2...) */
 .match-card-row--head {
   border-bottom: 1px solid rgba(255,255,255,0.10);
@@ -48,7 +52,7 @@
 /* адаптив */
 @media (max-width: 480px) {
   .match-card-row {
-    grid-template-columns: 40px 1fr repeat(var(--sets-count, 3), 20px);
+    grid-template-columns: 40px 1fr repeat(var(--sets-count, 3), 25px);
   }
   .cell--score { font-size: 14px; }
 }
@@ -58,3 +62,44 @@
   font-weight: 700;
 }
 
+.match-card-body--editing {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.match-card-row--editing 
+.match-card-score-input {
+  width: 100%;
+  height: calc(2.5em + 8px);
+}
+
+.match-card-score-input {
+  width: 100%;
+  max-width: 30px;
+  text-align: center;
+  padding: 2px 4px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.05);
+  color: inherit;
+  box-sizing: border-box;
+}
+
+.match-card-score-input:focus {
+  outline: none;
+  border-color: rgba(125, 211, 252, 0.8);
+  background: rgba(125, 211, 252, 0.1);
+}
+
+.match-card-edit__hint {
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.match-card-edit__error {
+  color: #f04438;
+  font-size: 13px;
+}
