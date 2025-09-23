@@ -157,6 +157,18 @@
   flex: 1;
 }
 
+.empty-participants {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 32px;
+}
+
+.empty-participants__button {
+  padding: 12px 28px;
+  font-size: 16px;
+}
+
 
 @media (max-width: 480px) {
 .card-input-add-match {
@@ -164,5 +176,4 @@
   margin-right: 5px;
 }
 }
-
 

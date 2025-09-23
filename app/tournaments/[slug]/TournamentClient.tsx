@@ -68,19 +68,21 @@ export default function TournamentClient() {
 
   const showBracketTab = tournament ? !tournament.isCustom() : true;
 
+  const canAccessParticipantsTab = user?.role === UserRole.SiteAdmin || user?.role === UserRole.TournamentAdmin;
+
   const tabs: TabItem[] = useMemo(() => {
     const items: Array<TabItem | false> = [
       { key: "aboutt", label: "О турнире" },
       showBracketTab && { key: "bracket", label: "Сетка" },
       { key: "matches", label: "Матчи" },
-      (user?.role === UserRole.SiteAdmin || user?.role === UserRole.TournamentAdmin) && {
+      canAccessParticipantsTab && {
         key: "participants",
         label: "Участники",
       },
       { key: "results", label: "Рейтинг" },
     ];
     return items.filter(Boolean) as TabItem[];
-  }, [showBracketTab, user?.role]);
+  }, [showBracketTab, canAccessParticipantsTab]);
 
   // Синхронизация с URL параметром tab
   useEffect(() => {
@@ -377,6 +379,7 @@ export default function TournamentClient() {
                 onShowHistoryPlayer={handleShowHistoryPlayer}
                 onSaveScoreRoundRobin={handleSaveScore}
                 onPositionsChange={updatePositions}
+                onGoToParticipants={canAccessParticipantsTab ? () => setView("participants") : undefined}
               />}
 
             {view === "matches" && 
@@ -421,6 +424,7 @@ const FormatView = React.memo(function FormatView({
   onShowHistoryPlayer,
   onSaveScoreRoundRobin,
   onPositionsChange,
+  onGoToParticipants,
 }: {
   tournament: Tournament;
   participants: Participant[];
@@ -435,6 +439,7 @@ const FormatView = React.memo(function FormatView({
     meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
   ) => void;
   onPositionsChange: (next: Participant[]) => Promise<void> | void;
+  onGoToParticipants?: () => void;
 }) {
   const handleShowHistory = useCallback(
     (participant?: Participant) => {
@@ -445,6 +450,19 @@ const FormatView = React.memo(function FormatView({
 
   if (tournament.isCustom()) {
     return null;
+  }
+
+  if (participants.length === 0) {
+    if (onGoToParticipants) {
+      return (
+        <div className="empty-participants">
+          <button type="button" className="btn-base empty-participants__button" onClick={onGoToParticipants}>
+            Добавьте участников в турнир
+          </button>
+        </div>
+      );
+    }
+    return <div>Добавьте участников в турнир</div>;
   }
 
   if (tournament.isRoundRobin()) {

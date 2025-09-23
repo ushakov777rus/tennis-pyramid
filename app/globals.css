@@ -235,6 +235,17 @@ body {
   padding: 5px;
 }
 
+.btn-base {
+  background: #ccff66;
+  border: none;
+  padding: 5px 14px;
+  border-radius: 6px;
+  color: black;
+  cursor: pointer;
+  width: auto;
+  text-align: center;
+}
+
 
 .btn.primary {
   /* можно использовать твой .icon-btn/.lg стили, если есть */
