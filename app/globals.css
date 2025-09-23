@@ -187,7 +187,7 @@ body {
   font-size: 10px;
   font-weight: bold;
   color: white;
-  width: 60px;
+  width: auto;
 }
 
 .status.draft {
