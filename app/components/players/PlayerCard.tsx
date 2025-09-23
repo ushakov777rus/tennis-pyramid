@@ -82,9 +82,11 @@ export function PlayerCard({ players, stats, titles, onClick, onDelete }: Player
             <div>Побед: {stats.wins ?? 0}</div>
             <div>WR: {winrate(stats.winrate)}</div>
         </div>
-        <div className="player-card-row">
-          {titles && <div className="badge">{titles}</div>}
-        </div>
+        
+          {titles && 
+            <div className="player-card-row">
+              <div className="badge">{titles}</div>
+            </div>}
       </div>
 
       {/* нижняя панель с действиями */}
