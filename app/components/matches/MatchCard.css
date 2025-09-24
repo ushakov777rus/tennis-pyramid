@@ -50,11 +50,14 @@
 }
 
 /* адаптив */
-@media (max-width: 480px) {
+@media (max-width: 768px) {
   .match-card-row {
     grid-template-columns: 40px 1fr repeat(var(--sets-count, 3), 25px);
   }
-  .cell--score { font-size: 14px; }
+  .cell--score 
+  { 
+    font-size: 16px; 
+  }
 }
 
 .cell--score.winner {
@@ -80,10 +83,7 @@
   width: 100%;
   max-width: 30px;
   text-align: center;
-  padding: 2px 4px;
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 6px;
-  background: rgba(255,255,255,0.05);
+  padding: 2px 2px;
   color: inherit;
   box-sizing: border-box;
 }

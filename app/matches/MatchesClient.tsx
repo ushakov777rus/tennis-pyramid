@@ -9,6 +9,7 @@ import { useMatches } from "./MatchesProvider";
 
 import "./page.css";
 import "@/app/components/matches/MatchHistoryView.css";
+import { useUser } from "../components/UserContext";
 
 export function MatchesClient() {
   const {
@@ -61,8 +62,11 @@ export function MatchesClient() {
     );
   }
 
+  const { user } = useUser();
+  const className = user ? "page-container-no-padding" : "page-container";
+
   return (
-    <div className="page-container">
+    <div className={className}>
       <h1 className="page-title">Список матчей</h1>
 
       <div className="page-content-container">{content}</div>

@@ -191,7 +191,7 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
                   type="text"
                   inputMode="numeric"
                   maxLength={2}
-                  className="match-card-score-input"
+                  className="input match-card-score-input"
                   value={set[0]}
                   onChange={(e) => handleScoreInputChange(i, 0, e.target.value)}
                   placeholder="0"
@@ -210,7 +210,7 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
                   type="text"
                   inputMode="numeric"
                   maxLength={2}
-                  className="match-card-score-input"
+                  className="input match-card-score-input"
                   value={set[1]}
                   onChange={(e) => handleScoreInputChange(i, 1, e.target.value)}
                   placeholder="0"
