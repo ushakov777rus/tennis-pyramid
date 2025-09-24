@@ -3,7 +3,7 @@
   text-align: center;
   font-size: 14px;
   color: #aaa;
-  margin-top: 15px;
+  margin: 0;
 }
 
 .login-footer a {
@@ -17,7 +17,7 @@
 
 .form-error {
   color: #e74c3c;
-  margin: 10px 0;
+  margin: 0;
   text-align: center;
   font-size: 14px;
 }
@@ -25,4 +25,35 @@
 .modal-content-login {
   max-width: 400px;
   padding: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--login-gap, 12px) * 2);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--login-gap, 12px) * 2);
+}
+
+.login-form__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--login-gap, 12px);
+}
+
+.modal-content-login--register {
+  width: min(400px, 100vw - 32px);
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--login-gap, 12px) * 2);
+}
+
+.register-form__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--login-gap, 12px);
 }

@@ -50,47 +50,51 @@ export function LoginModal({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content modal-content-login" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content modal-content-login modal-content-login--register" onClick={(e) => e.stopPropagation()}>
         <div className="modal-title">Вход</div>
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="input input-100"
-          autoComplete="email"
-          inputMode="email"
-        />
+        <div className="login-form">
+          <div className="login-form__fields">
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="input input-100"
+              autoComplete="email"
+              inputMode="email"
+            />
 
-        <input
-          type="password"
-          placeholder="Пароль"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="input input-100"
-        />
+            <input
+              type="password"
+              placeholder="Пароль"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input input-100"
+            />
+          </div>
 
-        <button onClick={handleLogin} className="modal-submit-btn">
-          Войти
-        </button>
+          <button onClick={handleLogin} className="modal-submit-btn">
+            Войти
+          </button>
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
+          {error && <p className="form-error">{error}</p>}
+
+          <p className="login-footer">
+            Нет аккаунта?{" "}
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                onSwitchToRegister?.();
+              }}
+            >
+              Зарегистрируйтесь
+            </a>
+          </p>
+        </div>
 
         <button onClick={onClose} className="modal-close-btn">✖</button>
-
-        <p className="login-footer">
-          Нет аккаунта?{" "}
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              onSwitchToRegister?.();
-            }}
-          >
-            Зарегистрируйтесь
-          </a>
-        </p>
       </div>
     </div>
   );

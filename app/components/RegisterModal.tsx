@@ -115,7 +115,7 @@ export function RegisterModal({
       aria-hidden="true"
     >
       <div
-        className="modal-content modal-content-login"
+        className="modal-content modal-content-login modal-content-login--register"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -125,86 +125,105 @@ export function RegisterModal({
           Регистрация пользователя
         </h2>
 
-        <CustomSelect
-          className="input input-100"
-          options={[
-            { value: "player", label: "Игрок" },
-            { value: "tournament_admin", label: "Организатор" },
-          ]}
-          value={role}
-          onChange={(val) => setRole(val as UserRole)}
-          placeholder="Выберите роль"
-          disabled={pending}
-          showSearch={false}
-          sort={false}
-        />
-        <input
-          type="text"
-          placeholder="Фамилия и Имя"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          className="input input-100"
-          disabled={pending}
-          autoComplete="name"
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="input input-100"
-          disabled={pending}
-          autoComplete="email"
-          inputMode="email"
-        />
-        <input
-          type="tel"
-          placeholder="Телефон (необязательно)"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="input input-100"
-          disabled={pending}
-          autoComplete="tel"
-          inputMode="tel"
-        />
+        <div className="register-form">
+          <div className="register-form__fields">
+            <CustomSelect
+              className="input input-100"
+              options={[
+                { value: "player", label: "Игрок" },
+                { value: "tournament_admin", label: "Организатор" },
+              ]}
+              value={role}
+              onChange={(val) => setRole(val as UserRole)}
+              placeholder="Выберите роль"
+              disabled={pending}
+              showSearch={false}
+              sort={false}
+            />
+            <input
+              type="text"
+              placeholder="Фамилия и Имя"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="input input-100"
+              disabled={pending}
+              autoComplete="name"
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="input input-100"
+              disabled={pending}
+              autoComplete="email"
+              inputMode="email"
+            />
+            <input
+              type="tel"
+              placeholder="Телефон (необязательно)"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="input input-100"
+              disabled={pending}
+              autoComplete="tel"
+              inputMode="tel"
+            />
 
-        <input
-          type="text"
-          placeholder="NTRP (например 3.5)"
-          value={ntrp}
-          onChange={(e) => setNTRP(e.target.value)}
-          className="input input-100"
-          disabled={pending}
-        />
+            {role === UserRole.Player && (
+              <input
+                type="text"
+                placeholder="NTRP (например 3.5)"
+                value={ntrp}
+                onChange={(e) => setNTRP(e.target.value)}
+                className="input input-100"
+                disabled={pending}
+              />
+            )}
 
-        <input
-          type="password"
-          placeholder="Пароль (минимум 6 символов)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="input input-100"
-          disabled={pending}
-          autoComplete="new-password"
-        />
-        <input
-          type="password"
-          placeholder="Повтор пароля"
-          value={password2}
-          onChange={(e) => setPassword2(e.target.value)}
-          className="input input-100"
-          disabled={pending}
-          autoComplete="new-password"
-        />
+            <input
+              type="password"
+              placeholder="Пароль (минимум 6 символов)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input input-100"
+              disabled={pending}
+              autoComplete="new-password"
+            />
+            <input
+              type="password"
+              placeholder="Повтор пароля"
+              value={password2}
+              onChange={(e) => setPassword2(e.target.value)}
+              className="input input-100"
+              disabled={pending}
+              autoComplete="new-password"
+            />
+          </div>
 
-        {error && <p className="form-error">{error}</p>}
+          {error && <p className="form-error">{error}</p>}
 
-        <button
-          onClick={handleRegister}
-          className="modal-submit-btn"
-          disabled={pending}
-        >
-          {pending ? "Регистрируем…" : "Зарегистрироваться"}
-        </button>
+          <button
+            onClick={handleRegister}
+            className="modal-submit-btn"
+            disabled={pending}
+          >
+            {pending ? "Регистрируем…" : "Зарегистрироваться"}
+          </button>
+
+          <p className="login-footer">
+            Уже есть аккаунт?{" "}
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (!pending) onSwitchToLogin?.();
+              }}
+            >
+              Войдите
+            </a>
+          </p>
+        </div>
 
         <button
           onClick={onClose}
@@ -214,19 +233,6 @@ export function RegisterModal({
         >
           ✖
         </button>
-
-        <p className="login-footer">
-          Уже есть аккаунт?{" "}
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              if (!pending) onSwitchToLogin?.();
-            }}
-          >
-            Войдите
-          </a>
-        </p>
       </div>
     </div>
   );
