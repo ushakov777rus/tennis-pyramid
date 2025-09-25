@@ -175,7 +175,7 @@ export class TournamentsRepository {
 
     const role = userRole;
 
-    if (role === "site_admin") {
+    if (role === UserRole.SiteAdmin) {
       const { data, error } = await supabase
         .from("tournaments")
         .select(`*, club:clubs(*)`)
@@ -201,7 +201,7 @@ export class TournamentsRepository {
       return (data ?? []).map(mapRowToTournament);
     }
 
-    if (role === "player") {
+    if (role === UserRole.Player) {
       const player = await PlayersRepository.findByUserId(userId);
       if (!player) return [];
 
@@ -593,7 +593,7 @@ function normalizeTournamentCreateInput(input: TournamentCreateInput) {
     start_date: input.start_date,
     end_date: input.end_date,
     status,
-    creator_id: input.creator_id,
+    creator_id: input.creator_id ?? null,
     is_public: input.is_public,
     club_id,              // <-- ключевое: вместо club кладём club_id
     settings: input.settings ?? null,

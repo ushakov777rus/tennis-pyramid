@@ -86,7 +86,7 @@ export type TournamentCreateInput = {
   /** необязателен: по умолчанию Draft, если не передан */
   status?: TournamentStatus;
   /** кто создал (в БД может быть creator_id) */
-  creator_id: number;
+  creator_id: number | null;
   /** true - видят абсолютно все, false - только организатор и участники */
   is_public: boolean;
   club: Club | null;

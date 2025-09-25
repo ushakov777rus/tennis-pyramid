@@ -415,7 +415,7 @@ export default function TournamentClient() {
 }
 
 // Вспомогательный мемо-компонент для схемы
-const FormatView = React.memo(function FormatView({
+export const FormatView = React.memo(function FormatView({
   tournament,
   participants,
   matches,
@@ -438,7 +438,7 @@ const FormatView = React.memo(function FormatView({
     score: string,
     meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
   ) => void;
-  onPositionsChange: (next: Participant[]) => Promise<void> | void;
+  onPositionsChange?: (next: Participant[]) => Promise<void> | void;
   onGoToParticipants?: () => void;
 }) {
   const handleShowHistory = useCallback(
@@ -501,7 +501,7 @@ const FormatView = React.memo(function FormatView({
       onShowHistory={handleShowHistory}
       matches={matches}
       onPositionsChange={onPositionsChange}
-      maxLevel={tournament.settings.pyramid.maxLevel}
+      maxLevel={tournament.settings.pyramid ? tournament.settings.pyramid.maxLevel : 5} // Если турнир создан через визард, в нем нет настроек и мы просто даем по умолчанию 5 уровней
     />
   );
 });

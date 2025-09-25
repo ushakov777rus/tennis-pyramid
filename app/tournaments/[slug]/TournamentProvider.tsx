@@ -183,7 +183,7 @@ export function TournamentProvider({
         }
 
         try {
-          if (tPlain) {
+          if (tPlain && tPlain.creator_id) {
             const creatorPlayer = await PlayersRepository.findByUserId(tPlain.creator_id);
             setCreator(creatorPlayer ?? null);
           } else {

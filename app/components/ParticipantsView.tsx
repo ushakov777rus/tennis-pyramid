@@ -10,6 +10,7 @@ import {
   PlusIconButton,
 } from "./controls/IconButtons";
 import { AdminOnly } from "./RoleGuard";
+import { useOptionalTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 import { PlayersRepository } from "@/app/repositories/PlayersRepository"; // [NEW] для создания игрока
 
 /* ===================== Типы пропсов (два режима) ===================== */
@@ -62,6 +63,7 @@ function nameOfPlayerOrParticipant(x: Player | Participant): string {
 /* ===================== Универсальный UI ===================== */
 
 export function ParticipantsView(props: ParticipantsViewProps) {
+  const tournamentCtx = useOptionalTournament();
   const { initialLoading, refreshing, mutating } = props;
 
   // Фильтры
@@ -218,7 +220,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
           <td>
             <input
               type="text"
-              className="input"
+              className="input input-100"
               placeholder="Фильтр слева (и имя для нового игрока)"
               value={leftFilter}
               onChange={(e) => setLeftFilter(e.target.value)}
@@ -228,24 +230,22 @@ export function ParticipantsView(props: ParticipantsViewProps) {
           {/* Если игрок не найден — показываем кнопку «Создать игрока» и сразу добавляем куда нужно */}
           <td>
             {leftList.length === 0 && leftFilter.trim().length > 0 && (
-              <AdminOnly>
-                <PlusIconButton
-                  title={
-                    props.mode === "tournament"
-                      ? "Создать игрока и добавить в турнир"
-                      : "Создать игрока и добавить в клуб"
-                  }
-                  onClick={handleCreatePlayerAndAttach}
-                  disabled={mutating || creating}
-                />
-              </AdminOnly>
+              <PlusIconButton
+                title={
+                  props.mode === "tournament"
+                    ? "Создать игрока и добавить в турнир"
+                    : "Создать игрока и добавить в клуб"
+                }
+                onClick={handleCreatePlayerAndAttach}
+                disabled={mutating || creating}
+              />
             )}
           </td>
 
           <td>
             <input
               type="text"
-              className="input"
+              className="input input-100"
               placeholder="Фильтр справа"
               value={rightFilter}
               onChange={(e) => setRightFilter(e.target.value)}

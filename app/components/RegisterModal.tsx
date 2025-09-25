@@ -60,6 +60,12 @@ export function RegisterModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [isOpen, onClose, pending]);
 
+  useEffect(() => {
+    if (role !== UserRole.Player) {
+      setNTRP("");
+    }
+  }, [role]);
+
   if (!isOpen) return null;
 
   async function handleRegister() {
