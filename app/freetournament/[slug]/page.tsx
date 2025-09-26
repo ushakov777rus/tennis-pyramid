@@ -22,14 +22,9 @@ export default async function FreeTournamentSlugPage({
   const tournamentPlain = await TournamentsRepository.getBySlug(slug);
   if (!tournamentPlain) notFound();
 
-  const initialStepParam = searchParams?.step;
-  const initialStep = Array.isArray(initialStepParam)
-    ? parseInt(initialStepParam[0] ?? "1", 10)
-    : parseInt(initialStepParam ?? "1", 10);
-
   return (
     <TournamentProvider initial={{ tournamentSlug: slug, tournamentPlain }}>
-      <FreeTournamentWizard initialStep={Number.isFinite(initialStep) ? initialStep : 1} />
+      <FreeTournamentWizard />
     </TournamentProvider>
   );
 }
