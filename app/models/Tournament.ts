@@ -91,6 +91,7 @@ export type TournamentCreateInput = {
   is_public: boolean;
   club: Club | null;
   settings?: any;
+  owner_token?: string | null;
 };
 
 /** Данные для частичного обновления турнира */
@@ -112,10 +113,11 @@ export class Tournament {
   status: TournamentStatus;
   tournament_type: TournamentType;
   is_public: boolean;
-  creator_id: number;
+  creator_id: number | null;
   slug:string;
   club: Club | null;
   settings?: any;
+  ownerToken: string | null;
   
   constructor(
     id: number,
@@ -126,10 +128,11 @@ export class Tournament {
     start_date: string | null,
     end_date: string | null,
     is_public: boolean = false,
-    creator_id: number,
+    creator_id: number | null,
     slug: string,
     club: Club | null,
-    settings?: any
+    settings?: any,
+    ownerToken: string | null = null
   ) {
     this.id = id;
     this.name = name;
@@ -143,6 +146,7 @@ export class Tournament {
     this.settings = settings;
     this.club = club;
     this.slug = slug;
+    this.ownerToken = ownerToken;
   }
 
   // ---------- Транзиции статусов ----------

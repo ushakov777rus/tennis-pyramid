@@ -1,12 +1,29 @@
 import { Metadata } from "next";
-import FreeTournamentWizard from "./FreeTournamentWizard";
+import FreeTournamentModalLauncher from "./FreeTournamentModalLauncher";
 
+
+const pageTitle = "Быстрый турнир";
+const pageDescription = "Пошаговый мастер создания турнира";
+const keywords = [
+  "создать турнирную таблицу",
+  "турнирная таблица онлайн создать",
+];
 
 export const metadata: Metadata = {
-  title: "Быстрый турнир",
-  description: "Пошаговый мастер создания турнира",
+  title: pageTitle,
+  description: pageDescription,
+  keywords,
+  openGraph: {
+    title: pageTitle,
+    description: pageDescription,
+  },
+  twitter: {
+    card: "summary",
+    title: pageTitle,
+    description: pageDescription,
+  },
 };
 
 export default function FreeTournamentPage() {
-  return <FreeTournamentWizard />;
+  return <FreeTournamentModalLauncher />;
 }

@@ -108,7 +108,8 @@ const createTournament = useCallback(async (p: TournamentCreateInput) => {
     p.creator_id,
     "SLUG",
     p.club,
-    p.settings
+    p.settings,
+    null
   );
 
   setPendingCreateIds(s => new Set(s).add(tmpId));
@@ -216,7 +217,8 @@ const createTournament = useCallback(async (p: TournamentCreateInput) => {
       target.creator_id,
       target.slug,
       target.club,
-      target.settings
+      target.settings,
+      target.ownerToken ?? null
     );
 
     setTournaments((prev) => prev.map((t) => (t.id === id ? optimistic : t)));

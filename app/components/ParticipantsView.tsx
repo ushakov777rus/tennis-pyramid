@@ -10,7 +10,6 @@ import {
   PlusIconButton,
 } from "./controls/IconButtons";
 import { AdminOnly } from "./RoleGuard";
-import { useOptionalTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 import { PlayersRepository } from "@/app/repositories/PlayersRepository"; // [NEW] для создания игрока
 
 /* ===================== Типы пропсов (два режима) ===================== */
@@ -29,6 +28,7 @@ type TournamentModeProps = {
   onAddPlayerToTournament?: (playerId: number) => void | Promise<void>;
   onRemoveParticipant?: (participant: Participant) => void | Promise<void>;
   onCreateTeam?: (player1Id: number, player2Id: number) => void | Promise<void>;
+  canManage?: boolean;
 };
 
 type ClubModeProps = {
@@ -43,6 +43,7 @@ type ClubModeProps = {
   // действия
   onAddPlayerToClub?: (playerId: number) => void | Promise<void>;
   onRemoveMember?: (playerId: number) => void | Promise<void>;
+  canManage?: boolean;
 };
 
 export type ParticipantsViewProps = TournamentModeProps | ClubModeProps;
@@ -63,7 +64,6 @@ function nameOfPlayerOrParticipant(x: Player | Participant): string {
 /* ===================== Универсальный UI ===================== */
 
 export function ParticipantsView(props: ParticipantsViewProps) {
-  const tournamentCtx = useOptionalTournament();
   const { initialLoading, refreshing, mutating } = props;
 
   // Фильтры
@@ -74,6 +74,11 @@ export function ParticipantsView(props: ParticipantsViewProps) {
 
   // [NEW] Локальный статус «создаём игрока» (не трогаем внешний mutating)
   const [creating, setCreating] = useState(false);
+  const canManage = (props as any).canManage ?? false;
+  const renderControls = (content: React.ReactNode) => {
+    if (!content) return null;
+    return canManage ? <>{content}</> : <AdminOnly>{content}</AdminOnly>;
+  };
 
   // TUR: список уже в турнире; CLUB: список членов клуба
   const rightList: (Participant | Player)[] = useMemo(() => {
@@ -145,6 +150,8 @@ export function ParticipantsView(props: ParticipantsViewProps) {
   const handleCreatePlayerAndAttach = async () => {
     const rawName = leftFilter.trim();
     if (!rawName) return;
+    if (props.mode === "tournament" && !props.onAddPlayerToTournament) return;
+    if (props.mode === "club" && !props.onAddPlayerToClub) return;
 
     try {
       setCreating(true);
@@ -160,7 +167,6 @@ export function ParticipantsView(props: ParticipantsViewProps) {
         await props.onAddPlayerToTournament?.(newPlayerId);
 
         // 2) если доступен коллбэк добавления в клуб — добавим и в клуб
-        //    (он появится, если есть ClubProvider и мы его пробросили из wrapper'а)
         if ("onAddPlayerToClub" in props && typeof (props as any).onAddPlayerToClub === "function") {
           await (props as any).onAddPlayerToClub(newPlayerId);
         }
@@ -229,17 +235,22 @@ export function ParticipantsView(props: ParticipantsViewProps) {
 
           {/* Если игрок не найден — показываем кнопку «Создать игрока» и сразу добавляем куда нужно */}
           <td>
-            {leftList.length === 0 && leftFilter.trim().length > 0 && (
-              <PlusIconButton
-                title={
-                  props.mode === "tournament"
-                    ? "Создать игрока и добавить в турнир"
-                    : "Создать игрока и добавить в клуб"
-                }
-                onClick={handleCreatePlayerAndAttach}
-                disabled={mutating || creating}
-              />
-            )}
+            {leftList.length === 0 && leftFilter.trim().length > 0 && ((
+              props.mode === "tournament" && props.onAddPlayerToTournament) ||
+              (props.mode === "club" && props.onAddPlayerToClub)
+            )
+              ? renderControls(
+                  <PlusIconButton
+                    title={
+                      props.mode === "tournament"
+                        ? "Создать игрока и добавить в турнир"
+                        : "Создать игрока и добавить в клуб"
+                    }
+                    onClick={handleCreatePlayerAndAttach}
+                    disabled={mutating || creating}
+                  />
+                )
+              : null}
           </td>
 
           <td>
@@ -302,18 +313,18 @@ export function ParticipantsView(props: ParticipantsViewProps) {
                 </td>
 
                 <td>
-                  <AdminOnly>
-                    {props.mode === "tournament" ? (
+                  {renderControls(
+                    props.mode === "tournament" ? (
                       props.isDouble ? (
-                        showCreateHere && (
+                        showCreateHere && props.onCreateTeam ? (
                           <CreateTeamIconButton
                             title="Создать команду"
                             onClick={createTeam}
                             disabled={mutating || creating}
                           />
-                        )
-                      ) : (
-                        free && (
+                        ) : null
+                      ) :
+                        free && props.onAddPlayerToTournament ? (
                           <PlusIconButton
                             title="Добавить"
                             onClick={() =>
@@ -321,18 +332,16 @@ export function ParticipantsView(props: ParticipantsViewProps) {
                             }
                             disabled={mutating || creating}
                           />
-                        )
-                      )
-                    ) : (
-                      free && (
+                        ) : null
+                    ) :
+                      free && props.onAddPlayerToClub ? (
                         <PlusIconButton
                           title="Добавить в клуб"
                           onClick={() => props.onAddPlayerToClub?.(free.id)}
                           disabled={mutating || creating}
                         />
-                      )
-                    )}
-                  </AdminOnly>
+                      ) : null
+                  )}
                 </td>
 
                 {/* правая колонка */}
@@ -346,26 +355,28 @@ export function ParticipantsView(props: ParticipantsViewProps) {
                   )}
                 </td>
                 <td>
-                  <AdminOnly>
-                    {inRight &&
-                      (props.mode === "tournament" ? (
-                        <DeleteIconButton
-                          title="Убрать из турнира"
-                          onClick={() =>
-                            props.onRemoveParticipant?.(inRight as Participant)
-                          }
-                          disabled={mutating || creating}
-                        />
-                      ) : (
-                        <DeleteIconButton
-                          title="Убрать из клуба"
-                          onClick={() =>
-                            props.onRemoveMember?.((inRight as Player).id)
-                          }
-                          disabled={mutating || creating}
-                        />
-                      ))}
-                  </AdminOnly>
+                  {renderControls(
+                    inRight &&
+                      (props.mode === "tournament"
+                        ? props.onRemoveParticipant && (
+                            <DeleteIconButton
+                              title="Убрать из турнира"
+                              onClick={() =>
+                                props.onRemoveParticipant?.(inRight as Participant)
+                              }
+                              disabled={mutating || creating}
+                            />
+                          )
+                        : props.onRemoveMember && (
+                            <DeleteIconButton
+                              title="Убрать из клуба"
+                              onClick={() =>
+                                props.onRemoveMember?.((inRight as Player).id)
+                              }
+                              disabled={mutating || creating}
+                            />
+                          ))
+                  )}
                 </td>
               </tr>
             );
