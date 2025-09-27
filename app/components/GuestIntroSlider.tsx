@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useUser } from "@/app/components/UserContext";
 
 import "./GuestIntroSlider.css";
@@ -23,6 +24,7 @@ const SLIDES: Slide[] = [
 
 export function GuestIntroSlider() {
   const { user, loading } = useUser();
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
   const [dontShow, setDontShow] = useState(false);
   const [current, setCurrent] = useState(0);
@@ -31,14 +33,21 @@ export function GuestIntroSlider() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (pathname !== "/") return;
     const stored = localStorage.getItem(STORAGE_KEY) === "1";
     setShouldSkip(stored);
     setDontShow(stored);
-  }, []);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (pathname === "/") return;
+    setVisible(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (loading) return;
+    if (pathname !== "/") return;
     if (user) return; // показываем только гостям
     if (shouldSkip) return;
 
@@ -47,7 +56,7 @@ export function GuestIntroSlider() {
     }, 5000);
 
     return () => window.clearTimeout(timer);
-  }, [user, loading, shouldSkip]);
+  }, [user, loading, shouldSkip, pathname]);
 
   useEffect(() => {
     if (!visible) return;
