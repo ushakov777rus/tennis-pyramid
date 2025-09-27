@@ -156,6 +156,7 @@ export default function FreeTournamentWizard() {
   return (
     <>
       <div className="page-container">
+        <h1 className="page-title">{tournament.name}</h1>
         <div className="page-content-container">
           <div className="card">
             <ParticipantsView
