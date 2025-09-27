@@ -21,6 +21,8 @@ type AddMatchCardProps = {
   isAnon: boolean;
   isPlayerWithFixedAttacker: boolean;
   onAddMatch: () => void;
+  isPyramid?: boolean;
+  isDouble?: boolean;
 };
 
 export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
@@ -35,6 +37,8 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
     isAnon,
     isPlayerWithFixedAttacker,
     onAddMatch,
+    isPyramid = false,
+    isDouble = false,
   }) => {
     const [scoreError, setScoreError] = useState(false);
 
@@ -75,13 +79,25 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
       onAddMatch();
     };
 
+    const attackerPlaceholder = isPyramid
+      ? "Нападение"
+      : isDouble
+      ? "Команда 1"
+      : "Игрок 1";
+
+    const defenderPlaceholder = isPyramid
+      ? "Защита"
+      : isDouble
+      ? "Команда 2"
+      : "Игрок 2";
+
     return (
       <div className="card add-match-card">
           <CustomSelect
             className="input"
             options={options}
             value={selectedIds[0] ?? null}
-            placeholder="-- Нападение --"
+            placeholder={attackerPlaceholder}
             disabled={isAnon || isPlayerWithFixedAttacker}
             onChange={onChangeAttacker}
             sort={true}
@@ -91,7 +107,7 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
             className="input"
             options={options}
             value={selectedIds[1] ?? null}
-            placeholder="-- Защита --"
+            placeholder={defenderPlaceholder}
             disabled={isAnon}
             onChange={onChangeDefender}
             sort={true}

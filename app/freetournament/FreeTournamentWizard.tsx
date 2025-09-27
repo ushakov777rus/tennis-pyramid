@@ -194,21 +194,23 @@ export default function FreeTournamentWizard() {
           <div>
             {isOwner ? (
               <>
-                <AddMatchCard
-                  options={playerOptions}
-                  selectedIds={selectedIds}
-                  setSelectedIds={setSelectedIds}
-                  matchDate={matchDate}
-                  setMatchDate={setMatchDate}
-                  matchScore={matchScore}
-                  setMatchScore={(value) => {
-                    setMatchScore(value);
-                    if (matchError) setMatchError(null);
-                  }}
-                  isAnon={false}
-                  isPlayerWithFixedAttacker={false}
-                  onAddMatch={handleAddMatch}
-                />
+              <AddMatchCard
+                options={playerOptions}
+                selectedIds={selectedIds}
+                setSelectedIds={setSelectedIds}
+                matchDate={matchDate}
+                setMatchDate={setMatchDate}
+                matchScore={matchScore}
+                setMatchScore={(value) => {
+                  setMatchScore(value);
+                  if (matchError) setMatchError(null);
+                }}
+                isAnon={false}
+                isPlayerWithFixedAttacker={false}
+                onAddMatch={handleAddMatch}
+                isPyramid={tournament.isPyramid()}
+                isDouble={tournament.isDouble()}
+              />
                 {matchError && <div className="form-error">{matchError}</div>}
               </>
             ) : (
