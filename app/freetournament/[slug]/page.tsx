@@ -12,12 +12,10 @@ export const revalidate = 0;
 
 export default async function FreeTournamentSlugPage({
   params,
-  searchParams,
 }: {
-  params: Params;
-  searchParams?: Record<string, string | string[]>;
+  params: Promise<Params>;
 }) {
-  const { slug } = params;
+  const { slug } = await params;
 
   const tournamentPlain = await TournamentsRepository.getBySlug(slug);
   if (!tournamentPlain) notFound();
