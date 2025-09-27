@@ -12,6 +12,7 @@ import { useUser } from "@/app/components/UserContext";
 import { Match, PhaseType } from "@/app/models/Match";
 import type { Participant } from "@/app/models/Participant";
 import type { Player } from "@/app/models/Player";
+import { AuthContainer } from "@/app/components/AuthContainer";
 import { OWNER_TOKEN_PREFIX } from "./constants";
 
 const EMPTY_PARTICIPANTS: Participant[] = [];
@@ -48,6 +49,8 @@ export default function FreeTournamentWizard() {
   const [matchError, setMatchError] = useState<string | null>(null);
   const [formatSelection, setFormatSelection] = useState<number[]>([]);
   const [localOwnerToken, setLocalOwnerToken] = useState<string | null>(null);
+  const [showBanner, setShowBanner] = useState(true);
+  const [authOpen, setAuthOpen] = useState(false);
 
   useEffect(() => {
     if (!tournamentSlug) return;
@@ -55,6 +58,13 @@ export default function FreeTournamentWizard() {
     const stored = window.localStorage.getItem(`${OWNER_TOKEN_PREFIX}${tournamentSlug}`);
     setLocalOwnerToken(stored);
   }, [tournamentSlug]);
+
+  useEffect(() => {
+    if (user?.id) {
+      setShowBanner(false);
+      setAuthOpen(false);
+    }
+  }, [user?.id]);
 
   const ownerTokenFromTournament = tournament?.ownerToken ?? null;
   const isOwnedByUser = !!(user?.id && tournament?.creator_id && tournament.creator_id === user.id);
@@ -144,75 +154,105 @@ export default function FreeTournamentWizard() {
   }
 
   return (
-    <div className="page-container">
-      <div className="page-content-container">
-        <div className="card">
-          <ParticipantsView
-            mode="tournament"
-            initialLoading={tournamentCtx.initialLoading}
-            refreshing={tournamentCtx.refreshing}
-            mutating={tournamentCtx.mutating}
-            isDouble={tournament.isDouble()}
-            participants={participants}
-            players={playersPool}
-            onAddPlayerToTournament={isOwner ? tournamentCtx.addPlayerToTournament : undefined}
-            onRemoveParticipant={isOwner ? tournamentCtx.removeParticipant : undefined}
-            onCreateTeam={
-              isOwner &&
-              tournamentCtx.createAndAddTeamToTournament &&
-              tournamentCtx.tournamentId
-                ? (p1, p2) =>
-                    tournamentCtx.createAndAddTeamToTournament!(
-                      tournamentCtx.tournamentId!,
-                      p1,
-                      p2
-                    )
-                : undefined
-            }
-            canManage={isOwner}
-          />
-        </div>
+    <>
+      <div className="page-container">
+        <div className="page-content-container">
+          <div className="card">
+            <ParticipantsView
+              mode="tournament"
+              initialLoading={tournamentCtx.initialLoading}
+              refreshing={tournamentCtx.refreshing}
+              mutating={tournamentCtx.mutating}
+              isDouble={tournament.isDouble()}
+              participants={participants}
+              players={playersPool}
+              onAddPlayerToTournament={isOwner ? tournamentCtx.addPlayerToTournament : undefined}
+              onRemoveParticipant={isOwner ? tournamentCtx.removeParticipant : undefined}
+              onCreateTeam={
+                isOwner &&
+                tournamentCtx.createAndAddTeamToTournament &&
+                tournamentCtx.tournamentId
+                  ? (p1, p2) =>
+                      tournamentCtx.createAndAddTeamToTournament!(
+                        tournamentCtx.tournamentId!,
+                        p1,
+                        p2
+                      )
+                  : undefined
+              }
+              canManage={isOwner}
+            />
+          </div>
 
-        <div className="card">
-          {isOwner ? (
-            <>
-              <AddMatchCard
-                options={playerOptions}
-                selectedIds={selectedIds}
-                setSelectedIds={setSelectedIds}
-                matchDate={matchDate}
-                setMatchDate={setMatchDate}
-                matchScore={matchScore}
-                setMatchScore={(value) => {
-                  setMatchScore(value);
-                  if (matchError) setMatchError(null);
-                }}
-                isAnon={false}
-                isPlayerWithFixedAttacker={false}
-                onAddMatch={handleAddMatch}
-              />
-              {matchError && <div className="form-error">{matchError}</div>}
-            </>
-          ) : (
-            <p style={{ opacity: 0.7 }}>
-              Добавление матчей доступно только организатору турнира.
-            </p>
-          )}
-        </div>
+          <div>
+            {isOwner ? (
+              <>
+                <AddMatchCard
+                  options={playerOptions}
+                  selectedIds={selectedIds}
+                  setSelectedIds={setSelectedIds}
+                  matchDate={matchDate}
+                  setMatchDate={setMatchDate}
+                  matchScore={matchScore}
+                  setMatchScore={(value) => {
+                    setMatchScore(value);
+                    if (matchError) setMatchError(null);
+                  }}
+                  isAnon={false}
+                  isPlayerWithFixedAttacker={false}
+                  onAddMatch={handleAddMatch}
+                />
+                {matchError && <div className="form-error">{matchError}</div>}
+              </>
+            ) : (
+              <p style={{ opacity: 0.7 }}>
+                Добавление матчей доступно только организатору турнира.
+              </p>
+            )}
+          </div>
 
-        <div className="card">
-          <FormatView
-            tournament={tournament}
-            participants={participants}
-            matches={matches}
-            selectedIds={formatSelection}
-            onSelect={setFormatSelection}
-            onShowHistoryPlayer={handleShowHistoryPlayer}
-            onSaveScoreRoundRobin={handleSaveScoreRoundRobin}
-            onPositionsChange={isOwner ? tournamentCtx.updatePositions : undefined}
-          />
+          <div className="card">
+            <FormatView
+              tournament={tournament}
+              participants={participants}
+              matches={matches}
+              selectedIds={formatSelection}
+              onSelect={setFormatSelection}
+              onShowHistoryPlayer={handleShowHistoryPlayer}
+              onSaveScoreRoundRobin={handleSaveScoreRoundRobin}
+              onPositionsChange={isOwner ? tournamentCtx.updatePositions : undefined}
+            />
+          </div>
         </div>
       </div>
-    </div>
+      {(!user?.id && showBanner) && (
+        <div className="floating-register-banner" role="status">
+          <span>
+            Для сохранения списка турниров и рейтинга игроков&nbsp;
+            <button
+              type="button"
+              className="floating-register-banner__link"
+              onClick={() => setAuthOpen(true)}
+            >
+              зарегистрируйтесь
+            </button>
+            &nbsp;на платформе.
+          </span>
+          <button
+            type="button"
+            className="floating-register-banner__close"
+            onClick={() => setShowBanner(false)}
+            aria-label="Скрыть уведомление"
+          >
+            Скрыть
+          </button>
+        </div>
+      )}
+      <AuthContainer
+        isOpen={authOpen}
+        onClose={() => setAuthOpen(false)}
+        initialMode="register"
+      />
+    </>
   );
 }
