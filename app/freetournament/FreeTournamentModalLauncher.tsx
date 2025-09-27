@@ -132,6 +132,14 @@ export default function FreeTournamentModalLauncher() {
       }
 
       if (!user?.id && anonymousToken && typeof window !== "undefined") {
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < window.localStorage.length; i += 1) {
+          const key = window.localStorage.key(i);
+          if (key && key.startsWith(OWNER_TOKEN_PREFIX)) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((key) => window.localStorage.removeItem(key));
         window.localStorage.setItem(`${OWNER_TOKEN_PREFIX}${created.slug}`, anonymousToken);
       }
 
