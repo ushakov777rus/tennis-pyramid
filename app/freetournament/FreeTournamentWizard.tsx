@@ -234,7 +234,7 @@ export default function FreeTournamentWizard() {
       </div>
       {(!user?.id && showBanner) && (
         <div className="floating-register-banner" role="status">
-          <span>
+          <span style={{textAlign:"center"}}>
             Для сохранения списка турниров и рейтинга игроков&nbsp;
             <button
               type="button"
@@ -245,14 +245,14 @@ export default function FreeTournamentWizard() {
             </button>
             &nbsp;на платформе.
           </span>
-          <button
-            type="button"
-            className="floating-register-banner__close"
-            onClick={() => setShowBanner(false)}
-            aria-label="Скрыть уведомление"
-          >
-            Скрыть
-          </button>
+                  <button
+          type="button"
+          className="modal-close-btn"
+          onClick={() => setShowBanner(false)}
+          aria-label="Закрыть модальное окно"
+        >
+          ✖
+        </button>
         </div>
       )}
       <AuthContainer
