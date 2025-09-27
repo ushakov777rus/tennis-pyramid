@@ -14,10 +14,10 @@ export default async function FreeTournamentSlugPage({
   params,
   searchParams,
 }: {
-  params: Promise<Params>;
+  params: Params;
   searchParams?: Record<string, string | string[]>;
 }) {
-  const { slug } = await params;
+  const { slug } = params;
 
   const tournamentPlain = await TournamentsRepository.getBySlug(slug);
   if (!tournamentPlain) notFound();

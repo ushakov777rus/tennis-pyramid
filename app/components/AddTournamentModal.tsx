@@ -21,7 +21,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
   // базовые поля
   const [name, setName] = useState("");
   const [type, setType] = useState<TournamentType>(TournamentType.Single);
-  const [format, setFormat] = useState<TournamentFormat>(TournamentFormat.Pyramid);
+  const [format, setFormat] = useState<TournamentFormat>(TournamentFormat.RoundRobin);
   const today = new Date().toISOString().slice(0, 10);
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
