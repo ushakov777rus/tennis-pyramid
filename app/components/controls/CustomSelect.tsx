@@ -265,7 +265,7 @@ export function CustomSelect({
   }, [open]);
 
   return (
-    <>
+    <div className="cs-select-wrap">
       <div
         ref={comboboxRef}
         role="combobox"
@@ -359,6 +359,6 @@ export function CustomSelect({
           )}
         </div>
       )}
-    </>
+    </div>
   );
 }

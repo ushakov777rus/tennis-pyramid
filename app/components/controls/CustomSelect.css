@@ -50,8 +50,9 @@
 .cs-dropdown {
   position: absolute;
   z-index: 9999;
-  left: 0; right: 0;
-  margin-top: 6px;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   box-shadow: 0 10px 24px rgba(0,0,0,.08);
@@ -114,8 +115,15 @@
 }
 
 /* базово: позиционирование и высокий слой для меню */
-.cs-select { position: relative; }
-.cs-dropdown {
-  position: absolute;
-  z-index: 1000; /* внутри поднятой карточки этого хватит */
+.cs-select-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
 }
+
+.cs-select-wrap:has(.cs-select.is-open) {
+  z-index: 2000;
+}
+
+.cs-select { position: relative; }
+
