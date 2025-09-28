@@ -214,7 +214,7 @@ tr.editing { background: rgba(166, 255, 0, 0.05); }
 .card-grid-new {
   display: grid;
   gap: 10px;
-  grid-template-columns: 1fr; /* по умолчанию одна колонка */
+  grid-template-columns: repeat(3, 1fr);; /* по умолчанию одна колонка */
 }
 
 .card-grid-one-column {
@@ -223,19 +223,15 @@ tr.editing { background: rgba(166, 255, 0, 0.05); }
   grid-template-columns: 1fr; /* по умолчанию одна колонка */
 }
 
-@media (min-width: 600px) {
+@media (max-width: 1024px) {
   .card-grid-new {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (min-width: 1024px) {
+@media (max-width: 600px) {
 .card-grid-new {
-  display: grid;
-  gap: 12px;
-  /* карточки не меньше 400px, но могут растягиваться */
-  grid-template-columns: repeat(auto-fit, minmax(400px, max-content));
-  justify-content: center;
+  grid-template-columns: 1fr;
 }
 }
 
