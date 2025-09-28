@@ -156,6 +156,7 @@ export default function TournamentClient() {
       const scores = Match.parseScoreStringFlexible(matchScore);
       const [aId, bId] = selectedIds;
       const { winnerId, loserId } = determineWinnerLoser(scores, aId, bId);
+      const attackerWon = winnerId != null && winnerId === aId;
 
       await addMatchAndMaybeSwap({
         date: new Date(matchDate),
@@ -165,7 +166,7 @@ export default function TournamentClient() {
         bId,
         winnerId,
         loserId,
-        doSwap: tournament.isPyramid() && !!winnerId && !!loserId,
+        doSwap: tournament.isPyramid() && attackerWon,
       });
 
       // только UI-сброс
