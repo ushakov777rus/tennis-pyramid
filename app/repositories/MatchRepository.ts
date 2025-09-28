@@ -41,7 +41,10 @@ export class MatchRepository {
           row.tournaments.is_public,
           row.tournaments.creator_id,
           row.tournaments.slug,
-          row.tournaments.settings
+          row.tournaments.club ?? null,
+          row.tournaments.settings,
+          row.tournaments.owner_token ?? null,
+          row.tournaments.regulation ?? null
         )
       : undefined;
 

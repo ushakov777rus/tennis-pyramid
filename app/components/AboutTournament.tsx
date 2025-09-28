@@ -41,16 +41,23 @@ export function AboutTournament() {
   return (
     <div className="page-content-container card-800px">
       <section className="card-grid">
-          <UserCard
-            fullName={orgName}
-            role={UserRole.TournamentAdmin}
-            phone={orgPhone}
-            email={orgEmail}
-            whatsapp={orgWa}
-            telegram={orgTg}
-            className="mt-1"
-          />
+        <UserCard
+          fullName={orgName}
+          role={UserRole.TournamentAdmin}
+          phone={orgPhone}
+          email={orgEmail}
+          whatsapp={orgWa}
+          telegram={orgTg}
+          className="mt-1"
+        />
       </section>
+
+      {tournament.regulation ? (
+        <div className="card about-text">
+          <h3>Положение о турнире</h3>
+          <p className="muted about-regulation-text">{tournament.regulation}</p>
+        </div>
+      ) : null}
     </div>
   );
 }

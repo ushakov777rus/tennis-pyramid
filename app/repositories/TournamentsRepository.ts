@@ -31,6 +31,7 @@ export type TournamentPlain = {
   owner_token?: string | null;
   /** новый: связанный клуб (может быть null) */
   club: Club | null;
+  regulation?: string | null;
 };
 
 /* ---------- Вспомогательный маппер ---------- */
@@ -44,6 +45,7 @@ function mapRowToTournament(row: any): Tournament {
   // row.club — объект из алиаса club:clubs(*), может быть undefined
   const club: Club | null = row.club ?? null;
   const ownerToken: string | null = row.owner_token ?? null;
+  const regulation: string | null = row.regulation ?? null;
 
   return new Tournament(
     Number(row.id),
@@ -58,7 +60,8 @@ function mapRowToTournament(row: any): Tournament {
     row.slug,
     club,
     row.settings,
-    ownerToken
+    ownerToken,
+    regulation
   );
 }
 
@@ -80,7 +83,7 @@ export class TournamentsRepository {
       .from("tournaments")
       .select(
         `
-        id, name, format, start_date, end_date, status, tournament_type, is_public, creator_id, slug, settings, owner_token,
+        id, name, format, start_date, end_date, status, tournament_type, is_public, creator_id, slug, settings, owner_token, regulation,
         club:clubs(*)
       `
       )
@@ -107,6 +110,7 @@ export class TournamentsRepository {
       settings: data.settings,
       owner_token: (data as any).owner_token ?? null,
       club: (data as any).club ?? null,
+      regulation: (data as any).regulation ?? null,
     };
   }
 
@@ -602,6 +606,7 @@ function normalizeTournamentCreateInput(input: TournamentCreateInput) {
     is_public: input.is_public,
     club_id,              // <-- ключевое: вместо club кладём club_id
     settings: input.settings ?? null,
+    regulation: input.regulation ?? null,
   };
 
   return payload;

@@ -122,7 +122,8 @@ function toModel(p?: TournamentPlain | null): Tournament | null {
     p.slug,
     p.club,
     p.settings,
-    p.owner_token ?? null
+    p.owner_token ?? null,
+    p.regulation ?? null
   );
 }
 
@@ -463,7 +464,8 @@ export function TournamentProvider({
         prev.slug,
         prev.club,
         prev.settings,
-        prev.ownerToken ?? null
+        prev.ownerToken ?? null,
+        prev.regulation ?? null
       );
     });
   }, []);

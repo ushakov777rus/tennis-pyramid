@@ -11,6 +11,7 @@
 .card.about-text,
 .card.about-contacts {
   padding: 12px;
+  text-align: left;
 }
 
 /* Заголовок турнира */
@@ -130,9 +131,14 @@
   margin: 0 0 6px 0;
   font-size: 16px;
   color: #ccff66;
+  text-align: center;
 }
 .about-text .muted {
   margin: 0;
   color: rgba(255,255,255,0.85);
   line-height: 1.5;
+}
+
+.about-regulation-text {
+  white-space: pre-wrap;
 }

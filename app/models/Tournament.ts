@@ -92,6 +92,7 @@ export type TournamentCreateInput = {
   club: Club | null;
   settings?: any;
   owner_token?: string | null;
+  regulation?: string | null;
 };
 
 /** Данные для частичного обновления турнира */
@@ -118,6 +119,7 @@ export class Tournament {
   club: Club | null;
   settings?: any;
   ownerToken: string | null;
+  regulation: string | null;
   
   constructor(
     id: number,
@@ -132,7 +134,8 @@ export class Tournament {
     slug: string,
     club: Club | null,
     settings?: any,
-    ownerToken: string | null = null
+    ownerToken: string | null = null,
+    regulation: string | null = null
   ) {
     this.id = id;
     this.name = name;
@@ -147,6 +150,7 @@ export class Tournament {
     this.club = club;
     this.slug = slug;
     this.ownerToken = ownerToken;
+    this.regulation = regulation;
   }
 
   // ---------- Транзиции статусов ----------
