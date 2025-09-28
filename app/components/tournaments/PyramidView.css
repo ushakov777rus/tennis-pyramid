@@ -38,6 +38,7 @@
   background: none;
   padding: 2px 2px;
   border-radius: 4px;
+  text-align: start;
 }
 
 .pyramid-container {

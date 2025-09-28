@@ -371,9 +371,9 @@ export const PyramidView = React.memo(function PyramidView({
             onClick={() => handleClick(id, p)}
           >
             <div className="player-top-line">
-              {daysWithoutGames !== null && (
-                <div className={`days-counter ${inactivityClass}`}>{daysWithoutGames}д</div>
-              )}
+              
+                <div className={`days-counter ${inactivityClass}`}>{daysWithoutGames ? daysWithoutGames+"д" : ""}</div>
+              
               <div className="player-position">
                 {p.level != null && p.position != null ? `${p.level} - ${p.position}` : `Z - ${p.position ?? "?"}`}
               </div>

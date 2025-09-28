@@ -59,7 +59,7 @@ export class Participant extends ParticipantBase {
 
   splitName(mask: boolean): string[] {
     if (this.player)
-      return this.displayName(mask).split(" ");
+      return this.displayName(mask).split(" ", 2);
     return this.displayName(mask).split("\n");
   }
 }
