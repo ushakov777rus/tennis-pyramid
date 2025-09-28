@@ -32,12 +32,11 @@
 }
 
 .days-counter {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: bold;
   color: #555;
   background: none;
-  padding: 2px 2px;
-  border-radius: 4px;
+  margin-top: 2px;
   text-align: start;
 }
 
@@ -121,25 +120,15 @@
   max-width: 100px;
 }
 
-/* карточка фиксированной ширины: перRow считается из контейнера 
-.pyramid-player {
-  flex: 0 0 160px;
-  max-width: 160px;
-  box-sizing: border-box;
-}*/
-
-
 .pyramid-player.selected {
   border-color: #0070f3;
   background: #e6f0ff;
 }
 
 .player-ntrp {
-  font-size: 12px;
+  font-size: 10px;
   color: #666;
   margin-top: 2px;
-  flex: 1;
-  max-width: 60%;
 }
 
 .player-position {
@@ -165,13 +154,9 @@
 }
 
 .history-btn {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
   font-size: 12px;
   padding: 0px;
   border: none;
-  border-radius: 4px;
   background: none;
   cursor: pointer;
 }
@@ -217,7 +202,8 @@
 }
 
 .player-bottom-line {
-  display: flex;
+  display: grid;
+  grid-template-columns: 17px 1fr auto;
 }
 
 .player-top-line {
@@ -240,8 +226,13 @@
   }
 
   .days-counter {
-    font-size: 10px;      /* было 12px */
+    font-size: 9px;      /* было 12px */
   }
+
+  .player-ntrp {
+    font-size: 9px;
+  }
+
 
   .history-btn {
     font-size: 10px;      /* было 12px */
