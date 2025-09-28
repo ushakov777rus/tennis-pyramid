@@ -12,6 +12,7 @@ import {
   DropResult,
 } from "@hello-pangea/dnd";
 import React from "react";
+import { UserRole } from "@/app/models/Users";
 
 type PyramidViewProps = {
   participants: Participant[];
@@ -53,6 +54,8 @@ export const PyramidView = React.memo(function PyramidView({
   maxLevel,
 }: PyramidViewProps) {
   const { user } = useUser();
+
+  const canReorder = !!onPositionsChange && (user?.role === UserRole.SiteAdmin || user?.role === UserRole.TournamentAdmin);
 
   const [invalidId, setInvalidId] = useState<number | null>(null);
   const [localParticipants, setLocalParticipants] = useState<Participant[]>([]);
@@ -351,7 +354,12 @@ export const PyramidView = React.memo(function PyramidView({
         : "";
 
     return (
-      <Draggable key={p.id} draggableId={String(p.id)} index={indexInRow}>
+      <Draggable
+        key={p.id}
+        draggableId={String(p.id)}
+        index={indexInRow}
+        isDragDisabled={!canReorder}
+      >
         {(provided) => (
           <div
             ref={provided.innerRef}
@@ -389,7 +397,13 @@ export const PyramidView = React.memo(function PyramidView({
             </div>
 
             <div className="player-bottom-line">
-              <div className="drag-handle" {...provided.dragHandleProps}>⠿</div>
+              <div
+                className={`drag-handle ${canReorder ? "" : "drag-handle--hidden"}`}
+                {...(canReorder ? provided.dragHandleProps : undefined)}
+                aria-hidden={!canReorder}
+              >
+                ⠿
+              </div>
               <div className="player-ntrp">{p.ntrp ? p.ntrp : "?"}</div>
               {onShowHistory && (
                 <button
@@ -412,7 +426,7 @@ export const PyramidView = React.memo(function PyramidView({
         )}
       </Draggable>
     );
-  }, [getPlayerClass, getLastMatch, getDaysWithoutGames, selectedIds, invalidId, handleClick, onShowHistory]);
+  }, [getPlayerClass, getLastMatch, getDaysWithoutGames, selectedIds, invalidId, handleClick, onShowHistory, canReorder]);
 
   const byLevel = useMemo(() => buildByLevel(localParticipants), [localParticipants, buildByLevel]);
 
