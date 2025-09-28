@@ -4,6 +4,7 @@ import { TournamentsRepository } from "@/app/repositories/TournamentsRepository"
 import { TournamentProvider } from "@/app/tournaments/[slug]/TournamentProvider";
 
 import FreeTournamentWizard from "../FreeTournamentWizard";
+import TournamentClient from "@/app/tournaments/[slug]/TournamentClient";
 
 type Params = { slug: string };
 
@@ -22,7 +23,7 @@ export default async function FreeTournamentSlugPage({
 
   return (
     <TournamentProvider initial={{ tournamentSlug: slug, tournamentPlain }}>
-      <FreeTournamentWizard />
+      <TournamentClient />
     </TournamentProvider>
   );
 }

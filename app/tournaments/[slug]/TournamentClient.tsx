@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useUser } from "@/app/components/UserContext";
-import { useSearchParams } from "next/navigation"; // Добавьте этот импорт
+import { usePathname, useSearchParams } from "next/navigation"; // Добавьте этот импорт
 
 import { Tournament, TournamentStatus } from "@/app/models/Tournament";
 import { Player } from "@/app/models/Player";
@@ -31,7 +31,6 @@ import { DoubleEliminationView } from "@/app/components/tournaments/DoubleElimin
 import { GroupPlusPlayoffView } from "@/app/components/tournaments/GroupPlusPlayoffView";
 import { RoundRobinView } from "@/app/components/tournaments/RoundRobinView";
 import { SwissView } from "@/app/components/tournaments/SwissView";
-// app/tournaments/[slug]/TournamentClient.tsx (фрагмент)
 import { AboutTournament } from "@/app/components/AboutTournament";
 import { UserRole } from "@/app/models/Users";
 import { SimpleBreadcrumbs } from "@/app/components/controls/BreadCrumbs";
@@ -68,11 +67,13 @@ export default function TournamentClient() {
 
   const showBracketTab = tournament ? !tournament.isCustom() : true;
 
-  const canAccessParticipantsTab = user?.role === UserRole.SiteAdmin || user?.role === UserRole.TournamentAdmin;
+  const pathname = usePathname();
+  const isWizard = pathname.includes("/freetournament");
+  const canAccessParticipantsTab = user?.role === UserRole.SiteAdmin || user?.role === UserRole.TournamentAdmin || isWizard;
 
   const tabs: TabItem[] = useMemo(() => {
     const items: Array<TabItem | false> = [
-      { key: "aboutt", label: "О турнире" },
+      !isWizard && { key: "aboutt", label: "О турнире" },
       showBracketTab && { key: "bracket", label: "Сетка" },
       { key: "matches", label: "Матчи" },
       canAccessParticipantsTab && {
@@ -308,10 +309,13 @@ export default function TournamentClient() {
   const isAnon = user?.role === undefined;
   const isPlayerWithFixedAttacker = user?.role === UserRole.Player && !!user?.player.id;
   const className = user ? "page-container-no-padding" : "page-container";
+  console.log("Tournament client", tournament);
 
   return (
     <div className={className}>
-      <SimpleBreadcrumbs clubName={tournament.club?.name} tournamentName={tournament.name}/>
+      {isWizard ? 
+        <h1 className="page-title">{tournament.name}</h1> :
+        <SimpleBreadcrumbs clubName={tournament.club?.name} tournamentName={tournament.name}/>}
 
       <div className="page-content-container">
         <div className="card-grid">
@@ -387,10 +391,10 @@ export default function TournamentClient() {
                 matches={matches} 
                 onEditMatch={handleEditMatchSave} 
                 onDeleteMatch={handleDeleteMatch} />}
-            <AdminOnly>
+
             {view === "participants" && 
-              <TournamentParticipantsView />}
-            </AdminOnly>
+              <TournamentParticipantsView isWizard={isWizard}/>}
+
             {view === "results" && <RatingView />}
             
             {view === "aboutt" && 

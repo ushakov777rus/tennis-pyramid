@@ -143,7 +143,7 @@ export default function FreeTournamentModalLauncher() {
         window.localStorage.setItem(`${OWNER_TOKEN_PREFIX}${created.slug}`, anonymousToken);
       }
 
-      router.push(`/freetournament/${created.slug}?step=1`);
+      router.push(`/freetournament/${created.slug}?tab=participants`);
     } catch (error) {
       console.error("Failed to create free tournament", error);
       alert("Не удалось создать турнир. Попробуйте позже.");
@@ -164,7 +164,7 @@ export default function FreeTournamentModalLauncher() {
     if (!candidate) return;
     setStatus("loading");
     setIsOpen(false);
-    router.push(`/freetournament/${candidate.slug}?step=1`);
+    router.push(`/freetournament/${candidate.slug}?tab=participants`);
   }, [candidate, router]);
 
   const handleDecline = useCallback(() => {

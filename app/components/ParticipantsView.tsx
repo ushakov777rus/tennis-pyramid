@@ -391,7 +391,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
 
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 
-export function TournamentParticipantsView() {
+export function TournamentParticipantsView({ isWizard = false }: { isWizard?: boolean }) {
   const {
     initialLoading,
     refreshing,
@@ -421,7 +421,7 @@ export function TournamentParticipantsView() {
       refreshing={refreshing}
       mutating={mutating}
       isDouble={isDouble}
-      players={players}
+      players={isWizard ? [] : players}
       participants={participants}
       onAddPlayerToTournament={addPlayerToTournament}
       onRemoveParticipant={removeParticipant}
@@ -430,6 +430,7 @@ export function TournamentParticipantsView() {
           ? (p1, p2) => createAndAddTeamToTournament(tournament.id, p1, p2)
           : undefined
       }
+      canManage={isWizard}
       // [NEW] пробрасываем "добавить в клуб" только если контекст клуба есть
       {...(clubCtx?.club
         ? { onAddPlayerToClub: clubCtx.addMember }
