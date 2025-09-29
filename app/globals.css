@@ -151,6 +151,18 @@ body {
     max-width: 1900px;
 }
 
+.hero-cta {
+  display: flex;
+  justify-content: center;
+}
+
+.hero-cta__link {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 
 /* Стиль для отображении пары игроков в матче */
 .players {
@@ -243,6 +255,10 @@ body {
   cursor: pointer;
   width: auto;
   text-align: center;
+}
+
+.btn-fit-content {
+  width: fit-content;
 }
 
 

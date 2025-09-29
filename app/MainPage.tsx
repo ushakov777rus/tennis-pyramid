@@ -235,6 +235,13 @@ export default function HomePage() {
       </h1>
 
       <main className="page-content-container">
+
+        <div className="hero-cta">
+          <Link href="/freetournament" className="btn-base btn-fit-content hero-cta__link">
+            Быстрый турнир
+          </Link>
+        </div>
+
         {/* Hero: изображение с alt и приоритетом (если есть /hero.png) */}
         <section className="card" style={{ padding: 0 }}>
           <div className="tennis-hero" style={{ position: "relative", width: "100%", height: "260px" }}>
@@ -247,14 +254,10 @@ export default function HomePage() {
           <div className="about__grid">
             <div className="about__stats">
               {stats.map((s) => (
-                
-                  
-                    <Link key={s.label} href={s.link} className="card">
-                      <div className="about__statValue">{s.value}</div>
-                      <div className="about__statLabel">{s.label}</div>
-                    </Link>
-                  
-                
+                <Link key={s.label} href={s.link} className="card">
+                  <div className="about__statValue">{s.value}</div>
+                  <div className="about__statLabel">{s.label}</div>
+                </Link>
               ))}
             </div>
 
