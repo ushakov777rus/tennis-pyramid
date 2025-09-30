@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
@@ -115,6 +115,7 @@ export function DoubleEliminationView({
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const editingInputRef = useRef<HTMLInputElement | null>(null);
 
   const ordered = useMemo(
     () =>
@@ -308,21 +309,25 @@ console.log("resolvedLB 2",rounds);
     const k = pairKey(aId, bId);
     setEditingKey(k);
     setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
+    editingInputRef.current = null;
   }
   function cancelEdit() {
     setEditingKey(null);
     setEditValue("");
+    editingInputRef.current = null;
   }
-  async function saveEdit(aId: number, bId: number) {
-    if (!isValidScoreFormat(editValue)) {
+  async function saveEdit(aId: number, bId: number, raw?: string) {
+    const nextValue = (raw ?? editingInputRef.current?.value ?? editValue).trim();
+    if (!isValidScoreFormat(nextValue)) {
       alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"');
       return;
     }
     try {
       setSaving(true);
-      await onSaveScore?.(aId, bId, editValue.trim());
+      await onSaveScore?.(aId, bId, nextValue);
       setEditingKey(null);
       setEditValue("");
+      editingInputRef.current = null;
     } finally {
       setSaving(false);
     }
@@ -341,7 +346,7 @@ console.log("resolvedLB 2",rounds);
     rKeyPrefix: string;
     nullText: string; // "BYE" для WB R1, иначе "Ожидается"
   }) => (
-    <div className="card">
+    <div className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}>
       <div className="history-table-head">
         <strong>{title}</strong>
       </div>
@@ -384,8 +389,10 @@ console.log("resolvedLB 2",rounds);
                         <div className="score-edit-wrap">
                           <input
                             className="input score-input"
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
+                            defaultValue={editValue}
+                            ref={(node) => {
+                              editingInputRef.current = node;
+                            }}
                             placeholder="6-4, 6-4"
                             pattern="[0-9\\s,:-]*"
                             autoFocus

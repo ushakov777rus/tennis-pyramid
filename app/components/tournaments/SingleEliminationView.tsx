@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useUser } from "@/app/components/UserContext";
 import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
@@ -180,6 +180,7 @@ export function SingleEliminationView({
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const editingInputRef = useRef<HTMLInputElement | null>(null);
 
   // стабильная сортировка входных участников по отображаемому имени
   const ordered = useMemo(
@@ -217,32 +218,36 @@ export function SingleEliminationView({
   const startEdit = useCallback((aId: number, bId: number, currentScore: string | null) => {
     setEditingKey(pairKey(aId, bId));
     setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
-  }, [pairKey]);
+    editingInputRef.current = null;
+  }, [pairKey, editingInputRef]);
 
   const cancelEdit = useCallback(() => {
     setEditingKey(null);
     setEditValue("");
-  }, []);
+    editingInputRef.current = null;
+  }, [editingInputRef]);
 
-  const saveEdit = useCallback(async (aId: number, bId: number, roundIndex: number) => {
-    if (!isValidScoreFormat(editValue)) {
+  const saveEdit = useCallback(async (aId: number, bId: number, roundIndex: number, raw?: string) => {
+    const nextValue = (raw ?? editingInputRef.current?.value ?? editValue).trim();
+    if (!isValidScoreFormat(nextValue)) {
       alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"');
       return;
     }
     try {
       setSaving(true);
       // Передаём в onSaveScore мета о фазе/раунде, чтобы не путаться с групповыми матчами
-      await onSaveScore?.(aId, bId, editValue.trim(), {
+      await onSaveScore?.(aId, bId, nextValue, {
         phase: PhaseType.Playoff,
         groupIndex: null,
         roundIndex,
       });
       setEditingKey(null);
       setEditValue("");
+      editingInputRef.current = null;
     } finally {
       setSaving(false);
     }
-  }, [editValue, isValidScoreFormat, onSaveScore]);
+  }, [editValue, editingInputRef, isValidScoreFormat, onSaveScore]);
 
   /** Имя участника: null -> BYE (только в 1-м раунде), выше — "Ожидается" */
   function NameCell({ p, nullText }: { p: Participant | null; nullText: string }) {
@@ -308,8 +313,10 @@ export function SingleEliminationView({
                               <div className="score-edit-wrap">
                                   <input
                                     className="input score-input"
-                                    value={editValue}
-                                    onChange={(e) => setEditValue(e.target.value)}
+                                    defaultValue={editValue}
+                                    ref={(node) => {
+                                      editingInputRef.current = node;
+                                    }}
                                     placeholder="6-4, 4-6, 10-8"
                                     pattern="[0-9\\s,:-]*"
                                     autoFocus

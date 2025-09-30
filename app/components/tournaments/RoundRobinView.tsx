@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
 import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
@@ -83,27 +83,33 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
   // ключ пары (порядок не важен)
   const pairKey = (aId: number, bId: number) => `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
 
+  const editingInputRef = useRef<HTMLInputElement | null>(null);
+
   function startEdit(aId: number, bId: number, currentScore: string | null) {
     const k = pairKey(aId, bId);
     setEditingKey(k);
     setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
+    editingInputRef.current = null;
   }
 
   function cancelEdit() {
     setEditingKey(null);
     setEditValue("");
+    editingInputRef.current = null;
   }
 
-  async function saveEdit(aId: number, bId: number) {
-    if (!Match.isValidScoreFormat(editValue)) {
+  async function saveEdit(aId: number, bId: number, raw?: string) {
+    const nextValue = (raw ?? editingInputRef.current?.value ?? editValue).trim();
+    if (!Match.isValidScoreFormat(nextValue)) {
       alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"');
       return;
     }
     try {
       setSaving(true);
-      await onSaveScore?.(aId, bId, editValue.trim());
+      await onSaveScore?.(aId, bId, nextValue);
       setEditingKey(null);
       setEditValue("");
+      editingInputRef.current = null;
     } finally {
       setSaving(false);
     }
@@ -118,7 +124,10 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
     <div className="roundrobin-wrap">
       <div className="rounds-grid">
         {rounds.map((pairs, rIndex) => (
-          <div key={rIndex} className="card">
+          <div
+            key={rIndex}
+            className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}
+          >
             <div className="history-table-head">
               <strong>Раунд {rIndex + 1}</strong>
             </div>
@@ -157,8 +166,10 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
                             <div className="score-edit-wrap">
                               <input
                                 className="input score-input"
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
+                                defaultValue={editValue}
+                                ref={(node) => {
+                                  editingInputRef.current = node;
+                                }}
                                 placeholder="6-4, 4-6, 10-8"
                                 pattern="[0-9\\s,:-]*"
                                 autoFocus

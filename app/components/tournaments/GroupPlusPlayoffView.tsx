@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
 
@@ -328,6 +328,7 @@ export function GroupPlusPlayoffView({
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const editingInputRef = useRef<HTMLInputElement | null>(null);
 
   /* ----------------------- Стабильные колбэки/утилиты ----------------------- */
 
@@ -341,17 +342,20 @@ export function GroupPlusPlayoffView({
     const k = pairKey(aId, bId);
     setEditingKey(k);
     setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
-  }, [pairKey]);
+    editingInputRef.current = null;
+  }, [pairKey, editingInputRef]);
 
   /** Отмена редактирования */
   const cancelEdit = useCallback(() => {
     setEditingKey(null);
     setEditValue("");
-  }, []);
+    editingInputRef.current = null;
+  }, [editingInputRef]);
 
   /** Сохранить счёт (валидация формата + вызов onSaveScore) */
-const saveEdit = useCallback(async (aId: number, bId: number, phaseFilter?: MatchPhaseFilter) => {
-  if (!isValidScoreFormat(editValue)) {
+const saveEdit = useCallback(async (aId: number, bId: number, phaseFilter?: MatchPhaseFilter, raw?: string) => {
+  const nextValue = (raw ?? editingInputRef.current?.value ?? editValue).trim();
+  if (!isValidScoreFormat(nextValue)) {
     alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"');
     return;
   }
@@ -365,13 +369,14 @@ const saveEdit = useCallback(async (aId: number, bId: number, phaseFilter?: Matc
         }
       : undefined;
 
-    await onSaveScore?.(aId, bId, editValue.trim(), meta); // ✅ теперь с мета
+    await onSaveScore?.(aId, bId, nextValue, meta); // ✅ теперь с мета
     setEditingKey(null);
     setEditValue("");
+    editingInputRef.current = null;
   } finally {
     setSaving(false);
   }
-}, [editValue, onSaveScore]);
+}, [editValue, editingInputRef, onSaveScore]);
 
   /* --------------------------- Производные данные --------------------------- */
 
@@ -473,8 +478,10 @@ const MatchCell = useCallback(({
           <div className="score-edit-wrap">
             <input
               className="input score-input"
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
+              defaultValue={editValue}
+              ref={(node) => {
+                editingInputRef.current = node;
+              }}
               placeholder="6-4, 4-6, 10-8"
               pattern="[0-9\\s,:-]*"
               autoFocus
@@ -538,15 +545,15 @@ function PairRow({
     const stats = groupStats[gIndex];
 
     return (
-      <div className="card">
+      <div className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}>
         <div className="history-table-head">
           <strong>Группа {String.fromCharCode(65 + gIndex)}</strong>
         </div>
 
         {/* Раунды группы */}
         <div className="rounds-grid">
-          {rounds.map((pairs, r) => (
-            <table key={r} className="round-table">
+        {rounds.map((pairs, r) => (
+          <table key={r} className="round-table">
               <thead>
                 <tr className="grid-row">
                   <th>Участник</th>
@@ -598,7 +605,10 @@ function PairRow({
     return (
       <div className="rounds-grid">
         {resolvedPlayoff.map((pairs, rIndex) => (
-          <div key={rIndex} className="card">
+          <div
+            key={rIndex}
+            className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}
+          >
             <div className="history-table-head">
               <strong>{rIndex === resolvedPlayoff.length - 1 ? "Финал" : `Плей-офф — Раунд ${rIndex + 1}`}</strong>
             </div>

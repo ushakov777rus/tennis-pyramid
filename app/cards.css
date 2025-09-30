@@ -14,6 +14,10 @@
   text-decoration: none;
 }
 
+.card--no-transition {
+  transition: none !important;
+}
+
 .card:has(.cs-select.is-open) {
   z-index: 3000;
 }

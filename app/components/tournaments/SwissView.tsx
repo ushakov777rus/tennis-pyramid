@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
 import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
@@ -201,6 +201,7 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const editingInputRef = useRef<HTMLInputElement | null>(null);
 
   // Базовая «стабильная» сортировка списка на первый раунд (если нет рейтингов)
   const ordered = useMemo(
@@ -255,11 +256,13 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
     const k = pairKey(aId, bId);
     setEditingKey(k);
     setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
+    editingInputRef.current = null;
   }
-  function cancelEdit() { setEditingKey(null); setEditValue(""); }
-  async function saveEdit(aId: number, bId: number) {
-    if (!isValidScoreFormat(editValue)) { alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"'); return; }
-    try { setSaving(true); await onSaveScore?.(aId, bId, editValue.trim()); setEditingKey(null); setEditValue(""); }
+  function cancelEdit() { setEditingKey(null); setEditValue(""); editingInputRef.current = null; }
+  async function saveEdit(aId: number, bId: number, raw?: string) {
+    const nextValue = (raw ?? editingInputRef.current?.value ?? editValue).trim();
+    if (!isValidScoreFormat(nextValue)) { alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"'); return; }
+    try { setSaving(true); await onSaveScore?.(aId, bId, nextValue); setEditingKey(null); setEditValue(""); editingInputRef.current = null; }
     finally { setSaving(false); }
   }
 
@@ -289,8 +292,10 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
               <div className="score-edit-wrap">
                 <input
                   className="input score-input"
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
+                  defaultValue={editValue}
+                  ref={(node) => {
+                    editingInputRef.current = node;
+                  }}
                   placeholder="6-4, 6-4"
                   pattern="[0-9\\s,:-]*"
                   autoFocus
@@ -317,7 +322,10 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
       {/* РАУНДЫ ШВЕЙЦАРКИ */}
       <div className="rounds-grid">
         {swissRounds.map((pairs, rIndex) => (
-          <div key={rIndex} className="card">
+          <div
+            key={rIndex}
+            className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}
+          >
             <div className="history-table-head">
               <strong>Швейцарка — Раунд {rIndex + 1}</strong>
             </div>
@@ -339,7 +347,10 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
       </div>
 
       {/* ТАБЛИЦА УЧАСТНИКОВ */}
-      <div className="card" style={{ marginTop: 16 }}>
+      <div
+        className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}
+        style={{ marginTop: 16 }}
+      >
         <div className="history-table-head"><strong>Таблица</strong></div>
         <table className="round-table">
           <thead>
