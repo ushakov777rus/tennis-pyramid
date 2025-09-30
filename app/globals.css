@@ -566,9 +566,8 @@ body {
     left: 50%;
     right: auto;
     transform: translateX(-50%);
-    bottom: 60px;
+    bottom: 40px;
     width: calc(100% - 32px);
     max-width: 320px;
   }
 }
-
