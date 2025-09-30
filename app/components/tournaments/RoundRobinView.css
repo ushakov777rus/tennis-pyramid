@@ -122,20 +122,9 @@
 .score-edit-wrap {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
   justify-content: center;
 }
-
-
-
-
-
-
-
-
-
-
-
 
 /* Колонки по умолчанию и при редактировании */
 .grid-row {
@@ -156,8 +145,6 @@
 .editing-row {
   grid-template-columns: 20% 60% 20%;
 }
-
-.score-edit-wrap { display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
 
 .round-table tbody .grid-row + .grid-row > td { border-top: 1px dashed rgba(0,0,0,0.12); }
 .round-table thead .grid-row > th { border-bottom: 1px solid rgba(0,0,0,0.12); }
