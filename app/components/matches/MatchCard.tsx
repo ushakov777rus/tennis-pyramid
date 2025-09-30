@@ -189,7 +189,6 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
               <div key={`edit-a-${i}`} className="cell cell--score">
                 <input
                   type="text"
-                  inputMode="numeric"
                   maxLength={2}
                   className="input match-card-score-input"
                   value={set[0]}
@@ -208,7 +207,6 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
               <div key={`edit-b-${i}`} className="cell cell--score">
                 <input
                   type="text"
-                  inputMode="numeric"
                   maxLength={2}
                   className="input match-card-score-input"
                   value={set[1]}

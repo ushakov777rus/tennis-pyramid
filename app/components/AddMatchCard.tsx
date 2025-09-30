@@ -129,7 +129,6 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
                 setMatchScore(e.target.value);
                 if (scoreError) setScoreError(false);
               }}
-              inputMode="numeric"
               pattern="[0-9\\s,:-]*"
               className={`input ${scoreError ? "input-error" : ""}`}
             />

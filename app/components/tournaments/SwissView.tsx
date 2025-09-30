@@ -292,7 +292,6 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
                   value={editValue}
                   onChange={(e) => setEditValue(e.target.value)}
                   placeholder="6-4, 6-4"
-                  inputMode="numeric"
                   pattern="[0-9\\s,:-]*"
                   autoFocus
                   onKeyDown={(e) => {

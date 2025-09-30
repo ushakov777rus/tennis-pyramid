@@ -160,7 +160,6 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
                                 value={editValue}
                                 onChange={(e) => setEditValue(e.target.value)}
                                 placeholder="6-4, 4-6, 10-8"
-                                inputMode="numeric"
                                 pattern="[0-9\\s,:-]*"
                                 autoFocus
                                 onKeyDown={(e) => {
