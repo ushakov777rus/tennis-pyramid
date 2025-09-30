@@ -81,7 +81,11 @@
   }
 
 }
-
+.card-register {
+  max-width: 48%;
+  cursor: pointer;
+  padding: 10px;
+}
 
 /* ✅ Адаптивность для мобилок */
 @media (max-width: 768px) {
@@ -89,13 +93,13 @@
     width: 100%;
     max-width: none;
   }
+
+  .card-register {
+  max-width: 100%;
 }
 
-.card-register {
-  max-width: 48%;
-  cursor: pointer;
-  padding: 10px;
 }
+
 
 .card-icon {
   font-size: 32px;

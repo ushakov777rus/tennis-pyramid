@@ -236,12 +236,6 @@ export default function HomePage() {
 
       <main className="page-content-container">
 
-        <div className="hero-cta">
-          <Link href="/freetournament" className="btn-base btn-fit-content hero-cta__link">
-            Быстрый турнир
-          </Link>
-        </div>
-
         {/* Hero: изображение с alt и приоритетом (если есть /hero.png) */}
         <section className="card" style={{ padding: 0 }}>
           <div className="tennis-hero" style={{ position: "relative", width: "100%", height: "260px" }}>
@@ -378,6 +372,14 @@ export default function HomePage() {
 
         <Footer />
       </main>
+
+      <Link
+        href="/freetournament"
+        className="btn-base floating-cta"
+        aria-label="Перейти к созданию быстрого турнира"
+      >
+        Быстрый турнир
+      </Link>
 
       <AuthContainer
         isOpen={isLoginOpen}
