@@ -363,7 +363,7 @@ export function DoubleEliminationView({
                       ) : (
                         <div className="score-edit-wrap">
                           <input
-                            className="score-input"
+                            className="input score-input"
                             value={editValue}
                             onChange={(e) => setEditValue(e.target.value)}
                             placeholder="6-4, 6-4"

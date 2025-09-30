@@ -307,7 +307,7 @@ export function SingleEliminationView({
                             ) : (
                               <div className="score-edit-wrap">
                                 <input
-                                  className="score-input"
+                                  className="input score-input"
                                   value={editValue}
                                   onChange={(e) => setEditValue(e.target.value)}
                                   placeholder="6-4, 4-6, 10-8"
