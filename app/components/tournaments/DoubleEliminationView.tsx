@@ -134,6 +134,11 @@ export function DoubleEliminationView({
     const wbCopy = wb.map((r) => r.map(([a, b]) => [a, b] as [Participant | null, Participant | null]));
     const losersByRound: number[][] = [];
 
+    const pushUnique = (bucket: number[], value: number | null | undefined) => {
+      if (!value) return;
+      if (!bucket.includes(value)) bucket.push(value);
+    };
+
     for (let r = 0; r < wbCopy.length; r++) {
       losersByRound[r] = [];
 
@@ -150,8 +155,8 @@ export function DoubleEliminationView({
           wbCopy[r][i][1] = m2.winnerId ? ordered.find((p) => p.getId === m2.winnerId) ?? null : null;
 
           // лузеры предыдущего раунда (если определились по результату, не по BYE)
-          if (m1.loserId) losersByRound[r - 1].push(m1.loserId);
-          if (m2.loserId) losersByRound[r - 1].push(m2.loserId);
+          pushUnique(losersByRound[r - 1], m1.loserId);
+          pushUnique(losersByRound[r - 1], m2.loserId);
         }
       }
 
@@ -160,10 +165,8 @@ export function DoubleEliminationView({
         const allowByeR0 = true; // для исходных BYE
         for (let i = 0; i < wbCopy[0].length; i++) {
           const m0 = resultOfPair(wbCopy[0][i][0], wbCopy[0][i][1], matches, allowByeR0);
-          if (m0.loserId) {
-            if (!losersByRound[0]) losersByRound[0] = [];
-            losersByRound[0].push(m0.loserId);
-          }
+          if (!losersByRound[0]) losersByRound[0] = [];
+          pushUnique(losersByRound[0], m0.loserId);
         }
       }
     }
@@ -202,20 +205,33 @@ export function DoubleEliminationView({
     const lbWinnersCacheByRound: number[][] = [];
 
     for (let r = 0; r < wbLosersByRound.length; r++) {
-      const entrants: number[] = [];
-      if (r - 1 >= 0 && lbWinnersCacheByRound[r - 1]?.length) {
-        entrants.push(...lbWinnersCacheByRound[r - 1]);
-      }
-      if (wbLosersByRound[r]?.length) {
-        entrants.push(...wbLosersByRound[r]);
+      const lbPairs: Array<[Participant | null, Participant | null]> = [];
+
+      if (r === 0) {
+        const entrants = wbLosersByRound[0] ?? [];
+        for (let i = 0; i < entrants.length; i += 2) {
+          const a = idToP.get(entrants[i]) ?? null;
+          const b = idToP.get(entrants[i + 1]) ?? null;
+          lbPairs.push([a, b]);
+        }
+      } else {
+        const winnersQueue = [...(lbWinnersCacheByRound[r - 1] ?? [])];
+        const losersQueue = [...(wbLosersByRound[r] ?? [])];
+
+        while (winnersQueue.length && losersQueue.length) {
+          const a = idToP.get(winnersQueue.shift()!) ?? null;
+          const b = idToP.get(losersQueue.shift()!) ?? null;
+          lbPairs.push([a, b]);
+        }
+
+        const remainder = [...winnersQueue, ...losersQueue];
+        for (let i = 0; i < remainder.length; i += 2) {
+          const a = idToP.get(remainder[i]) ?? null;
+          const b = idToP.get(remainder[i + 1]) ?? null;
+          lbPairs.push([a, b]);
+        }
       }
 
-      const lbPairs: Array<[Participant | null, Participant | null]> = [];
-      for (let i = 0; i < entrants.length; i += 2) {
-        const a = idToP.get(entrants[i]) ?? null;
-        const b = idToP.get(entrants[i + 1]) ?? null;
-        lbPairs.push([a, b]);
-      }
       rounds.push(lbPairs);
 
       const winners: number[] = [];
@@ -225,6 +241,8 @@ export function DoubleEliminationView({
       }
       lbWinnersCacheByRound[r] = winners;
     }
+
+    console.log("resolvedLB 1",rounds);
 
     // Схлопываем победителей LB до одного
     let curWinners = resolvedArrayLast(lbWinnersCacheByRound) ?? [];
@@ -244,6 +262,8 @@ export function DoubleEliminationView({
       }
       curWinners = nextWinners;
     }
+
+console.log("resolvedLB 2",rounds);
 
     return rounds;
   }, [ordered, matches, wbLosersByRound]);
