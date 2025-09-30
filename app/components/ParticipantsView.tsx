@@ -176,7 +176,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
       }
 
       // По желанию очистить фильтр, чтобы сразу увидеть обновлённый список
-      // setLeftFilter("");
+      setLeftFilter("");
     } finally {
       setCreating(false);
     }
@@ -324,24 +324,28 @@ export function ParticipantsView(props: ParticipantsViewProps) {
                           />
                         ) : null
                       ) :
-                        free && props.onAddPlayerToTournament ? (
-                          <PlusIconButton
-                            title="Добавить"
-                            onClick={() =>
-                              props.onAddPlayerToTournament?.(free.id)
-                            }
-                            disabled={mutating || creating}
-                          />
-                        ) : null
-                    ) :
-                      free && props.onAddPlayerToClub ? (
-                        <PlusIconButton
-                          title="Добавить в клуб"
-                          onClick={() => props.onAddPlayerToClub?.(free.id)}
-                          disabled={mutating || creating}
-                        />
-                      ) : null
-                  )}
+                free && props.onAddPlayerToTournament ? (
+                  <PlusIconButton
+                    title="Добавить"
+                    onClick={async () => {
+                      await props.onAddPlayerToTournament?.(free.id);
+                      setLeftFilter("");
+                    }}
+                    disabled={mutating || creating}
+                  />
+                ) : null
+            ) :
+              free && props.onAddPlayerToClub ? (
+                <PlusIconButton
+                  title="Добавить в клуб"
+                  onClick={async () => {
+                    await props.onAddPlayerToClub?.(free.id);
+                    setLeftFilter("");
+                  }}
+                  disabled={mutating || creating}
+                />
+              ) : null
+          )}
                 </td>
 
                 {/* правая колонка */}
