@@ -25,6 +25,7 @@ type CustomSelectProps = {
   maxDropdownHeight?: number; // px
   showSearch?: boolean;       // показывать поле поиска (по умолчанию true)
   sort?: SortProp;            // 👈 управление сортировкой
+  rows?: number;
 };
 
 export function CustomSelect({
@@ -37,6 +38,7 @@ export function CustomSelect({
   maxDropdownHeight = 240,
   showSearch = true,
   sort = "asc",              // 👈 по умолчанию сортируем по возрастанию (как раньше)
+  rows = 6,
 }: CustomSelectProps) {
 
   const comboboxRef = useRef<HTMLDivElement | null>(null);
@@ -72,6 +74,15 @@ export function CustomSelect({
   }, [sortedOptions, normalizedQuery, showSearch]);
 
   const [open, setOpen] = useState(false);
+  const [dropdownMaxHeight, setDropdownMaxHeight] = useState(maxDropdownHeight);
+  const [openUp, setOpenUp] = useState(false);
+  const [dropdownWidth, setDropdownWidth] = useState<number | undefined>(undefined);
+
+  const preferredHeight = useMemo(() => {
+    const optionHeight = 38;
+    const extraPadding = showSearch ? 52 : 12;
+    return rows > 0 ? Math.min(maxDropdownHeight, optionHeight * rows + extraPadding) : maxDropdownHeight;
+  }, [rows, maxDropdownHeight, showSearch]);
 
   // Индексы считаем относительно ОТОБРАЖАЕМОГО (filteredOptions) списка
   const selectedIndex = useMemo(
@@ -90,6 +101,10 @@ export function CustomSelect({
   useEffect(() => {
     if (open && showSearch) setQuery("");
   }, [open, showSearch]);
+
+  useEffect(() => {
+    if (!open) setDropdownMaxHeight(preferredHeight);
+  }, [preferredHeight, open]);
 
   // При смене value/фильтра — аккуратно сдвигаем активный
   useEffect(() => {
@@ -178,6 +193,33 @@ export function CustomSelect({
     document.addEventListener("pointerdown", onDocPointerDown);
     return () => document.removeEventListener("pointerdown", onDocPointerDown);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const trigger = comboboxRef.current;
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    const gap = 12;
+    const spaceBelow = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    setDropdownWidth(rect.width);
+
+    const computeHeight = (space: number) => {
+      const available = Math.max(space - gap, 120);
+      return Math.min(preferredHeight, available);
+    };
+
+    if (spaceBelow >= preferredHeight || spaceBelow >= spaceAbove) {
+      setOpenUp(false);
+      setDropdownMaxHeight(computeHeight(spaceBelow));
+    } else {
+      setOpenUp(true);
+      setDropdownMaxHeight(computeHeight(spaceAbove));
+    }
+  }, [open, preferredHeight]);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (disabled) return;
@@ -291,8 +333,11 @@ export function CustomSelect({
           ref={listboxRef}
           id={listboxId}
           role="listbox"
-          className="card cs-dropdown"
-          style={{ maxHeight: `${maxDropdownHeight}px` }}
+          className={`card cs-dropdown ${openUp ? "open-up" : ""}`}
+          style={{
+            maxHeight: `${dropdownMaxHeight}px`,
+            width: dropdownWidth ? `${dropdownWidth}px` : undefined,
+          }}
           onMouseDown={(e) => e.stopPropagation()}
         >
           {/* Поле поиска — только если showSearch */}

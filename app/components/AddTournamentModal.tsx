@@ -193,6 +193,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
               disabled={false}
               showSearch={false}
               sort={false}
+              rows={4}
             />
           </div>
 

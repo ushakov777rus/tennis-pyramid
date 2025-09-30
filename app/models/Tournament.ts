@@ -34,7 +34,7 @@ export const FORMAT_OPTIONS = [
   { value: TournamentFormat.RoundRobin, label: "Круговой" },
   { value: TournamentFormat.SingleElimination, label: "Олимпийка" },
   { value: TournamentFormat.DoubleElimination, label: "Двойная олим." },
-  { value: TournamentFormat.GroupsPlayoff, label: "Группы + плей-офф" },
+  { value: TournamentFormat.GroupsPlayoff, label: "Гр.+плей-офф" },
   { value: TournamentFormat.Swiss, label: "Швейцарка" },
   { value: TournamentFormat.Custom, label: "Произвольный" },
 ];
@@ -59,7 +59,7 @@ const FORMAT_LABELS_RU: Record<TournamentFormat, string> = {
   [TournamentFormat.RoundRobin]: "Круговой турнир",
   [TournamentFormat.SingleElimination]: "Плей-офф (1 вылет)",
   [TournamentFormat.DoubleElimination]: "Плей-офф (2 вылета)",
-  [TournamentFormat.GroupsPlayoff]: "Группы + плей-офф",
+  [TournamentFormat.GroupsPlayoff]: "Гр. + плей-офф",
   [TournamentFormat.Swiss]: "Швейцарская система",
   [TournamentFormat.Custom]: "Произвольный формат",
 };
