@@ -471,13 +471,15 @@ const MatchCell = useCallback(({
           </button>
         ) : (
           <div className="score-edit-wrap">
-            <input
-              className="input score-input"
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              placeholder="6-4, 4-6, 10-8"
-              autoFocus
-              onKeyDown={(e) => {
+              <input
+                className="input score-input"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                placeholder="6-4, 4-6, 10-8"
+                inputMode="numeric"
+                pattern="[0-9\\s,:-]*"
+                autoFocus
+                onKeyDown={(e) => {
                 if (e.key === "Enter") { e.preventDefault(); saveEdit(aId!, bId!, phaseFilter); } // ✅ meta
                 if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
               }}
