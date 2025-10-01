@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 
 import { Participant } from "@/app/models/Participant";
-import { Match } from "@/app/models/Match";
+import { Match, PhaseType } from "@/app/models/Match";
 
 import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
 
@@ -14,7 +14,12 @@ import "@/app/components/ParticipantsView.css";
 type DoubleEliminationViewProps = {
   participants: Participant[];
   matches: Match[];
-  onSaveScore?: (aId: number, bId: number, score: string) => Promise<void> | void;
+  onSaveScore?: (
+    aId: number,
+    bId: number,
+    score: string,
+    meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+  ) => Promise<void> | void;
 };
 
 /* ---------- Утилиты ---------- */
@@ -33,16 +38,35 @@ function nextPow2(n: number) {
   return p;
 }
 
-function findMatchBetween(aId: number, bId: number, matches: Match[]): Match | undefined {
-  return matches.find((m) => {
-    const id1 = m.player1?.id ?? m.team1?.id ?? 0;
-    const id2 = m.player2?.id ?? m.team2?.id ?? 0;
-    return (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
-  });
+const BRACKET_GROUP_WB = 0;
+const BRACKET_GROUP_LB = 1;
+const BRACKET_GROUP_GF = 2;
+
+type PhaseMeta = { phase?: PhaseType; roundIndex?: number | null; groupIndex?: number | null };
+
+function findMatchBetween(aId: number, bId: number, matches: Match[], meta?: PhaseMeta): Match | undefined {
+  const tryFind = (useMeta: boolean) =>
+    matches.find((m) => {
+      const id1 = m.player1?.id ?? m.team1?.id ?? 0;
+      const id2 = m.player2?.id ?? m.team2?.id ?? 0;
+      const samePair = (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
+      if (!samePair) return false;
+      if (!useMeta || !meta) return true;
+      if (meta.phase && (m as any).phase !== meta.phase) return false;
+      if (meta.groupIndex != null && ((m as any).groupIndex ?? null) !== meta.groupIndex) return false;
+      if (meta.roundIndex != null && ((m as any).roundIndex ?? null) !== meta.roundIndex) return false;
+      return true;
+    });
+
+  if (meta) {
+    const matchWithMeta = tryFind(true);
+    if (matchWithMeta) return matchWithMeta;
+  }
+  return tryFind(false);
 }
 
-function getMatchScore(aId: number, bId: number, matches: Match[]): string | null {
-  const match = findMatchBetween(aId, bId, matches);
+function getMatchScore(aId: number, bId: number, matches: Match[], meta?: PhaseMeta): string | null {
+  const match = findMatchBetween(aId, bId, matches, meta);
   if (!match) return null;
   if (match.scores && match.scores.length > 0) {
     return match.scores.map(([s1, s2]) => `${s1}:${s2}`).join(", ");
@@ -316,7 +340,12 @@ console.log("resolvedLB 2",rounds);
     setEditValue("");
     editingInputRef.current = null;
   }
-  async function saveEdit(aId: number, bId: number, raw?: string) {
+  async function saveEdit(
+    aId: number,
+    bId: number,
+    meta?: { phase: PhaseType; groupIndex: number | null; roundIndex: number | null },
+    raw?: string
+  ) {
     const nextValue = (raw ?? editingInputRef.current?.value ?? editValue).trim();
     if (!isValidScoreFormat(nextValue)) {
       alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"');
@@ -324,7 +353,18 @@ console.log("resolvedLB 2",rounds);
     }
     try {
       setSaving(true);
-      await onSaveScore?.(aId, bId, nextValue);
+      await onSaveScore?.(
+        aId,
+        bId,
+        nextValue,
+        meta
+          ? {
+              phase: meta.phase,
+              groupIndex: meta.groupIndex ?? null,
+              roundIndex: meta.roundIndex ?? null,
+            }
+          : undefined
+      );
       setEditingKey(null);
       setEditValue("");
       editingInputRef.current = null;
@@ -340,11 +380,13 @@ console.log("resolvedLB 2",rounds);
     pairs,
     rKeyPrefix,
     nullText,
+    phaseMeta,
   }: {
     title: string;
     pairs: Array<[Participant | null, Participant | null]>;
     rKeyPrefix: string;
     nullText: string; // "BYE" для WB R1, иначе "Ожидается"
+    phaseMeta?: { phase: PhaseType; groupIndex: number | null; roundIndex: number | null };
   }) => (
     <div className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}>
       <div className="history-table-head">
@@ -364,7 +406,8 @@ console.log("resolvedLB 2",rounds);
               const aId = pid(a);
               const bId = pid(b);
               const canEdit = !!aId && !!bId;
-              const score = canEdit ? getMatchScore(aId!, bId!, matches) : null;
+              const scoreMeta = phaseMeta;
+              const score = canEdit ? getMatchScore(aId!, bId!, matches, scoreMeta) : null;
               const k = canEdit ? pairKey(aId!, bId!) : `${rKeyPrefix}_${i}`;
               const isEditing = canEdit && editingKey === k;
 
@@ -399,7 +442,7 @@ console.log("resolvedLB 2",rounds);
                             onKeyDown={(e) => {
                               if (e.key === "Enter") {
                                 e.preventDefault();
-                                saveEdit(aId!, bId!);
+                                saveEdit(aId!, bId!, scoreMeta);
                               }
                               if (e.key === "Escape") {
                                 e.preventDefault();
@@ -411,7 +454,7 @@ console.log("resolvedLB 2",rounds);
                             className="lg"
                             title="Сохранить счёт"
                             aria-label="Сохранить счёт"
-                            onClick={() => saveEdit(aId!, bId!)}
+                            onClick={() => saveEdit(aId!, bId!, scoreMeta)}
                             disabled={saving}
                           />
                           <CancelIconButton
@@ -455,6 +498,7 @@ console.log("resolvedLB 2",rounds);
             pairs={pairs}
             rKeyPrefix={`WB_${r}`}
             nullText={r === 0 ? "BYE" : "Ожидается"}  // ✅ BYE только в стартовом раунде
+            phaseMeta={{ phase: PhaseType.Playoff, groupIndex: BRACKET_GROUP_WB, roundIndex: r }}
           />
         ))}
       </div>
@@ -468,6 +512,7 @@ console.log("resolvedLB 2",rounds);
             pairs={pairs}
             rKeyPrefix={`LB_${r}`}
             nullText="Ожидается"
+            phaseMeta={{ phase: PhaseType.Playoff, groupIndex: BRACKET_GROUP_LB, roundIndex: r }}
           />
         ))}
       </div>
@@ -479,12 +524,14 @@ console.log("resolvedLB 2",rounds);
           pairs={[finalsPairs[0]]}
           rKeyPrefix="GF1"
           nullText="Ожидается"
+          phaseMeta={{ phase: PhaseType.Playoff, groupIndex: BRACKET_GROUP_GF, roundIndex: 0 }}
         />
         <RoundTable
           title="Гранд-финал (Reset, GF2)"
           pairs={[finalsPairs[1]]}
           rKeyPrefix="GF2"
           nullText="Ожидается"
+          phaseMeta={{ phase: PhaseType.Playoff, groupIndex: BRACKET_GROUP_GF, roundIndex: 1 }}
         />
       </div>
 
