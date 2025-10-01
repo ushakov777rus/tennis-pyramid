@@ -54,7 +54,7 @@
   background: #1b1b1b; /* тёмный фон */
   border-radius: 8px;
   border: 1px solid #1f1f1f;
-  padding: 20px;
+  padding: 25px 0px 0px 0px;
   max-height: 90vh;
   overflow-y: auto;
   z-index: 2001;         /* чуть выше overlay */
@@ -68,6 +68,7 @@
 
 .modal-content-login {
     max-width: 400px;
+    padding: 20px;
 }
 
 .modal-content-match-history {
@@ -91,18 +92,6 @@
   z-index: 2000;
 }
 
-.modal-content {
-  position: relative;
-  background: #1b1b1b; /* тёмный фон */
-  border-radius: 8px;
-  border: 1px solid #1f1f1f;
-  padding: 20px;
-  max-height: 90vh;
-  overflow-y: auto;
-  z-index: 2001;         /* чуть выше overlay */
-  box-shadow: 0 0 20px rgba(204, 255, 102, 0.5);
-}
-
 .modal-content-match-history {
     width: 900px;
 }
@@ -113,7 +102,7 @@
   }
 
   .modal-content {
-    width: 90%;
+    width: 95%;
     max-height: 90dvh
   }
 }
