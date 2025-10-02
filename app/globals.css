@@ -518,6 +518,37 @@ body {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
+.help-cell-tooltip {
+  background: var(--green);
+  color: #000;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 20;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  width: fit-content;
+  position: relative;
+}
+@media (max-width: 1024px) {
+  .help-cell-tooltip {
+    margin: auto;
+  }
+}
+
+.help-cell-tooltip::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 12px;
+  border-width: 0 9px 10px 9px;
+  border-style: solid;
+  border-color: transparent transparent var(--green) transparent;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.18));
+}
+
+
 .help-tooltip::after {
   content: "";
   position: absolute;

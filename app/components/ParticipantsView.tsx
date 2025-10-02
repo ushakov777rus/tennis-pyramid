@@ -202,10 +202,10 @@ export function ParticipantsView(props: ParticipantsViewProps) {
       aria-busy={refreshing || mutating || creating}
     >
       <colgroup>
-        <col style={{ width: "40%" }} />
-        <col style={{ width: "10%" }} />
-        <col style={{ width: "40%" }} />
-        <col style={{ width: "10%" }} />
+        <col style={{ width: "38%" }} />
+        <col style={{ width: "12%" }} />
+        <col style={{ width: "38%" }} />
+        <col style={{ width: "12%" }} />
       </colgroup>
 
       <thead>
@@ -269,7 +269,9 @@ export function ParticipantsView(props: ParticipantsViewProps) {
         {maxRows === 0 ? (
           <tr>
             <td colSpan={4} style={{ textAlign: "center", opacity: 0.7 }}>
-              Ничего не найдено
+              <div  className="help-cell-tooltip">
+                Введите имя игрока и нажмите +
+              </div>
             </td>
           </tr>
         ) : (
