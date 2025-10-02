@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
 import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
+import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 
 import "./PyramidView.css";
 import "./RoundRobinView.css";
@@ -252,6 +253,7 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
 
   // --- редактирование счёта ---
   const pairKey = (aId: number, bId: number) => `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
+  const firstHelpTooltip = useFirstHelpTooltip();
   function startEdit(aId: number, bId: number, currentScore: string | null) {
     const k = pairKey(aId, bId);
     setEditingKey(k);
@@ -272,6 +274,7 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
     const score = canEdit ? getMatchScore(aId!, bId!, matches) : null;
     const k = canEdit ? pairKey(aId!, bId!) : undefined;
     const isEditing = !!k && editingKey === k;
+    const shouldShowHelpTooltip = canEdit && !score && !isEditing && firstHelpTooltip();
 
     return (
       <tr className={`grid-row ${isEditing ? "editing-row" : ""}`}>
@@ -281,13 +284,18 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
             score ? (
               <span className="badge">{score}</span>
             ) : !isEditing ? (
-              <button
-                type="button"
-                className="vs vs-click"
-                onClick={() => startEdit(aId!, bId!, score)}
-                title="Добавить счёт"
-                aria-label="Добавить счёт"
-              >vs</button>
+              <div className="score-cell__button-wrap">
+                {shouldShowHelpTooltip && (
+                  <div className="help-tooltip">Введите счёт</div>
+                )}
+                <button
+                  type="button"
+                  className="vs vs-click"
+                  onClick={() => startEdit(aId!, bId!, score)}
+                  title="Добавить счёт"
+                  aria-label="Добавить счёт"
+                >vs</button>
+              </div>
             ) : (
               <div className="score-edit-wrap">
                 <input

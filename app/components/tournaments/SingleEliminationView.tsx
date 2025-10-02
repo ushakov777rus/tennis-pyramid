@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useUser } from "@/app/components/UserContext";
 import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
+import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 
 import "./PyramidView.css";    // чипы/бейджи/карточки
 import "./RoundRobinView.css"; // таблицы/гриды
@@ -181,6 +182,7 @@ export function SingleEliminationView({
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const editingInputRef = useRef<HTMLInputElement | null>(null);
+  const firstHelpTooltip = useFirstHelpTooltip();
 
   // стабильная сортировка входных участников по отображаемому имени
   const ordered = useMemo(
@@ -290,6 +292,7 @@ export function SingleEliminationView({
 
                     const k = bothPresent ? pairKey(aId, bId) : `${rIndex}_${i}_empty`;
                     const isEditing = editingKey === k;
+                    const shouldShowHelpTooltip = bothPresent && !score && !isEditing && firstHelpTooltip();
 
                     return (
                       <tr key={i} className={`grid-row ${isEditing ? "editing-row" : ""}`}>
@@ -300,15 +303,20 @@ export function SingleEliminationView({
                             score ? (
                               <span className="badge">{score}</span>
                             ) : !isEditing ? (
-                              <button
-                                type="button"
-                                className="vs vs-click"
-                                onClick={() => startEdit(aId, bId, score)}
-                                title="Добавить счёт"
-                                aria-label="Добавить счёт"
-                              >
-                                vs
-                              </button>
+                              <div className="score-cell__button-wrap">
+                                {shouldShowHelpTooltip && (
+                                  <div className="help-tooltip">Введите счёт</div>
+                                )}
+                                <button
+                                  type="button"
+                                  className="vs vs-click"
+                                  onClick={() => startEdit(aId, bId, score)}
+                                  title="Добавить счёт"
+                                  aria-label="Добавить счёт"
+                                >
+                                  vs
+                                </button>
+                              </div>
                             ) : (
                               <div className="score-edit-wrap">
                                   <input

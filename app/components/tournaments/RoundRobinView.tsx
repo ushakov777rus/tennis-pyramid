@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
 import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
+import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 
 import "./PyramidView.css";    // чипы/бейджи/карточки
 import "./RoundRobinView.css"; // таблица кругового турнира (grid-строки)
@@ -120,7 +121,7 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
     return <span className="player">{p.displayName(false)}</span>;
   }
 
-  let helpTooltipShown = false;
+  const firstHelpTooltip = useFirstHelpTooltip();
 
   return (
     <div className="roundrobin-wrap">
@@ -144,11 +145,7 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
                     const score = getMatchScore(aId, bId, matches);
                     const k = pairKey(aId, bId);
                     const isEditing = editingKey === k;
-                    const shouldShowHelpTooltip = !score && !isEditing && !helpTooltipShown;
-
-                    if (shouldShowHelpTooltip) {
-                      helpTooltipShown = true;
-                    }
+                    const shouldShowHelpTooltip = !score && !isEditing && firstHelpTooltip();
 
                     return (
                       <tr key={i} className={`grid-row ${isEditing ? "editing-row" : ""}`}>

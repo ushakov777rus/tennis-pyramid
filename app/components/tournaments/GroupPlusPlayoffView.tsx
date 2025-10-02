@@ -5,6 +5,7 @@ import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
 
 import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
+import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 
 import "./PyramidView.css";
 import "./RoundRobinView.css";
@@ -329,6 +330,7 @@ export function GroupPlusPlayoffView({
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const editingInputRef = useRef<HTMLInputElement | null>(null);
+  const firstHelpTooltip = useFirstHelpTooltip();
 
   /* ----------------------- Стабильные колбэки/утилиты ----------------------- */
 
@@ -459,6 +461,7 @@ const MatchCell = useCallback(({
   const score = canEdit ? getMatchScore(aId!, bId!, matches, phaseFilter) : null;
   const k = canEdit ? pairKey(aId!, bId!) : undefined;
   const isEditing = !!k && editingKey === k;
+  const shouldShowHelpTooltip = canEdit && !score && !isEditing && firstHelpTooltip();
 
   return (
     <td className="score-cell">
@@ -466,14 +469,20 @@ const MatchCell = useCallback(({
         score ? (
           <span className="badge">{score}</span>
         ) : !isEditing ? (
-          <button
-            type="button"
-            className="vs vs-click"
-            onClick={() => startEdit(aId!, bId!, score)}
-            title="Добавить счёт"
-          >
-            vs
-          </button>
+          <div className="score-cell__button-wrap">
+            {shouldShowHelpTooltip && (
+              <div className="help-tooltip">Введите счёт</div>
+            )}
+            <button
+              type="button"
+              className="vs vs-click"
+              onClick={() => startEdit(aId!, bId!, score)}
+              title="Добавить счёт"
+              aria-label="Добавить счёт"
+            >
+              vs
+            </button>
+          </div>
         ) : (
           <div className="score-edit-wrap">
             <input
@@ -504,7 +513,7 @@ const MatchCell = useCallback(({
       )}
     </td>
   );
-}, [pairKey, startEdit, editValue, saveEdit, cancelEdit, saving, editingKey, matches]);
+}, [pairKey, startEdit, editValue, saveEdit, cancelEdit, saving, editingKey, matches, firstHelpTooltip]);
 
 /* ========================================================================== */
 /*                                UI SUBVIEWS                                 */
