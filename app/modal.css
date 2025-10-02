@@ -54,7 +54,7 @@
   background: #1b1b1b; /* тёмный фон */
   border-radius: 8px;
   border: 1px solid #1f1f1f;
-  padding: 25px 0px 0px 0px;
+  padding: 25px 10px 10px 10px;
   max-height: 90vh;
   overflow-y: auto;
   z-index: 2001;         /* чуть выше overlay */
