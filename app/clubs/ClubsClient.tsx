@@ -91,7 +91,7 @@ export function ClubsClient() {
     return (
       <div className={className}>
         <h1 className="page-title">Создание нового клуба...</h1>
-        <div className="page-content-container">
+        <div className="page-content-container card-grid-wrapper">
           <ul className="card-grid-new">
             <AdminOnly>
               <ClubCard
@@ -119,7 +119,7 @@ export function ClubsClient() {
     <div className={className}>
       <h1 className="page-title">Клубы</h1>
 
-      <div className="page-content-container">
+      <div className="page-content-container  card-grid-wrapper">
         {/* Панель поиска */}
         <div className="card page-toolbar">
           <input

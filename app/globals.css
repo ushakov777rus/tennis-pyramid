@@ -501,6 +501,36 @@ body {
   }
 }
 
+.help-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--green);
+  color: #000;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 20;
+  margin-bottom: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.help-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 10px 9px 0 9px;
+  border-style: solid;
+  border-color: var(--green) transparent transparent transparent;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.18));
+}
+
+
 .invalid-tooltip {
   position: absolute;
   bottom: 100%; /* теперь тултип появляется над карточкой */

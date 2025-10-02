@@ -97,6 +97,11 @@
   white-space: nowrap;
 }
 
+.score-cell__button-wrap {
+  position: relative;
+  display: inline-block;
+}
+
 /* В режиме редактирования меняем пропорции только у этой строки */
 .editing-row {
   grid-template-columns: 20% 60% 20%;

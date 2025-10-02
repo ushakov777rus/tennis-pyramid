@@ -45,7 +45,7 @@ export function MatchHistoryView({
   if (matches.length === 0) return <p className="history-empty">Матчей пока нет</p>;
 
   return (
-    <div>
+    <div className="card-grid-wrapper">
       {/* Панель поиска */}
       <div className="card page-toolbar">
         <input

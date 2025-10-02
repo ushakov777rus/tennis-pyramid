@@ -130,7 +130,7 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
     <div className={className}>
       {club === null && <h1 className="page-title">Турниры</h1>}
 
-      <div className="page-content-container">
+      <div className="page-content-container  card-grid-wrapper">
         {/* Панель фильтров */}
         <div className="card page-toolbar">
           <input

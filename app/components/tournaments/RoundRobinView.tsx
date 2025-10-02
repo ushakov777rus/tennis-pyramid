@@ -120,6 +120,8 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
     return <span className="player">{p.displayName(false)}</span>;
   }
 
+  let helpTooltipShown = false;
+
   return (
     <div className="roundrobin-wrap">
       <div className="rounds-grid">
@@ -142,6 +144,11 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
                     const score = getMatchScore(aId, bId, matches);
                     const k = pairKey(aId, bId);
                     const isEditing = editingKey === k;
+                    const shouldShowHelpTooltip = !score && !isEditing && !helpTooltipShown;
+
+                    if (shouldShowHelpTooltip) {
+                      helpTooltipShown = true;
+                    }
 
                     return (
                       <tr key={i} className={`grid-row ${isEditing ? "editing-row" : ""}`}>
@@ -153,15 +160,20 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
                           {score ? (
                             <span className="badge">{score}</span>
                           ) : !isEditing ? (
-                            <button
-                              type="button"
-                              className="vs vs-click"
-                              onClick={() => startEdit(aId, bId, score)}
-                              title="Добавить счёт"
-                              aria-label="Добавить счёт"
-                            >
-                              vs
-                            </button>
+                            <div className="score-cell__button-wrap">
+                              {shouldShowHelpTooltip && (
+                                <div className="help-tooltip">Введите счёт</div>
+                              )}
+                              <button
+                                type="button"
+                                className="vs vs-click"
+                                onClick={() => startEdit(aId, bId, score)}
+                                title="Добавить счёт"
+                                aria-label="Добавить счёт"
+                              >
+                                vs
+                              </button>
+                            </div>
                           ) : (
                             <div className="score-edit-wrap">
                               <input

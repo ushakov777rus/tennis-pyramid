@@ -210,6 +210,10 @@ tr.editing { background: rgba(166, 255, 0, 0.05); }
   }
 }
 
+.card-grid-wrapper {
+  container-type: inline-size; /* измеряем ширину контейнера */
+  container-name: card-grid;
+}
 
 .card-grid-new {
   display: grid;
@@ -223,13 +227,13 @@ tr.editing { background: rgba(166, 255, 0, 0.05); }
   grid-template-columns: 1fr; /* по умолчанию одна колонка */
 }
 
-@media (max-width: 1024px) {
+@container card-grid (max-width: 1024px) {
   .card-grid-new {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 600px) {
+@container card-grid (max-width: 600px) {
 .card-grid-new {
   grid-template-columns: 1fr;
 }
