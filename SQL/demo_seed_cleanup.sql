@@ -1,0 +1,17 @@
+BEGIN;
+
+DELETE FROM matches WHERE tournament_id IN (801, 802, 803, 804, 805, 806, 807, 808, 809, 810, 811, 812, 813, 814);
+
+DELETE FROM tournament_participants WHERE tournament_id IN (801, 802, 803, 804, 805, 806, 807, 808, 809, 810, 811, 812, 813, 814);
+
+DELETE FROM teams WHERE tournament_id IN (802, 804, 806, 808, 810, 812, 814);
+
+DELETE FROM tournaments WHERE id IN (801, 802, 803, 804, 805, 806, 807, 808, 809, 810, 811, 812, 813, 814);
+
+DELETE FROM club_members WHERE club_id = 601;
+
+DELETE FROM players WHERE id BETWEEN 2001 AND 2100;
+
+DELETE FROM clubs WHERE id = 601;
+
+COMMIT;
