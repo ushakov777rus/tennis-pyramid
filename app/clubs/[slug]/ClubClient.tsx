@@ -12,10 +12,10 @@ import { ClubParticipantsView } from "@/app/components/ParticipantsView"; // Ð˜Ñ
 import { TournamentsProvider } from "@/app/tournaments/TournamentsProvider";
 import { TournamentsClient } from "@/app/tournaments/TournamentsClient";
 import { AdminOnly } from "@/app/components/RoleGuard";
-import { PlayerListView } from "@/app/rating/PlayerListView";
 import { useUser } from "@/app/components/UserContext";
 import { UserRole } from "@/app/models/Users";
 import { SimpleBreadcrumbs } from "@/app/components/controls/BreadCrumbs";
+import { RatingView } from "@/app/components/RatingView";
 
 type ViewKey = "aboutc" | "participants" | "tournaments" | "rating";
 
@@ -79,7 +79,7 @@ export default function ClubClient() {
               </TournamentsProvider>
             }
             {view === "rating" && 
-              <PlayerListView clubId={club.id}/>
+              <RatingView />
             }
           </div>
         </div>

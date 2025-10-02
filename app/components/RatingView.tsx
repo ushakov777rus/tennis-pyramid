@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { KeyboardEvent } from "react";
 
 import { Participant } from "@/app/models/Participant";
@@ -16,6 +16,9 @@ import { UserProfileModal } from "@/app/components/UserProfileModal";
 import { PlayerCard } from "@/app/components/players/PlayerCard";
 import type { UserProfileStats } from "./UserProfileView";
 import { calculateParticipantTitles } from "./rating/calculateParticipantTitles";
+import { PlayersRepository } from "@/app/repositories/PlayersRepository";
+import { MatchRepository } from "@/app/repositories/MatchRepository";
+import { useUser } from "./UserContext";
 
 type ParticipantStats = {
   games: number;
@@ -24,13 +27,21 @@ type ParticipantStats = {
 
 type CardData = {
   id: number;
-  name: string;
+  players: Player[];
   games: number;
   wins: number;
-  title: string;
-  participant: Participant;
+  title?: string;
   hasHistory: boolean;
   rank: number;
+  displayName: string;
+};
+
+type RatingScope = "tournament" | "club" | "global";
+
+type RatingSubject = {
+  id: number;
+  players: Player[];
+  hasHistory: boolean;
 };
 
 const EMPTY_PARTICIPANTS: Participant[] = [];
@@ -44,52 +55,155 @@ export function RatingView() {
   const tournament = tournamentCtx?.tournament ?? null;
   const participants = tournamentCtx?.participants ?? EMPTY_PARTICIPANTS;
   const tournamentMatches = tournamentCtx?.matches ?? EMPTY_MATCHES;
-  const tournamentLoading = tournamentCtx?.loading ?? false;
+  const tournamentInitialLoading = tournamentCtx?.initialLoading ?? false;
+
+  const club = clubCtx?.club ?? null;
+  const clubMembers = clubCtx?.members ?? [];
   const clubMatches = clubCtx?.matches ?? EMPTY_MATCHES;
-
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [profileUser, setProfileUser] = useState<User | null>(null);
-  const [profileStats, setProfileStats] = useState<UserProfileStats | undefined>();
-  const [profileMatches, setProfileMatches] = useState<Match[]>([]);
-  const resolvedMatches: Match[] = useMemo(() => {
-    if (tournament) {
-      return tournamentMatches;
-    }
-
-    if (clubCtx?.club) {
-      return clubMatches;
-    }
-
-    const allMatches = matchesCtx?.matches ?? EMPTY_MATCHES;
-    return allMatches.length ? allMatches : EMPTY_MATCHES;
-  }, [
-    tournament,
-    tournamentMatches,
-    clubCtx?.club,
-    clubMatches,
-    matchesCtx?.matches,
-  ]);
-
-  const pastMatches = useMemo(() => {
-    const now = Date.now();
-    return resolvedMatches.filter((match) => match?.date && match.date.getTime() <= now);
-  }, [resolvedMatches]);
+  const clubInitialLoading = clubCtx?.initialLoading ?? false;
 
   const matchesInitialLoaded = matchesCtx?.initialLoaded ?? false;
   const matchesError = matchesCtx?.error ?? null;
   const matchesLoading = matchesCtx?.loading ?? false;
+  const matchesFromCtx = matchesCtx?.matches ?? EMPTY_MATCHES;
 
-  const isInitialLoading = tournament
-    ? tournamentLoading && !participants.length && !tournamentMatches.length
-    : matchesLoading && !matchesInitialLoaded;
+  const scope: RatingScope = tournament ? "tournament" : club ? "club" : "global";
+
+  const [globalPlayers, setGlobalPlayers] = useState<Player[]>([]);
+  const [globalMatches, setGlobalMatches] = useState<Match[]>([]);
+  const [globalLoading, setGlobalLoading] = useState<boolean>(false);
+  const [globalError, setGlobalError] = useState<string | null>(null);
+  const [filterPlayer, setFilterPlayer] = useState<{ name: string }>({ name: "" });
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileUser, setProfileUser] = useState<User | null>(null);
+  const [profileStats, setProfileStats] = useState<UserProfileStats | undefined>();
+  const [profileMatches, setProfileMatches] = useState<Match[]>([]);
+
+  useEffect(() => {
+    if (scope !== "global") return;
+
+    let cancelled = false;
+    const needPlayers = globalPlayers.length === 0;
+    const hasContextMatches = matchesFromCtx.length > 0;
+    const needMatches = !hasContextMatches && globalMatches.length === 0;
+
+    if (!needPlayers && !needMatches) {
+      setGlobalError(null);
+      return;
+    }
+
+    setGlobalLoading(true);
+
+    const load = async () => {
+      try {
+        const [players, matches] = await Promise.all([
+          needPlayers ? PlayersRepository.loadAll() : Promise.resolve(globalPlayers),
+          needMatches ? MatchRepository.loadAll() : Promise.resolve(globalMatches),
+        ]);
+
+        if (cancelled) return;
+
+        if (needPlayers) {
+          setGlobalPlayers(players);
+        }
+        if (needMatches) {
+          setGlobalMatches(matches);
+        }
+
+        setGlobalError(null);
+      } catch (error) {
+        console.error("RatingView: failed to load global rating data", error);
+        if (!cancelled) {
+          setGlobalError("Не удалось загрузить данные для рейтинга");
+        }
+      } finally {
+        if (!cancelled) {
+          setGlobalLoading(false);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [scope, matchesFromCtx.length, globalPlayers.length, globalMatches.length]);
+
+  const scopedMatches: Match[] = useMemo(() => {
+    if (scope === "tournament") return tournamentMatches;
+    if (scope === "club") return clubMatches;
+    if (matchesFromCtx.length > 0) return matchesFromCtx;
+    return globalMatches;
+  }, [scope, tournamentMatches, clubMatches, matchesFromCtx, globalMatches]);
+
+  const pastMatches = useMemo(() => {
+    const now = Date.now();
+    return scopedMatches.filter((match) => match?.date && match.date.getTime() <= now);
+  }, [scopedMatches]);
+
+  const playersFromMatches = useMemo(() => {
+    const map = new Map<number, Player>();
+
+    const register = (player?: Player) => {
+      if (!player || !player.id) return;
+      if (!map.has(player.id)) {
+        map.set(player.id, player);
+      }
+    };
+
+    for (const match of scopedMatches) {
+      register(match.player1);
+      register(match.player2);
+      register(match.team1?.player1);
+      register(match.team1?.player2);
+      register(match.team2?.player1);
+      register(match.team2?.player2);
+    }
+
+    return Array.from(map.values());
+  }, [scopedMatches]);
+
+  const subjects = useMemo<RatingSubject[]>(() => {
+    if (scope === "tournament") {
+      return participants.map((participant) => {
+        const players = participant.player
+          ? [participant.player]
+          : [participant.team?.player1, participant.team?.player2].filter(
+              (p): p is Player => Boolean(p)
+            );
+
+        return {
+          id: participant.getId,
+          players,
+          hasHistory: Boolean(participant.player || participant.team),
+        };
+      });
+    }
+
+    if (scope === "club") {
+      return clubMembers.map((player) => ({
+        id: player.id,
+        players: [player],
+        hasHistory: true,
+      }));
+    }
+
+    const basePlayers = globalPlayers.length ? globalPlayers : playersFromMatches;
+
+    return basePlayers.map((player) => ({
+      id: player.id,
+      players: [player],
+      hasHistory: true,
+    }));
+  }, [scope, participants, clubMembers, globalPlayers, playersFromMatches]);
 
   const statsById = useMemo(() => {
     const map = new Map<number, ParticipantStats>();
 
-    for (const participant of participants) {
-      const id = participant.getId;
-      if (!map.has(id)) {
-        map.set(id, { games: 0, wins: 0 });
+    for (const subject of subjects) {
+      if (!map.has(subject.id)) {
+        map.set(subject.id, { games: 0, wins: 0 });
       }
     }
 
@@ -111,66 +225,127 @@ export function RatingView() {
     }
 
     return map;
-  }, [participants, pastMatches]);
+  }, [subjects, pastMatches]);
 
-  const titlesById = useMemo(
-    () =>
-      calculateParticipantTitles({
-        participants,
-        matches: pastMatches,
-        tournament,
-      }),
-    [participants, pastMatches, tournament]
-  );
+  const titlesById = useMemo(() => {
+    if (scope !== "tournament") {
+      return new Map<number, string[]>();
+    }
+
+    return calculateParticipantTitles({
+      participants,
+      matches: pastMatches,
+      tournament,
+    });
+  }, [scope, participants, pastMatches, tournament]);
 
   const cardsData = useMemo(() => {
-    const data: Omit<CardData, "rank">[] = [];
+    const data = subjects.map((subject) => {
+      const stats = statsById.get(subject.id) ?? { games: 0, wins: 0 };
+      const titles = titlesById.get(subject.id) ?? [];
+      const titleText =
+        titles.length > 0
+          ? titles.join(" • ")
+          : scope === "tournament"
+          ? "Без титула"
+          : undefined;
 
-    for (const participant of participants) {
-      const id = participant.getId;
-      const stats = statsById.get(id) ?? { games: 0, wins: 0 };
-      const titles = titlesById.get(id) ?? [];
-      const titleText = titles.length ? titles.join(" • ") : "Без титула";
+      const displayName =
+        subject.players
+          .map((player) => player.displayName?.() ?? player.name ?? "Без имени")
+          .join(" / ") || "Без имени";
 
-      data.push({
-        id,
-        name: participant.displayName(false),
+      return {
+        id: subject.id,
+        players: subject.players,
         games: stats.games,
         wins: stats.wins,
         title: titleText,
-        participant,
-        hasHistory: Boolean(participant.player || participant.team),
-      });
-    }
+        hasHistory: subject.hasHistory,
+        displayName,
+      };
+    });
 
     const sorted = data.sort((a, b) => {
       if (b.wins !== a.wins) return b.wins - a.wins;
       if (b.games !== a.games) return b.games - a.games;
-      return a.name.localeCompare(b.name, "ru");
+      return a.displayName.localeCompare(b.displayName, "ru");
     });
 
-    return sorted.map((item, index) => ({ ...item, rank: index + 1 }));
-  }, [participants, statsById, titlesById]);
+    return sorted.map((item, index) => ({
+      id: item.id,
+      players: item.players,
+      games: item.games,
+      wins: item.wins,
+      title: item.title,
+      hasHistory: item.hasHistory,
+      rank: index + 1,
+      displayName: item.displayName,
+    }));
+  }, [subjects, statsById, titlesById, scope]);
 
-  if (isInitialLoading) return <p>Загрузка…</p>;
+  const filteredCards = useMemo(() => {
+    const query = filterPlayer.name?.trim().toLowerCase();
+    if (!query) return cardsData;
+
+    return cardsData.filter((card) => {
+      if (card.displayName.toLowerCase().includes(query)) return true;
+      return card.players.some((player) => {
+        const name = player.displayName?.() ?? player.name ?? "";
+        return name.toLowerCase().includes(query);
+      });
+    });
+  }, [cardsData, filterPlayer.name]);
+
+  const scopeLoading =
+    scope === "tournament"
+      ? tournamentInitialLoading
+      : scope === "club"
+      ? clubInitialLoading
+      : globalLoading || (matchesLoading && !matchesInitialLoaded);
+
+  const isInitialLoading = scopeLoading && cardsData.length === 0;
+
+  const scopeError =
+    scope === "global" && cardsData.length === 0
+      ? globalError ?? matchesError
+      : null;
+
   if (tournamentCtx && !tournament) return <p>Турнир не найден</p>;
-  if (!tournament && matchesError) {
-    return <p style={{ color: "#f04438" }}>{matchesError}</p>;
+  if (isInitialLoading) return <p>Загрузка…</p>;
+  if (scopeError) {
+    return <p style={{ color: "#f04438" }}>{scopeError}</p>;
   }
 
+  const { user } = useUser();
+  const className = user || club || tournament ? "page-container-no-padding" : "page-container";
+
+  const noParticipants = cardsData.length === 0;
+  const noMatchesForSearch = !noParticipants && filteredCards.length === 0;
+
   return (
+    <div className={className}>
     <div className="page-content-container">
-      {cardsData.length === 0 ? (
+      <div className="card players-controls page-toolbar">
+        <input
+          name="player-name"
+          type="text"
+          className="input"
+          placeholder="Поиск"
+          value={filterPlayer.name || ""}
+          onChange={(e) => setFilterPlayer({ ...filterPlayer, name: e.target.value })}
+          suppressHydrationWarning
+        />
+      </div>
+
+      {noParticipants ? (
         <p>Пока нет участников.</p>
+      ) : noMatchesForSearch ? (
+        <p>Игроки не найдены.</p>
       ) : (
         <div className="card-grid-one-column">
-          {cardsData.map((card) => {
-            const players = card.participant.player
-              ? [card.participant.player]
-              : [card.participant.team?.player1, card.participant.team?.player2].filter(
-                  (p): p is Player => Boolean(p)
-                );
-
+          {filteredCards.map((card) => {
+            const players = card.players;
             if (!players.length) return null;
 
             const isTeam = players.length > 1;
@@ -198,7 +373,7 @@ export function RatingView() {
                 rank: card.rank,
               };
 
-              const playerMatches = resolvedMatches
+              const playerMatches = scopedMatches
                 .filter((match) => {
                   const playerId = primaryPlayer.id;
                   if (!playerId) return false;
@@ -229,7 +404,7 @@ export function RatingView() {
 
             return (
               <div
-                key={card.id || card.name}
+                key={card.id}
                 className="rating-card-wrapper"
                 role={canOpen ? "button" : undefined}
                 tabIndex={canOpen ? 0 : undefined}
@@ -264,6 +439,7 @@ export function RatingView() {
         stats={profileStats}
         matches={profileMatches}
       />
+    </div>
     </div>
   );
 }

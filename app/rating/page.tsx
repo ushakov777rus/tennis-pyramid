@@ -2,12 +2,12 @@
 
 import { Suspense } from "react";
 
-import { PlayerListView } from "./PlayerListView";
+import { RatingView } from "../components/RatingView";
 
 export default function RatingPage() {
   return (
     <Suspense fallback={null}>
-      <PlayerListView clubId={null} />
+      <RatingView />
     </Suspense>
   );
 }
