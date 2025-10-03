@@ -4,8 +4,7 @@
 import "./BreadCrumbs.css";
 
 import Link from "next/link";
-import { usePathname, useParams, useSearchParams } from "next/navigation";
-import { useUser } from "../UserContext";
+import { usePathname, useParams } from "next/navigation";
 
 type SimpleBreadcrumbsProps = {
   clubName?: string;
@@ -15,11 +14,8 @@ type SimpleBreadcrumbsProps = {
 type Crumb = { href: string; label: string };
 
 export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumbsProps) {
-  const { user } = useUser();
   const pathname = usePathname();
   const params = useParams();
-  const searchParams = useSearchParams();
-  const tab = searchParams.get("tab");
 
   function humanize(slug?: string, fallback = "—"): string {
   if (!slug) return fallback;

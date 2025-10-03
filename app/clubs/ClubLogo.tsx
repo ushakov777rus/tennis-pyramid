@@ -4,13 +4,11 @@
 type Props = {
   title?: string;
   className?: string;
-  label?: string;
 };
 
 export function ClubFallbackLogo({
   title = "Теннисный клуб",
   className,
-  label = "Теннисный клуб",
 }: Props) {
   const racketStroke = "currentColor";
   const gripFill = "currentColor";

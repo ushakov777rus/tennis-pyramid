@@ -144,6 +144,11 @@ export function UserProfileView({
       <div className="card">
         <div className="card-title">
           <h3>Матчи</h3>
+          {onShowFullHistory && player && (
+            <button className="btn ghost sm" onClick={() => onShowFullHistory(player)}>
+              Показать всё
+            </button>
+          )}
         </div>
 
         {matches.length > 0 ? (

@@ -549,7 +549,7 @@ function PairRow({
 }
 
   /** Блок группы: расписание раундов + турнирная таблица */
-  function GroupBlock({ gIndex, group }: { gIndex: number; group: Participant[] }) {
+  function GroupBlock({ gIndex }: { gIndex: number; group: Participant[] }) {
     const rounds = groupRounds[gIndex];
     const stats = groupStats[gIndex];
 

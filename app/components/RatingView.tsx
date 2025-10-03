@@ -25,17 +25,6 @@ type ParticipantStats = {
   wins: number;
 };
 
-type CardData = {
-  id: number;
-  players: Player[];
-  games: number;
-  wins: number;
-  title?: string;
-  hasHistory: boolean;
-  rank: number;
-  displayName: string;
-};
-
 type RatingScope = "tournament" | "club" | "global";
 
 type RatingSubject = {
@@ -59,7 +48,7 @@ export function RatingView() {
   const tournamentInitialLoading = tournamentCtx?.initialLoading ?? false;
 
   const club = clubCtx?.club ?? null;
-  const clubMembers = clubCtx?.members ?? [];
+  const clubMembers = useMemo(() => clubCtx?.members ?? [], [clubCtx?.members]);
   const clubMatches = clubCtx?.matches ?? EMPTY_MATCHES;
   const clubInitialLoading = clubCtx?.initialLoading ?? false;
 
@@ -129,7 +118,7 @@ export function RatingView() {
     return () => {
       cancelled = true;
     };
-  }, [scope, matchesFromCtx.length, globalPlayers.length, globalMatches.length]);
+  }, [scope, matchesFromCtx.length, globalPlayers, globalMatches]);
 
   const scopedMatches: Match[] = useMemo(() => {
     if (scope === "tournament") return tournamentMatches;

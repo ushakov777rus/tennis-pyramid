@@ -7,7 +7,6 @@ import { useState } from "react";
 import { AuthContainer } from "@/app/components/AuthContainer";
 import { PlayerProfileModalLoader } from "@/app/components/PlayerProfileModalLoader"; // 👈 новый лоадер
 import "./UserBadge.css";
-import Link from "next/link";
 
 export function UserBadge() {
   const { user, setUser } = useUser();

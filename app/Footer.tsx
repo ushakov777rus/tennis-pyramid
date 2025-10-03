@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import "./Footer.css";
 
 /* SVG-иконки 24x24, цвет #CF6 */

@@ -40,7 +40,7 @@ export function UserCard({
     : undefined;
 
   return (
-    <div className="card">
+    <div className={`card ${className}`.trim()}>
       <div className="card-row user-card-row">
         <div className="avatar">{(fullName?.[0] ?? "U").toUpperCase()}</div>
         <div className="ucard__text">

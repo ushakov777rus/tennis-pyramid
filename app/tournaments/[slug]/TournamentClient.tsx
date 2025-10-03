@@ -83,7 +83,7 @@ export default function TournamentClient() {
       { key: "results", label: "Рейтинг" },
     ];
     return items.filter(Boolean) as TabItem[];
-  }, [showBracketTab, canAccessParticipantsTab]);
+  }, [showBracketTab, canAccessParticipantsTab, isWizard]);
 
   // Синхронизация с URL параметром tab
   useEffect(() => {

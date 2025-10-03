@@ -155,7 +155,7 @@ export const PyramidView = React.memo(function PyramidView({
   // Оптимизированный handleDragEnd
   const handleDragEnd = useCallback(async (result: DropResult) => {
     document.body.classList.remove("dnd-active");
-    const { source, destination, draggableId } = result;
+    const { source, destination } = result;
     if (!destination) return;
 
     if (source.droppableId === destination.droppableId && source.index === destination.index) return;
