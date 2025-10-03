@@ -88,6 +88,10 @@ export async function POST(req: Request) {
   const isDev = process.env.NODE_ENV !== "production";
 
   if (!isDev && !verifyTelegramInitData(initData, token)) {
+    console.warn("[tg:create] invalid signature", {
+      hasInitData: Boolean(initData),
+      initDataLength: initData?.length ?? 0,
+    });
     return NextResponse.json({ error: "Invalid Telegram signature" }, { status: 401 });
   }
 
