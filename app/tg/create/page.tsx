@@ -35,6 +35,8 @@ export default function TelegramCreateTournamentPage() {
     };
 
     try {
+      console.log("[tg:create] submitting", body);
+
       const response = await fetch("/api/tg/create-tournament", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

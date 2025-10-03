@@ -87,10 +87,13 @@ export async function POST(req: Request) {
   const initData: string = typeof body?.initData === "string" ? body.initData : "";
   const isDev = process.env.NODE_ENV !== "production";
 
-  if (!isDev && !verifyTelegramInitData(initData, token)) {
+  const isSignatureValid = verifyTelegramInitData(initData, token);
+
+  if (!isDev && !isSignatureValid) {
     console.warn("[tg:create] invalid signature", {
       hasInitData: Boolean(initData),
       initDataLength: initData?.length ?? 0,
+      hashSample: initData?.slice?.(0, 100) ?? "",
     });
     return NextResponse.json({ error: "Invalid Telegram signature" }, { status: 401 });
   }

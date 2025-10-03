@@ -114,7 +114,10 @@ export function useTelegramInit(): TelegramInit {
 
   useEffect(() => {
     const webApp = window.Telegram?.WebApp ?? null;
-    if (!webApp) return;
+    if (!webApp) {
+      console.warn("[tg:create] Telegram WebApp API is not available. Running in plain browser mode.");
+      return;
+    }
 
     webApp.ready();
     webApp.expand?.();
