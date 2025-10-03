@@ -6,6 +6,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -215,8 +216,12 @@ export function TournamentProvider({
   );
 
   // первичная загрузка
+  const initialFetchRef = useRef(false);
+
   useEffect(() => {
+    if (initialFetchRef.current) return;
     if (needInitialFetch && !userLoading) {
+      initialFetchRef.current = true;
       void reload();
     }
   }, [needInitialFetch, userLoading, reload]);

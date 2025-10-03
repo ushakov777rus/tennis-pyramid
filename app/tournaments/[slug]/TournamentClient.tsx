@@ -310,7 +310,6 @@ export default function TournamentClient() {
   const isAnon = user?.role === undefined;
   const isPlayerWithFixedAttacker = user?.role === UserRole.Player && !!user?.player.id;
   const className = user ? "page-container-no-padding" : "page-container";
-  console.log("Tournament client", tournament);
 
   return (
     <div className={className}>

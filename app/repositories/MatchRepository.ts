@@ -118,6 +118,7 @@ export class MatchRepository {
   // ------------------------------ read: all ------------------------------
 
   static async loadAll(): Promise<Match[]> {
+    console.log("MatchesRepository.loadAll()");
     const { data, error } = await supabase
       .from("matches")
       .select(`
@@ -223,6 +224,7 @@ export class MatchRepository {
   // ------------------------------ read: by tournament ------------------------------
 
   static async loadMatchesForTournament(tournamentId: number): Promise<Match[]> {
+    console.log("MatchesRepository.loadMatchesForTournament()");
     const { data, error } = await supabase
       .from("matches")
       .select(`
@@ -263,6 +265,7 @@ export class MatchRepository {
   // ------------------------------ read: by club ------------------------------
 
   static async loadMatchesForClub(clubId: number): Promise<Match[]> {
+    console.log("MatchesRepository.loadMatchesForClub()");
     const { data, error } = await supabase
       .from("matches")
       .select(`

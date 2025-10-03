@@ -51,6 +51,7 @@ export function RatingView() {
   const tournamentCtx = useOptionalTournament();
   const clubCtx = useOptionalClub();
   const matchesCtx = useOptionalMatches();
+  const { user } = useUser();
 
   const tournament = tournamentCtx?.tournament ?? null;
   const participants = tournamentCtx?.participants ?? EMPTY_PARTICIPANTS;
@@ -317,7 +318,6 @@ export function RatingView() {
     return <p style={{ color: "#f04438" }}>{scopeError}</p>;
   }
 
-  const { user } = useUser();
   const className = user || club || tournament ? "page-container-no-padding" : "page-container";
 
   const noParticipants = cardsData.length === 0;
