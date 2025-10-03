@@ -17,7 +17,7 @@ import {
   STATUS_OPTIONS,
 } from "@/app/models/Tournament";
 
-import { AdminOnly, LoggedIn, NotAdminOnly } from "@/app/components/RoleGuard";
+import { AdminOnly, LoggedIn } from "@/app/components/RoleGuard";
 import { TournamentCard } from "@/app/components/TournamentCard";
 import { useUser } from "@/app/components/UserContext";
 import { AddTournamentModal } from "../components/AddTournamentModal";
@@ -208,7 +208,7 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
           </AdminOnly>
 
           {filtered.map((t) => {
-            const canView = true;//canViewTournament(user, t); TODO пока все видят все
+            const canView = canViewTournament(user, t);
             const canDelete = canDeleteTournament(user, t);
             return (
               <TournamentCard

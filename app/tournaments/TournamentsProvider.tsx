@@ -31,10 +31,6 @@ export function TournamentsProvider({
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<Record<number, TournamentStats>>({});
 
-  // pending id-шники (для точечного дизейбла кнопок, если нужно)
-  const [pendingCreateIds, setPendingCreateIds] = useState<Set<number>>(new Set());
-  const [pendingDeleteIds, setPendingDeleteIds] = useState<Set<number>>(new Set());
-
   const loadStats = useCallback(async (ids: number[]) => {
     if (!ids.length) return;
     try {
@@ -78,14 +74,14 @@ const refresh = useCallback(
       setInitialLoaded(true);
     }
   },
-  [loadStats, initialLoaded]
+  [clubId, loadStats, initialLoaded]
 );
 
   // 1) Первая загрузка
-  useEffect(() => { void refresh(); }, []);
+  useEffect(() => { void refresh(); }, [refresh]);
 
   // 2) Когда меняется user — рефетч без глобального "Загрузка…"
-  useEffect(() => { if (initialLoaded) void refresh({ background: true }); }, [user?.id]);
+  useEffect(() => { if (initialLoaded) void refresh({ background: true }); }, [initialLoaded, refresh, user?.id]);
 
 
   // ====== ОПТИМИСТИЧНОЕ СОЗДАНИЕ ТУРНИРА ======
@@ -113,7 +109,6 @@ const createTournament = useCallback(async (p: TournamentCreateInput) => {
     p.regulation ?? null
   );
 
-  setPendingCreateIds(s => new Set(s).add(tmpId));
   setTournaments(prev => [optimistic, ...prev]);
   setStats(prev => ({ ...prev, [tmpId]: { participants: 0, matches: 0 } }));
 
@@ -162,13 +157,8 @@ const createTournament = useCallback(async (p: TournamentCreateInput) => {
     });
     throw e;
   } finally {
-    setPendingCreateIds(s => {
-      const n = new Set(s);
-      n.delete(tmpId);
-      return n;
-    });
   }
-}, [refresh, loadStats]);
+}, [loadStats, refresh]);
 
   // ====== ОПТИМИСТИЧНОЕ УДАЛЕНИЕ ТУРНИРА ======
   const deleteTournament = useCallback(async (id: number) => {
@@ -176,7 +166,6 @@ const createTournament = useCallback(async (p: TournamentCreateInput) => {
     const prevList = tournaments;
     const prevStats = stats;
 
-    setPendingDeleteIds((s) => new Set(s).add(id));
     setTournaments((prev) => prev.filter((t) => t.id !== id));
     setStats((prev) => {
       const { [id]: _omit, ...rest } = prev;
@@ -194,14 +183,8 @@ const createTournament = useCallback(async (p: TournamentCreateInput) => {
       setTournaments(prevList);
       setStats(prevStats);
       throw e;
-    } finally {
-      setPendingDeleteIds((s) => {
-        const n = new Set(s);
-        n.delete(id);
-        return n;
-      });
     }
-  }, [tournaments, stats]);
+  }, [stats, tournaments]);
 
   const updateTournamentStatus = useCallback(async (id: number, status: TournamentStatus) => {
     const target = tournaments.find((t) => t.id === id);
