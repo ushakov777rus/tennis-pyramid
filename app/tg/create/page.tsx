@@ -41,12 +41,12 @@ export default function TelegramCreateTournamentPage() {
         body: JSON.stringify(body),
       });
 
+      const data = await response.json().catch(() => null);
+
       if (!response.ok) {
-        const data = await response.json().catch(() => null);
+        console.error("tg/create-tournament error", response.status, data);
         throw new Error(data?.error ?? "Не удалось создать турнир");
       }
-
-      const data = await response.json();
 
       const tg = window.Telegram?.WebApp;
       if (tg) {
