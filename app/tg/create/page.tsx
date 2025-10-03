@@ -1,71 +1,65 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-
-import "./styles.css";
-
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp?: {
-        initData: string;
-        initDataUnsafe: Record<string, unknown>;
-        ready: () => void;
-        expand?: () => void;
-        colorScheme?: "light" | "dark";
-      };
-    };
-  }
-}
+import { useCallback, useState } from "react";
+import { TelegramTournamentForm } from "./TelegramTournamentForm";
+import { TournamentFormat, TournamentType } from "@/app/models/Tournament";
 
 export default function TelegramCreateTournamentPage() {
-  const [initData, setInitData] = useState<string>("");
-  const [colorScheme, setColorScheme] = useState<"light" | "dark" | "unknown">("unknown");
+  const [pending, setPending] = useState(false);
 
-  useEffect(() => {
-    const webApp = window.Telegram?.WebApp;
-    if (!webApp) return;
+  const handleSubmit = useCallback(async (payload: {
+    name: string;
+    format: TournamentFormat;
+    type: TournamentType;
+    startDate: string;
+    endDate: string;
+    isPublic: boolean;
+    pyramidMaxLevel: number;
+    groupsPlayoffGroupsCount: number;
+    initData: string;
+  }) => {
+    setPending(true);
 
-    webApp.ready();
-    webApp.expand?.();
+    const body = {
+      initData: payload.initData,
+      form: {
+        name: payload.name,
+        format: payload.format,
+        tournament_type: payload.type,
+        start_date: payload.startDate,
+        end_date: payload.endDate,
+        is_public: payload.isPublic,
+        pyramidMaxLevel: payload.pyramidMaxLevel,
+        groupsPlayoffGroupsCount: payload.groupsPlayoffGroupsCount,
+      },
+    };
 
-    if (webApp.initData) {
-      setInitData(webApp.initData);
-    }
+    try {
+      const response = await fetch("/api/tg/create-tournament", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
 
-    if (webApp.colorScheme) {
-      setColorScheme(webApp.colorScheme);
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error ?? "Не удалось создать турнир");
+      }
+
+      const data = await response.json();
+
+      const tg = window.Telegram?.WebApp;
+      if (tg) {
+        tg.HapticFeedback?.notificationOccurred?.("success");
+        tg.sendData?.(JSON.stringify(data));
+        setTimeout(() => tg.close(), 400);
+      }
+
+      return data;
+    } finally {
+      setPending(false);
     }
   }, []);
 
-  const notice = useMemo(() => {
-    if (!initData) {
-      return "Бот запущен, ждём данные от Telegram…";
-    }
-    return "WebApp инициализирован. Можем продолжать.";
-  }, [initData]);
-
-  return (
-    <div className="tg-create-container" data-theme={colorScheme}>
-      <h1>Настройка турнира</h1>
-      <p>
-        Это тестовая заглушка для Telegram WebApp. Страница доступна по HTTPS и сообщает Telegram, что
-        мини-приложение готово.
-      </p>
-      <div className="tg-create-status">
-        <strong>Статус: </strong>
-        <span>{notice}</span>
-      </div>
-      {initData && (
-        <details>
-          <summary>Показать initData</summary>
-          <pre>{initData}</pre>
-        </details>
-      )}
-      <p className="tg-create-footnote">
-        Позже здесь появится полноценная форма конструктора турнира. Пока можно использовать ссылку для
-        настройки меню в BotFather.
-      </p>
-    </div>
-  );
+  return <TelegramTournamentForm pending={pending} onSubmit={handleSubmit} />;
 }

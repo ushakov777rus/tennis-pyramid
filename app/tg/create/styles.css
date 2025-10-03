@@ -1,7 +1,7 @@
 .tg-create-container {
   font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
   margin: 0 auto;
-  max-width: 480px;
+  max-width: 520px;
   padding: 24px 20px 32px;
   line-height: 1.6;
 }
@@ -16,8 +16,76 @@
   color: #222222;
 }
 
+.tg-create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.tg-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.95rem;
+}
+
+.tg-field input,
+.tg-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.03);
+  color: inherit;
+  font-size: 1rem;
+}
+
+[data-theme="dark"] .tg-field input,
+[data-theme="dark"] .tg-field select {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.tg-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.tg-checkbox input {
+  width: 18px;
+  height: 18px;
+}
+
+.tg-submit {
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #0d0f10;
+  background-color: #ccff66;
+  cursor: pointer;
+}
+
+.tg-submit:disabled {
+  background: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.4);
+  cursor: not-allowed;
+}
+
 .tg-create-status {
-  margin: 16px 0;
+  margin-top: 20px;
   padding: 12px 16px;
   border-radius: 12px;
   background: rgba(58, 150, 221, 0.1);
@@ -33,9 +101,7 @@
 
 .tg-create-footnote {
   font-size: 0.9rem;
-  color: inherit;
-  opacity: 0.8;
-  margin-top: 24px;
+  opacity: 0.75;
 }
 
 pre {
