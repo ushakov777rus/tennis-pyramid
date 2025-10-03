@@ -113,31 +113,47 @@ export function useTelegramInit(): TelegramInit {
   });
 
   useEffect(() => {
-    const webApp = window.Telegram?.WebApp ?? null;
-    if (!webApp) {
-      console.warn("[tg:create] Telegram WebApp API is not available. Running in plain browser mode.");
-      return;
-    }
+    let cancelled = false;
+    let retry: ReturnType<typeof setTimeout> | null = null;
+    let cleanupBack: (() => void) | null = null;
 
-    webApp.ready();
-    webApp.expand?.();
+    const attemptInit = () => {
+      if (cancelled) return;
+      const webApp = window.Telegram?.WebApp ?? null;
+      if (!webApp) {
+        console.warn("[tg:create] Telegram WebApp API is not available. Running in plain browser mode.");
+        retry = setTimeout(attemptInit, 200);
+        return;
+      }
 
-    const initData = webApp.initData ?? "";
-    const colorScheme = webApp.colorScheme ?? "unknown";
+      webApp.ready();
+      webApp.expand?.();
 
-    console.log("[tg:create] initData", {
-      hasInitData: Boolean(initData),
-      snippet: initData?.slice?.(0, 180) ?? "",
-    });
+      const initData = webApp.initData ?? "";
+      const colorScheme = webApp.colorScheme ?? "unknown";
 
-    try {
-      webApp.BackButton?.show?.();
+      console.log("[tg:create] initData", {
+        hasInitData: Boolean(initData),
+        snippet: initData?.slice?.(0, 180) ?? "",
+      });
+
       const handleBack = () => webApp.close();
+      webApp.BackButton?.show?.();
       webApp.BackButton?.onClick(handleBack);
-      return () => webApp.BackButton?.offClick?.(handleBack);
-    } finally {
-      setValue({ tg: webApp, initData, colorScheme });
-    }
+      cleanupBack = () => webApp.BackButton?.offClick?.(handleBack);
+
+      if (!cancelled) {
+        setValue({ tg: webApp, initData, colorScheme });
+      }
+    };
+
+    attemptInit();
+
+    return () => {
+      cancelled = true;
+      if (retry) clearTimeout(retry);
+      cleanupBack?.();
+    };
   }, []);
 
   return value;

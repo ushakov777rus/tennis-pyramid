@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import Script from "next/script";
 import { TelegramTournamentForm } from "./TelegramTournamentForm";
 import { TournamentFormat, TournamentType } from "@/app/models/Tournament";
 
@@ -63,5 +64,13 @@ export default function TelegramCreateTournamentPage() {
     }
   }, []);
 
-  return <TelegramTournamentForm pending={pending} onSubmit={handleSubmit} />;
+  return (
+    <>
+      <Script
+        src="https://telegram.org/js/telegram-web-app.js"
+        strategy="beforeInteractive"
+      />
+      <TelegramTournamentForm pending={pending} onSubmit={handleSubmit} />
+    </>
+  );
 }
