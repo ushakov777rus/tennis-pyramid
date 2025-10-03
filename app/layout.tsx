@@ -11,9 +11,7 @@ import Script from "next/script";
 
 import type { Metadata } from "next";
 import { TournamentsProvider } from "./tournaments/TournamentsProvider";
-import { NavigationBar } from "./components/NavigationBar";
-import { SideNavigationBar } from "./components/controls/SideNavigationBar"; 
-import { GuestIntroSlider } from "./components/GuestIntroSlider";
+import { AppShell } from "./components/AppShell";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://honeycup.ru"),
@@ -136,19 +134,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <UserProvider>
-            <GuestIntroSlider />
-            <TournamentsProvider>
-              <NavigationBar />
-
-              {/* APP SHELL: sidebar + main */}
-              <div className="app-shell">
-                <SideNavigationBar />
-
-                <main id="app-main" className="app-main">
-                  {children}
-                </main>
-              </div>
-            </TournamentsProvider>
+          <TournamentsProvider>
+            <AppShell>{children}</AppShell>
+          </TournamentsProvider>
         </UserProvider>
 
       </body>
