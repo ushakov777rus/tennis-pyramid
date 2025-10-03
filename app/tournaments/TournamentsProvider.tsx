@@ -156,7 +156,6 @@ const createTournament = useCallback(async (p: TournamentCreateInput) => {
       return rest;
     });
     throw e;
-  } finally {
   }
 }, [loadStats, refresh]);
 
