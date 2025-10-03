@@ -122,6 +122,11 @@ export function useTelegramInit(): TelegramInit {
     const initData = webApp.initData ?? "";
     const colorScheme = webApp.colorScheme ?? "unknown";
 
+    console.log("[tg:create] initData", {
+      hasInitData: Boolean(initData),
+      snippet: initData?.slice?.(0, 180) ?? "",
+    });
+
     try {
       webApp.BackButton?.show?.();
       const handleBack = () => webApp.close();
