@@ -108,6 +108,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Дата начала позже даты окончания" }, { status: 400 });
   }
 
+  console.log("[tg:create] incoming", {
+    name,
+    format,
+    type,
+    startDate,
+    endDate,
+    isPublic: Boolean(form?.is_public ?? true),
+    hasInitData: Boolean(initData),
+  });
+
   const payload: TournamentCreateInput = {
     name,
     format,
@@ -144,6 +154,10 @@ export async function POST(req: Request) {
 
   try {
     const tournament = await TournamentsRepository.createNewTournament(payload);
+    console.log("[tg:create] success", {
+      id: tournament.id,
+      slug: tournament.slug,
+    });
     const responseBody = {
       id: tournament.id,
       slug: tournament.slug,
@@ -151,7 +165,7 @@ export async function POST(req: Request) {
     };
     return NextResponse.json(responseBody, { status: 200 });
   } catch (error: any) {
-    console.error("Telegram create tournament error", error);
+    console.error("[tg:create] failed", error);
     return NextResponse.json({ error: "Не удалось создать турнир" }, { status: 500 });
   }
 }
