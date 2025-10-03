@@ -24,22 +24,41 @@ function safeTournamentType(value: unknown): TournamentType {
   return TournamentType.Single;
 }
 
-function createDataCheckString(params: URLSearchParams) {
-  return Array.from(params.entries())
-    .filter(([key]) => key !== "hash")
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, value]) => `${key}=${value}`)
-    .join("\n");
+type RawParam = { key: string; value: string };
+
+function parseRawInitData(initData: string): RawParam[] {
+  return initData
+    .split("&")
+    .filter(Boolean)
+    .map((segment) => {
+      const eqIndex = segment.indexOf("=");
+      if (eqIndex === -1) {
+        return { key: segment, value: "" };
+      }
+      return {
+        key: segment.slice(0, eqIndex),
+        value: segment.slice(eqIndex + 1),
+      };
+    });
+}
+
+function createDataCheckStringFromRaw(params: RawParam[]) {
+  return params
+    .filter((pair) => pair.key !== "hash")
+  .sort((a, b) => a.key.localeCompare(b.key))
+  .map((pair) => `${pair.key}=${pair.value}`)
+  .join("\n");
 }
 
 function verifyTelegramInitData(initData: string, botToken: string) {
   if (!initData) return false;
-  const params = new URLSearchParams(initData);
-  const hash = params.get("hash");
+
+  const rawParams = parseRawInitData(initData);
+  const hashPair = rawParams.find((pair) => pair.key === "hash");
+  const hash = hashPair?.value;
   if (!hash) return false;
 
-  params.delete("hash");
-  const dataCheckString = createDataCheckString(params);
+  const dataCheckString = createDataCheckStringFromRaw(rawParams);
 
   const secretKey = crypto
     .createHash("sha256")
