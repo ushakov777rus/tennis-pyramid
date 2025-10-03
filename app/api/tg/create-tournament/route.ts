@@ -106,29 +106,38 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Дата начала позже даты окончания" }, { status: 400 });
   }
 
-  const creatorId = parseTelegramUserId(initData);
-
   const payload: TournamentCreateInput = {
     name,
     format,
     tournament_type: type,
     start_date: startDate,
     end_date: endDate,
-    creator_id: creatorId,
+    creator_id: null,
     is_public: Boolean(form?.is_public ?? true),
     club: null,
     settings: undefined,
     regulation: null,
   };
 
+  const settings: Record<string, unknown> = {};
+
+  const creatorId = parseTelegramUserId(initData);
+  if (creatorId) {
+    settings.telegram = { userId: creatorId };
+  }
+
   if (format === TournamentFormat.Pyramid) {
     const rawLevel = Number(form?.pyramidMaxLevel);
     const maxLevel = Number.isFinite(rawLevel) ? Math.max(3, Math.min(50, rawLevel)) : 15;
-    payload.settings = { pyramid: { maxLevel } };
+    settings.pyramid = { maxLevel };
   } else if (format === TournamentFormat.GroupsPlayoff) {
     const rawGroups = Number(form?.groupsPlayoffGroupsCount);
     const groupsCount = Number.isFinite(rawGroups) ? Math.max(2, Math.min(12, rawGroups)) : 2;
-    payload.settings = { groupsplayoff: { groupsCount } };
+    settings.groupsplayoff = { groupsCount };
+  }
+
+  if (Object.keys(settings).length > 0) {
+    payload.settings = settings;
   }
 
   try {
