@@ -196,7 +196,7 @@ export function SingleEliminationView({
             "ru"
           )
         ),
-    [participants, user?.role]
+    [participants]
   );
 
   const rounds = useMemo(

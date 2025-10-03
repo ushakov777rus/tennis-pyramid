@@ -372,7 +372,7 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
             </tr>
           </thead>
           <tbody>
-            {standings.map((s, i) => (
+            {standings.map((s) => (
               <tr key={s.id} className="grid-row-swiss">
                 <td>
                   <span className="player">

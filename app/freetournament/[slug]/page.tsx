@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 import { TournamentProvider } from "@/app/tournaments/[slug]/TournamentProvider";
 
-import FreeTournamentWizard from "../FreeTournamentWizard";
 import TournamentClient from "@/app/tournaments/[slug]/TournamentClient";
 
 type Params = { slug: string };
