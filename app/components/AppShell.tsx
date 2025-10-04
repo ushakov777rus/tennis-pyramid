@@ -6,11 +6,13 @@ import { usePathname } from "next/navigation";
 import { NavigationBar } from "./NavigationBar";
 import { SideNavigationBar } from "./controls/SideNavigationBar";
 import { GuestIntroSlider } from "./GuestIntroSlider";
+import { useUser } from "./UserContext";
 
 const HIDDEN_PREFIXES = ["/tg/"];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { loading } = useUser();
 
   const hideShell = useMemo(() => {
     if (!pathname) return false;
@@ -24,6 +26,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
     );
   }
+
+  if (loading)
+    return <div>Загрузка...</div>;
 
   return (
     <>
