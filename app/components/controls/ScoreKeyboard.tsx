@@ -182,7 +182,7 @@ export function ScoreKeyboard({
           disabled={disabled}
           aria-label="Сохранить"
         >
-          ✔
+          {"\u2713"}
         </button>
       </div>
 
