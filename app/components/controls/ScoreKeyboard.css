@@ -5,12 +5,14 @@
   right: 0;
   bottom: 0;
   width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
   background: #2f3033;
   color: #f5f5f5;
   display: flex;
   flex-direction: column;
-  padding: 12px 8px calc(12px + var(--score-kb-safe-bottom));
-  gap: 12px;
+  padding: 12px 8px 12px;
+  gap: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 5000;
 }
@@ -33,7 +35,7 @@
   font-style: italic;
   color: rgba(255, 255, 255, 0.8);
   border-right: 1px solid rgba(255, 255, 255, 0.08);
-  height: 48px;
+  height: 32px;
 }
 
 .score-kb__input {
@@ -42,7 +44,7 @@
   color: inherit;
   font-size: 16px;
   padding: 0 14px;
-  height: 48px;
+  height: 32px;
   outline: none;
 }
 
@@ -51,7 +53,7 @@
 }
 
 .score-kb__action {
-  height: 48px;
+  height: 40px;
   border: none;
   background: transparent;
   font-size: 24px;
@@ -69,37 +71,49 @@
   color: #ff7676;
 }
 
-.score-kb__keys {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  background: #2a2b2e;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  overflow: hidden;
+.score-kb__extras {
+  display: flex;
+  gap: 8px;
 }
 
+.score-kb__extra,
 .score-kb__key {
-  border: none;
-  background: transparent;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #2a2b2e;
   color: inherit;
-  font-size: 18px;
-  height: 44px;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.score-kb__key:nth-child(-n+10) {
-  border-top: none;
+.score-kb__extra {
+  flex: 1;
 }
 
-.score-kb__key:nth-child(10n) {
-  border-right: none;
+.score-kb__numbers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
+.score-kb__key--backspace {
+  color: #ff7676;
+}
+
+.score-kb__extra:active:not(:disabled),
 .score-kb__key:active:not(:disabled) {
   background: rgba(255, 255, 255, 0.08);
 }
 
+.score-kb__spacer {
+  display: block;
+  height: 32px;
+}
+
+.score-kb__extra:disabled,
 .score-kb__key:disabled,
 .score-kb__action:disabled {
   opacity: 0.5;

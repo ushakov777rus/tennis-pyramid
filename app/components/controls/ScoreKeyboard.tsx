@@ -1,18 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import "./ScoreKeyboard.css";
 
-const EXTRA_KEYS = [",", "-"] as const;
+const EXTRA_KEYS = ["-", ","] as const;
+const NUMBER_ROWS: Array<Array<string | null>> = [
+  ["1", "2", "3"],
+  ["4", "5", "6"],
+  ["7", "8", "9"],
+  [null, "0", "⌫"],
+];
 
 export type ScoreKeyboardProps = {
-  inputRef: React.RefObject<HTMLInputElement | null>;
+  inputRef: React.RefObject<HTMLElement | null>;
   value: string;
   onChange: (value: string) => void;
   onSave: () => void;
   onCancel: () => void;
   disabled?: boolean;
+  autoFocus?: boolean;
 };
 
 function useIsMobileViewport(breakpoint = 900) {
@@ -43,47 +50,33 @@ export function useScoreKeyboardAvailable(breakpoint = 900) {
   return useIsMobileViewport(breakpoint);
 }
 
-export function ScoreKeyboard({ inputRef, value, onChange, onSave, onCancel, disabled = false }: ScoreKeyboardProps) {
+export function ScoreKeyboard({
+  inputRef,
+  value,
+  onChange,
+  onSave,
+  onCancel,
+  disabled = false,
+  autoFocus = true,
+}: ScoreKeyboardProps) {
   const internalRef = useRef<HTMLInputElement | null>(null);
-  const baseGapRef = useRef<number | null>(null);
-  const [viewportOffset, setViewportOffset] = useState(0);
 
   useEffect(() => {
-    if (inputRef) {
+    if (!inputRef) return;
+    if (autoFocus) {
       inputRef.current = internalRef.current;
     }
-  }, [inputRef, value]);
+  }, [inputRef, autoFocus]);
 
   useEffect(() => {
+    if (!autoFocus) return;
     const node = internalRef.current;
     if (!node) return;
     node.focus();
     const pos = node.value.length;
     node.setSelectionRange(pos, pos);
-  }, []);
+  }, [autoFocus]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const viewport = window.visualViewport;
-    if (!viewport) return;
-
-    const update = () => {
-      const gap = Math.max(0, window.innerHeight - (viewport.height + viewport.offsetTop));
-      if (baseGapRef.current == null || gap < baseGapRef.current) {
-        baseGapRef.current = gap;
-      }
-      const offset = gap - (baseGapRef.current ?? 0);
-      setViewportOffset(offset > 0 ? offset : 0);
-    };
-
-    update();
-    viewport.addEventListener("resize", update);
-    viewport.addEventListener("scroll", update);
-    return () => {
-      viewport.removeEventListener("resize", update);
-      viewport.removeEventListener("scroll", update);
-    };
-  }, []);
 
   const handleInsert = useCallback(
     (symbol: string) => {
@@ -102,6 +95,29 @@ export function ScoreKeyboard({ inputRef, value, onChange, onSave, onCancel, dis
     },
     [onChange, value]
   );
+
+  const handleBackspace = useCallback(() => {
+    const node = internalRef.current;
+    const start = node?.selectionStart ?? value.length;
+    const end = node?.selectionEnd ?? value.length;
+    if (start === 0 && end === 0) return;
+    let nextValue: string;
+    let nextCursor: number;
+    if (start === end) {
+      nextValue = value.slice(0, start - 1) + value.slice(end);
+      nextCursor = Math.max(0, start - 1);
+    } else {
+      nextValue = value.slice(0, start) + value.slice(end);
+      nextCursor = start;
+    }
+    onChange(nextValue);
+    requestAnimationFrame(() => {
+      const focusNode = internalRef.current;
+      if (!focusNode) return;
+      focusNode.focus();
+      focusNode.setSelectionRange(nextCursor, nextCursor);
+    });
+  }, [onChange, value]);
 
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,27 +140,30 @@ export function ScoreKeyboard({ inputRef, value, onChange, onSave, onCancel, dis
     [disabled, onCancel, onSave]
   );
 
-  const keys = useMemo(() => EXTRA_KEYS, []);
+  const topKeys = useMemo(() => EXTRA_KEYS, []);
+  const numberRows = useMemo(() => NUMBER_ROWS, []);
 
   return (
     <div
       className="score-kb"
       role="dialog"
       aria-label="Редактор счёта"
-      style={viewportOffset ? { transform: `translateY(-${viewportOffset}px)` } : undefined}
+      style={undefined}
     >
       <div className="score-kb__formula">
         <span className="score-kb__fx" aria-hidden>
-          fx
+          Счет
         </span>
         <input
           ref={internalRef}
           className="score-kb__input"
           value={value}
           onChange={handleChange}
-          inputMode="numeric"
+          inputMode={autoFocus ? "numeric" : undefined}
           pattern="[0-9\\s,:-]*"
           placeholder="6-4, 4-6, 10-8"
+          readOnly={!autoFocus}
+          onFocus={autoFocus ? undefined : (e) => e.currentTarget.blur()}
           onKeyDown={handleKeyDown}
         />
         <button
@@ -167,17 +186,42 @@ export function ScoreKeyboard({ inputRef, value, onChange, onSave, onCancel, dis
         </button>
       </div>
 
-      <div className="score-kb__keys">
-        {keys.map((key) => (
+      <div className="score-kb__extras">
+        {topKeys.map((key) => (
           <button
             key={key}
             type="button"
-            className="score-kb__key"
+            className="score-kb__extra"
             onClick={() => handleInsert(key)}
             disabled={disabled}
           >
             {key}
           </button>
+        ))}
+      </div>
+
+      <div className="score-kb__numbers">
+        {numberRows.map((row, idx) => (
+          <Fragment key={idx}>
+            {row.map((key, i) => {
+              if (!key) {
+                return <span key={`sp-${idx}-${i}`} className="score-kb__spacer" />;
+              }
+              const isBackspace = key === "⌫";
+              return (
+                <button
+                  key={`${idx}-${i}-${key}`}
+                  type="button"
+                  className={`score-kb__key ${isBackspace ? "score-kb__key--backspace" : ""}`.trim()}
+                  onClick={() => (isBackspace ? handleBackspace() : handleInsert(key))}
+                  disabled={disabled}
+                  aria-label={isBackspace ? "Удалить" : undefined}
+                >
+                  {key}
+                </button>
+              );
+            })}
+          </Fragment>
         ))}
       </div>
     </div>
