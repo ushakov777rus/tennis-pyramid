@@ -41,7 +41,7 @@
   top: 0;
   left: 0;
   height: 100dvh;
-  background: #0d0f10;
+  background:#1b1b1b;
   border-right: 1px solid rgba(255,255,255,0.08);
   z-index: 1210;
   display: flex;
