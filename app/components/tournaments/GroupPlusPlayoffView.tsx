@@ -520,6 +520,11 @@ const MatchCell = useCallback(({
                   if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
                 }
               }}
+              onChange={(e) => {
+                if (!mobileKeyboardAvailable) {
+                  setEditValue(e.target.value);
+                }
+              }}
             />
             {!mobileKeyboardAvailable && (
               <>
