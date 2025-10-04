@@ -493,6 +493,7 @@ const MatchCell = useCallback(({
               }}
               placeholder="6-4, 4-6, 10-8"
               pattern="[0-9\\s,:-]*"
+              type="number"
               autoFocus
                 onKeyDown={(e) => {
                 if (e.key === "Enter") { e.preventDefault(); saveEdit(aId!, bId!, phaseFilter); } // ✅ meta
