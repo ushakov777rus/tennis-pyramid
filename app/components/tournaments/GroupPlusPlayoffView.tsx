@@ -6,6 +6,7 @@ import { Match, PhaseType } from "@/app/models/Match";
 
 import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
 import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
+import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
 
 import "./PyramidView.css";
 import "./RoundRobinView.css";
@@ -329,7 +330,13 @@ export function GroupPlusPlayoffView({
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
-  const editingInputRef = useRef<HTMLInputElement | null>(null);
+  const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
+  const mobileKeyboardAvailable = useScoreKeyboardAvailable();
+  const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
+    aId: number;
+    bId: number;
+    phaseFilter?: MatchPhaseFilter;
+  } | null>(null);
   const firstHelpTooltip = useFirstHelpTooltip();
 
   /* ----------------------- Стабильные колбэки/утилиты ----------------------- */
@@ -352,11 +359,14 @@ export function GroupPlusPlayoffView({
     setEditingKey(null);
     setEditValue("");
     editingInputRef.current = null;
+    setMobileKeyboardContext(null);
   }, [editingInputRef]);
 
   /** Сохранить счёт (валидация формата + вызов onSaveScore) */
 const saveEdit = useCallback(async (aId: number, bId: number, phaseFilter?: MatchPhaseFilter, raw?: string) => {
-  const nextValue = (raw ?? editingInputRef.current?.value ?? editValue).trim();
+  const node = editingInputRef.current;
+  const draft = node instanceof HTMLInputElement ? node.value : editValue;
+  const nextValue = (raw ?? draft ?? "").trim();
   if (!isValidScoreFormat(nextValue)) {
     alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"');
     return;
@@ -375,6 +385,7 @@ const saveEdit = useCallback(async (aId: number, bId: number, phaseFilter?: Matc
     setEditingKey(null);
     setEditValue("");
     editingInputRef.current = null;
+    setMobileKeyboardContext(null);
   } finally {
     setSaving(false);
   }
@@ -476,7 +487,12 @@ const MatchCell = useCallback(({
             <button
               type="button"
               className="vs vs-click"
-              onClick={() => startEdit(aId!, bId!, score)}
+              onClick={() => {
+                startEdit(aId!, bId!, score);
+                if (mobileKeyboardAvailable) {
+                  setMobileKeyboardContext({ aId: aId!, bId: bId!, phaseFilter });
+                }
+              }}
               title="Добавить счёт"
               aria-label="Добавить счёт"
             >
@@ -487,26 +503,35 @@ const MatchCell = useCallback(({
           <div className="score-edit-wrap">
             <input
               className="input score-input"
-              defaultValue={editValue}
+              value={editValue}
+              readOnly={mobileKeyboardAvailable}
               ref={(node) => {
                 editingInputRef.current = node;
               }}
               placeholder="6-4, 4-6, 10-8"
               pattern="[0-9\\s,:-]*"
-              type="number"
-              autoFocus
-                onKeyDown={(e) => {
-                if (e.key === "Enter") { e.preventDefault(); saveEdit(aId!, bId!, phaseFilter); } // ✅ meta
-                if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
+              autoFocus={!mobileKeyboardAvailable}
+              onFocus={(e) => {
+                if (mobileKeyboardAvailable) e.currentTarget.blur();
+              }}
+              onKeyDown={(e) => {
+                if (!mobileKeyboardAvailable) {
+                  if (e.key === "Enter") { e.preventDefault(); saveEdit(aId!, bId!, phaseFilter); }
+                  if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
+                }
               }}
             />
-            <SaveIconButton
-              className="lg"
-              title="Сохранить счёт"
-              onClick={() => saveEdit(aId!, bId!, phaseFilter)} // ✅ meta
-              disabled={saving}
-            />
-            <CancelIconButton className="lg" title="Отмена" onClick={cancelEdit} disabled={saving}/>
+            {!mobileKeyboardAvailable && (
+              <>
+                <SaveIconButton
+                  className="lg"
+                  title="Сохранить счёт"
+                  onClick={() => saveEdit(aId!, bId!, phaseFilter)}
+                  disabled={saving}
+                />
+                <CancelIconButton className="lg" title="Отмена" onClick={cancelEdit} disabled={saving} />
+              </>
+            )}
           </div>
         )
       ) : (
@@ -514,7 +539,7 @@ const MatchCell = useCallback(({
       )}
     </td>
   );
-}, [pairKey, startEdit, editValue, saveEdit, cancelEdit, saving, editingKey, matches, firstHelpTooltip]);
+}, [pairKey, startEdit, editValue, saveEdit, cancelEdit, saving, editingKey, matches, firstHelpTooltip, mobileKeyboardAvailable, setMobileKeyboardContext]);
 
 /* ========================================================================== */
 /*                                UI SUBVIEWS                                 */
@@ -668,6 +693,18 @@ function PairRow({
         <div>• Порядок в таблице: победы → разница сетов → разница геймов.</div>
         <div>• Посев плей-офф: крест-накрест (A1–B2, B1–A2, …). Включите «snake» для более ровного распределения по группам.</div>
       </div>
+
+      {mobileKeyboardAvailable && mobileKeyboardContext && (
+        <ScoreKeyboard
+          inputRef={editingInputRef}
+          value={editValue}
+          onChange={setEditValue}
+          onSave={() => saveEdit(mobileKeyboardContext.aId, mobileKeyboardContext.bId, mobileKeyboardContext.phaseFilter)}
+          onCancel={cancelEdit}
+          disabled={saving}
+          autoFocus={false}
+        />
+      )}
     </div>
   );
 }
