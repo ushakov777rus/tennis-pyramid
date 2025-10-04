@@ -5,10 +5,14 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: "/",
-        disallow: ["/api/", "/_next/", "/private/"], // ⚠️ добавь свои приватные роуты
+        allow: ["/"],
+        disallow: ["/api/", "/admin", "/_next/", "/private/"],
       },
     ],
-    sitemap: "https://honeycup.ru/sitemap.xml",
+    host: "honeycup.ru",
+    sitemap: [
+      "https://honeycup.ru/sitemap.xml",
+      "https://honeycup.ru/server-sitemap.xml",
+    ],
   };
 }
