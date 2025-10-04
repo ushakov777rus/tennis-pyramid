@@ -306,6 +306,7 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
                   }}
                   placeholder="6-4, 6-4"
                   pattern="[0-9\\s,:-]*"
+                  type="number"
                   autoFocus
                   onKeyDown={(e) => {
                     if (e.key === "Enter") { e.preventDefault(); saveEdit(aId!, bId!); }

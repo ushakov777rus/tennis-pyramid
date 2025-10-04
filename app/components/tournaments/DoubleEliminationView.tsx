@@ -447,6 +447,7 @@ console.log("resolvedLB 2",rounds);
                             }}
                             placeholder="6-4, 6-4"
                             pattern="[0-9\\s,:-]*"
+                            type="number"
                             autoFocus
                             onKeyDown={(e) => {
                               if (e.key === "Enter") {
