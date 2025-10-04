@@ -59,6 +59,7 @@
   overflow: auto;
   padding: 6px;
   animation: cs-fade-in .12s ease;
+  max-height: calc(2.5em * 4);
 }
 
 @keyframes cs-fade-in {
