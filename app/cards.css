@@ -18,6 +18,7 @@
 }
 
 .card:has(.cs-select.is-open) {
+  position: relative;
   z-index: 3000;
 }
 
