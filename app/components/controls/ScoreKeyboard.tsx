@@ -22,7 +22,7 @@ export type ScoreKeyboardProps = {
   autoFocus?: boolean;
 };
 
-function useIsMobileViewport(breakpoint = 900) {
+function useIsMobileViewport(breakpoint = 768) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
