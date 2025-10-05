@@ -335,7 +335,6 @@ export function CustomSelect({
           role="listbox"
           className={`card cs-dropdown ${openUp ? "open-up" : ""}`}
           style={{
-            maxHeight: `${dropdownMaxHeight}px`,
             width: dropdownWidth ? `${dropdownWidth}px` : undefined,
           }}
           onMouseDown={(e) => e.stopPropagation()}
