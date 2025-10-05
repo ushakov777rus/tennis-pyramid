@@ -7,6 +7,7 @@ import { Match, PhaseType } from "@/app/models/Match";
 
 import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
 import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
+import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
 
 import "./PyramidView.css";
 import "./RoundRobinView.css";
@@ -140,7 +141,13 @@ export function DoubleEliminationView({
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
-  const editingInputRef = useRef<HTMLInputElement | null>(null);
+  const mobileKeyboardAvailable = useScoreKeyboardAvailable();
+  const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
+    aId: number;
+    bId: number;
+    meta?: PhaseMeta;
+  } | null>(null);
+  const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
   const firstHelpTooltip = useFirstHelpTooltip();
 
   const ordered = useMemo(
@@ -331,16 +338,20 @@ console.log("resolvedLB 2",rounds);
 
   const pairKey = (aId: number, bId: number) => `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
 
-  function startEdit(aId: number, bId: number, currentScore: string | null) {
+  function startEdit(aId: number, bId: number, currentScore: string | null, meta?: PhaseMeta) {
     const k = pairKey(aId, bId);
     setEditingKey(k);
     setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
     editingInputRef.current = null;
+    if (mobileKeyboardAvailable) {
+      setMobileKeyboardContext({ aId, bId, meta });
+    }
   }
   function cancelEdit() {
     setEditingKey(null);
     setEditValue("");
     editingInputRef.current = null;
+    setMobileKeyboardContext(null);
   }
   async function saveEdit(
     aId: number,
@@ -348,7 +359,9 @@ console.log("resolvedLB 2",rounds);
     meta?: { phase: PhaseType; groupIndex: number | null; roundIndex: number | null },
     raw?: string
   ) {
-    const nextValue = (raw ?? editingInputRef.current?.value ?? editValue).trim();
+    const currentNode = editingInputRef.current;
+    const fallbackValue = currentNode instanceof HTMLInputElement ? currentNode.value : editValue;
+    const nextValue = (raw ?? fallbackValue ?? "").trim();
     if (!isValidScoreFormat(nextValue)) {
       alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"');
       return;
@@ -370,6 +383,7 @@ console.log("resolvedLB 2",rounds);
       setEditingKey(null);
       setEditValue("");
       editingInputRef.current = null;
+      setMobileKeyboardContext(null);
     } finally {
       setSaving(false);
     }
@@ -430,7 +444,7 @@ console.log("resolvedLB 2",rounds);
                           <button
                             type="button"
                             className="vs vs-click"
-                            onClick={() => startEdit(aId!, bId!, score)}
+                            onClick={() => startEdit(aId!, bId!, score, scoreMeta)}
                             title="Добавить счёт"
                             aria-label="Добавить счёт"
                           >
@@ -441,39 +455,54 @@ console.log("resolvedLB 2",rounds);
                         <div className="score-edit-wrap">
                           <input
                             className="input score-input"
-                            defaultValue={editValue}
+                            value={editValue}
+                            readOnly={mobileKeyboardAvailable}
                             ref={(node) => {
                               editingInputRef.current = node;
                             }}
                             placeholder="6-4, 6-4"
                             pattern="[0-9\\s,:-]*"
-                            type="number"
-                            autoFocus
+                            inputMode={mobileKeyboardAvailable ? "numeric" : undefined}
+                            autoFocus={!mobileKeyboardAvailable}
+                            onFocus={(e) => {
+                              if (mobileKeyboardAvailable) e.currentTarget.blur();
+                            }}
                             onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                saveEdit(aId!, bId!, scoreMeta);
+                              if (!mobileKeyboardAvailable) {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  saveEdit(aId!, bId!, scoreMeta);
+                                }
+                                if (e.key === "Escape") {
+                                  e.preventDefault();
+                                  cancelEdit();
+                                }
                               }
-                              if (e.key === "Escape") {
-                                e.preventDefault();
-                                cancelEdit();
+                            }}
+                            onChange={(e) => {
+                              if (!mobileKeyboardAvailable) {
+                                setEditValue(e.target.value);
                               }
                             }}
                           />
-                          <SaveIconButton
-                            className="lg"
-                            title="Сохранить счёт"
-                            aria-label="Сохранить счёт"
-                            onClick={() => saveEdit(aId!, bId!, scoreMeta)}
-                            disabled={saving}
-                          />
-                          <CancelIconButton
-                            className="lg"
-                            title="Отмена"
-                            aria-label="Отмена"
-                            onClick={cancelEdit}
-                            disabled={saving}
-                          />
+                          {!mobileKeyboardAvailable && (
+                            <>
+                              <SaveIconButton
+                                className="lg"
+                                title="Сохранить счёт"
+                                aria-label="Сохранить счёт"
+                                onClick={() => saveEdit(aId!, bId!, scoreMeta)}
+                                disabled={saving}
+                              />
+                              <CancelIconButton
+                                className="lg"
+                                title="Отмена"
+                                aria-label="Отмена"
+                                onClick={cancelEdit}
+                                disabled={saving}
+                              />
+                            </>
+                          )}
                         </div>
                       )
                     ) : (
@@ -549,6 +578,24 @@ console.log("resolvedLB 2",rounds);
         <div>• Лузеры WB автоматически попадают в следующий доступный раунд LB.</div>
         <div>• «Reset» показан отдельной карточкой — используйте по регламенту турнира.</div>
       </div>
+
+      {mobileKeyboardAvailable && mobileKeyboardContext && (
+        <ScoreKeyboard
+          inputRef={editingInputRef}
+          value={editValue}
+          onChange={setEditValue}
+          onSave={() =>
+            void saveEdit(
+              mobileKeyboardContext.aId,
+              mobileKeyboardContext.bId,
+              mobileKeyboardContext.meta ?? undefined
+            )
+          }
+          onCancel={cancelEdit}
+          disabled={saving}
+          autoFocus={false}
+        />
+      )}
     </div>
   );
 }

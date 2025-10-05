@@ -5,6 +5,7 @@ import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
 import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
 import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
+import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
 
 import "./PyramidView.css";    // чипы/бейджи/карточки
 import "./RoundRobinView.css"; // таблица кругового турнира (grid-строки)
@@ -68,6 +69,11 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const mobileKeyboardAvailable = useScoreKeyboardAvailable();
+  const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
+    aId: number;
+    bId: number;
+  } | null>(null);
 
   // берём только валидных участников и стабильно сортируем по имени/именам
   const ordered = useMemo(
@@ -84,23 +90,29 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
   // ключ пары (порядок не важен)
   const pairKey = (aId: number, bId: number) => `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
 
-  const editingInputRef = useRef<HTMLInputElement | null>(null);
+  const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
 
   function startEdit(aId: number, bId: number, currentScore: string | null) {
     const k = pairKey(aId, bId);
     setEditingKey(k);
     setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
     editingInputRef.current = null;
+    if (mobileKeyboardAvailable) {
+      setMobileKeyboardContext({ aId, bId });
+    }
   }
 
   function cancelEdit() {
     setEditingKey(null);
     setEditValue("");
     editingInputRef.current = null;
+    setMobileKeyboardContext(null);
   }
 
   async function saveEdit(aId: number, bId: number, raw?: string) {
-    const nextValue = (raw ?? editingInputRef.current?.value ?? editValue).trim();
+    const currentNode = editingInputRef.current;
+    const fallbackValue = currentNode instanceof HTMLInputElement ? currentNode.value : editValue;
+    const nextValue = (raw ?? fallbackValue ?? "").trim();
     if (!Match.isValidScoreFormat(nextValue)) {
       alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"');
       return;
@@ -111,6 +123,7 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
       setEditingKey(null);
       setEditValue("");
       editingInputRef.current = null;
+      setMobileKeyboardContext(null);
     } finally {
       setSaving(false);
     }
@@ -175,41 +188,56 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
                             <div className="score-edit-wrap">
                               <input
                                 className="input score-input"
-                                defaultValue={editValue}
+                                value={editValue}
+                                readOnly={mobileKeyboardAvailable}
                                 ref={(node) => {
                                   editingInputRef.current = node;
                                 }}
                                 placeholder="6-4, 4-6, 10-8"
                                 pattern="[0-9\\s,:-]*"
-                                type="number"
-                                autoFocus
+                                inputMode={mobileKeyboardAvailable ? "numeric" : undefined}
+                                autoFocus={!mobileKeyboardAvailable}
+                                onFocus={(e) => {
+                                  if (mobileKeyboardAvailable) e.currentTarget.blur();
+                                }}
                                 onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    e.preventDefault();
-                                    saveEdit(aId, bId);
+                                  if (!mobileKeyboardAvailable) {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      saveEdit(aId, bId);
+                                    }
+                                    if (e.key === "Escape") {
+                                      e.preventDefault();
+                                      cancelEdit();
+                                    }
                                   }
-                                  if (e.key === "Escape") {
-                                    e.preventDefault();
-                                    cancelEdit();
+                                }}
+                                onChange={(e) => {
+                                  if (!mobileKeyboardAvailable) {
+                                    setEditValue(e.target.value);
                                   }
                                 }}
                               />
 
-                              <SaveIconButton
-                                className="lg"
-                                title="Сохранить счёт"
-                                aria-label="Сохранить счёт"
-                                onClick={() => saveEdit(aId, bId)}
-                                disabled={saving}
-                              />
+                              {!mobileKeyboardAvailable && (
+                                <>
+                                  <SaveIconButton
+                                    className="lg"
+                                    title="Сохранить счёт"
+                                    aria-label="Сохранить счёт"
+                                    onClick={() => saveEdit(aId, bId)}
+                                    disabled={saving}
+                                  />
 
-                              <CancelIconButton
-                                className="lg"
-                                title="Отмена"
-                                aria-label="Отмена"
-                                onClick={cancelEdit}
-                                disabled={saving}
-                              />
+                                  <CancelIconButton
+                                    className="lg"
+                                    title="Отмена"
+                                    aria-label="Отмена"
+                                    onClick={cancelEdit}
+                                    disabled={saving}
+                                  />
+                                </>
+                              )}
                             </div>
                           )}
                         </td>
@@ -232,6 +260,17 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
           </div>
         ))}
       </div>
+      {mobileKeyboardAvailable && mobileKeyboardContext && (
+        <ScoreKeyboard
+          inputRef={editingInputRef}
+          value={editValue}
+          onChange={setEditValue}
+          onSave={() => void saveEdit(mobileKeyboardContext.aId, mobileKeyboardContext.bId)}
+          onCancel={cancelEdit}
+          disabled={saving}
+          autoFocus={false}
+        />
+      )}
     </div>
   );
 }

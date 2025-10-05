@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
 import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
+import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
 
 import "./PyramidView.css";    // чипы/бейджи/карточки
 import "./RoundRobinView.css"; // таблицы/гриды
@@ -179,7 +180,13 @@ export function SingleEliminationView({
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
-  const editingInputRef = useRef<HTMLInputElement | null>(null);
+  const mobileKeyboardAvailable = useScoreKeyboardAvailable();
+  const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
+    aId: number;
+    bId: number;
+    roundIndex: number;
+  } | null>(null);
+  const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
   const firstHelpTooltip = useFirstHelpTooltip();
 
   // стабильная сортировка входных участников по отображаемому имени
@@ -215,20 +222,29 @@ export function SingleEliminationView({
     return trimmed.split(",").every((part) => setRe.test(part.trim()));
   }, []);
 
-  const startEdit = useCallback((aId: number, bId: number, currentScore: string | null) => {
-    setEditingKey(pairKey(aId, bId));
-    setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
-    editingInputRef.current = null;
-  }, [pairKey, editingInputRef]);
+  const startEdit = useCallback(
+    (aId: number, bId: number, currentScore: string | null, roundIndex: number) => {
+      setEditingKey(pairKey(aId, bId));
+      setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
+      editingInputRef.current = null;
+      if (mobileKeyboardAvailable) {
+        setMobileKeyboardContext({ aId, bId, roundIndex });
+      }
+    },
+    [pairKey, mobileKeyboardAvailable]
+  );
 
   const cancelEdit = useCallback(() => {
     setEditingKey(null);
     setEditValue("");
     editingInputRef.current = null;
-  }, [editingInputRef]);
+    setMobileKeyboardContext(null);
+  }, []);
 
   const saveEdit = useCallback(async (aId: number, bId: number, roundIndex: number, raw?: string) => {
-    const nextValue = (raw ?? editingInputRef.current?.value ?? editValue).trim();
+    const currentNode = editingInputRef.current;
+    const fallbackValue = currentNode instanceof HTMLInputElement ? currentNode.value : editValue;
+    const nextValue = (raw ?? fallbackValue ?? "").trim();
     if (!isValidScoreFormat(nextValue)) {
       alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"');
       return;
@@ -244,10 +260,11 @@ export function SingleEliminationView({
       setEditingKey(null);
       setEditValue("");
       editingInputRef.current = null;
+      setMobileKeyboardContext(null);
     } finally {
       setSaving(false);
     }
-  }, [editValue, editingInputRef, isValidScoreFormat, onSaveScore]);
+  }, [editValue, isValidScoreFormat, onSaveScore]);
 
   /** Имя участника: null -> BYE (только в 1-м раунде), выше — "Ожидается" */
   function NameCell({ p, nullText }: { p: Participant | null; nullText: string }) {
@@ -308,7 +325,7 @@ export function SingleEliminationView({
                                 <button
                                   type="button"
                                   className="vs vs-click"
-                                  onClick={() => startEdit(aId, bId, score)}
+                                  onClick={() => startEdit(aId, bId, score, rIndex)}
                                   title="Добавить счёт"
                                   aria-label="Добавить счёт"
                                 >
@@ -317,41 +334,56 @@ export function SingleEliminationView({
                               </div>
                             ) : (
                               <div className="score-edit-wrap">
-                                  <input
-                                    className="input score-input"
-                                    defaultValue={editValue}
-                                    ref={(node) => {
-                                      editingInputRef.current = node;
-                                    }}
-                                    placeholder="6-4, 4-6, 10-8"
-                                    pattern="[0-9\\s,:-]*"
-                                    type="number"
-                                    autoFocus
-                                    onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      e.preventDefault();
-                                      void saveEdit(aId, bId, rIndex);
+                                <input
+                                  className="input score-input"
+                                  value={editValue}
+                                  readOnly={mobileKeyboardAvailable}
+                                  ref={(node) => {
+                                    editingInputRef.current = node;
+                                  }}
+                                  placeholder="6-4, 4-6, 10-8"
+                                  pattern="[0-9\\s,:-]*"
+                                  inputMode={mobileKeyboardAvailable ? "numeric" : undefined}
+                                  autoFocus={!mobileKeyboardAvailable}
+                                  onFocus={(e) => {
+                                    if (mobileKeyboardAvailable) e.currentTarget.blur();
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (!mobileKeyboardAvailable) {
+                                      if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        void saveEdit(aId, bId, rIndex);
+                                      }
+                                      if (e.key === "Escape") {
+                                        e.preventDefault();
+                                        cancelEdit();
+                                      }
                                     }
-                                    if (e.key === "Escape") {
-                                      e.preventDefault();
-                                      cancelEdit();
+                                  }}
+                                  onChange={(e) => {
+                                    if (!mobileKeyboardAvailable) {
+                                      setEditValue(e.target.value);
                                     }
                                   }}
                                 />
-                                <SaveIconButton
-                                  className="lg"
-                                  title="Сохранить счёт"
-                                  aria-label="Сохранить счёт"
-                                  onClick={() => saveEdit(aId, bId, rIndex)}
-                                  disabled={saving}
-                                />
-                                <CancelIconButton
-                                  className="lg"
-                                  title="Отмена"
-                                  aria-label="Отмена"
-                                  onClick={cancelEdit}
-                                  disabled={saving}
-                                />
+                                {!mobileKeyboardAvailable && (
+                                  <>
+                                    <SaveIconButton
+                                      className="lg"
+                                      title="Сохранить счёт"
+                                      aria-label="Сохранить счёт"
+                                      onClick={() => saveEdit(aId, bId, rIndex)}
+                                      disabled={saving}
+                                    />
+                                    <CancelIconButton
+                                      className="lg"
+                                      title="Отмена"
+                                      aria-label="Отмена"
+                                      onClick={cancelEdit}
+                                      disabled={saving}
+                                    />
+                                  </>
+                                )}
                               </div>
                             )
                           ) : (
@@ -370,6 +402,23 @@ export function SingleEliminationView({
           );
         })}
       </div>
+      {mobileKeyboardAvailable && mobileKeyboardContext && (
+        <ScoreKeyboard
+          inputRef={editingInputRef}
+          value={editValue}
+          onChange={setEditValue}
+          onSave={() =>
+            void saveEdit(
+              mobileKeyboardContext.aId,
+              mobileKeyboardContext.bId,
+              mobileKeyboardContext.roundIndex
+            )
+          }
+          onCancel={cancelEdit}
+          disabled={saving}
+          autoFocus={false}
+        />
+      )}
     </div>
   );
 }
