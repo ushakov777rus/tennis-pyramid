@@ -7,7 +7,6 @@ import { NavigationBar } from "./NavigationBar";
 import { SideNavigationBar } from "./controls/SideNavigationBar";
 import { GuestIntroSlider } from "./GuestIntroSlider";
 import { useUser } from "./UserContext";
-import { MobileScoreKeyboardPreview } from "./controls/MobileScoreKeyboardPreview";
 
 const HIDDEN_PREFIXES = ["/tg/"];
 

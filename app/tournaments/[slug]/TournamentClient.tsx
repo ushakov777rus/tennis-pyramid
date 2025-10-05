@@ -11,7 +11,7 @@ import { Match, PhaseType } from "@/app/models/Match";
 import { Participant } from "@/app/models/Participant";
 
 import { TournamentCard } from "@/app/components/TournamentCard";
-import { AdminOnly, LoggedIn } from "@/app/components/RoleGuard";
+import { LoggedIn } from "@/app/components/RoleGuard";
 
 import { RatingView } from "@/app/components/RatingView";
 import { MatchHistoryModal } from "@/app/components/MatchHistoryModal";
