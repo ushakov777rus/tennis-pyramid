@@ -123,7 +123,7 @@ static async createNewClub(input: ClubCreateInput): Promise<Club> {
 
   /** Лучше брать из club_stats — там есть members_count */
   static async getBySlug(slug: string): Promise<ClubPlain | null> {
-    // club_stats содержит все поля + members_count
+    // club_stats содержит агрегаты, но может обновляться с задержкой после вставки
     const { data, error } = await supabase
       .from("club_stats")
       .select("*")
@@ -132,22 +132,44 @@ static async createNewClub(input: ClubCreateInput): Promise<Club> {
 
     if (error) {
       console.error("ClubsRepository.getBySlug:", error);
+    }
+
+    const row = data ?? (await this.getPlainClubFallback(slug));
+    if (!row) return null;
+
+    return {
+      id: (row as any).id,
+      director_id: (row as any).created_by,
+      slug: (row as any).slug,
+      name: (row as any).name,
+      description: (row as any).description,
+      city: (row as any).city,
+      logo_url: (row as any).logo_url,
+      members_count: (row as any).members_count ?? 0,
+      tournaments_count: (row as any)?.tournaments_count ?? null,
+      created_at: (row as any).created_at,
+      updated_at: (row as any).updated_at,
+    };
+  }
+
+  private static async getPlainClubFallback(slug: string) {
+    const { data, error } = await supabase
+      .from("clubs")
+      .select("id, created_by, slug, name, description, city, logo_url, created_at, updated_at")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (error) {
+      console.error("ClubsRepository.getPlainClubFallback:", error);
       return null;
     }
+
     if (!data) return null;
 
     return {
-      id: (data as any).id,
-      director_id: (data as any).created_by,
-      slug: (data as any).slug,
-      name: (data as any).name,
-      description: (data as any).description,
-      city: (data as any).city,
-      logo_url: (data as any).logo_url,
-      members_count: (data as any).members_count ?? 0,
-      tournaments_count: (data as any)?.tournaments_count ?? null,
-      created_at: (data as any).created_at,
-      updated_at: (data as any).updated_at,
+      ...data,
+      members_count: 0,
+      tournaments_count: null,
     };
   }
 
