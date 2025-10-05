@@ -5,7 +5,6 @@ import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
 
 import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
-import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
 
 import "./PyramidView.css";
@@ -337,7 +336,6 @@ export function GroupPlusPlayoffView({
     bId: number;
     phaseFilter?: MatchPhaseFilter;
   } | null>(null);
-  const firstHelpTooltip = useFirstHelpTooltip();
 
   /* ----------------------- Стабильные колбэки/утилиты ----------------------- */
 
@@ -345,6 +343,26 @@ export function GroupPlusPlayoffView({
   const pairKey = useCallback((aId: number, bId: number) => {
     return `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
   }, []);
+
+  const tooltipKeyFor = useCallback(
+    (aId: number, bId: number, filter?: MatchPhaseFilter) => {
+      const base = pairKey(aId, bId);
+      if (!filter || !filter.phase) {
+        return base;
+      }
+
+      const suffix: string[] = [filter.phase];
+      if (filter.groupIndex != null) {
+        suffix.push(`g${filter.groupIndex}`);
+      }
+      if (filter.roundIndex != null) {
+        suffix.push(`r${filter.roundIndex}`);
+      }
+
+      return `${base}|${suffix.join("|")}`;
+    },
+    [pairKey]
+  );
 
   /** Начать редактирование */
   const startEdit = useCallback((aId: number, bId: number, currentScore: string | null) => {
@@ -455,6 +473,38 @@ const saveEdit = useCallback(async (aId: number, bId: number, phaseFilter?: Matc
     return copy;
   }, [playoffRounds, matches, ordered]);
 
+  const tooltipTarget = useMemo(() => {
+    for (let gIndex = 0; gIndex < groupRounds.length; gIndex++) {
+      const rounds = groupRounds[gIndex];
+      for (const pairs of rounds) {
+        for (const [a, b] of pairs) {
+          const aId = pid(a);
+          const bId = pid(b);
+          if (!aId || !bId) continue;
+          const filter: MatchPhaseFilter = { phase: PhaseType.Group, groupIndex: gIndex };
+          if (!getMatchScore(aId, bId, matches, filter)) {
+            return tooltipKeyFor(aId, bId, filter);
+          }
+        }
+      }
+    }
+
+    for (let roundIndex = 0; roundIndex < resolvedPlayoff.length; roundIndex++) {
+      const pairs = resolvedPlayoff[roundIndex];
+      for (const [a, b] of pairs) {
+        const aId = pid(a);
+        const bId = pid(b);
+        if (!aId || !bId) continue;
+        const filter: MatchPhaseFilter = { phase: PhaseType.Playoff, roundIndex };
+        if (!getMatchScore(aId, bId, matches, filter)) {
+          return tooltipKeyFor(aId, bId, filter);
+        }
+      }
+    }
+
+    return null;
+  }, [groupRounds, resolvedPlayoff, matches, tooltipKeyFor]);
+
   /* ----------------------------- Внутренние UI ----------------------------- */
 
   /** Ячейка "Счёт": бейдж -> кнопка "vs" -> инпут сохранения (по месту) */
@@ -472,7 +522,9 @@ const MatchCell = useCallback(({
   const score = canEdit ? getMatchScore(aId!, bId!, matches, phaseFilter) : null;
   const k = canEdit ? pairKey(aId!, bId!) : undefined;
   const isEditing = !!k && editingKey === k;
-  const shouldShowHelpTooltip = canEdit && !score && !isEditing && firstHelpTooltip();
+  const tooltipKey = canEdit ? tooltipKeyFor(aId!, bId!, phaseFilter) : null;
+  const shouldShowHelpTooltip =
+    canEdit && !score && !isEditing && tooltipKey != null && tooltipTarget === tooltipKey;
 
   return (
     <td className="score-cell">
@@ -544,7 +596,20 @@ const MatchCell = useCallback(({
       )}
     </td>
   );
-}, [pairKey, startEdit, editValue, saveEdit, cancelEdit, saving, editingKey, matches, firstHelpTooltip, mobileKeyboardAvailable, setMobileKeyboardContext]);
+}, [
+  pairKey,
+  tooltipKeyFor,
+  tooltipTarget,
+  startEdit,
+  editValue,
+  saveEdit,
+  cancelEdit,
+  saving,
+  editingKey,
+  matches,
+  mobileKeyboardAvailable,
+  setMobileKeyboardContext,
+]);
 
 /* ========================================================================== */
 /*                                UI SUBVIEWS                                 */
