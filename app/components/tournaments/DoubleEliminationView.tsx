@@ -145,7 +145,7 @@ export function DoubleEliminationView({
   const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
     aId: number;
     bId: number;
-    meta?: PhaseMeta;
+    meta?: { phase: PhaseType; groupIndex: number | null; roundIndex: number | null };
   } | null>(null);
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
   const firstHelpTooltip = useFirstHelpTooltip();
@@ -344,7 +344,15 @@ console.log("resolvedLB 2",rounds);
     setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
     editingInputRef.current = null;
     if (mobileKeyboardAvailable) {
-      setMobileKeyboardContext({ aId, bId, meta });
+      const normalizedMeta =
+        meta && meta.phase
+          ? {
+              phase: meta.phase,
+              groupIndex: meta.groupIndex ?? null,
+              roundIndex: meta.roundIndex ?? null,
+            }
+          : undefined;
+      setMobileKeyboardContext({ aId, bId, meta: normalizedMeta });
     }
   }
   function cancelEdit() {
@@ -588,7 +596,7 @@ console.log("resolvedLB 2",rounds);
             void saveEdit(
               mobileKeyboardContext.aId,
               mobileKeyboardContext.bId,
-              mobileKeyboardContext.meta ?? undefined
+              mobileKeyboardContext.meta
             )
           }
           onCancel={cancelEdit}
