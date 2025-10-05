@@ -4,12 +4,12 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "rea
 
 import "./ScoreKeyboard.css";
 
-const EXTRA_KEYS = ["-", ","] as const;
-const NUMBER_ROWS: Array<Array<string | null>> = [
+const DYNAMIC_KEY = "__dynamic__" as const;
+const NUMBER_ROWS: Array<Array<string>> = [
   ["1", "2", "3"],
   ["4", "5", "6"],
   ["7", "8", "9"],
-  [null, "0", "⌫"],
+  [DYNAMIC_KEY, "0", "⌫"],
 ];
 
 export type ScoreKeyboardProps = {
@@ -140,7 +140,39 @@ export function ScoreKeyboard({
     [disabled, onCancel, onSave]
   );
 
-  const topKeys = useMemo(() => EXTRA_KEYS, []);
+  const dynamicKey = useMemo(() => {
+    const trimmed = value.replace(/\s+$/, "");
+
+    if (!trimmed) {
+      return { kind: "hidden" } as const;
+    }
+    if (trimmed.endsWith(",")) {
+      return { kind: "hidden" } as const;
+    }
+
+    const numberMatch = trimmed.match(/\d+$/);
+    if (!numberMatch) {
+      return { kind: "hidden" } as const;
+    }
+
+    const rest = trimmed.slice(0, trimmed.length - numberMatch[0].length);
+    const precedingMatch = rest.match(/([,-])\s*$/);
+    if (!precedingMatch) {
+      return { kind: "visible", label: "-", insert: "-" } as const;
+    }
+
+    const preceding = precedingMatch[1];
+
+    if (preceding === "-") {
+      return { kind: "visible", label: ",", insert: "," } as const;
+    }
+
+    if (preceding === ",") {
+      return { kind: "visible", label: "-", insert: "-" } as const;
+    }
+
+    return { kind: "hidden" } as const;
+  }, [value]);
   const numberRows = useMemo(() => NUMBER_ROWS, []);
 
   return (
@@ -186,26 +218,35 @@ export function ScoreKeyboard({
         </button>
       </div>
 
-      <div className="score-kb__extras">
-        {topKeys.map((key) => (
-          <button
-            key={key}
-            type="button"
-            className="score-kb__extra"
-            onClick={() => handleInsert(key)}
-            disabled={disabled}
-          >
-            {key}
-          </button>
-        ))}
-      </div>
-
       <div className="score-kb__numbers">
         {numberRows.map((row, idx) => (
           <Fragment key={idx}>
             {row.map((key, i) => {
-              if (!key) {
-                return <span key={`sp-${idx}-${i}`} className="score-kb__spacer" />;
+              if (key === DYNAMIC_KEY) {
+                return (
+                  <button
+                    key={`${idx}-${i}-${key}`}
+                    type="button"
+                    className="score-kb__key score-kb__key--dynamic"
+                    onClick={() => {
+                      if (dynamicKey.kind === "visible") {
+                        handleInsert(dynamicKey.insert);
+                      }
+                    }}
+                    disabled={disabled || dynamicKey.kind !== "visible"}
+                    style={
+                      dynamicKey.kind === "visible"
+                        ? undefined
+                        : {
+                            visibility: "hidden",
+                          }
+                    }
+                    aria-hidden={dynamicKey.kind === "visible" ? undefined : true}
+                    tabIndex={dynamicKey.kind === "visible" ? undefined : -1}
+                  >
+                    {dynamicKey.kind === "visible" ? dynamicKey.label : ""}
+                  </button>
+                );
               }
               const isBackspace = key === "⌫";
               return (

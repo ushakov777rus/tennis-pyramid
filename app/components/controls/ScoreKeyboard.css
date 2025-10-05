@@ -78,7 +78,7 @@
 
 .score-kb__extra,
 .score-kb__key {
-  height: 32px;
+  height: 40px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: #2a2b2e;
@@ -96,7 +96,7 @@
 .score-kb__numbers {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 2px;
 }
 
 .score-kb__key--backspace {
