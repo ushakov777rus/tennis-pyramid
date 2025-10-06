@@ -572,12 +572,6 @@ const MatchCell = useCallback(({
 /*                                UI SUBVIEWS                                 */
 /* ========================================================================== */
 
-/** Имя участника (отдельный компонент для единообразного стиля) */
-function NameCell({ p }: { p: Participant }) {
-  return <span className="player">{p.displayName(false)}</span>;
-}
-
-
   /** Плей-офф: каждый матч — таблица 2×4: Участник | Сет1 | Сет2 | Тай-брейк */
   function PlayoffBlock() {
     return (
@@ -637,7 +631,7 @@ function NameCell({ p }: { p: Participant }) {
                           </table>
                         ) : (
                           <div className="el-score-vs-wrap">
-                            <MatchCell a={a} b={b} phaseFilter={{ phase: PhaseType.Group, groupIndex: 0 }} />
+                            <MatchCell a={a} b={b} phaseFilter={{ phase: PhaseType.Playoff, groupIndex: 0 }} />
                           </div>
                         )
                       }
