@@ -41,6 +41,7 @@ type ViewKey = "bracket" | "matches" | "participants" | "results" | "aboutt";
 
 export default function TournamentClient() {
   const {
+    loading,
     tournament,
     participants,
     matches,
@@ -375,6 +376,7 @@ export default function TournamentClient() {
           <div>
             {view === "bracket" &&             
               <FormatView
+                loading={loading}
                 tournament={tournament}
                 participants={participants}
                 matches={matches}
@@ -420,6 +422,7 @@ export default function TournamentClient() {
 
 // Вспомогательный мемо-компонент для схемы
 export const FormatView = React.memo(function FormatView({
+  loading,
   tournament,
   participants,
   matches,
@@ -430,6 +433,7 @@ export const FormatView = React.memo(function FormatView({
   onPositionsChange,
   onGoToParticipants,
 }: {
+  loading: boolean;
   tournament: Tournament;
   participants: Participant[];
   matches: Match[];
@@ -454,6 +458,10 @@ export const FormatView = React.memo(function FormatView({
 
   if (tournament.isCustom()) {
     return null;
+  }
+
+  if ( loading ) {
+    return <div>Загрузка</div>;
   }
 
   if (participants.length === 0) {
