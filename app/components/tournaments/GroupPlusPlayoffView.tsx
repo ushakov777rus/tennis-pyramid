@@ -463,6 +463,121 @@ export function GroupPlusPlayoffView({
     );
   }
 
+
+
+
+  /** Ячейка "Счёт": бейдж -> кнопка "vs" -> инпут сохранения (по месту) */
+  // 2.2. MatchCell: передаём phaseFilter в saveEdit
+const MatchCell = useCallback(({
+  a, b, phaseFilter
+}: {
+  a: Participant | null;
+  b: Participant | null;
+  phaseFilter?: MatchPhaseFilter;
+}) => {
+  const aId = pid(a);
+  const bId = pid(b);
+  const canEdit = !!aId && !!bId;
+  const score = canEdit ? getMatchScore(aId!, bId!, matches, phaseFilter) : null;
+  const k = canEdit ? pairKey(aId!, bId!) : undefined;
+  const isEditing = !!k && editingKey === k;
+  const tooltipKey = canEdit;
+  const shouldShowHelpTooltip =
+    canEdit && !score && !isEditing && tooltipKey != null;
+
+  return (
+    <div className="score-cell">
+      {canEdit ? (
+        score ? (
+          <span className="badge">{score}</span>
+        ) : !isEditing ? (
+          <div className="score-cell__button-wrap">
+            {shouldShowHelpTooltip && (
+              <div className="help-tooltip">Введите счёт</div>
+            )}
+            <button
+              type="button"
+              className="vs vs-click"
+              onClick={() => {
+                startEdit(aId!, bId!, score);
+                if (mobileKeyboardAvailable) {
+                  setMobileKeyboardContext({ aId: aId!, bId: bId!, phaseFilter });
+                }
+              }}
+              title="Добавить счёт"
+              aria-label="Добавить счёт"
+            >
+              vs
+            </button>
+          </div>
+        ) : (
+          <div className="score-edit-wrap">
+            <input
+              className="input score-input"
+              value={editValue}
+              readOnly={mobileKeyboardAvailable}
+              ref={(node) => {
+                editingInputRef.current = node;
+              }}
+              placeholder="6-4, 4-6, 10-8"
+              pattern="[0-9\\s,:-]*"
+              autoFocus={!mobileKeyboardAvailable}
+              onFocus={(e) => {
+                if (mobileKeyboardAvailable) e.currentTarget.blur();
+              }}
+              onKeyDown={(e) => {
+                if (!mobileKeyboardAvailable) {
+                  if (e.key === "Enter") { e.preventDefault(); saveEdit(aId!, bId!, phaseFilter); }
+                  if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
+                }
+              }}
+              onChange={(e) => {
+                if (!mobileKeyboardAvailable) {
+                  setEditValue(e.target.value);
+                }
+              }}
+            />
+            {!mobileKeyboardAvailable && (
+              <>
+                <SaveIconButton
+                  className="lg"
+                  title="Сохранить счёт"
+                  onClick={() => saveEdit(aId!, bId!, phaseFilter)}
+                  disabled={saving}
+                />
+                <CancelIconButton className="lg" title="Отмена" onClick={cancelEdit} disabled={saving} />
+              </>
+            )}
+          </div>
+        )
+      ) : (
+        <span className="vs vs-placeholder" aria-hidden>vs</span>
+      )}
+    </div>
+  );
+}, [
+  pairKey,
+  startEdit,
+  editValue,
+  saveEdit,
+  cancelEdit,
+  saving,
+  editingKey,
+  matches,
+  mobileKeyboardAvailable,
+  setMobileKeyboardContext,
+]);
+
+/* ========================================================================== */
+/*                                UI SUBVIEWS                                 */
+/* ========================================================================== */
+
+/** Имя участника (отдельный компонент для единообразного стиля) */
+function NameCell({ p }: { p: Participant }) {
+  return <span className="player">{p.displayName(false)}</span>;
+}
+
+
   /** Плей-офф: каждый матч — таблица 2×4: Участник | Сет1 | Сет2 | Тай-брейк */
   function PlayoffBlock() {
     return (
@@ -522,15 +637,7 @@ export function GroupPlusPlayoffView({
                           </table>
                         ) : (
                           <div className="el-score-vs-wrap">
-                            <button
-                              type="button"
-                              className="vs vs-click"
-                              
-                              title="Добавить счёт"
-                              aria-label="Добавить счёт"
-                            >
-                              vs
-                            </button>
+                            <MatchCell a={a} b={b} phaseFilter={{ phase: PhaseType.Group, groupIndex: 0 }} />
                           </div>
                         )
                       }
