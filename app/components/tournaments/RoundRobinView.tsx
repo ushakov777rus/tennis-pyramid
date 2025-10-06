@@ -188,6 +188,7 @@ export function RoundRobinView({
   const editingInputRef =
     useRef<HTMLInputElement | HTMLDivElement | null>(null);
   const keyboardHostRef = useRef<HTMLDivElement | null>(null);
+  const tableRef = useRef<HTMLTableElement | null>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
   const [pendingScores, setPendingScores] = useState<Map<string, PendingEntry>>(new Map());
@@ -260,6 +261,32 @@ export function RoundRobinView({
       return changed ? next : prev;
     });
   }, [matches, pendingScores]);
+
+  useEffect(() => {
+    if (!mobileKeyboardAvailable || !editingCell) return;
+    const table = tableRef.current;
+    if (!table) return;
+
+    const cell = table.querySelector<HTMLElement>(
+      `[data-rr-cell="${editingCell.rowId}-${editingCell.colId}"]`
+    );
+    if (!cell) return;
+
+    const rect = cell.getBoundingClientRect();
+    const viewportPadding = 24;
+    const availableBottom = window.innerHeight - (keyboardHeight || 0) - viewportPadding;
+    let delta = 0;
+
+    if (rect.bottom > availableBottom) {
+      delta = rect.bottom - availableBottom;
+    } else if (rect.top < viewportPadding) {
+      delta = rect.top - viewportPadding;
+    }
+
+    if (Math.abs(delta) > 1) {
+      window.scrollBy({ top: delta, behavior: "smooth" });
+    }
+  }, [mobileKeyboardAvailable, editingCell, keyboardHeight, mobileKeyboardContext]);
 
   // ---------- порядок игроков (стабильно по имени) ----------
   const ordered = useMemo(
@@ -505,7 +532,10 @@ export function RoundRobinView({
     if (!scores) {
       if (isLowerTriangle) {
         return (
-          <td className={`rr-cell ${isActiveCell ? "editing" : ""}`}>
+          <td
+            data-rr-cell={`${aId}-${bId}`}
+            className={`rr-cell ${isActiveCell ? "editing" : ""}`}
+          >
             {isActiveCell
               ? renderEditor()
               : makeButton(() =>
@@ -517,6 +547,7 @@ export function RoundRobinView({
 
       return (
         <td
+          data-rr-cell={`${aId}-${bId}`}
           className={`rr-cell rr-cell--mirror rr-empty ${isActiveCell ? "editing" : ""}`}
         >
           {isActiveCell
@@ -530,7 +561,10 @@ export function RoundRobinView({
 
     if (isLowerTriangle) {
       return (
-        <td className={`rr-cell ${isActiveCell ? "editing" : ""}`}>
+        <td
+          data-rr-cell={`${aId}-${bId}`}
+          className={`rr-cell ${isActiveCell ? "editing" : ""}`}
+        >
           {!isActiveCell && (
             scores.display !== "—"
               ? (
@@ -558,7 +592,10 @@ export function RoundRobinView({
     }
 
     return (
-      <td className={`rr-cell rr-cell--mirror ${isActiveCell ? "editing" : ""}`}>
+      <td
+        data-rr-cell={`${aId}-${bId}`}
+        className={`rr-cell rr-cell--mirror ${isActiveCell ? "editing" : ""}`}
+      >
         {!isActiveCell && (
           scores.display !== "—"
             ? (
@@ -599,7 +636,7 @@ export function RoundRobinView({
       style={extraBottomPadding ? { paddingBottom: extraBottomPadding } : undefined}
     >
       <div className="rr-scroll">
-        <table className="rr-matrix round-table">
+        <table ref={tableRef} className="rr-matrix round-table">
           <thead>
             <tr>
               {/* Липкая колонка № */}
