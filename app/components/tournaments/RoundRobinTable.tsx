@@ -18,7 +18,7 @@ import "./PyramidView.css";
 import "@/app/components/ParticipantsView.css";
 
 /**
- * Public props for the round-robin table.
+ * Публичные пропсы для таблицы кругового турнира.
  */
 export type RoundRobinTableProps = {
   participants: Participant[];
@@ -31,7 +31,7 @@ export type RoundRobinTableProps = {
 };
 
 /**
- * Keeps track of the cell coordinates that are currently being edited.
+ * Координаты ячейки, которая сейчас редактируется.
  */
 type EditingCell = {
   rowId: number;
@@ -39,7 +39,7 @@ type EditingCell = {
 };
 
 /**
- * Optimistic score entry that mirrors the format returned by the backend.
+ * Оптимистичный (локальный) ввод счёта в формате, совпадающем с бэкендом.
  */
 type PendingEntry = {
   aId: number;
@@ -49,10 +49,11 @@ type PendingEntry = {
 };
 
 /**
- * Ensures we work only with participants that have either a single player or a team.
+ * Гарантируем, что работаем только с корректными участниками:
+ * либо одиночный игрок, либо команда.
  *
- * @param participant Candidate entity coming from the API.
- * @returns True when a participant is present and has a valid payload.
+ * @param participant Кандидат из API.
+ * @returns true, если участник существует и имеет валидные данные.
  */
 function isValidParticipant(
   participant: Participant | null | undefined
@@ -61,20 +62,20 @@ function isValidParticipant(
 }
 
 /**
- * Generates a stable key for a pair of IDs regardless of order.
+ * Генерирует стабильный ключ для пары ID вне зависимости от порядка.
  *
- * @param aId First participant ID.
- * @param bId Second participant ID.
- * @returns Stable map key in the format smaller_larger.
+ * @param aId ID первого участника.
+ * @param bId ID второго участника.
+ * @returns Стабильный ключ в формате "меньший_больший".
  */
 const pairKey = (aId: number, bId: number) =>
   `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
 
 /**
- * Formats a list of sets for human-readable display such as "6/4".
+ * Форматирует список сетов для отображения (многострочно), например: "6/4".
  *
- * @param sets Collection of set scores oriented for the current row.
- * @returns Multiline string representation.
+ * @param sets Набор сетов в "строчной" ориентации.
+ * @returns Многострочная строка для вывода.
  */
 const formatDisplay = (sets: Array<[number, number]>): string => {
   if (!sets.length) return "—";
@@ -82,10 +83,10 @@ const formatDisplay = (sets: Array<[number, number]>): string => {
 };
 
 /**
- * Formats a list of sets for input usage such as "6-4, 4-6".
+ * Форматирует список сетов для ввода, например: "6-4, 4-6".
  *
- * @param sets Collection of set scores oriented for the current row.
- * @returns Comma separated representation.
+ * @param sets Набор сетов в "строчной" ориентации.
+ * @returns Строка, разделённая запятыми.
  */
 const formatInput = (sets: Array<[number, number]>): string => {
   if (!sets.length) return "";
@@ -93,21 +94,21 @@ const formatInput = (sets: Array<[number, number]>): string => {
 };
 
 /**
- * Mirrors the score for the opposite perspective of a match.
+ * Отзеркаливает счёт для противоположной перспективы (для колонки).
  *
- * @param sets Source scores in "row" orientation.
- * @returns The same sets, but with swapped columns.
+ * @param sets Сеты в "строчной" ориентации.
+ * @returns Те же сеты, но со свапнутыми значениями.
  */
 const flipSets = (sets: Array<[number, number]>) =>
   sets.map(([a, b]) => [b, a] as [number, number]);
 
 /**
- * Resolves a match between two participants if it exists.
+ * Находит матч между двумя участниками, если он существует.
  *
- * @param aId First participant identifier.
- * @param bId Second participant identifier.
- * @param matches Full matches list for the tournament.
- * @returns Stored match or null when it does not exist yet.
+ * @param aId ID первого участника.
+ * @param bId ID второго участника.
+ * @param matches Полный список матчей турнира.
+ * @returns Найденный матч или null, если его пока нет.
  */
 function findMatch(aId: number, bId: number, matches: Match[]): Match | null {
   return (
@@ -120,12 +121,12 @@ function findMatch(aId: number, bId: number, matches: Match[]): Match | null {
 }
 
 /**
- * Builds display/input friendly scores by orienting data for the given row.
+ * Строит удобные для отображения/ввода строки, ориентируя счёт под строку и колонку.
  *
- * @param aId Row participant identifier.
- * @param bId Column participant identifier.
- * @param matches Full matches list.
- * @returns Display/mirror/input strings or null when no match is recorded.
+ * @param aId ID участника в строке.
+ * @param bId ID участника в колонке.
+ * @param matches Полный список матчей.
+ * @returns Строки display/mirror/input или null, если матча нет.
  */
 function getMatchScoresFromMatches(
   aId: number,
@@ -144,11 +145,11 @@ function getMatchScoresFromMatches(
 }
 
 /**
- * Adapts the raw match scores to the perspective of the requested participant.
+ * Поворачивает сырые сеты матча под точку зрения заданного участника.
  *
- * @param match Raw match entity.
- * @param perspectiveId Participant identifier used as the "row" point of view.
- * @returns Array of sets where the first value represents the requested participant.
+ * @param match Сырой матч.
+ * @param perspectiveId ID участника, под которого ориентируем счёт.
+ * @returns Массив сетов, где первый элемент — геймы данного участника.
  */
 const orientScores = (match: Match, perspectiveId: number): Array<[number, number]> => {
   const id1 = match.player1?.id ?? match.team1?.id;
@@ -162,13 +163,13 @@ const orientScores = (match: Match, perspectiveId: number): Array<[number, numbe
 };
 
 /**
- * Aggregates round-robin statistics for a participant.
+ * Агрегирует статистику кругового турнира для участника.
  *
- * @param meId Participant identifier for whom the stats are calculated.
- * @param ids Ordered list of participant identifiers.
- * @param matches Tournament matches list.
- * @param pending Optional map with optimistic results.
- * @returns Wins, games for and against for the participant.
+ * @param meId ID участника, для которого считаем статистику.
+ * @param ids Упорядоченный список ID всех участников.
+ * @param matches Список матчей турнира.
+ * @param pending Необязательная карта оптимистичных результатов.
+ * @returns Очки (победы), геймы за и против.
  */
 function computeStatsFor(
   meId: number,
@@ -220,48 +221,48 @@ function computeStatsFor(
 }
 
 /**
- * React component that renders the round-robin matrix together with inline editing.
+ * React-компонент: рисует матрицу кругового турнира с инлайн-редактированием.
  *
- * @param props Component props describing the tournament state.
- * @returns JSX markup for the table with inline score editing.
+ * @param props Пропсы с состоянием турнира.
+ * @returns JSX-разметка таблицы с редактированием счёта.
  */
 export function RoundRobinTable({
   participants,
   matches,
   onSaveScore,
 }: RoundRobinTableProps) {
-  /** Tracks the pair that is currently being edited. */
+  /** Текущая редактируемая пара (ключ из двух ID). */
   const [editingKey, setEditingKey] = useState<string | null>(null);
-  /** Holds the textual representation of the score being edited. */
+  /** Текущее текстовое значение вводимого счёта. */
   const [editValue, setEditValue] = useState<string>("");
-  /** Reflects whether the score submission is in progress. */
+  /** Флаг отправки счёта. */
   const [saving, setSaving] = useState(false);
 
-  /** Tells whether the custom numeric keyboard should be shown. */
+  /** Нужно ли показывать кастомную цифровую клавиатуру (мобайл). */
   const mobileKeyboardAvailable = useScoreKeyboardAvailable();
-  /** Stores ids for which the mobile keyboard is active. */
+  /** Контекст для мобильной клавиатуры: какие ID сейчас редактируются. */
   const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
     aId: number;
     bId: number;
   } | null>(null);
 
-  /** Reference to the editable input field for desktop editing. */
+  /** Ссылка на инпут редактирования (десктоп). */
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
-  /** Reference to the wrapper to update padding when the keyboard is visible. */
+  /** Ссылка на обёртку (чтобы менять нижний отступ под клавиатуру). */
   const wrapRef = useRef<HTMLDivElement | null>(null);
-  /** Reference to the keyboard host node to measure the footer panel. */
+  /** Ссылка на контейнер клавиатуры (для измерения высоты). */
   const keyboardHostRef = useRef<HTMLDivElement | null>(null);
-  /** Reference to the matrix table to locate active cells. */
+  /** Ссылка на таблицу (чтобы находить активные ячейки). */
   const tableRef = useRef<HTMLTableElement | null>(null);
-  /** Keeps the current height of the custom keyboard panel. */
+  /** Текущая высота кастомной клавиатуры. */
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  /** Remembers which table cell is being edited to position the keyboard. */
+  /** Какая ячейка редактируется (для скролла/позиционирования). */
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
-  /** Stores optimistic scores until the server confirms them. */
+  /** Оптимистично введённые счёты до подтверждения сервером. */
   const [pendingScores, setPendingScores] = useState<Map<string, PendingEntry>>(new Map());
 
   /**
-   * Measures the custom keyboard height so we can reserve space beneath the table.
+   * Измеряем высоту клавиатуры, чтобы зарезервировать под неё место.
    */
   useEffect(() => {
     if (!mobileKeyboardAvailable || !mobileKeyboardContext) {
@@ -316,7 +317,7 @@ export function RoundRobinTable({
   }, [mobileKeyboardAvailable, mobileKeyboardContext]);
 
   /**
-   * Drops optimistic scores once the backend returns authoritative match records.
+   * Сбрасываем оптимистичные записи, когда с сервера пришли реальные матчи.
    */
   useEffect(() => {
     if (!pendingScores.size) return;
@@ -336,7 +337,7 @@ export function RoundRobinTable({
   }, [matches, pendingScores]);
 
   /**
-   * Reserves additional padding below the matrix so the keyboard does not overlap content.
+   * Добавляем снизу padding под таблицей, чтобы клавиатура её не перекрывала.
    */
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -346,7 +347,7 @@ export function RoundRobinTable({
   }, [keyboardHeight]);
 
   /**
-   * Scrolls the matrix so that the active cell stays visible when the keyboard slides in.
+   * Скроллим окно так, чтобы активная ячейка была видна при появлении клавиатуры.
    */
   useEffect(() => {
     if (!mobileKeyboardAvailable || !editingCell) return;
@@ -375,7 +376,7 @@ export function RoundRobinTable({
   }, [mobileKeyboardAvailable, editingCell, keyboardHeight, mobileKeyboardContext]);
 
   /**
-   * Ordered list of valid participants for deterministic rendering.
+   * Упорядоченный список валидных участников для детерминированного рендера.
    */
   const ordered = useMemo(
     () =>
@@ -389,12 +390,12 @@ export function RoundRobinTable({
   );
 
   /**
-   * Convenience list of participant identifiers.
+   * Список идентификаторов участников (для удобства).
    */
   const ids = useMemo(() => ordered.map((participant) => participant.getId), [ordered]);
 
   /**
-   * Provides quick access to participant positions by identifier.
+   * Быстрый доступ к индексу участника по ID.
    */
   const indexById = useMemo(() => {
     const map = new Map<number, number>();
@@ -403,7 +404,7 @@ export function RoundRobinTable({
   }, [ids]);
 
   /**
-   * Calculates standings (points, game difference and placements) with optimistic updates.
+   * Подсчитываем таблицу мест (очки, разница геймов, места) с учётом оптимистичных данных.
    */
   const standings = useMemo(() => {
     const rows = ids.map((id) => {
@@ -430,7 +431,7 @@ export function RoundRobinTable({
   }, [ids, matches, ordered, indexById, pendingScores]);
 
   /**
-   * Resolves visible scores either from optimistic cache or from persisted matches.
+   * Возвращает видимые счёты либо из оптимистичного кэша, либо из сохранённых матчей.
    */
   const getScoresFor = useCallback(
     (rowId: number, colId: number) => {
@@ -452,12 +453,12 @@ export function RoundRobinTable({
   );
 
   /**
-   * Opens the editor for a specific pair of participants.
+   * Открывает редактор для пары участников.
    *
-   * @param aId Row participant identifier.
-   * @param bId Column participant identifier.
-   * @param currentScore Score to prefill or null when empty.
-   * @param anchor Optional cell coordinates to maintain scroll state.
+   * @param aId ID участника в строке.
+   * @param bId ID участника в колонке.
+   * @param currentScore Текущий счёт для префила или null.
+   * @param anchor Координаты ячейки для корректного скролла.
    */
   function startEdit(
     aId: number,
@@ -479,7 +480,7 @@ export function RoundRobinTable({
   }
 
   /**
-   * Cancels inline editing and resets helpers.
+   * Отменяет редактирование и сбрасывает вспомогательные состояния.
    */
   function cancelEdit() {
     setEditingKey(null);
@@ -490,11 +491,11 @@ export function RoundRobinTable({
   }
 
   /**
-   * Persists the entered score with optimistic UI feedback.
+   * Сохраняет введённый счёт с оптимистичным UI.
    *
-   * @param aId Row participant identifier.
-   * @param bId Column participant identifier.
-   * @param raw Optional score override (used by the mobile keyboard).
+   * @param aId ID участника в строке.
+   * @param bId ID участника в колонке.
+   * @param raw Необязательное значение (для мобильной клавиатуры).
    */
   async function saveEdit(aId: number, bId: number, raw?: string) {
     const currentNode = editingInputRef.current;
@@ -541,7 +542,7 @@ export function RoundRobinTable({
   }
 
   /**
-   * Renders a matrix cell, handling sticky layout, editing state and optimistic data.
+   * Рендерит ячейку матрицы: sticky-раскладка, редактирование, оптимистичные данные.
    */
   function Cell({
     aId,
@@ -737,7 +738,7 @@ export function RoundRobinTable({
   }
 
   /**
-   * Shows the tooltip only for the very first empty cell.
+   * Показывает подсказку только для самой первой пустой ячейки.
    */
   const firstHelpTooltip = useFirstHelpTooltip();
 
