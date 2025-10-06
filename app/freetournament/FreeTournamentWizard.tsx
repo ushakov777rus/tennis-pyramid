@@ -301,14 +301,15 @@ export default function FreeTournamentWizard() {
 
           <div className="card">
             <FormatView
+              loading={false}
               tournament={tournament}
               participants={participants}
-            matches={matches}
-            selectedIds={formatSelection}
-            onSelect={setFormatSelection}
-            onShowHistoryPlayer={handleShowHistoryPlayer}
-            onSaveScoreRoundRobin={handleSaveScore}
-            onPositionsChange={isOwner ? tournamentCtx.updatePositions : undefined}
+              matches={matches}
+              selectedIds={formatSelection}
+              onSelect={setFormatSelection}
+              onShowHistoryPlayer={handleShowHistoryPlayer}
+              onSaveScoreRoundRobin={handleSaveScore}
+              onPositionsChange={isOwner ? tournamentCtx.updatePositions : undefined}
           />
           </div>
         </div>
