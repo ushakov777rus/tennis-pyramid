@@ -173,3 +173,88 @@
   user-select: none;
   cursor: default;
 }
+
+/* Контейнер со скроллом */
+.rr-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch; /* инерция на iOS */
+  scrollbar-gutter: stable; /*both-edges;  меньше дёрганий при появлении скролла */
+}
+
+/* Таблица растягивается до фактической ширины контента */
+.rr-matrix {
+  width: max-content;        /* важное место */
+  border-collapse: collapse;
+  table-layout: auto;        /* пусть колонки растут по контенту */
+  min-width: 100%;           /* чтобы не было уже контейнера */
+  border: 1px solid rgba(166, 255, 0, .3);
+}
+
+/* Минимальная ширина ячеек, чтобы цифры читались */
+.rr-matrix th:not(.left),
+.rr-matrix td {
+  width: 30px;
+  height: 45px;
+  font-size: 12px;
+  text-align: center;
+  padding: 1px 1px;
+  border: 1px solid rgba(166, 255, 0, .3);
+}
+
+/* “Липкий” первый столбец */
+.rr-matrix .left.sticky,
+.rr-matrix td.left {
+  position: sticky;
+  left: 0;
+  background: var(--background, #0f0f0f); /* непрозрачный фон, чтобы перекрывать */
+  z-index: 2;
+  font-size: 12px;
+  /* Для чёткого рендера при скролле на некоторых браузерах: */
+  transform: translateZ(0);
+}
+
+/* “Липкая” шапка */
+.rr-matrix thead th {
+  position: sticky;
+  font-size: 12px;
+  top: 0;
+  z-index: 3;                 /* выше первого столбца */
+  background: var(--background, #0f0f0f);
+}
+
+/* Диагональ и пустые */
+.rr-diag { 
+  
+  background: rgba(166, 255, 0, 0.1);
+}
+.rr-empty { background: transparent; }
+
+/* Небольшой твик скроллбара (необязательно) */
+.rr-scroll::-webkit-scrollbar { height: 10px; }
+.rr-scroll::-webkit-scrollbar-thumb { border-radius: 8px; }
+
+.rr-participant {
+  display: grid;
+  align-items: center;
+  padding: 2px;
+  color: #ccc;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  height: calc(2.5em + 8px);
+  white-space: pre; /* перенос по \n */
+  background: var(--background, #0f0f0f);
+  text-align: left;
+}
+
+.rr-score {
+  display: inline-flex;
+  padding: 2px 2px;
+  font-size: 12px;
+  background: var(--background, #0f0f0f);
+  border: none;
+  color: #a6ff00;
+  white-space: pre-line;
+}

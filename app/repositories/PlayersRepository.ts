@@ -73,33 +73,7 @@ export class PlayersRepository {
         );
       }
 
-      // 2) связи организатора -> видимые игроки
-      const { data: linksData, error: linksErr } = await supabase
-        .from("organizer_visible_players")
-        .select("player_id")
-        .eq("organizer_user_id", organiserUserId);
-
-      if (linksErr) {
-        console.error("loadAccessiblePlayers: links error", linksErr);
-        return [];
-      }
-
-      const allowed = new Set<number>((linksData ?? []).map(r => Number(r.player_id)));
-
-      // 3) локальная фильтрация
-      const filtered = (playersData ?? []).filter(row => allowed.has(Number(row.id)));
-
-      // 4) маппинг в модель
-      return filtered.map(
-        row =>
-          new Player({
-            id: Number(row.id),
-            name: row.name,
-            ntrp: row.ntrp,
-            phone: row.phone,
-            sex: row.sex,
-          })
-      );
+      return [];
     } catch (e) {
       console.error("loadAccessiblePlayers: unexpected error", e);
       return [];

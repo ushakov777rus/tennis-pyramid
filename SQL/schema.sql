@@ -54,14 +54,6 @@ CREATE TABLE public.matches (
   CONSTRAINT fk_team1 FOREIGN KEY (team1_id) REFERENCES public.teams(id),
   CONSTRAINT fk_team2 FOREIGN KEY (team2_id) REFERENCES public.teams(id)
 );
-CREATE TABLE public.organizer_visible_players (
-  organizer_user_id bigint NOT NULL,
-  player_id bigint NOT NULL,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  CONSTRAINT organizer_visible_players_pkey PRIMARY KEY (player_id, organizer_user_id),
-  CONSTRAINT organizer_visible_players_organizer_user_id_fkey FOREIGN KEY (organizer_user_id) REFERENCES public.users(id),
-  CONSTRAINT organizer_visible_players_player_id_fkey FOREIGN KEY (player_id) REFERENCES public.players(id)
-);
 CREATE TABLE public.players (
   name text NOT NULL,
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,

@@ -79,7 +79,6 @@ export function TournamentCard({
     if (!tournament || !user) return false;
     if (user.role === UserRole.SiteAdmin) return true;
     if (tournament.club && tournament.club.created_by === user.id) return true;
-    console.log("Cant change status", tournament, user,tournament.club,tournament.club?.created_by);
     return false;
   })();
 

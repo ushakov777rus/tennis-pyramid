@@ -3,99 +3,224 @@
 import { useMemo, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
-import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
+import {
+  SaveIconButton,
+  CancelIconButton,
+} from "@/app/components/controls/IconButtons";
 import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
-import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
+import {
+  ScoreKeyboard,
+  useScoreKeyboardAvailable,
+} from "@/app/components/controls/ScoreKeyboard";
 
 import "./PyramidView.css";    // чипы/бейджи/карточки
-import "./RoundRobinView.css"; // таблица кругового турнира (grid-строки)
+import "./RoundRobinView.css"; // добавь стили для .rr-matrix, .rr-score (white-space: pre-line)
 import "@/app/components/ParticipantsView.css";
+
+/* =======================================================================
+   Константы для “липких” первых колонок
+   ======================================================================= */
+const INDEX_COL_WIDTH = 30; // px — ширина колонки с номерами (можно поменять)
+
+/* =======================================================================
+   Props
+   ======================================================================= */
 
 type RoundRobinViewProps = {
   participants: Participant[];
   matches: Match[];
-  onSaveScore?: (aId: number, bId: number, score: string) => Promise<void> | void;
+  onSaveScore?: (
+    aId: number,
+    bId: number,
+    score: string
+  ) => Promise<void> | void;
 };
 
+/* =======================================================================
+   Утилиты
+   ======================================================================= */
+
 /** Валидный участник: либо одиночный игрок, либо пара */
-function isValidParticipant(p: Participant | null | undefined): p is Participant {
+function isValidParticipant(
+  p: Participant | null | undefined
+): p is Participant {
   return !!p && (!!p.player || !!p.team);
 }
 
-/** Строим расписание (circle method) по целым Participant */
-function buildRoundRobin(units: Participant[]): Participant[][][] {
-  const list: (Participant | null)[] = units.map((u) => u);
-  if (list.length % 2 === 1) list.push(null); // BYE
+/** Ключ пары (порядок не важен) */
+const pairKey = (aId: number, bId: number) =>
+  `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
 
-  const n = list.length;
-  const roundsCount = n - 1;
-  const rounds: Participant[][][] = [];
+const formatDisplay = (sets: Array<[number, number]>): string => {
+  if (!sets.length) return "—";
+  return sets.map(([a, b]) => `${a}/${b}`).join("\n");
+};
 
-  for (let r = 0; r < roundsCount; r++) {
-    const pairs: Participant[][] = [];
-    for (let i = 0; i < n / 2; i++) {
-      const a = list[i];
-      const b = list[n - 1 - i];
-      if (a && b) pairs.push([a, b]); // BYE пропускаем
-    }
-    rounds.push(pairs);
+const formatInput = (sets: Array<[number, number]>): string => {
+  if (!sets.length) return "";
+  return sets.map(([a, b]) => `${a}-${b}`).join(", ");
+};
 
-    // ротация: фиксируем 0-й, остальное крутим вправо
-    const fixed = list[0];
-    const tail = list.slice(1);
-    tail.unshift(tail.pop()!);
-    list.splice(0, list.length, fixed, ...tail);
-  }
+const orientScores = (match: Match, perspectiveId: number): Array<[number, number]> => {
+  const id1 = match.player1?.id ?? match.team1?.id;
+  const id2 = match.player2?.id ?? match.team2?.id;
+  if (!match.scores || match.scores.length === 0) return [];
 
-  return rounds;
+  if (id1 === perspectiveId) return match.scores.slice();
+  if (id2 === perspectiveId)
+    return match.scores.map(([a, b]) => [b, a]);
+  return match.scores.slice();
+};
+
+/** Ищем матч между участниками */
+function findMatch(aId: number, bId: number, matches: Match[]): Match | null {
+  return (
+    matches.find((m) => {
+      const id1 = m.player1?.id ?? m.team1?.id;
+      const id2 = m.player2?.id ?? m.team2?.id;
+      return (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
+    }) ?? null
+  );
 }
 
-/** Отформатированный счёт "6:3, 4:6, 10:8" или null, если матча нет */
-function getMatchScore(aId: number, bId: number, matches: Match[]): string | null {
-  const match = matches.find((m) => {
-    const id1 = m.player1?.id ?? m.team1?.id;
-    const id2 = m.player2?.id ?? m.team2?.id;
-    return (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
-  });
+/** Получить отображаемые счёты (обычный/перевёрнутый) и значение для инпута */
+function getMatchScores(
+  aId: number,
+  bId: number,
+  matches: Match[]
+): { display: string; mirror: string; input: string } | null {
+  const match = findMatch(aId, bId, matches);
   if (!match) return null;
-
-  if (match.scores && match.scores.length > 0) {
-    return match.scores.map(([s1, s2]) => `${s1}:${s2}`).join(", ");
-  }
-  return "—";
+  const rowSets = orientScores(match, aId);
+  const colSets = orientScores(match, bId);
+  return {
+    display: formatDisplay(rowSets),
+    mirror: formatDisplay(colSets),
+    input: formatInput(rowSets),
+  };
 }
 
-export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobinViewProps) {
+/** Подсчёт статистики игрока по всем матчам (очки и геймы) */
+function computeStatsFor(
+  meId: number,
+  ids: number[],
+  matches: Match[]
+): { points: number; gamesFor: number; gamesAgainst: number } {
+  let points = 0;
+  let gamesFor = 0;
+  let gamesAgainst = 0;
+
+  for (const oppId of ids) {
+    if (oppId === meId) continue;
+    const m = findMatch(meId, oppId, matches);
+    if (!m || !m.scores || m.scores.length === 0) continue;
+
+    // считаем геймы
+    for (const [sA, sB] of m.scores) {
+      const id1 = m.player1?.id ?? m.team1?.id;
+      const amFirst = id1 === meId;
+      const my = amFirst ? sA : sB;
+      const opp = amFirst ? sB : sA;
+      console.log("gamesFor += my", my);
+      gamesFor += my;
+      gamesAgainst += opp;
+    }
+
+    // победа/поражение по количеству выигранных сетов
+    let mySets = 0;
+    let oppSets = 0;
+    for (const [sA, sB] of m.scores) {
+      const id1 = m.player1?.id ?? m.team1?.id;
+      const amFirst = id1 === meId;
+      const my = amFirst ? sA : sB;
+      const opp = amFirst ? sB : sA;
+      if (my > opp) mySets++;
+      if (opp > my) oppSets++;
+    }
+    if (mySets > oppSets) points += 1; // 1 очко за победу
+  }
+
+  return { points, gamesFor, gamesAgainst };
+}
+
+/* =======================================================================
+   Компонент
+   ======================================================================= */
+
+export function RoundRobinView({
+  participants,
+  matches,
+  onSaveScore,
+}: RoundRobinViewProps) {
+  // ---------- состояние редактирования ----------
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
+
   const mobileKeyboardAvailable = useScoreKeyboardAvailable();
   const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
     aId: number;
     bId: number;
   } | null>(null);
 
-  // берём только валидных участников и стабильно сортируем по имени/именам
+  const editingInputRef =
+    useRef<HTMLInputElement | HTMLDivElement | null>(null);
+
+  // ---------- порядок игроков (стабильно по имени) ----------
   const ordered = useMemo(
     () =>
       participants
         .filter(isValidParticipant)
         .slice()
-        .sort((a, b) => a.displayName(false).localeCompare(b.displayName(false), "ru")),
+        .sort((a, b) =>
+          a.displayName(false).localeCompare(b.displayName(false), "ru")
+        ),
     [participants]
   );
 
-  const rounds = useMemo(() => buildRoundRobin(ordered), [ordered]);
+  // id-шники и мапы
+  const ids = useMemo(() => ordered.map((p) => p.getId), [ordered]);
+  const indexById = useMemo(() => {
+    const m = new Map<number, number>();
+    ids.forEach((id, i) => m.set(id, i));
+    return m;
+  }, [ids]);
 
-  // ключ пары (порядок не важен)
-  const pairKey = (aId: number, bId: number) => `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
+  // ---------- таблица мест ----------
+  const standings = useMemo(() => {
+    const rows = ids.map((id) => {
+      const s = computeStatsFor(id, ids, matches);
+      return {
+        id,
+        ...s,
+        diff: s.gamesFor - s.gamesAgainst,
+        name: ordered[indexById.get(id)!].displayName(false),
+      };
+    });
 
-  const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
+    // место: очки → разница геймов → геймы за → имя
+    const sorted = rows.slice().sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.diff !== a.diff) return b.diff - a.diff;
+      if (b.gamesFor !== a.gamesFor) return b.gamesFor - a.gamesFor;
+      return a.name.localeCompare(b.name, "ru");
+    });
 
-  function startEdit(aId: number, bId: number, currentScore: string | null) {
+    const placeById = new Map<number, number>();
+    sorted.forEach((row, idx) => placeById.set(row.id, idx + 1));
+
+    return { rows, placeById };
+  }, [ids, matches, ordered, indexById]);
+
+  // ---------- редактирование ----------
+  function startEdit(
+    aId: number,
+    bId: number,
+    currentScore: string | null
+  ) {
     const k = pairKey(aId, bId);
     setEditingKey(k);
-    setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
+    setEditValue(currentScore ?? "");
     editingInputRef.current = null;
     if (mobileKeyboardAvailable) {
       setMobileKeyboardContext({ aId, bId });
@@ -111,15 +236,21 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
 
   async function saveEdit(aId: number, bId: number, raw?: string) {
     const currentNode = editingInputRef.current;
-    const fallbackValue = currentNode instanceof HTMLInputElement ? currentNode.value : editValue;
+    const fallbackValue =
+      currentNode instanceof HTMLInputElement ? currentNode.value : editValue;
+
     const nextValue = (raw ?? fallbackValue ?? "").trim();
-    if (!Match.isValidScoreFormat(nextValue)) {
-      alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"');
+
+    // Допускаем как "6-4, 4-6, 10-8", так и "6/4, 4/6, 10/8"
+    const normalized = nextValue.replaceAll("/", "-");
+    if (!Match.isValidScoreFormat(normalized)) {
+      alert('Неверный формат счёта. Примеры: "6-4, 4-6" или "6/4, 4/6"');
       return;
     }
+
     try {
       setSaving(true);
-      await onSaveScore?.(aId, bId, nextValue);
+      await onSaveScore?.(aId, bId, normalized);
       setEditingKey(null);
       setEditValue("");
       editingInputRef.current = null;
@@ -129,148 +260,349 @@ export function RoundRobinView({ participants, matches, onSaveScore }: RoundRobi
     }
   }
 
-  // Рендер имени: одиночка — одна строка; пара — два имени столбиком
-  function NameCell({ p }: { p: Participant }) {
-    return <span className="player">{p.displayName(false)}</span>;
+  // ---------- ячейки матрицы ----------
+  function Cell({
+    aId,
+    bId,
+    rIndex,
+    cIndex,
+  }: {
+    aId: number;
+    bId: number;
+    rIndex: number;
+    cIndex: number;
+  }) {
+    if (aId === bId) {
+      return <td className="rr-diag" aria-hidden />;
+    }
+
+    // нижний треугольник: обычный счёт
+    // верхний треугольник: перевёрнутый счёт
+    const isLowerTriangle = rIndex > cIndex;
+
+    const scores = getMatchScores(aId, bId, matches);
+    if (!scores) {
+      // нет матча — показываем кнопку добавления только в нижнем треугольнике
+      if (isLowerTriangle) {
+        const k = pairKey(aId, bId);
+        const isEditing = editingKey === k;
+        const showHelp = !isEditing && firstHelpTooltip();
+        return (
+          <td className={`rr-cell ${isEditing ? "editing" : ""}`}>
+            {!isEditing ? (
+              <div className="score-cell__button-wrap">
+                {showHelp && <div className="help-tooltip">Введите счёт</div>}
+                <button
+                  type="button"
+                  className="vs vs-click"
+                  onClick={() => startEdit(aId, bId, null)}
+                  title="Добавить счёт"
+                  aria-label="Добавить счёт"
+                >
+                  vs
+                </button>
+              </div>
+            ) : (
+              <div className="score-edit-wrap">
+                <input
+                  className="input score-input"
+                  value={editValue}
+                  readOnly={mobileKeyboardAvailable}
+                  ref={(node) => {
+                    editingInputRef.current = node;
+                  }}
+                  placeholder="6-4, 4-6, 10-8"
+                  pattern="[0-9\\s,/:-]*"
+                  inputMode={mobileKeyboardAvailable ? "numeric" : undefined}
+                  autoFocus={!mobileKeyboardAvailable}
+                  onFocus={(e) => {
+                    if (mobileKeyboardAvailable) e.currentTarget.blur();
+                  }}
+                  onKeyDown={(e) => {
+                    if (!mobileKeyboardAvailable) {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        saveEdit(aId, bId);
+                      }
+                      if (e.key === "Escape") {
+                        e.preventDefault();
+                        cancelEdit();
+                      }
+                    }
+                  }}
+                  onChange={(e) => {
+                    if (!mobileKeyboardAvailable) {
+                      setEditValue(e.target.value);
+                    }
+                  }}
+                />
+
+                {!mobileKeyboardAvailable && (
+                  <>
+                    <SaveIconButton
+                      className="lg"
+                      title="Сохранить счёт"
+                      aria-label="Сохранить счёт"
+                      onClick={() => saveEdit(aId, bId)}
+                      disabled={saving}
+                    />
+                    <CancelIconButton
+                      className="lg"
+                      title="Отмена"
+                      aria-label="Отмена"
+                      onClick={cancelEdit}
+                      disabled={saving}
+                    />
+                  </>
+                )}
+              </div>
+            )}
+          </td>
+        );
+      }
+      // верхний треугольник без матча — пустая ячейка
+      return <td className="rr-empty" />;
+    }
+
+    const k = pairKey(aId, bId);
+    const isEditing = editingKey === k;
+
+    if (isLowerTriangle) {
+      // обычный счёт + возможность редактирования
+      return (
+        <td className={`rr-cell ${isEditing ? "editing" : ""}`}>
+          {scores.display !== "—" ? (
+            <button
+              type="button"
+              className="rr-score"
+              onClick={() => startEdit(aId, bId, scores.input || null)}
+              title="Изменить счёт"
+            >
+              {scores.display}
+            </button>
+          ) : (
+            <div className="score-cell__button-wrap">
+              <div className="help-tooltip">Введите счёт</div>
+              <button
+                type="button"
+                className="vs vs-click"
+                onClick={() => startEdit(aId, bId, null)}
+                title="Добавить счёт"
+                aria-label="Добавить счёт"
+              >
+                vs
+              </button>
+            </div>
+          )}
+
+          {isEditing && (
+            <div className="score-edit-wrap">
+              <input
+                className="input score-input"
+                value={editValue}
+                readOnly={mobileKeyboardAvailable}
+                ref={(node) => {
+                  editingInputRef.current = node;
+                }}
+                placeholder="6-4, 4-6, 10-8"
+                pattern="[0-9\\s,/:-]*"
+                inputMode={mobileKeyboardAvailable ? "numeric" : undefined}
+                autoFocus={!mobileKeyboardAvailable}
+                onFocus={(e) => {
+                  if (mobileKeyboardAvailable) e.currentTarget.blur();
+                }}
+                onKeyDown={(e) => {
+                  if (!mobileKeyboardAvailable) {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      saveEdit(aId, bId);
+                    }
+                    if (e.key === "Escape") {
+                      e.preventDefault();
+                      cancelEdit();
+                    }
+                  }
+                }}
+                onChange={(e) => {
+                  if (!mobileKeyboardAvailable) {
+                    setEditValue(e.target.value);
+                  }
+                }}
+              />
+              {!mobileKeyboardAvailable && (
+                <>
+                  <SaveIconButton
+                    className="lg"
+                    title="Сохранить счёт"
+                    aria-label="Сохранить счёт"
+                    onClick={() => saveEdit(aId, bId)}
+                    disabled={saving}
+                  />
+                  <CancelIconButton
+                    className="lg"
+                    title="Отмена"
+                    aria-label="Отмена"
+                    onClick={cancelEdit}
+                    disabled={saving}
+                  />
+                </>
+              )}
+            </div>
+          )}
+        </td>
+      );
+    }
+
+    // верхний треугольник: показываем перевёрнутый счёт; клик также открывает редактирование нормального
+    return (
+      <td className="rr-cell rr-cell--mirror">
+        {scores.mirror !== "—" ? (
+          <button
+            type="button"
+            className="rr-score rr-score--mirror"
+            onClick={() => startEdit(aId, bId, scores.input || null)}
+            title="Изменить счёт"
+          >
+            {scores.mirror}
+          </button>
+        ) : (
+          <span className="rr-dash">—</span>
+        )}
+      </td>
+    );
   }
 
+  // первый тултип для “vs”
   const firstHelpTooltip = useFirstHelpTooltip();
+
+  /* =====================================================================
+     Рендер
+     ===================================================================== */
 
   return (
     <div className="roundrobin-wrap">
-      <div className="rounds-grid">
-        {rounds.map((pairs, rIndex) => (
-          <div
-            key={rIndex}
-            className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}
-          >
-            <div className="history-table-head">
-              <strong>Раунд {rIndex + 1}</strong>
-            </div>
+      <div className="rr-scroll">
+        <table className="rr-matrix round-table">
+          <thead>
+            <tr>
+              {/* Липкая колонка № */}
+              <th
+                className="center"
+                style={{
+                  position: "sticky",
+                  left: 0,
+                  zIndex: 4, // выше второй колонки и тела
+                  width: INDEX_COL_WIDTH,
+                  minWidth: INDEX_COL_WIDTH,
+                  background: "var(--background)",
+                  border: "1px solid rgba(166, 255, 0, .3)",
+                }}
+              >
+                #
+              </th>
 
-            <table className="round-table">
+              {/* Липкая колонка Игроки */}
+              <th
+                className="left"
+                style={{
+                  position: "sticky",
+                  left: INDEX_COL_WIDTH,
+                  zIndex: 3,
+                  background: "var(--background)",
+                  border: "1px solid rgba(166, 255, 0, .3)",
+                }}
+              >
+                Игроки
+              </th>
 
-              <tbody>
-                {pairs.length > 0 ? (
-                  pairs.map(([pa, pb], i) => {
-                    const aId = pa.getId;
-                    const bId = pb.getId;
-                    const score = getMatchScore(aId, bId, matches);
-                    const k = pairKey(aId, bId);
-                    const isEditing = editingKey === k;
-                    const shouldShowHelpTooltip = !score && !isEditing && firstHelpTooltip();
+              {ordered.map((_, i) => (
+                <th key={i} className="center">{i + 1}</th>
+              ))}
 
-                    return (
-                      <tr key={i} className={`grid-row ${isEditing ? "editing-row" : ""}`}>
-                        <td>
-                          <NameCell p={pa} />
-                        </td>
+              <th className="center">Очки</th>
+              <th className="center">Геймы</th>
+              <th className="center">Место</th>
+            </tr>
+          </thead>
 
-                        <td className="score-cell">
-                          {score ? (
-                            <span className="badge">{score}</span>
-                          ) : !isEditing ? (
-                            <div className="score-cell__button-wrap">
-                              {shouldShowHelpTooltip && (
-                                <div className="help-tooltip">Введите счёт</div>
-                              )}
-                              <button
-                                type="button"
-                                className="vs vs-click"
-                                onClick={() => startEdit(aId, bId, score)}
-                                title="Добавить счёт"
-                                aria-label="Добавить счёт"
-                              >
-                                vs
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="score-edit-wrap">
-                              <input
-                                className="input score-input"
-                                value={editValue}
-                                readOnly={mobileKeyboardAvailable}
-                                ref={(node) => {
-                                  editingInputRef.current = node;
-                                }}
-                                placeholder="6-4, 4-6, 10-8"
-                                pattern="[0-9\\s,:-]*"
-                                inputMode={mobileKeyboardAvailable ? "numeric" : undefined}
-                                autoFocus={!mobileKeyboardAvailable}
-                                onFocus={(e) => {
-                                  if (mobileKeyboardAvailable) e.currentTarget.blur();
-                                }}
-                                onKeyDown={(e) => {
-                                  if (!mobileKeyboardAvailable) {
-                                    if (e.key === "Enter") {
-                                      e.preventDefault();
-                                      saveEdit(aId, bId);
-                                    }
-                                    if (e.key === "Escape") {
-                                      e.preventDefault();
-                                      cancelEdit();
-                                    }
-                                  }
-                                }}
-                                onChange={(e) => {
-                                  if (!mobileKeyboardAvailable) {
-                                    setEditValue(e.target.value);
-                                  }
-                                }}
-                              />
+          <tbody>
+            {ordered.map((pa, r) => {
+              const aId = pa.getId;
+              const st = standings.rows.find((x) => x.id === aId)!;
+              const place = standings.placeById.get(aId)!;
 
-                              {!mobileKeyboardAvailable && (
-                                <>
-                                  <SaveIconButton
-                                    className="lg"
-                                    title="Сохранить счёт"
-                                    aria-label="Сохранить счёт"
-                                    onClick={() => saveEdit(aId, bId)}
-                                    disabled={saving}
-                                  />
+              return (
+                <tr key={aId} className={editingKey ? "card--no-transition" : ""}>
+                  {/* Номер участника — липкая первая колонка */}
+                  <td
+                    className="center rr-index"
+                    style={{
+                      position: "sticky",
+                      left: 0,
+                      zIndex: 2,
+                      width: INDEX_COL_WIDTH,
+                      minWidth: INDEX_COL_WIDTH,
+                      background: "var(--background)",
+                      border: "1px solid rgba(166, 255, 0, .3)",
+                    }}
+                  >
+                    {r + 1}
+                  </td>
 
-                                  <CancelIconButton
-                                    className="lg"
-                                    title="Отмена"
-                                    aria-label="Отмена"
-                                    onClick={cancelEdit}
-                                    disabled={saving}
-                                  />
-                                </>
-                              )}
-                            </div>
-                          )}
-                        </td>
+                  {/* Имя игрока — липкая вторая колонка */}
+                  <td
+                    className="left"
+                    style={{
+                      position: "sticky",
+                      left: INDEX_COL_WIDTH,
+                      zIndex: 1,
+                      background: "var(--background)",
+                      border: "1px solid rgba(166, 255, 0, .3)",
+                    }}
+                  >
+                    <span className="rr-participant">{pa.displayName(false)}</span>
+                  </td>
 
-                        <td>
-                          <NameCell p={pb} />
-                        </td>
-                      </tr>
-                    );
-                  })
-                ) : (
-                  <tr className="grid-row">
-                    <td colSpan={3} className="history-empty">
-                      В этом раунде нет пар (BYE).
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        ))}
+                  {/* Ячейки соперников */}
+                  {ordered.map((pb, c) => (
+                    <Cell
+                      key={`${aId}_${pb.getId}`}
+                      aId={aId}
+                      bId={pb.getId}
+                      rIndex={r}
+                      cIndex={c}
+                    />
+                  ))}
+
+                  {/* Статистика по строке */}
+                  <td className="center">{st.points}</td>
+                  <td className="center">
+                    {st.gamesFor}:{st.gamesAgainst}
+                  </td>
+                  <td className="center">{place}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        {mobileKeyboardAvailable && mobileKeyboardContext && (
+          <ScoreKeyboard
+            inputRef={editingInputRef}
+            value={editValue}
+            onChange={setEditValue}
+            onSave={() =>
+              void saveEdit(
+                mobileKeyboardContext.aId,
+                mobileKeyboardContext.bId
+              )
+            }
+            onCancel={cancelEdit}
+            disabled={saving}
+            autoFocus={false}
+          />
+        )}
       </div>
-      {mobileKeyboardAvailable && mobileKeyboardContext && (
-        <ScoreKeyboard
-          inputRef={editingInputRef}
-          value={editValue}
-          onChange={setEditValue}
-          onSave={() => void saveEdit(mobileKeyboardContext.aId, mobileKeyboardContext.bId)}
-          onCancel={cancelEdit}
-          disabled={saving}
-          autoFocus={false}
-        />
-      )}
     </div>
   );
 }

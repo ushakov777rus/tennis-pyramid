@@ -11,7 +11,7 @@ export type MinimalUser = {
 
 /** Может ли пользователь удалить турнир */
 export function canViewTournament(user: MinimalUser | null | undefined, t: Tournament | null | undefined): boolean {
-  if (!user || !t) return false;
+  //if (!user || !t) return false;
   return true;
 }
 
