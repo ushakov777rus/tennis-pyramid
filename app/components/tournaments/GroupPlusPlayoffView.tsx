@@ -8,7 +8,7 @@ import { SaveIconButton, CancelIconButton } from "@/app/components/controls/Icon
 import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
 import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 // NEW import
-import { ScoreCell as MatchCellBase } from "./ScoreCell";
+import { ScoreCell } from "./ScoreCell";
 
 
 /* Сетка групп рисуется компонентом матрицы */
@@ -47,14 +47,9 @@ type GroupPlusPlayoffViewProps = {
 function isValidParticipant(p: Participant | null | undefined): p is Participant {
   return !!p && (!!p.player || !!p.team);
 }
-function pid(p: Participant | null | undefined): number | null { return p ? p.getId : null; }
+
 function nextPow2(n: number) { let p = 1; while (p < n) p <<= 1; return p; }
-function nameOf(p: Participant): string {
-  if (p.player) return p.player.name;
-  const a = p.team?.player1?.name ?? "??";
-  const b = p.team?.player2?.name ?? "??";
-  return `${a} + ${b}`;
-}
+
 function matchPhaseOk(m: Match, f?: MatchPhaseFilter): boolean {
   if (!f) return true;
   if (f.phase && (m as any).phase !== f.phase) return false;
@@ -104,7 +99,9 @@ function distributeIntoGroups(items: Participant[], groupsCount: number, mode: "
 type GroupStats = { id: number; name: string; wins: number; setsDiff: number; gamesDiff: number; };
 function computeGroupStats(group: Participant[], matches: Match[]): GroupStats[] {
   const map = new Map<number, GroupStats>();
-  for (const p of group) map.set(p.getId, { id: p.getId, name: nameOf(p), wins: 0, setsDiff: 0, gamesDiff: 0 });
+  
+  for (const p of group) 
+    map.set(p.getId, { id: p.getId, name: p.displayName(), wins: 0, setsDiff: 0, gamesDiff: 0 });
 
   for (let i = 0; i < group.length; i++) {
     for (let j = i + 1; j < group.length; j++) {
@@ -193,7 +190,9 @@ function pairWinnerId(
   matches: Match[],
   filter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
 ): number | null {
-  const aId = pid(a); const bId = pid(b);
+  const aId = a?.getId; 
+  const bId = b?.getId;
+  
   if (aId && !bId) return aId;
   if (!aId && bId) return bId;
   if (!aId || !bId) return null;
@@ -269,7 +268,7 @@ const PlayoffMatchCell: React.FC<{
   b: Participant | null;
   phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
 }> = ({ a, b, phaseFilter }) => (
-  <MatchCellBase
+  <ScoreCell
     a={a}
     b={b}
     phaseFilter={phaseFilter}
@@ -280,7 +279,6 @@ const PlayoffMatchCell: React.FC<{
     editValue={editValue}
     setEditValue={setEditValue}
     saving={saving}
-    pid={pid}
     inputRef={editingInputRef}
     mobileKeyboardAvailable={mobileKeyboardAvailable}
     onStartEdit={(aId, bId, currentScore, f) => {
@@ -331,8 +329,8 @@ const PlayoffMatchCell: React.FC<{
     b: Participant | null,
     phaseFilter: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
   ) {
-    const aId = pid(a);
-    const bId = pid(b);
+    const aId = a?.getId;
+    const bId = b?.getId;
     if (!aId || !bId) return null;
 
     const m = findMatchBetween(aId, bId, matches, phaseFilter);
@@ -366,8 +364,8 @@ const PlayoffMatchCell: React.FC<{
     b: Participant | null;
     phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
   }) => {
-    const aId = pid(a);
-    const bId = pid(b);
+    const aId = a?.getId;
+    const bId = b?.getId;
     const canEdit = !!aId && !!bId;
     const score = canEdit ? getMatchScore(aId!, bId!, matches, phaseFilter) : null;
     const k = canEdit ? pairKey(aId!, bId!) : undefined;
@@ -479,8 +477,6 @@ const PlayoffMatchCell: React.FC<{
           matches={matches}
           roundLabel={roundLabel}
           pairWinnerId={pairWinnerId}
-          pid={pid}
-          nameOf={nameOf}
           getOrientedSetsFor={getOrientedSetsFor}
           MatchCell={PlayoffMatchCell}
         />

@@ -32,9 +32,6 @@ export type ScoreCellProps = {
 
   inputRef: RefObject<HTMLInputElement | HTMLDivElement | null>;
   mobileKeyboardAvailable: boolean;
-
-  /** Безопасный доступ к id участника */
-  pid: (p: Participant | null | undefined) => number | null;
 };
 
 export function ScoreCell({
@@ -52,10 +49,9 @@ export function ScoreCell({
   onCancel,
   inputRef,
   mobileKeyboardAvailable,
-  pid,
 }: ScoreCellProps) {
-  const aId = pid(a);
-  const bId = pid(b);
+  const aId = a?.getId;
+  const bId = b?.getId;
   const canEdit = !!aId && !!bId;
   const score = canEdit ? getMatchScore(aId!, bId!, phaseFilter) : null;
   const k = canEdit ? pairKey(aId!, bId!) : undefined;

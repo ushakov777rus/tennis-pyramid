@@ -37,7 +37,7 @@ export class ParticipantBase {
 /** Класс с методами */
 export class Participant extends ParticipantBase {
   
-  displayName(mask: boolean): string {
+  displayName(mask: boolean = false): string {
     if (this.player) return mask ? maskFullName(this.player.name) : this.player.name;
     if (this.team) return mask ? 
       maskFullName(this.team.player1.name) + "\n" + maskFullName(this.team.player2.name) : 

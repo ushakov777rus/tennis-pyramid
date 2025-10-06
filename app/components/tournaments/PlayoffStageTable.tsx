@@ -19,8 +19,6 @@ export type PlayoffStageTableProps = {
     filter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
   ) => number | null;
 
-  pid: (p: Participant | null | undefined) => number | null;
-  nameOf: (p: Participant) => string;
   getOrientedSetsFor: (
     a: Participant | null,
     b: Participant | null,
@@ -40,8 +38,6 @@ export function PlayoffStageTable({
   matches,
   roundLabel,
   pairWinnerId,
-  pid,
-  nameOf,
   getOrientedSetsFor,
   MatchCell,
 }: PlayoffStageTableProps) {
@@ -61,8 +57,8 @@ export function PlayoffStageTable({
               {pairs.length ? (
                 pairs.map(([a, b], mIndex) => {
                   const phaseFilter = { phase: PhaseType.Playoff, roundIndex: rIndex as number };
-                  const aId = pid(a);
-                  const bId = pid(b);
+                  const aId = a?.getId;
+                  const bId = b?.getId;
                   const winnerId = pairWinnerId(a, b, matches, phaseFilter);
 
                   const oriented = getOrientedSetsFor(a, b, phaseFilter);
@@ -80,7 +76,7 @@ export function PlayoffStageTable({
                             }`}
                           >
                             <td className="left">
-                              <span className="rr-participant">{a ? nameOf(a) : "Ожидается"}</span>
+                              <span className="rr-participant">{a ? a.displayName() : "Ожидается"}</span>
                             </td>
                           </tr>
                           <tr
@@ -89,7 +85,7 @@ export function PlayoffStageTable({
                             }`}
                           >
                             <td className="left">
-                              <span className="rr-participant">{b ? nameOf(b) : "Ожидается"}</span>
+                              <span className="rr-participant">{b ? b.displayName() : "Ожидается"}</span>
                             </td>
                           </tr>
                         </tbody>
