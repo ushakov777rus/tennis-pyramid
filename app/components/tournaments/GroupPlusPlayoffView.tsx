@@ -7,6 +7,9 @@ import { Match, PhaseType } from "@/app/models/Match";
 import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
 import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
 
+/* Сетка групп теперь рисуется готовым компонентом матрицы */
+import { RoundRobinTable } from "./RoundRobinTable";
+
 import "./PyramidView.css";
 import "./RoundRobinView.css";
 import "@/app/components/ParticipantsView.css";
@@ -17,7 +20,7 @@ import "@/app/components/ParticipantsView.css";
 
 /** Фильтр для поиска матча конкретной фазы/ячейки сетки */
 type MatchPhaseFilter = {
-  phase?: PhaseType;        // PhaseType.Group | PhaseType.Playoff
+  phase?: PhaseType;          // PhaseType.Group | PhaseType.Playoff
   groupIndex?: number | null; // индекс группы (для группового этапа)
   roundIndex?: number | null; // индекс раунда плей-офф: 0 — четверть, 1 — полу и т.д.
 };
@@ -29,7 +32,7 @@ type GroupPlusPlayoffViewProps = {
     aId: number,
     bId: number,
     score: string,
-    meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null } // ✅ NEW
+    meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
   ) => Promise<void> | void;
 
   groupsCount?: number;
@@ -48,7 +51,7 @@ function isValidParticipant(p: Participant | null | undefined): p is Participant
 
 /** Безопасно получить ID участника (null если слота нет) */
 function pid(p: Participant | null | undefined): number | null {
-  return p ? p.getId : null; // у вас getId — поле/геттер, оставляю как есть
+  return p ? p.getId : null;
 }
 
 /** Следующая степень двойки ≥ n (для размера сетки single-elim) */
@@ -136,30 +139,6 @@ function distributeIntoGroups(items: Participant[], groupsCount: number, mode: "
   return groups;
 }
 
-/** Построить расписание round-robin (circle method) для одной группы */
-function buildRoundRobin(units: Participant[]): Participant[][][] {
-  const list: (Participant | null)[] = units.slice();
-  if (list.length % 2 === 1) list.push(null); // BYE
-  const n = list.length;
-  const roundsCount = n - 1;
-  const rounds: Participant[][][] = [];
-  for (let r = 0; r < roundsCount; r++) {
-    const pairs: Participant[][] = [];
-    for (let i = 0; i < n / 2; i++) {
-      const a = list[i];
-      const b = list[n - 1 - i];
-      if (a && b) pairs.push([a, b]);
-    }
-    rounds.push(pairs);
-    // ротация, фиксируем нулевой элемент
-    const fixed = list[0];
-    const tail = list.slice(1);
-    tail.unshift(tail.pop()!);
-    list.splice(0, list.length, fixed, ...tail);
-  }
-  return rounds;
-}
-
 /** Статистика группы: победы → Δсетов → Δгеймов */
 type GroupStats = {
   id: number;
@@ -231,12 +210,12 @@ function isGroupStarted(group: Participant[], matches: Match[]): boolean {
   return countCompletedPairsInGroup(group, matches) > 0;
 }
 
-/** Составить очередь квалификантов из топ-K каждой группы (A1, B2, C1, D2, …) */
-function makePlayoffQualifiers(
+/** Квалификанты в плей-офф из топ-K каждой группы (A1, B2, C1, D2, …). Принимает матчи по группам. */
+function makePlayoffQualifiersFromFiltered(
   groups: Participant[][],
   statsPerGroup: GroupStats[][],
   topK: number,
-  matches: Match[]
+  matchesPerGroup: Match[][]
 ): (Participant | null)[] {
   const out: (Participant | null)[] = [];
   const G = groups.length;
@@ -247,7 +226,7 @@ function makePlayoffQualifiers(
     const stats = statsPerGroup[gi];
 
     // квоты не определяем, если группа фактически не началась
-    if (!isGroupStarted(group, matches)) {
+    if (!isGroupStarted(group, matchesPerGroup[gi])) {
       out.push(null);
       return;
     }
@@ -325,7 +304,7 @@ export function GroupPlusPlayoffView({
   seeding = "snake",
 }: GroupPlusPlayoffViewProps) {
 
-  /* ---------------------------- Локальные состояния ---------------------------- */
+  /* ---------------------------- Локальные состояния (для ПЛЕЙ-ОФФ) ---------------------------- */
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
@@ -337,34 +316,12 @@ export function GroupPlusPlayoffView({
     phaseFilter?: MatchPhaseFilter;
   } | null>(null);
 
-  /* ----------------------- Стабильные колбэки/утилиты ----------------------- */
-
-  /** Ключ пары для режима редактирования */
+  /** Ключ пары для режима редактирования (для плей-офф) */
   const pairKey = useCallback((aId: number, bId: number) => {
     return `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
   }, []);
 
-  const tooltipKeyFor = useCallback(
-    (aId: number, bId: number, filter?: MatchPhaseFilter) => {
-      const base = pairKey(aId, bId);
-      if (!filter || !filter.phase) {
-        return base;
-      }
-
-      const suffix: string[] = [filter.phase];
-      if (filter.groupIndex != null) {
-        suffix.push(`g${filter.groupIndex}`);
-      }
-      if (filter.roundIndex != null) {
-        suffix.push(`r${filter.roundIndex}`);
-      }
-
-      return `${base}|${suffix.join("|")}`;
-    },
-    [pairKey]
-  );
-
-  /** Начать редактирование */
+  /** Начать редактирование (плей-офф) */
   const startEdit = useCallback((aId: number, bId: number, currentScore: string | null) => {
     const k = pairKey(aId, bId);
     setEditingKey(k);
@@ -372,7 +329,7 @@ export function GroupPlusPlayoffView({
     editingInputRef.current = null;
   }, [pairKey, editingInputRef]);
 
-  /** Отмена редактирования */
+  /** Отмена редактирования (плей-офф) */
   const cancelEdit = useCallback(() => {
     setEditingKey(null);
     setEditValue("");
@@ -380,38 +337,38 @@ export function GroupPlusPlayoffView({
     setMobileKeyboardContext(null);
   }, [editingInputRef]);
 
-  /** Сохранить счёт (валидация формата + вызов onSaveScore) */
-const saveEdit = useCallback(async (aId: number, bId: number, phaseFilter?: MatchPhaseFilter, raw?: string) => {
-  const node = editingInputRef.current;
-  const draft = node instanceof HTMLInputElement ? node.value : editValue;
-  const nextValue = (raw ?? draft ?? "").trim();
-  if (!isValidScoreFormat(nextValue)) {
-    alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"');
-    return;
-  }
-  try {
-    setSaving(true);
-    const meta = phaseFilter
-      ? {
-          phase: phaseFilter.phase!,                        // в наших вызовах всегда задано
-          groupIndex: phaseFilter.groupIndex ?? null,
-          roundIndex: phaseFilter.roundIndex ?? null,
-        }
-      : undefined;
+  /** Сохранить счёт (плей-офф) */
+  const saveEdit = useCallback(async (aId: number, bId: number, phaseFilter?: MatchPhaseFilter, raw?: string) => {
+    const node = editingInputRef.current;
+    const draft = node instanceof HTMLInputElement ? node.value : editValue;
+    const nextValue = (raw ?? draft ?? "").trim();
+    if (!isValidScoreFormat(nextValue)) {
+      alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"');
+      return;
+    }
+    try {
+      setSaving(true);
+      const meta = phaseFilter
+        ? {
+            phase: phaseFilter.phase!,                        // плей-офф всегда задан
+            groupIndex: phaseFilter.groupIndex ?? null,
+            roundIndex: phaseFilter.roundIndex ?? null,
+          }
+        : undefined;
 
-    await onSaveScore?.(aId, bId, nextValue, meta); // ✅ теперь с мета
-    setEditingKey(null);
-    setEditValue("");
-    editingInputRef.current = null;
-    setMobileKeyboardContext(null);
-  } finally {
-    setSaving(false);
-  }
-}, [editValue, editingInputRef, onSaveScore]);
+      await onSaveScore?.(aId, bId, nextValue, meta);
+      setEditingKey(null);
+      setEditValue("");
+      editingInputRef.current = null;
+      setMobileKeyboardContext(null);
+    } finally {
+      setSaving(false);
+    }
+  }, [editValue, editingInputRef, onSaveScore]);
 
   /* --------------------------- Производные данные --------------------------- */
 
-  /** Отсортированные участники (для детерминированного отображения) */
+  /** Отсортированные участники (детерминированно) */
   const ordered = useMemo(
     () =>
       participants
@@ -427,22 +384,23 @@ const saveEdit = useCallback(async (aId: number, bId: number, phaseFilter?: Matc
     [ordered, groupsCount, seeding]
   );
 
-  /** Раунды round-robin для каждой группы */
-  const groupRounds = useMemo(
-    () => groups.map(g => buildRoundRobin(g)),
-    [groups]
-  );
+  /** Матчи по группам (фильтруем из общего массива по phase/groupIndex) */
+  const groupMatches: Match[][] = useMemo(() => {
+    return groups.map((_, gi) =>
+      matches.filter(m => (m as any).phase === PhaseType.Group && (m as any).groupIndex === gi)
+    );
+  }, [groups, matches]);
 
-  /** Таблица результатов для каждой группы */
+  /** Таблица результатов для каждой группы — на основе ТОЛЬКО матчей этой группы */
   const groupStats = useMemo(
-    () => groups.map(g => computeGroupStats(g, matches)),
-    [groups, matches]
+    () => groups.map((g, gi) => computeGroupStats(g, groupMatches[gi])),
+    [groups, groupMatches]
   );
 
-  /** Очередь квалификантов в плей-офф (с учётом фактического старта группы) */
+  /** Очередь квалификантов в плей-офф */
   const qualifiers = useMemo(
-    () => makePlayoffQualifiers(groups, groupStats, advancePerGroup, matches),
-    [groups, groupStats, advancePerGroup, matches]
+    () => makePlayoffQualifiersFromFiltered(groups, groupStats, advancePerGroup, groupMatches),
+    [groups, groupStats, advancePerGroup, groupMatches]
   );
 
   /** Заготовка плей-офф сетки (r0 — пары, далее пустые уровни) */
@@ -452,9 +410,7 @@ const saveEdit = useCallback(async (aId: number, bId: number, phaseFilter?: Matc
   );
 
   /**
-   * Проставляем победителей вверх по мере появления результатов.
-   * ВАЖНО: фильтруем только по плей-офф с нужным roundIndex,
-   * чтобы НЕ использовать матчи из групп.
+   * Проставляем победителей вверх по мере появления результатов плей-офф.
    */
   const resolvedPlayoff = useMemo(() => {
     const copy = playoffRounds.map(r =>
@@ -473,239 +429,154 @@ const saveEdit = useCallback(async (aId: number, bId: number, phaseFilter?: Matc
     return copy;
   }, [playoffRounds, matches, ordered]);
 
-  const tooltipTarget = useMemo(() => {
-    for (let gIndex = 0; gIndex < groupRounds.length; gIndex++) {
-      const rounds = groupRounds[gIndex];
-      for (const pairs of rounds) {
-        for (const [a, b] of pairs) {
-          const aId = pid(a);
-          const bId = pid(b);
-          if (!aId || !bId) continue;
-          const filter: MatchPhaseFilter = { phase: PhaseType.Group, groupIndex: gIndex };
-          if (!getMatchScore(aId, bId, matches, filter)) {
-            return tooltipKeyFor(aId, bId, filter);
-          }
-        }
-      }
-    }
-
-    for (let roundIndex = 0; roundIndex < resolvedPlayoff.length; roundIndex++) {
-      const pairs = resolvedPlayoff[roundIndex];
-      for (const [a, b] of pairs) {
-        const aId = pid(a);
-        const bId = pid(b);
-        if (!aId || !bId) continue;
-        const filter: MatchPhaseFilter = { phase: PhaseType.Playoff, roundIndex };
-        if (!getMatchScore(aId, bId, matches, filter)) {
-          return tooltipKeyFor(aId, bId, filter);
-        }
-      }
-    }
-
-    return null;
-  }, [groupRounds, resolvedPlayoff, matches, tooltipKeyFor]);
-
   /* ----------------------------- Внутренние UI ----------------------------- */
 
-  /** Ячейка "Счёт": бейдж -> кнопка "vs" -> инпут сохранения (по месту) */
-  // 2.2. MatchCell: передаём phaseFilter в saveEdit
-const MatchCell = useCallback(({
-  a, b, phaseFilter
-}: {
-  a: Participant | null;
-  b: Participant | null;
-  phaseFilter?: MatchPhaseFilter;
-}) => {
-  const aId = pid(a);
-  const bId = pid(b);
-  const canEdit = !!aId && !!bId;
-  const score = canEdit ? getMatchScore(aId!, bId!, matches, phaseFilter) : null;
-  const k = canEdit ? pairKey(aId!, bId!) : undefined;
-  const isEditing = !!k && editingKey === k;
-  const tooltipKey = canEdit ? tooltipKeyFor(aId!, bId!, phaseFilter) : null;
-  const shouldShowHelpTooltip =
-    canEdit && !score && !isEditing && tooltipKey != null && tooltipTarget === tooltipKey;
+  /** Имя участника (для плей-офф-строки) */
+  function NameCell({ p }: { p: Participant }) {
+    return <span className="player">{p.displayName(false)}</span>;
+  }
 
-  return (
-    <td className="score-cell">
-      {canEdit ? (
-        score ? (
-          <span className="badge">{score}</span>
-        ) : !isEditing ? (
-          <div className="score-cell__button-wrap">
-            {shouldShowHelpTooltip && (
-              <div className="help-tooltip">Введите счёт</div>
-            )}
-            <button
-              type="button"
-              className="vs vs-click"
-              onClick={() => {
-                startEdit(aId!, bId!, score);
-                if (mobileKeyboardAvailable) {
-                  setMobileKeyboardContext({ aId: aId!, bId: bId!, phaseFilter });
-                }
-              }}
-              title="Добавить счёт"
-              aria-label="Добавить счёт"
-            >
-              vs
-            </button>
-          </div>
-        ) : (
-          <div className="score-edit-wrap">
-            <input
-              className="input score-input"
-              value={editValue}
-              readOnly={mobileKeyboardAvailable}
-              ref={(node) => {
-                editingInputRef.current = node;
-              }}
-              placeholder="6-4, 4-6, 10-8"
-              pattern="[0-9\\s,:-]*"
-              autoFocus={!mobileKeyboardAvailable}
-              onFocus={(e) => {
-                if (mobileKeyboardAvailable) e.currentTarget.blur();
-              }}
-              onKeyDown={(e) => {
-                if (!mobileKeyboardAvailable) {
-                  if (e.key === "Enter") { e.preventDefault(); saveEdit(aId!, bId!, phaseFilter); }
-                  if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
-                }
-              }}
-              onChange={(e) => {
-                if (!mobileKeyboardAvailable) {
-                  setEditValue(e.target.value);
-                }
-              }}
-            />
-            {!mobileKeyboardAvailable && (
-              <>
-                <SaveIconButton
-                  className="lg"
-                  title="Сохранить счёт"
-                  onClick={() => saveEdit(aId!, bId!, phaseFilter)}
-                  disabled={saving}
-                />
-                <CancelIconButton className="lg" title="Отмена" onClick={cancelEdit} disabled={saving} />
-              </>
-            )}
-          </div>
-        )
-      ) : (
-        <span className="vs vs-placeholder" aria-hidden>vs</span>
-      )}
-    </td>
-  );
-}, [
-  pairKey,
-  tooltipKeyFor,
-  tooltipTarget,
-  startEdit,
-  editValue,
-  saveEdit,
-  cancelEdit,
-  saving,
-  editingKey,
-  matches,
-  mobileKeyboardAvailable,
-  setMobileKeyboardContext,
-]);
-
-/* ========================================================================== */
-/*                                UI SUBVIEWS                                 */
-/* ========================================================================== */
-
-/** Имя участника (отдельный компонент для единообразного стиля) */
-function NameCell({ p }: { p: Participant }) {
-  return <span className="player">{p.displayName(false)}</span>;
-}
-
-/** Строка пары (универсальна: для групп и плей-офф) */
-// 2.1. PairRow добавим проп phaseFilter и передадим его в MatchCell
-function PairRow({
-  a, b, nullText, children
-}: {
-  a: Participant | null;
-  b: Participant | null;
-  nullText: string;
-  children: React.ReactNode;
-}) {
-  const aId = pid(a);
-  const bId = pid(b);
-  const k = aId !== null && bId !== null ? `${Math.min(aId, bId)}_${Math.max(aId, bId)}` : null;
-  const isEditing = k !== null && editingKey === k;
-
-  return (
-    <tr className={`grid-row ${isEditing ? "editing-row" : ""}`}>
-      <td>{a ? <NameCell p={a} /> : <span className="player muted">{nullText}</span>}</td>
-      {children}
-      <td>{b ? <NameCell p={b} /> : <span className="player muted">{nullText}</span>}</td>
-    </tr>
-  );
-}
-
-  /** Блок группы: расписание раундов + турнирная таблица */
-  function GroupBlock({ gIndex }: { gIndex: number; group: Participant[] }) {
-    const rounds = groupRounds[gIndex];
-    const stats = groupStats[gIndex];
+  /** Строка пары (универсальна под плей-офф) */
+  function PairRow({
+    a, b, nullText, children
+  }: {
+    a: Participant | null;
+    b: Participant | null;
+    nullText: string;
+    children: React.ReactNode;
+  }) {
+    const aId = pid(a);
+    const bId = pid(b);
+    const k = aId !== null && bId !== null ? `${Math.min(aId, bId)}_${Math.max(aId, bId)}` : null;
+    const isEditing = k !== null && editingKey === k;
 
     return (
-      <div className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}>
+      <tr className={`grid-row ${isEditing ? "editing-row" : ""}`}>
+        <td>{a ? <NameCell p={a} /> : <span className="player muted">{nullText}</span>}</td>
+        {children}
+        <td>{b ? <NameCell p={b} /> : <span className="player muted">{nullText}</span>}</td>
+      </tr>
+    );
+  }
+
+  /** Ячейка счёта (для плей-офф) */
+  const MatchCell = useCallback(({
+    a, b, phaseFilter
+  }: {
+    a: Participant | null;
+    b: Participant | null;
+    phaseFilter?: MatchPhaseFilter;
+  }) => {
+    const aId = pid(a);
+    const bId = pid(b);
+    const canEdit = !!aId && !!bId;
+    const score = canEdit ? getMatchScore(aId!, bId!, matches, phaseFilter) : null;
+    const k = canEdit ? pairKey(aId!, bId!) : undefined;
+    const isEditing = !!k && editingKey === k;
+
+    return (
+      <td className="score-cell">
+        {canEdit ? (
+          score ? (
+            <span className="badge">{score}</span>
+          ) : !isEditing ? (
+            <div className="score-cell__button-wrap">
+              <button
+                type="button"
+                className="vs vs-click"
+                onClick={() => {
+                  startEdit(aId!, bId!, score);
+                  if (mobileKeyboardAvailable) {
+                    setMobileKeyboardContext({ aId: aId!, bId: bId!, phaseFilter });
+                  }
+                }}
+                title="Добавить счёт"
+                aria-label="Добавить счёт"
+              >
+                vs
+              </button>
+            </div>
+          ) : (
+            <div className="score-edit-wrap">
+              <input
+                className="input score-input"
+                value={editValue}
+                readOnly={mobileKeyboardAvailable}
+                ref={(node) => {
+                  editingInputRef.current = node;
+                }}
+                placeholder="6-4, 4-6, 10-8"
+                pattern="[0-9\\s,:-]*"
+                autoFocus={!mobileKeyboardAvailable}
+                onFocus={(e) => {
+                  if (mobileKeyboardAvailable) e.currentTarget.blur();
+                }}
+                onKeyDown={(e) => {
+                  if (!mobileKeyboardAvailable) {
+                    if (e.key === "Enter") { e.preventDefault(); saveEdit(aId!, bId!, phaseFilter); }
+                    if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
+                  }
+                }}
+                onChange={(e) => {
+                  if (!mobileKeyboardAvailable) {
+                    setEditValue(e.target.value);
+                  }
+                }}
+              />
+              {!mobileKeyboardAvailable && (
+                <>
+                  <SaveIconButton
+                    className="lg"
+                    title="Сохранить счёт"
+                    onClick={() => saveEdit(aId!, bId!, phaseFilter)}
+                    disabled={saving}
+                  />
+                  <CancelIconButton className="lg" title="Отмена" onClick={cancelEdit} disabled={saving} />
+                </>
+              )}
+            </div>
+          )
+        ) : (
+          <span className="vs vs-placeholder" aria-hidden>vs</span>
+        )}
+      </td>
+    );
+  }, [
+    pairKey,
+    startEdit,
+    editValue,
+    saveEdit,
+    cancelEdit,
+    saving,
+    editingKey,
+    matches,
+    mobileKeyboardAvailable,
+    setMobileKeyboardContext,
+  ]);
+
+  /** Блок ГРУПП: теперь через RoundRobinTable */
+  function GroupBlock({ gIndex, group }: { gIndex: number; group: Participant[] }) {
+    // Для матрицы — пробрасываем только матчи ЭТОЙ группы
+    const matchesForGroup = groupMatches[gIndex];
+
+    return (
+      <div className={`${editingKey ? "card--no-transition" : ""}`.trim()}>
         <div className="history-table-head">
           <strong>Группа {String.fromCharCode(65 + gIndex)}</strong>
         </div>
 
-        {/* Раунды группы */}
-        <div className="rounds-grid">
-        {rounds.map((pairs, r) => (
-          <table key={r} className="round-table">
-              <thead>
-                <tr className="grid-row">
-                  <th>Участник</th>
-                  <th>Счёт</th>
-                  <th>Участник</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pairs.length ? (
-                  pairs.map(([a, b], i) => (
-                    <PairRow key={i} a={a} b={b} nullText="BYE">
-                      <MatchCell a={a} b={b} phaseFilter={{ phase: PhaseType.Group, groupIndex: gIndex }} />
-                    </PairRow>
-                  ))
-                ) : (
-                  <tr className="grid-row">
-                    <td colSpan={3} className="history-empty">Нет пар</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          ))}
-        </div>
-
-        {/* Таблица группы */}
-        <table className="round-table" style={{ marginTop: 12 }}>
-          <thead>
-            <tr className="grid-row-group-playoff">
-              <th>Участник</th><th>W</th><th>Δсет</th><th>Δгейм</th>
-            </tr>
-          </thead>
-          <tbody>
-            {stats.map((s) => (
-              <tr key={s.id} className="grid-row-group-playoff">
-                <td><span className="player">{s.name}</span></td>
-                <td>{s.wins}</td>
-                <td>{s.setsDiff}</td>
-                <td>{s.gamesDiff}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <RoundRobinTable
+          participants={group}
+          matches={matchesForGroup}
+          onSaveScore={(aId, bId, score) =>
+            onSaveScore?.(aId, bId, score, { phase: PhaseType.Group, groupIndex: gIndex, roundIndex: null })
+          }
+        />
       </div>
     );
   }
 
-  /** Блок плей-офф: все раунды, с протаскиванием победителей */
+  /** Блок ПЛЕЙ-ОФФ: все раунды, с протаскиванием победителей */
   function PlayoffBlock() {
     return (
       <div className="rounds-grid">
@@ -728,9 +599,11 @@ function PairRow({
               <tbody>
                 {pairs.length ? (
                   pairs.map(([a, b], i) => (
-                    <PairRow key={i} a={a} b={b} nullText="Ожидается">
+                    <tr key={i} className="grid-row">
+                      <td>{a ? <NameCell p={a} /> : <span className="player muted">Ожидается</span>}</td>
                       <MatchCell a={a} b={b} phaseFilter={{ phase: PhaseType.Playoff, roundIndex: rIndex }} />
-                    </PairRow>
+                      <td>{b ? <NameCell p={b} /> : <span className="player muted">Ожидается</span>}</td>
+                    </tr>
                   ))
                 ) : (
                   <tr className="grid-row">
@@ -749,9 +622,11 @@ function PairRow({
 
   return (
     <div className="roundrobin-wrap">
-      {/* ГРУППЫ */}
+      {/* ГРУППЫ (через RoundRobinTable) */}
       <div className="rounds-grid">
-        {groups.map((g, gi) => <GroupBlock key={gi} gIndex={gi} group={g} />)}
+        {groups.map((g, gi) => (
+          <GroupBlock key={gi} gIndex={gi} group={g} />
+        ))}
       </div>
 
       {/* ПЛЕЙ-ОФФ */}
@@ -760,16 +635,23 @@ function PairRow({
       </div>
 
       <div className="hint muted" style={{ marginTop: 8 }}>
-        <div>• Порядок в таблице: победы → разница сетов → разница геймов.</div>
-        <div>• Посев плей-офф: крест-накрест (A1–B2, B1–A2, …). Включите «snake» для более ровного распределения по группам.</div>
+        <div>• Порядок в таблице групп: победы → разница сетов → разница геймов.</div>
+        <div>• Посев плей-офф: крест-накрест из топ-{advancePerGroup} каждой группы. Режим «snake» равномернее распределяет сильных по группам.</div>
       </div>
 
+      {/* Мобильная клавиатура — ТОЛЬКО для плей-офф (RoundRobinTable управляет своей собственой внутри себя) */}
       {mobileKeyboardAvailable && mobileKeyboardContext && (
         <ScoreKeyboard
           inputRef={editingInputRef}
           value={editValue}
           onChange={setEditValue}
-          onSave={() => saveEdit(mobileKeyboardContext.aId, mobileKeyboardContext.bId, mobileKeyboardContext.phaseFilter)}
+          onSave={() =>
+            saveEdit(
+              mobileKeyboardContext.aId,
+              mobileKeyboardContext.bId,
+              mobileKeyboardContext.phaseFilter
+            )
+          }
           onCancel={cancelEdit}
           disabled={saving}
           autoFocus={false}

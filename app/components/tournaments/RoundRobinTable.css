@@ -156,7 +156,6 @@
 
 .rr-matrix th,
 .rr-matrix td {
-  min-width: 30px;
   height: 45px;
   font-size: 12px;
   text-align: center;
@@ -182,7 +181,7 @@
 .rr-header-name {
   position: sticky;
   left: var(--rr-index-width);
-  min-width: 200px;
+  width: 120px;
   text-align: left;
   z-index: 3;
   top: 0;
@@ -200,11 +199,13 @@
   position: sticky;
   left: var(--rr-index-width);
   z-index: 1;
-  min-width: 200px;
+  width: 120px;
+  max-width: 120px;
   text-align: left;
 }
 
 .rr-diag {
+  width: 30px;
   background: rgba(166, 255, 0, 0.1);
 }
 

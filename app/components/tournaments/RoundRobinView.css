@@ -194,7 +194,6 @@
 /* Минимальная ширина ячеек, чтобы цифры читались */
 .rr-matrix th:not(.left),
 .rr-matrix td {
-  width: 30px;
   height: 45px;
   font-size: 12px;
   text-align: center;
@@ -222,8 +221,6 @@
   z-index: 3;                 /* выше первого столбца */
   background: var(--background, #0f0f0f);
 }
-
-.rr-empty { background: transparent; }
 
 /* Небольшой твик скроллбара (необязательно) */
 .rr-scroll::-webkit-scrollbar { height: 10px; }
