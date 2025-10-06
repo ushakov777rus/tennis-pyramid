@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
 import {
@@ -165,6 +165,60 @@ export function RoundRobinView({
 
   const editingInputRef =
     useRef<HTMLInputElement | HTMLDivElement | null>(null);
+  const keyboardHostRef = useRef<HTMLDivElement | null>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    if (!mobileKeyboardAvailable || !mobileKeyboardContext) {
+      setKeyboardHeight(0);
+      return;
+    }
+
+    const host = keyboardHostRef.current;
+    if (!host) return;
+
+    const getKeyboardNode = () => host.querySelector<HTMLElement>(".score-kb");
+
+    const updateHeight = () => {
+      const node = getKeyboardNode();
+      if (!node) return;
+      const next = Math.ceil(node.getBoundingClientRect().height);
+      setKeyboardHeight((prev) => (prev === next ? prev : next));
+    };
+
+    updateHeight();
+
+    let observer: ResizeObserver | null = null;
+    let resizeHandler: (() => void) | null = null;
+    let fallbackId: number | null = null;
+
+    if (typeof ResizeObserver !== "undefined") {
+      const node = getKeyboardNode();
+      if (node) {
+        observer = new ResizeObserver(updateHeight);
+        observer.observe(node);
+      }
+    }
+
+    if (typeof window !== "undefined") {
+      resizeHandler = () => updateHeight();
+      window.addEventListener("resize", resizeHandler);
+
+      if (!observer) {
+        fallbackId = window.setInterval(updateHeight, 250);
+      }
+    }
+
+    return () => {
+      observer?.disconnect();
+      if (resizeHandler && typeof window !== "undefined") {
+        window.removeEventListener("resize", resizeHandler);
+      }
+      if (fallbackId != null && typeof window !== "undefined") {
+        window.clearInterval(fallbackId);
+      }
+    };
+  }, [mobileKeyboardAvailable, mobileKeyboardContext]);
 
   // ---------- порядок игроков (стабильно по имени) ----------
   const ordered = useMemo(
@@ -474,13 +528,17 @@ export function RoundRobinView({
 
   // первый тултип для “vs”
   const firstHelpTooltip = useFirstHelpTooltip();
+  const extraBottomPadding = keyboardHeight > 0 ? keyboardHeight + 16 : 0;
 
   /* =====================================================================
      Рендер
      ===================================================================== */
 
   return (
-    <div className="roundrobin-wrap">
+    <div
+      className="roundrobin-wrap"
+      style={extraBottomPadding ? { paddingBottom: extraBottomPadding } : undefined}
+    >
       <div className="rr-scroll">
         <table className="rr-matrix round-table">
           <thead>
@@ -585,7 +643,8 @@ export function RoundRobinView({
             })}
           </tbody>
         </table>
-
+      </div>
+      <div ref={keyboardHostRef}>
         {mobileKeyboardAvailable && mobileKeyboardContext && (
           <ScoreKeyboard
             inputRef={editingInputRef}
