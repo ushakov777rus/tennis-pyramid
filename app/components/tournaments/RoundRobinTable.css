@@ -15,6 +15,22 @@
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  min-width: 0;
+}
+
+/* дайте грид-айтему право ужиматься */
+.rounds-grid > * {
+  min-width: 0;          /* ключевая строчка */
+  overflow: hidden;      /* опционально: прячет “торчащие” углы sticky-колонок */
+}
+
+/* можно оставить, но главное правило выше */
+.rounds-grid > * .roundrobin-wrap { min-width: 0; }
+
+
+/* 2) Внутренняя обёртка компонента тоже должна уметь сжиматься */
+.rounds-grid > * .roundrobin-wrap {
+  min-width: 0;
 }
 
 @media (max-width: 768px) {
@@ -140,6 +156,10 @@
 
 /* ===== Scroll container and matrix styling ===== */
 .rr-scroll {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
@@ -248,6 +268,11 @@
 
 .rr-score--mirror {
   justify-content: center;
+}
+
+/* (опционально) если где-то есть ещё обёртка над .rr-scroll */
+.group-stage, .group-stage__inner {
+  min-width: 0;
 }
 
 
