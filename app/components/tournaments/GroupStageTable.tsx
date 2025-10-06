@@ -20,7 +20,7 @@ import "@/app/components/ParticipantsView.css";
 /**
  * Публичные пропсы для таблицы кругового турнира.
  */
-export type RoundRobinTableProps = {
+export type GroupStageTableProps = {
   participants: Participant[];
   matches: Match[];
   onSaveScore?: (
@@ -226,11 +226,11 @@ function computeStatsFor(
  * @param props Пропсы с состоянием турнира.
  * @returns JSX-разметка таблицы с редактированием счёта.
  */
-export function RoundRobinTable({
+export function GroupStageTable({
   participants,
   matches,
   onSaveScore,
-}: RoundRobinTableProps) {
+}: GroupStageTableProps) {
   /** Текущая редактируемая пара (ключ из двух ID). */
   const [editingKey, setEditingKey] = useState<string | null>(null);
   /** Текущее текстовое значение вводимого счёта. */

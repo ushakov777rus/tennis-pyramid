@@ -1,10 +1,10 @@
 "use client";
 
-import { RoundRobinTable } from "./RoundRobinTable";
-import type { RoundRobinTableProps } from "./RoundRobinTable";
+import { GroupStageTable } from "./GroupStageTable";
+import type { GroupStageTableProps } from "./GroupStageTable";
 
-export type RoundRobinViewProps = RoundRobinTableProps;
+export type RoundRobinViewProps = GroupStageTableProps;
 
 export function RoundRobinView(props: RoundRobinViewProps) {
-  return <RoundRobinTable {...props} />;
+  return <GroupStageTable {...props} />;
 }
