@@ -6,12 +6,14 @@ import { Match, PhaseType } from "@/app/models/Match";
 
 import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
 import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
+import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 
 /* Сетка групп теперь рисуется готовым компонентом матрицы */
 import { RoundRobinTable } from "./RoundRobinTable";
 
 import "./PyramidView.css";
-import "./RoundRobinView.css";
+import "./RoundRobinTable.css";
+import "./EliminationBracket.css";
 import "@/app/components/ParticipantsView.css";
 
 /* ========================================================================== */
@@ -315,6 +317,7 @@ export function GroupPlusPlayoffView({
     bId: number;
     phaseFilter?: MatchPhaseFilter;
   } | null>(null);
+  const firstHelpTooltip = useFirstHelpTooltip();
 
   /** Ключ пары для режима редактирования (для плей-офф) */
   const pairKey = useCallback((aId: number, bId: number) => {
@@ -431,130 +434,7 @@ export function GroupPlusPlayoffView({
 
   /* ----------------------------- Внутренние UI ----------------------------- */
 
-  /** Имя участника (для плей-офф-строки) */
-  function NameCell({ p }: { p: Participant }) {
-    return <span className="player">{p.displayName(false)}</span>;
-  }
-
-  /** Строка пары (универсальна под плей-офф) */
-  function PairRow({
-    a, b, nullText, children
-  }: {
-    a: Participant | null;
-    b: Participant | null;
-    nullText: string;
-    children: React.ReactNode;
-  }) {
-    const aId = pid(a);
-    const bId = pid(b);
-    const k = aId !== null && bId !== null ? `${Math.min(aId, bId)}_${Math.max(aId, bId)}` : null;
-    const isEditing = k !== null && editingKey === k;
-
-    return (
-      <tr className={`grid-row ${isEditing ? "editing-row" : ""}`}>
-        <td>{a ? <NameCell p={a} /> : <span className="player muted">{nullText}</span>}</td>
-        {children}
-        <td>{b ? <NameCell p={b} /> : <span className="player muted">{nullText}</span>}</td>
-      </tr>
-    );
-  }
-
-  /** Ячейка счёта (для плей-офф) */
-  const MatchCell = useCallback(({
-    a, b, phaseFilter
-  }: {
-    a: Participant | null;
-    b: Participant | null;
-    phaseFilter?: MatchPhaseFilter;
-  }) => {
-    const aId = pid(a);
-    const bId = pid(b);
-    const canEdit = !!aId && !!bId;
-    const score = canEdit ? getMatchScore(aId!, bId!, matches, phaseFilter) : null;
-    const k = canEdit ? pairKey(aId!, bId!) : undefined;
-    const isEditing = !!k && editingKey === k;
-
-    return (
-      <td className="score-cell">
-        {canEdit ? (
-          score ? (
-            <span className="badge">{score}</span>
-          ) : !isEditing ? (
-            <div className="score-cell__button-wrap">
-              <button
-                type="button"
-                className="vs vs-click"
-                onClick={() => {
-                  startEdit(aId!, bId!, score);
-                  if (mobileKeyboardAvailable) {
-                    setMobileKeyboardContext({ aId: aId!, bId: bId!, phaseFilter });
-                  }
-                }}
-                title="Добавить счёт"
-                aria-label="Добавить счёт"
-              >
-                vs
-              </button>
-            </div>
-          ) : (
-            <div className="score-edit-wrap">
-              <input
-                className="input score-input"
-                value={editValue}
-                readOnly={mobileKeyboardAvailable}
-                ref={(node) => {
-                  editingInputRef.current = node;
-                }}
-                placeholder="6-4, 4-6, 10-8"
-                pattern="[0-9\\s,:-]*"
-                autoFocus={!mobileKeyboardAvailable}
-                onFocus={(e) => {
-                  if (mobileKeyboardAvailable) e.currentTarget.blur();
-                }}
-                onKeyDown={(e) => {
-                  if (!mobileKeyboardAvailable) {
-                    if (e.key === "Enter") { e.preventDefault(); saveEdit(aId!, bId!, phaseFilter); }
-                    if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
-                  }
-                }}
-                onChange={(e) => {
-                  if (!mobileKeyboardAvailable) {
-                    setEditValue(e.target.value);
-                  }
-                }}
-              />
-              {!mobileKeyboardAvailable && (
-                <>
-                  <SaveIconButton
-                    className="lg"
-                    title="Сохранить счёт"
-                    onClick={() => saveEdit(aId!, bId!, phaseFilter)}
-                    disabled={saving}
-                  />
-                  <CancelIconButton className="lg" title="Отмена" onClick={cancelEdit} disabled={saving} />
-                </>
-              )}
-            </div>
-          )
-        ) : (
-          <span className="vs vs-placeholder" aria-hidden>vs</span>
-        )}
-      </td>
-    );
-  }, [
-    pairKey,
-    startEdit,
-    editValue,
-    saveEdit,
-    cancelEdit,
-    saving,
-    editingKey,
-    matches,
-    mobileKeyboardAvailable,
-    setMobileKeyboardContext,
-  ]);
-
-  /** Блок ГРУПП: теперь через RoundRobinTable */
+  /** Блок ГРУПП: через RoundRobinTable */
   function GroupBlock({ gIndex, group }: { gIndex: number; group: Participant[] }) {
     // Для матрицы — пробрасываем только матчи ЭТОЙ группы
     const matchesForGroup = groupMatches[gIndex];
@@ -576,44 +456,169 @@ export function GroupPlusPlayoffView({
     );
   }
 
-  /** Блок ПЛЕЙ-ОФФ: все раунды, с протаскиванием победителей */
+  /** Возвращает человекочитаемый заголовок раунда плей-офф */
+  const roundLabel = useCallback((roundIndex: number, pairsCount: number) => {
+    if (pairsCount === 0) return `Раунд ${roundIndex + 1}`;
+    const isLast = roundIndex === resolvedPlayoff.length - 1;
+    const prev = resolvedPlayoff[roundIndex - 1];
+    const next = resolvedPlayoff[roundIndex + 1];
+
+    if (pairsCount === 1) {
+      if (!isLast && next?.length === 1) {
+        return "Финал";
+      }
+      if (isLast && prev?.length === 1 && resolvedPlayoff.length > 1) {
+        return "3-е место";
+      }
+      if (isLast) {
+        return "Финал";
+      }
+      return "1/2";
+    }
+
+    return `1/${pairsCount}`;
+  }, [resolvedPlayoff]);
+
+  /** Блок ПЛЕЙ-ОФФ: отображает классический брекет */
   function PlayoffBlock() {
     return (
-      <div className="rounds-grid">
-        {resolvedPlayoff.map((pairs, rIndex) => (
-          <div
-            key={rIndex}
-            className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}
-          >
-            <div className="history-table-head">
-              <strong>{rIndex === resolvedPlayoff.length - 1 ? "Финал" : `Плей-офф — Раунд ${rIndex + 1}`}</strong>
-            </div>
-            <table className="round-table">
-              <thead>
-                <tr className="grid-row">
-                  <th>Участник</th>
-                  <th>Счёт</th>
-                  <th>Участник</th>
-                </tr>
-              </thead>
-              <tbody>
+      <div className="bracket">
+        {resolvedPlayoff.map((pairs, rIndex) => {
+          const title = roundLabel(rIndex, pairs.length);
+          return (
+            <div key={rIndex} className="bracket__round">
+              <div className="bracket__round-title">
+                <span className="bracket__badge">{title}</span>
+              </div>
+              <div className="bracket__matches">
                 {pairs.length ? (
-                  pairs.map(([a, b], i) => (
-                    <tr key={i} className="grid-row">
-                      <td>{a ? <NameCell p={a} /> : <span className="player muted">Ожидается</span>}</td>
-                      <MatchCell a={a} b={b} phaseFilter={{ phase: PhaseType.Playoff, roundIndex: rIndex }} />
-                      <td>{b ? <NameCell p={b} /> : <span className="player muted">Ожидается</span>}</td>
-                    </tr>
-                  ))
+                  pairs.map(([a, b], mIndex) => {
+                    const phaseFilter: MatchPhaseFilter = { phase: PhaseType.Playoff, roundIndex: rIndex };
+                    const aId = pid(a);
+                    const bId = pid(b);
+                    const matchKey = aId && bId ? pairKey(aId, bId) : null;
+                    const isEditing = matchKey !== null && editingKey === matchKey;
+                    const canEdit = Boolean(aId && bId);
+                    const scoreRaw = canEdit ? getMatchScore(aId!, bId!, matches, phaseFilter) : null;
+                    const scoreDisplay = scoreRaw ? scoreRaw.replace(/,\s*/g, "\n") : null;
+                    const winnerId = pairWinnerId(a, b, matches, phaseFilter);
+                    const showHelp = !scoreRaw && canEdit && !isEditing && firstHelpTooltip();
+                    const handleStart = () => {
+                      if (!canEdit) return;
+                      startEdit(aId!, bId!, scoreRaw);
+                      if (mobileKeyboardAvailable) {
+                        setMobileKeyboardContext({ aId: aId!, bId: bId!, phaseFilter });
+                      }
+                    };
+                    const handleSave = () => canEdit && saveEdit(aId!, bId!, phaseFilter);
+
+                    return (
+                      <div
+                        key={mIndex}
+                        className={`bracket__match ${isEditing ? "bracket__match--editing" : ""}`.trim()}
+                        data-rr-cell={`${aId ?? "_"}-${bId ?? "_"}`}
+                      >
+                        <div
+                          className={`bracket__slot ${!a ? "bracket__slot--bye" : ""} ${
+                            winnerId && aId === winnerId ? "bracket__slot--winner" : ""
+                          }`.trim()}
+                        >
+                          <span className="bracket__slot-name">{a ? nameOf(a) : "BYE"}</span>
+                          {winnerId && aId === winnerId ? <span className="bracket__slot-flag">✓</span> : null}
+                        </div>
+
+                        <div className="bracket__score">
+                          {canEdit ? (
+                            isEditing ? (
+                              <div className="bracket__score-edit score-edit-wrap">
+                                <input
+                                  className="input score-input"
+                                  value={editValue}
+                                  readOnly={mobileKeyboardAvailable}
+                                  ref={(node) => {
+                                    editingInputRef.current = node;
+                                  }}
+                                  placeholder="6-4, 4-6, 10-8"
+                                  pattern="[0-9\\s,:-]*"
+                                  autoFocus={!mobileKeyboardAvailable}
+                                  onFocus={(e) => {
+                                    if (mobileKeyboardAvailable) e.currentTarget.blur();
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (!mobileKeyboardAvailable) {
+                                      if (e.key === "Enter") { e.preventDefault(); handleSave(); }
+                                      if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
+                                    }
+                                  }}
+                                  onChange={(e) => {
+                                    if (!mobileKeyboardAvailable) {
+                                      setEditValue(e.target.value);
+                                    }
+                                  }}
+                                />
+                                {!mobileKeyboardAvailable && (
+                                  <>
+                                    <SaveIconButton
+                                      className="lg"
+                                      title="Сохранить счёт"
+                                      onClick={handleSave}
+                                      disabled={saving}
+                                    />
+                                    <CancelIconButton
+                                      className="lg"
+                                      title="Отмена"
+                                      onClick={cancelEdit}
+                                      disabled={saving}
+                                    />
+                                  </>
+                                )}
+                              </div>
+                            ) : scoreDisplay ? (
+                              <button
+                                type="button"
+                                className="rr-score"
+                                onClick={handleStart}
+                                title="Изменить счёт"
+                              >
+                                {scoreDisplay}
+                              </button>
+                            ) : (
+                              <div className="score-cell__button-wrap">
+                                {showHelp && <div className="help-tooltip">Введите счёт</div>}
+                                <button
+                                  type="button"
+                                  className="vs vs-click"
+                                  onClick={handleStart}
+                                  title="Добавить счёт"
+                                  aria-label="Добавить счёт"
+                                >
+                                  vs
+                                </button>
+                              </div>
+                            )
+                          ) : (
+                            <span className="bracket__score-placeholder">—</span>
+                          )}
+                        </div>
+
+                        <div
+                          className={`bracket__slot ${!b ? "bracket__slot--bye" : ""} ${
+                            winnerId && bId === winnerId ? "bracket__slot--winner" : ""
+                          }`.trim()}
+                        >
+                          <span className="bracket__slot-name">{b ? nameOf(b) : "BYE"}</span>
+                          {winnerId && bId === winnerId ? <span className="bracket__slot-flag">✓</span> : null}
+                        </div>
+                      </div>
+                    );
+                  })
                 ) : (
-                  <tr className="grid-row">
-                    <td colSpan={3} className="history-empty">Нет пар</td>
-                  </tr>
+                  <div className="bracket__empty">Нет пар</div>
                 )}
-              </tbody>
-            </table>
-          </div>
-        ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   }

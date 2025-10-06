@@ -1,6 +1,6 @@
 :root {
   --rr-index-width: 30px;
-  --rr-roundrobin-border: #a6ff00;
+  --rr-roundrobin-border: rgba(166, 255, 0, .3);
   --rr-roundrobin-bg: var(--background, #0f0f0f);
 }
 
@@ -159,7 +159,7 @@
   height: 45px;
   font-size: 12px;
   text-align: center;
-  padding: 2px 4px;
+  padding: 2px 2px;
   border: 1px solid var(--rr-roundrobin-border);
 }
 
