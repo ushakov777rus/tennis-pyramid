@@ -168,7 +168,8 @@
 
 .rr-matrix {
   width: max-content;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   table-layout: auto;
   min-width: 100%;
   border: 1px solid var(--rr-roundrobin-border);
@@ -186,7 +187,6 @@
 .rr-matrix thead th {
   position: sticky;
   top: 0;
-  z-index: 3;
   background: var(--rr-roundrobin-bg);
 }
 
@@ -222,6 +222,7 @@
   width: 120px;
   max-width: 120px;
   text-align: left;
+  background: var(--rr-roundrobin-bg);
 }
 
 .rr-diag {
@@ -274,6 +275,9 @@
 .group-stage, .group-stage__inner {
   min-width: 0;
 }
+
+.rr-index-cell { left: 0; z-index: 5; }
+.rr-name-cell  { left: var(--rr-index-width); z-index: 4; }
 
 
 
