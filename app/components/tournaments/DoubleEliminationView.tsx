@@ -10,7 +10,7 @@ import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
 
 import "./PyramidView.css";
-import "./RoundRobinView.css";
+import "./RoundRobinTable.css";
 import "@/app/components/ParticipantsView.css";
 
 type DoubleEliminationViewProps = {

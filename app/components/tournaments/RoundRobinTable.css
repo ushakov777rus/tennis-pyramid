@@ -1,0 +1,256 @@
+:root {
+  --rr-index-width: 30px;
+  --rr-roundrobin-border: #a6ff00;
+  --rr-roundrobin-bg: var(--background, #0f0f0f);
+}
+
+.roundrobin-wrap {
+  position: relative;
+  --rr-bottom-gap: 0px;
+  padding-bottom: var(--rr-bottom-gap);
+}
+
+/* ===== Layout utilities preserved from the legacy stylesheet ===== */
+.rounds-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+}
+
+@media (max-width: 768px) {
+  .rounds-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.history-table-head {
+  padding: 5px 12px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.round-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.grid-row {
+  display: grid;
+  grid-template-columns: 37% 26% 37%;
+  align-items: center;
+}
+
+.round-table th,
+.round-table td {
+  vertical-align: middle;
+  padding: 6px 0px;
+  border: 0;
+}
+
+.grid-row > :nth-child(1) {
+  text-align: left;
+}
+
+.grid-row > :nth-child(2) {
+  text-align: center;
+  margin: auto;
+}
+
+.grid-row > :nth-child(3) {
+  text-align: right;
+}
+
+.grid-row > :nth-child(1),
+.grid-row > :nth-child(3) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.round-table tbody .grid-row + .grid-row > td {
+  border-top: 1px dashed rgba(0, 0, 0, 0.12);
+}
+
+.round-table .history-empty {
+  text-align: center;
+  padding: 10px;
+  color: #666;
+}
+
+.round-table tbody .grid-row:hover > td {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+@media (max-width: 360px) {
+  .round-table {
+    font-size: 0.95rem;
+  }
+}
+
+.round-table .badge,
+.round-table .vs {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+.round-table thead .grid-row > th {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.score-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.score-cell__button-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.score-edit-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  justify-content: center;
+}
+
+.muted {
+  opacity: 0.7;
+}
+
+.vs-placeholder {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px dashed currentColor;
+  opacity: 0.5;
+  user-select: none;
+  cursor: default;
+}
+
+.vs-click {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  color: #a6ff00;
+  text-decoration: underline;
+}
+
+/* ===== Scroll container and matrix styling ===== */
+.rr-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+
+.rr-matrix {
+  width: max-content;
+  border-collapse: collapse;
+  table-layout: auto;
+  min-width: 100%;
+  border: 1px solid var(--rr-roundrobin-border);
+}
+
+.rr-matrix th,
+.rr-matrix td {
+  min-width: 30px;
+  height: 45px;
+  font-size: 12px;
+  text-align: center;
+  padding: 2px 4px;
+  border: 1px solid var(--rr-roundrobin-border);
+}
+
+.rr-matrix thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--rr-roundrobin-bg);
+}
+
+.rr-header-index {
+  position: sticky;
+  width: var(--rr-index-width);
+  min-width: var(--rr-index-width);
+  left: 0;
+  z-index: 4;
+}
+
+.rr-header-name {
+  position: sticky;
+  left: var(--rr-index-width);
+  min-width: 200px;
+  text-align: left;
+  z-index: 3;
+  top: 0;
+}
+
+.rr-index-cell {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: var(--rr-index-width);
+  min-width: var(--rr-index-width);
+}
+
+.rr-name-cell {
+  position: sticky;
+  left: var(--rr-index-width);
+  z-index: 1;
+  min-width: 200px;
+  text-align: left;
+}
+
+.rr-diag {
+  background: rgba(166, 255, 0, 0.1);
+}
+
+.rr-empty {
+  background: transparent;
+}
+
+.rr-scroll::-webkit-scrollbar {
+  height: 10px;
+}
+
+.rr-scroll::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+}
+
+.rr-participant {
+  display: grid;
+  align-items: center;
+  padding: 2px;
+  color: #ccc;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  height: calc(2.5em + 8px);
+  white-space: pre;
+  background: var(--rr-roundrobin-bg);
+  text-align: left;
+}
+
+.rr-score {
+  display: inline-flex;
+  padding: 2px 2px;
+  font-size: 12px;
+  background: var(--rr-roundrobin-bg);
+  border: none;
+  color: #a6ff00;
+  white-space: pre-line;
+}
+
+.rr-score--mirror {
+  justify-content: center;
+}
+
+
+
+
+
+

@@ -223,38 +223,9 @@
   background: var(--background, #0f0f0f);
 }
 
-/* Диагональ и пустые */
-.rr-diag { 
-  
-  background: rgba(166, 255, 0, 0.1);
-}
 .rr-empty { background: transparent; }
 
 /* Небольшой твик скроллбара (необязательно) */
 .rr-scroll::-webkit-scrollbar { height: 10px; }
 .rr-scroll::-webkit-scrollbar-thumb { border-radius: 8px; }
 
-.rr-participant {
-  display: grid;
-  align-items: center;
-  padding: 2px;
-  color: #ccc;
-  width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 12px;
-  height: calc(2.5em + 8px);
-  white-space: pre; /* перенос по \n */
-  background: var(--background, #0f0f0f);
-  text-align: left;
-}
-
-.rr-score {
-  display: inline-flex;
-  padding: 2px 2px;
-  font-size: 12px;
-  background: var(--background, #0f0f0f);
-  border: none;
-  color: #a6ff00;
-  white-space: pre-line;
-}

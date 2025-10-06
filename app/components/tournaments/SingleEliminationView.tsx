@@ -7,7 +7,7 @@ import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
 
 import "./PyramidView.css";    // чипы/бейджи/карточки
-import "./RoundRobinView.css"; // таблицы/гриды
+import "./RoundRobinTable.css"; // таблицы/гриды
 import "@/app/components/ParticipantsView.css";
 import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
 
