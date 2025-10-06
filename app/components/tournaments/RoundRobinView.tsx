@@ -20,7 +20,7 @@ import "@/app/components/ParticipantsView.css";
 /* =======================================================================
    Константы для “липких” первых колонок
    ======================================================================= */
-const INDEX_COL_WIDTH = 30; // px — ширина колонки с номерами (можно поменять)
+const INDEX_COL_WIDTH = 40; // px — ширина колонки с номерами (можно поменять)
 
 /* =======================================================================
    Props
@@ -121,7 +121,6 @@ function computeStatsFor(
       const amFirst = id1 === meId;
       const my = amFirst ? sA : sB;
       const opp = amFirst ? sB : sA;
-      console.log("gamesFor += my", my);
       gamesFor += my;
       gamesAgainst += opp;
     }
@@ -147,6 +146,11 @@ function computeStatsFor(
    Компонент
    ======================================================================= */
 
+type EditingCell = {
+  rowId: number;
+  colId: number;
+};
+
 export function RoundRobinView({
   participants,
   matches,
@@ -167,6 +171,7 @@ export function RoundRobinView({
     useRef<HTMLInputElement | HTMLDivElement | null>(null);
   const keyboardHostRef = useRef<HTMLDivElement | null>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
 
   useEffect(() => {
     if (!mobileKeyboardAvailable || !mobileKeyboardContext) {
@@ -270,11 +275,16 @@ export function RoundRobinView({
   function startEdit(
     aId: number,
     bId: number,
-    currentScore: string | null
+    currentScore: string | null,
+    anchor?: EditingCell
   ) {
     const k = pairKey(aId, bId);
     setEditingKey(k);
     setEditValue(currentScore ?? "");
+    setEditingCell({
+      rowId: anchor?.rowId ?? aId,
+      colId: anchor?.colId ?? bId,
+    });
     editingInputRef.current = null;
     if (mobileKeyboardAvailable) {
       setMobileKeyboardContext({ aId, bId });
@@ -286,6 +296,7 @@ export function RoundRobinView({
     setEditValue("");
     editingInputRef.current = null;
     setMobileKeyboardContext(null);
+    setEditingCell(null);
   }
 
   async function saveEdit(aId: number, bId: number, raw?: string) {
@@ -309,6 +320,7 @@ export function RoundRobinView({
       setEditValue("");
       editingInputRef.current = null;
       setMobileKeyboardContext(null);
+      setEditingCell(null);
     } finally {
       setSaving(false);
     }
@@ -333,195 +345,169 @@ export function RoundRobinView({
     // нижний треугольник: обычный счёт
     // верхний треугольник: перевёрнутый счёт
     const isLowerTriangle = rIndex > cIndex;
+    const key = pairKey(aId, bId);
+    const isEditing = editingKey === key;
+    const isActiveCell = isEditing && editingCell?.rowId === aId && editingCell?.colId === bId;
+
+    const renderEditor = () => (
+      <div className="score-edit-wrap">
+        <input
+          className="input score-input"
+          value={editValue}
+          readOnly={mobileKeyboardAvailable}
+          ref={(node) => {
+            editingInputRef.current = node;
+          }}
+          placeholder="6-4, 4-6, 10-8"
+          pattern="[0-9\\s,/:-]*"
+          inputMode={mobileKeyboardAvailable ? "numeric" : undefined}
+          autoFocus={!mobileKeyboardAvailable}
+          onFocus={(e) => {
+            if (mobileKeyboardAvailable) e.currentTarget.blur();
+          }}
+          onKeyDown={(e) => {
+            if (!mobileKeyboardAvailable) {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                saveEdit(aId, bId);
+              }
+              if (e.key === "Escape") {
+                e.preventDefault();
+                cancelEdit();
+              }
+            }
+          }}
+          onChange={(e) => {
+            if (!mobileKeyboardAvailable) {
+              setEditValue(e.target.value);
+            }
+          }}
+        />
+
+        {!mobileKeyboardAvailable && (
+          <>
+            <SaveIconButton
+              className="lg"
+              title="Сохранить счёт"
+              aria-label="Сохранить счёт"
+              onClick={() => saveEdit(aId, bId)}
+              disabled={saving}
+            />
+            <CancelIconButton
+              className="lg"
+              title="Отмена"
+              aria-label="Отмена"
+              onClick={cancelEdit}
+              disabled={saving}
+            />
+          </>
+        )}
+      </div>
+    );
+
+    const makeButton = (
+      handler: () => void,
+      {
+        withTooltip = true,
+      }: { withTooltip?: boolean } = {}
+    ) => {
+      const shouldShowHelp = withTooltip && !isActiveCell && firstHelpTooltip();
+      return (
+        <div className="score-cell__button-wrap">
+          {shouldShowHelp && <div className="help-tooltip">Введите счёт</div>}
+          <button
+            type="button"
+            className="vs vs-click"
+            onClick={handler}
+            title="Добавить счёт"
+            aria-label="Добавить счёт"
+          >
+            vs
+          </button>
+        </div>
+      );
+    };
 
     const scores = getMatchScores(aId, bId, matches);
     if (!scores) {
-      // нет матча — показываем кнопку добавления только в нижнем треугольнике
       if (isLowerTriangle) {
-        const k = pairKey(aId, bId);
-        const isEditing = editingKey === k;
-        const showHelp = !isEditing && firstHelpTooltip();
         return (
-          <td className={`rr-cell ${isEditing ? "editing" : ""}`}>
-            {!isEditing ? (
-              <div className="score-cell__button-wrap">
-                {showHelp && <div className="help-tooltip">Введите счёт</div>}
-                <button
-                  type="button"
-                  className="vs vs-click"
-                  onClick={() => startEdit(aId, bId, null)}
-                  title="Добавить счёт"
-                  aria-label="Добавить счёт"
-                >
-                  vs
-                </button>
-              </div>
-            ) : (
-              <div className="score-edit-wrap">
-                <input
-                  className="input score-input"
-                  value={editValue}
-                  readOnly={mobileKeyboardAvailable}
-                  ref={(node) => {
-                    editingInputRef.current = node;
-                  }}
-                  placeholder="6-4, 4-6, 10-8"
-                  pattern="[0-9\\s,/:-]*"
-                  inputMode={mobileKeyboardAvailable ? "numeric" : undefined}
-                  autoFocus={!mobileKeyboardAvailable}
-                  onFocus={(e) => {
-                    if (mobileKeyboardAvailable) e.currentTarget.blur();
-                  }}
-                  onKeyDown={(e) => {
-                    if (!mobileKeyboardAvailable) {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        saveEdit(aId, bId);
-                      }
-                      if (e.key === "Escape") {
-                        e.preventDefault();
-                        cancelEdit();
-                      }
-                    }
-                  }}
-                  onChange={(e) => {
-                    if (!mobileKeyboardAvailable) {
-                      setEditValue(e.target.value);
-                    }
-                  }}
-                />
-
-                {!mobileKeyboardAvailable && (
-                  <>
-                    <SaveIconButton
-                      className="lg"
-                      title="Сохранить счёт"
-                      aria-label="Сохранить счёт"
-                      onClick={() => saveEdit(aId, bId)}
-                      disabled={saving}
-                    />
-                    <CancelIconButton
-                      className="lg"
-                      title="Отмена"
-                      aria-label="Отмена"
-                      onClick={cancelEdit}
-                      disabled={saving}
-                    />
-                  </>
+          <td className={`rr-cell ${isActiveCell ? "editing" : ""}`}>
+            {isActiveCell
+              ? renderEditor()
+              : makeButton(() =>
+                  startEdit(aId, bId, null, { rowId: aId, colId: bId })
                 )}
-              </div>
-            )}
           </td>
         );
       }
-      // верхний треугольник без матча — пустая ячейка
-      return <td className="rr-empty" />;
-    }
 
-    const k = pairKey(aId, bId);
-    const isEditing = editingKey === k;
-
-    if (isLowerTriangle) {
-      // обычный счёт + возможность редактирования
       return (
-        <td className={`rr-cell ${isEditing ? "editing" : ""}`}>
-          {scores.display !== "—" ? (
-            <button
-              type="button"
-              className="rr-score"
-              onClick={() => startEdit(aId, bId, scores.input || null)}
-              title="Изменить счёт"
-            >
-              {scores.display}
-            </button>
-          ) : (
-            <div className="score-cell__button-wrap">
-              <div className="help-tooltip">Введите счёт</div>
-              <button
-                type="button"
-                className="vs vs-click"
-                onClick={() => startEdit(aId, bId, null)}
-                title="Добавить счёт"
-                aria-label="Добавить счёт"
-              >
-                vs
-              </button>
-            </div>
-          )}
-
-          {isEditing && (
-            <div className="score-edit-wrap">
-              <input
-                className="input score-input"
-                value={editValue}
-                readOnly={mobileKeyboardAvailable}
-                ref={(node) => {
-                  editingInputRef.current = node;
-                }}
-                placeholder="6-4, 4-6, 10-8"
-                pattern="[0-9\\s,/:-]*"
-                inputMode={mobileKeyboardAvailable ? "numeric" : undefined}
-                autoFocus={!mobileKeyboardAvailable}
-                onFocus={(e) => {
-                  if (mobileKeyboardAvailable) e.currentTarget.blur();
-                }}
-                onKeyDown={(e) => {
-                  if (!mobileKeyboardAvailable) {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      saveEdit(aId, bId);
-                    }
-                    if (e.key === "Escape") {
-                      e.preventDefault();
-                      cancelEdit();
-                    }
-                  }
-                }}
-                onChange={(e) => {
-                  if (!mobileKeyboardAvailable) {
-                    setEditValue(e.target.value);
-                  }
-                }}
-              />
-              {!mobileKeyboardAvailable && (
-                <>
-                  <SaveIconButton
-                    className="lg"
-                    title="Сохранить счёт"
-                    aria-label="Сохранить счёт"
-                    onClick={() => saveEdit(aId, bId)}
-                    disabled={saving}
-                  />
-                  <CancelIconButton
-                    className="lg"
-                    title="Отмена"
-                    aria-label="Отмена"
-                    onClick={cancelEdit}
-                    disabled={saving}
-                  />
-                </>
+        <td
+          className={`rr-cell rr-cell--mirror rr-empty ${isActiveCell ? "editing" : ""}`}
+        >
+          {isActiveCell
+            ? renderEditor()
+            : makeButton(() =>
+                startEdit(aId, bId, null, { rowId: aId, colId: bId })
               )}
-            </div>
-          )}
         </td>
       );
     }
 
-    // верхний треугольник: показываем перевёрнутый счёт; клик также открывает редактирование нормального
+    if (isLowerTriangle) {
+      return (
+        <td className={`rr-cell ${isActiveCell ? "editing" : ""}`}>
+          {!isActiveCell && (
+            scores.display !== "—"
+              ? (
+                  <button
+                    type="button"
+                    className="rr-score"
+                    onClick={() =>
+                      startEdit(aId, bId, scores.input || null, {
+                        rowId: aId,
+                        colId: bId,
+                      })
+                    }
+                    title="Изменить счёт"
+                  >
+                    {scores.display}
+                  </button>
+                )
+              : makeButton(() =>
+                  startEdit(aId, bId, null, { rowId: aId, colId: bId })
+                )
+          )}
+          {isActiveCell && renderEditor()}
+        </td>
+      );
+    }
+
     return (
-      <td className="rr-cell rr-cell--mirror">
-        {scores.mirror !== "—" ? (
-          <button
-            type="button"
-            className="rr-score rr-score--mirror"
-            onClick={() => startEdit(aId, bId, scores.input || null)}
-            title="Изменить счёт"
-          >
-            {scores.mirror}
-          </button>
-        ) : (
-          <span className="rr-dash">—</span>
+      <td className={`rr-cell rr-cell--mirror ${isActiveCell ? "editing" : ""}`}>
+        {!isActiveCell && (
+          scores.display !== "—"
+            ? (
+                <button
+                  type="button"
+                  className="rr-score rr-score--mirror"
+                  onClick={() =>
+                    startEdit(aId, bId, scores.input || null, {
+                      rowId: aId,
+                      colId: bId,
+                    })
+                  }
+                  title="Изменить счёт"
+                >
+                  {scores.display}
+                </button>
+              )
+            : makeButton(() =>
+                startEdit(aId, bId, null, { rowId: aId, colId: bId })
+              )
         )}
+        {isActiveCell && renderEditor()}
       </td>
     );
   }
