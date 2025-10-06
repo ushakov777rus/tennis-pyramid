@@ -123,3 +123,60 @@
   font-size: 11px;
   text-transform: uppercase;
 }
+
+.bracket__match--table {
+  margin: 8px 0;
+}
+
+.bracket__table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.bracket__table th,
+.bracket__table td {
+  border: 1px solid var(--bracket-border);
+  padding: 2px 2px;
+  white-space: nowrap;
+  height: 45px;
+}
+
+.bracket__table .left { 
+  text-align: left; 
+  width: 150px;
+  max-width: 150px;
+}
+.bracket__table .center { text-align: center; }
+
+.bracket__row--winner td {
+  background: var(--background);
+  font-weight: 600;
+}
+
+.el-participant {
+    color: #ccc;
+    text-overflow: ellipsis;
+    white-space: pre;
+    background: var(--rr-roundrobin-bg);
+    text-align: left;
+    align-items: center;
+    width: 100%;
+    height: calc(2.5em + 8px);
+    padding: 2px;
+    font-size: 12px;
+    display: grid;
+    overflow: hidden;
+}
+
+.el-match {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.el-score-vs-wrap {
+  margin: auto;
+  border: 1px solid var(--bracket-border);
+  width: 100%;
+  height: 100%;
+}

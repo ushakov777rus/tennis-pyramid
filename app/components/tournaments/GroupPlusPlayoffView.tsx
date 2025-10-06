@@ -8,7 +8,7 @@ import { SaveIconButton, CancelIconButton } from "@/app/components/controls/Icon
 import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
 import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 
-/* Сетка групп теперь рисуется готовым компонентом матрицы */
+/* Сетка групп рисуется компонентом матрицы */
 import { RoundRobinTable } from "./RoundRobinTable";
 
 import "./PyramidView.css";
@@ -20,11 +20,10 @@ import "@/app/components/ParticipantsView.css";
 /*                                    TYPES                                   */
 /* ========================================================================== */
 
-/** Фильтр для поиска матча конкретной фазы/ячейки сетки */
 type MatchPhaseFilter = {
-  phase?: PhaseType;          // PhaseType.Group | PhaseType.Playoff
-  groupIndex?: number | null; // индекс группы (для группового этапа)
-  roundIndex?: number | null; // индекс раунда плей-офф: 0 — четверть, 1 — полу и т.д.
+  phase?: PhaseType;
+  groupIndex?: number | null;
+  roundIndex?: number | null;
 };
 
 type GroupPlusPlayoffViewProps = {
@@ -46,24 +45,20 @@ type GroupPlusPlayoffViewProps = {
 /*                               PURE HELPERS                                 */
 /* ========================================================================== */
 
-/** Валиден ли участник (есть player или team) */
 function isValidParticipant(p: Participant | null | undefined): p is Participant {
   return !!p && (!!p.player || !!p.team);
 }
 
-/** Безопасно получить ID участника (null если слота нет) */
 function pid(p: Participant | null | undefined): number | null {
   return p ? p.getId : null;
 }
 
-/** Следующая степень двойки ≥ n (для размера сетки single-elim) */
 function nextPow2(n: number) {
   let p = 1;
   while (p < n) p <<= 1;
   return p;
 }
 
-/** Человекочитаемое имя участника */
 function nameOf(p: Participant): string {
   if (p.player) return p.player.name;
   const a = p.team?.player1?.name ?? "??";
@@ -71,7 +66,6 @@ function nameOf(p: Participant): string {
   return `${a} + ${b}`;
 }
 
-/** Удовлетворяет ли матч фильтру фазы */
 function matchPhaseOk(m: Match, f?: MatchPhaseFilter): boolean {
   if (!f) return true;
   if (f.phase && (m as any).phase !== f.phase) return false;
@@ -80,7 +74,6 @@ function matchPhaseOk(m: Match, f?: MatchPhaseFilter): boolean {
   return true;
 }
 
-/** Найти матч между участниками с ID aId и bId (игроки/команды) с учётом фазы */
 function findMatchBetween(
   aId: number,
   bId: number,
@@ -95,7 +88,6 @@ function findMatchBetween(
   });
 }
 
-/** Сериализовать счёт матча в вид "6:4, 4:6, 10:8" */
 function stringifyScore(m: Match): string | null {
   if (m.scores && m.scores.length > 0) {
     return m.scores.map(([s1, s2]) => `${s1}:${s2}`).join(", ");
@@ -103,7 +95,6 @@ function stringifyScore(m: Match): string | null {
   return null;
 }
 
-/** Получить счёт между участниками c учётом фазы */
 function getMatchScore(
   aId: number,
   bId: number,
@@ -114,7 +105,6 @@ function getMatchScore(
   return match ? stringifyScore(match) : null;
 }
 
-/** Валидация формата: "6-4, 4-6, 10-8" (допускает ':' или '-') */
 function isValidScoreFormat(s: string) {
   const trimmed = s.trim();
   if (!trimmed) return false;
@@ -122,13 +112,11 @@ function isValidScoreFormat(s: string) {
   return trimmed.split(",").every((part) => setRe.test(part.trim()));
 }
 
-/** Разложить по группам: simple (по кругу) / snake (змейкой) */
 function distributeIntoGroups(items: Participant[], groupsCount: number, mode: "simple" | "snake"): Participant[][] {
   const groups: Participant[][] = Array.from({ length: groupsCount }, () => []);
   if (mode === "simple") {
     items.forEach((p, i) => groups[i % groupsCount].push(p));
   } else {
-    // snake: 0..g-1, затем g-1..0, и т.д.
     let idx = 0;
     let dir = 1;
     for (const p of items) {
@@ -141,7 +129,6 @@ function distributeIntoGroups(items: Participant[], groupsCount: number, mode: "
   return groups;
 }
 
-/** Статистика группы: победы → Δсетов → Δгеймов */
 type GroupStats = {
   id: number;
   name: string;
@@ -189,12 +176,10 @@ function computeGroupStats(group: Participant[], matches: Match[]): GroupStats[]
   });
 }
 
-/** Матч считается сыгранным, если есть хотя бы один сет */
 function isCompletedMatch(m?: Match | undefined): boolean {
   return !!(m && m.scores && m.scores.length > 0);
 }
 
-/** Сколько пар внутри группы уже сыграно (по факту наличия счёта) */
 function countCompletedPairsInGroup(group: Participant[], matches: Match[]): number {
   let done = 0;
   for (let i = 0; i < group.length; i++) {
@@ -207,12 +192,10 @@ function countCompletedPairsInGroup(group: Participant[], matches: Match[]): num
   return done;
 }
 
-/** Группа «стартовала», если сыгран хотя бы один матч */
 function isGroupStarted(group: Participant[], matches: Match[]): boolean {
   return countCompletedPairsInGroup(group, matches) > 0;
 }
 
-/** Квалификанты в плей-офф из топ-K каждой группы (A1, B2, C1, D2, …). Принимает матчи по группам. */
 function makePlayoffQualifiersFromFiltered(
   groups: Participant[][],
   statsPerGroup: GroupStats[][],
@@ -226,28 +209,20 @@ function makePlayoffQualifiersFromFiltered(
   function pick(gi: number, place: number) {
     const group = groups[gi];
     const stats = statsPerGroup[gi];
-
-    // квоты не определяем, если группа фактически не началась
     if (!isGroupStarted(group, matchesPerGroup[gi])) {
       out.push(null);
       return;
     }
-
     const slot = stats[place];
     if (!slot) { out.push(null); return; }
     const p = group.find(pp => pp.getId === slot.id) ?? null;
     out.push(p);
   }
 
-  // 1-е места
   for (const gi of order) pick(gi, 0);
-
-  // 2-е места — реверсом
   if (topK >= 2) {
     for (const gi of [...order].reverse()) pick(gi, 1);
   }
-
-  // 3-и и далее: нечётные волны — прямой порядок, чётные — реверс
   for (let place = 3; place <= topK; place++) {
     const wave = place % 2 === 1 ? order : [...order].reverse();
     for (const gi of wave) pick(gi, place - 1);
@@ -256,13 +231,11 @@ function makePlayoffQualifiersFromFiltered(
   return out;
 }
 
-/** Построить пары начального раунда single-elim + пустые верхние раунды */
 function buildSingleElimPairs(entrants: (Participant | null)[]) {
   const size = nextPow2(entrants.length || 1);
   const padded = entrants.slice();
   while (padded.length < size) padded.push(null);
 
-  // Раунд 0 — готовые пары; верхние раунды заполняем null-слотами
   const r0: Array<[Participant | null, Participant | null]> = [];
   for (let i = 0; i < size; i += 2) r0.push([padded[i], padded[i + 1]]);
 
@@ -275,7 +248,6 @@ function buildSingleElimPairs(entrants: (Participant | null)[]) {
   return rounds;
 }
 
-/** Вернуть ID победителя пары (если матч найден и в нём определён победитель) */
 function pairWinnerId(
   a: Participant | null,
   b: Participant | null,
@@ -283,7 +255,7 @@ function pairWinnerId(
   filter?: MatchPhaseFilter
 ): number | null {
   const aId = pid(a); const bId = pid(b);
-  if (aId && !bId) return aId; // автопроход при пустом сопернике
+  if (aId && !bId) return aId;
   if (!aId && bId) return bId;
   if (!aId || !bId) return null;
 
@@ -306,7 +278,7 @@ export function GroupPlusPlayoffView({
   seeding = "snake",
 }: GroupPlusPlayoffViewProps) {
 
-  /* ---------------------------- Локальные состояния (для ПЛЕЙ-ОФФ) ---------------------------- */
+  /* Состояния для плей-офф (редактирование тут сейчас не используется, но оставлено при желании включить) */
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
@@ -319,12 +291,10 @@ export function GroupPlusPlayoffView({
   } | null>(null);
   const firstHelpTooltip = useFirstHelpTooltip();
 
-  /** Ключ пары для режима редактирования (для плей-офф) */
   const pairKey = useCallback((aId: number, bId: number) => {
     return `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
   }, []);
 
-  /** Начать редактирование (плей-офф) */
   const startEdit = useCallback((aId: number, bId: number, currentScore: string | null) => {
     const k = pairKey(aId, bId);
     setEditingKey(k);
@@ -332,7 +302,6 @@ export function GroupPlusPlayoffView({
     editingInputRef.current = null;
   }, [pairKey, editingInputRef]);
 
-  /** Отмена редактирования (плей-офф) */
   const cancelEdit = useCallback(() => {
     setEditingKey(null);
     setEditValue("");
@@ -340,7 +309,6 @@ export function GroupPlusPlayoffView({
     setMobileKeyboardContext(null);
   }, [editingInputRef]);
 
-  /** Сохранить счёт (плей-офф) */
   const saveEdit = useCallback(async (aId: number, bId: number, phaseFilter?: MatchPhaseFilter, raw?: string) => {
     const node = editingInputRef.current;
     const draft = node instanceof HTMLInputElement ? node.value : editValue;
@@ -353,7 +321,7 @@ export function GroupPlusPlayoffView({
       setSaving(true);
       const meta = phaseFilter
         ? {
-            phase: phaseFilter.phase!,                        // плей-офф всегда задан
+            phase: phaseFilter.phase!,
             groupIndex: phaseFilter.groupIndex ?? null,
             roundIndex: phaseFilter.roundIndex ?? null,
           }
@@ -371,7 +339,6 @@ export function GroupPlusPlayoffView({
 
   /* --------------------------- Производные данные --------------------------- */
 
-  /** Отсортированные участники (детерминированно) */
   const ordered = useMemo(
     () =>
       participants
@@ -381,40 +348,32 @@ export function GroupPlusPlayoffView({
     [participants]
   );
 
-  /** Сформированные группы по выбранной схеме посева */
   const groups = useMemo(
     () => distributeIntoGroups(ordered, Math.max(1, groupsCount), seeding),
     [ordered, groupsCount, seeding]
   );
 
-  /** Матчи по группам (фильтруем из общего массива по phase/groupIndex) */
   const groupMatches: Match[][] = useMemo(() => {
     return groups.map((_, gi) =>
       matches.filter(m => (m as any).phase === PhaseType.Group && (m as any).groupIndex === gi)
     );
   }, [groups, matches]);
 
-  /** Таблица результатов для каждой группы — на основе ТОЛЬКО матчей этой группы */
   const groupStats = useMemo(
     () => groups.map((g, gi) => computeGroupStats(g, groupMatches[gi])),
     [groups, groupMatches]
   );
 
-  /** Очередь квалификантов в плей-офф */
   const qualifiers = useMemo(
     () => makePlayoffQualifiersFromFiltered(groups, groupStats, advancePerGroup, groupMatches),
     [groups, groupStats, advancePerGroup, groupMatches]
   );
 
-  /** Заготовка плей-офф сетки (r0 — пары, далее пустые уровни) */
   const playoffRounds = useMemo(
     () => buildSingleElimPairs(qualifiers),
     [qualifiers]
   );
 
-  /**
-   * Проставляем победителей вверх по мере появления результатов плей-офф.
-   */
   const resolvedPlayoff = useMemo(() => {
     const copy = playoffRounds.map(r =>
       r.map(([a, b]) => [a, b] as [Participant | null, Participant | null])
@@ -432,13 +391,61 @@ export function GroupPlusPlayoffView({
     return copy;
   }, [playoffRounds, matches, ordered]);
 
-  /* ----------------------------- Внутренние UI ----------------------------- */
+  /* ----------------------------- Вспом. для таблицы матча ----------------------------- */
 
-  /** Блок ГРУПП: через RoundRobinTable */
+  /** Берём сеты матча и раскладываем по строкам (участник A / участник B). */
+  function getOrientedSetsFor(
+    a: Participant | null,
+    b: Participant | null,
+    phaseFilter: MatchPhaseFilter
+  ): { aRow: (number | null)[]; bRow: (number | null)[] } | null {
+    const aId = pid(a);
+    const bId = pid(b);
+    if (!aId || !bId) return null;
+
+    const m = findMatchBetween(aId, bId, matches, phaseFilter);
+    if (!m || !m.scores || m.scores.length === 0) {
+      // нет результата — вернём пустые колонки
+      return null;
+    }
+
+    const id1 = m.player1?.id ?? m.team1?.id;
+    const aFirst = id1 === aId;
+
+    // Нормируем до 3 колонок: 1-й сет, 2-й сет, тай-брейк (3-й сет)
+    const s1 = m.scores[0];
+    const s2 = m.scores[1];
+    const s3 = m.scores[2];
+
+    const val = (s?: [number, number] | undefined, first?: boolean) =>
+      s ? (first ? s[0] : s[1]) : null;
+
+    const aRow: (number | null)[] = [
+      val(s1, aFirst),
+      val(s2, aFirst),
+      val(s3, aFirst), // считаем третий сет тай-брейком, если он есть
+    ];
+    const bRow: (number | null)[] = [
+      val(s1, !aFirst),
+      val(s2, !aFirst),
+      val(s3, !aFirst),
+    ];
+
+    return { aRow, bRow };
+  }
+
+  /** Человекочитаемый заголовок раунда */
+  const roundLabel = useCallback((roundIndex: number, pairsCount: number) => {
+    if (pairsCount === 0) return `Раунд ${roundIndex + 1}`;
+    const isLast = roundIndex === resolvedPlayoff.length - 1;
+    if (pairsCount === 1) return "Финал";
+    return `1/${pairsCount}`;
+  }, [resolvedPlayoff]);
+
+  /* ---------------------------------- UI ---------------------------------- */
+
   function GroupBlock({ gIndex, group }: { gIndex: number; group: Participant[] }) {
-    // Для матрицы — пробрасываем только матчи ЭТОЙ группы
     const matchesForGroup = groupMatches[gIndex];
-
     return (
       <div className={`${editingKey ? "card--no-transition" : ""}`.trim()}>
         <div className="history-table-head">
@@ -456,30 +463,7 @@ export function GroupPlusPlayoffView({
     );
   }
 
-  /** Возвращает человекочитаемый заголовок раунда плей-офф */
-  const roundLabel = useCallback((roundIndex: number, pairsCount: number) => {
-    if (pairsCount === 0) return `Раунд ${roundIndex + 1}`;
-    const isLast = roundIndex === resolvedPlayoff.length - 1;
-    const prev = resolvedPlayoff[roundIndex - 1];
-    const next = resolvedPlayoff[roundIndex + 1];
-
-    if (pairsCount === 1) {
-      if (!isLast && next?.length === 1) {
-        return "Финал";
-      }
-      if (isLast && prev?.length === 1 && resolvedPlayoff.length > 1) {
-        return "3-е место";
-      }
-      if (isLast) {
-        return "Финал";
-      }
-      return "1/2";
-    }
-
-    return `1/${pairsCount}`;
-  }, [resolvedPlayoff]);
-
-  /** Блок ПЛЕЙ-ОФФ: отображает классический брекет */
+  /** Плей-офф: каждый матч — таблица 2×4: Участник | Сет1 | Сет2 | Тай-брейк */
   function PlayoffBlock() {
     return (
       <div className="bracket">
@@ -490,125 +474,67 @@ export function GroupPlusPlayoffView({
               <div className="bracket__round-title">
                 <span className="bracket__badge">{title}</span>
               </div>
+
               <div className="bracket__matches">
                 {pairs.length ? (
                   pairs.map(([a, b], mIndex) => {
                     const phaseFilter: MatchPhaseFilter = { phase: PhaseType.Playoff, roundIndex: rIndex };
                     const aId = pid(a);
                     const bId = pid(b);
-                    const matchKey = aId && bId ? pairKey(aId, bId) : null;
-                    const isEditing = matchKey !== null && editingKey === matchKey;
-                    const canEdit = Boolean(aId && bId);
-                    const scoreRaw = canEdit ? getMatchScore(aId!, bId!, matches, phaseFilter) : null;
-                    const scoreDisplay = scoreRaw ? scoreRaw.replace(/,\s*/g, "\n") : null;
                     const winnerId = pairWinnerId(a, b, matches, phaseFilter);
-                    const showHelp = !scoreRaw && canEdit && !isEditing && firstHelpTooltip();
-                    const handleStart = () => {
-                      if (!canEdit) return;
-                      startEdit(aId!, bId!, scoreRaw);
-                      if (mobileKeyboardAvailable) {
-                        setMobileKeyboardContext({ aId: aId!, bId: bId!, phaseFilter });
-                      }
-                    };
-                    const handleSave = () => canEdit && saveEdit(aId!, bId!, phaseFilter);
+
+                    const oriented = getOrientedSetsFor(a, b, phaseFilter);
+                    const aRow = oriented?.aRow ?? [null, null, null];
+                    const bRow = oriented?.bRow ?? [null, null, null];
+
+                    const cell = (v: number | null) => (v == null ? "—" : String(v));
 
                     return (
-                      <div
-                        key={mIndex}
-                        className={`bracket__match ${isEditing ? "bracket__match--editing" : ""}`.trim()}
-                        data-rr-cell={`${aId ?? "_"}-${bId ?? "_"}`}
-                      >
-                        <div
-                          className={`bracket__slot ${!a ? "bracket__slot--bye" : ""} ${
-                            winnerId && aId === winnerId ? "bracket__slot--winner" : ""
-                          }`.trim()}
-                        >
-                          <span className="bracket__slot-name">{a ? nameOf(a) : "BYE"}</span>
-                          {winnerId && aId === winnerId ? <span className="bracket__slot-flag">✓</span> : null}
-                        </div>
+                      <div key={mIndex} className="el-match">
+                        <table className="bracket__table">
+                          <tbody>
+                            <tr className={`bracket__row ${winnerId && aId === winnerId ? "bracket__row--winner" : ""}`}>
+                              <td className="left">
+                                <span className="rr-participant">{a ? nameOf(a) : "Ожидается"}</span>
+                              </td>
+                            </tr>
+                            <tr className={`bracket__row ${winnerId && bId === winnerId ? "bracket__row--winner" : ""}`}>
+                              <td className="left">
+                                <span className="rr-participant">{b ? nameOf(b) : "Ожидается"}</span>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        {oriented ? (
+                          <table className="bracket__table">
+                            <tbody>
+                              <tr className={`bracket__row ${winnerId && aId === winnerId ? "bracket__row--winner" : ""}`}>
+                                <td className="center">{cell(aRow[0])}</td>
+                                <td className="center">{cell(aRow[1])}</td>
+                                <td className="center">{cell(aRow[2])}</td>
+                              </tr>
+                              <tr className={`bracket__row ${winnerId && bId === winnerId ? "bracket__row--winner" : ""}`}>
+                                <td className="center">{cell(bRow[0])}</td>
+                                <td className="center">{cell(bRow[1])}</td>
+                                <td className="center">{cell(bRow[2])}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        ) : (
+                          <div className="el-score-vs-wrap">
+                            <button
+                              type="button"
+                              className="vs vs-click"
+                              
+                              title="Добавить счёт"
+                              aria-label="Добавить счёт"
+                            >
+                              vs
+                            </button>
+                          </div>
+                        )
+                      }
 
-                        <div className="bracket__score">
-                          {canEdit ? (
-                            isEditing ? (
-                              <div className="bracket__score-edit score-edit-wrap">
-                                <input
-                                  className="input score-input"
-                                  value={editValue}
-                                  readOnly={mobileKeyboardAvailable}
-                                  ref={(node) => {
-                                    editingInputRef.current = node;
-                                  }}
-                                  placeholder="6-4, 4-6, 10-8"
-                                  pattern="[0-9\\s,:-]*"
-                                  autoFocus={!mobileKeyboardAvailable}
-                                  onFocus={(e) => {
-                                    if (mobileKeyboardAvailable) e.currentTarget.blur();
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (!mobileKeyboardAvailable) {
-                                      if (e.key === "Enter") { e.preventDefault(); handleSave(); }
-                                      if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
-                                    }
-                                  }}
-                                  onChange={(e) => {
-                                    if (!mobileKeyboardAvailable) {
-                                      setEditValue(e.target.value);
-                                    }
-                                  }}
-                                />
-                                {!mobileKeyboardAvailable && (
-                                  <>
-                                    <SaveIconButton
-                                      className="lg"
-                                      title="Сохранить счёт"
-                                      onClick={handleSave}
-                                      disabled={saving}
-                                    />
-                                    <CancelIconButton
-                                      className="lg"
-                                      title="Отмена"
-                                      onClick={cancelEdit}
-                                      disabled={saving}
-                                    />
-                                  </>
-                                )}
-                              </div>
-                            ) : scoreDisplay ? (
-                              <button
-                                type="button"
-                                className="rr-score"
-                                onClick={handleStart}
-                                title="Изменить счёт"
-                              >
-                                {scoreDisplay}
-                              </button>
-                            ) : (
-                              <div className="score-cell__button-wrap">
-                                {showHelp && <div className="help-tooltip">Введите счёт</div>}
-                                <button
-                                  type="button"
-                                  className="vs vs-click"
-                                  onClick={handleStart}
-                                  title="Добавить счёт"
-                                  aria-label="Добавить счёт"
-                                >
-                                  vs
-                                </button>
-                              </div>
-                            )
-                          ) : (
-                            <span className="bracket__score-placeholder">—</span>
-                          )}
-                        </div>
-
-                        <div
-                          className={`bracket__slot ${!b ? "bracket__slot--bye" : ""} ${
-                            winnerId && bId === winnerId ? "bracket__slot--winner" : ""
-                          }`.trim()}
-                        >
-                          <span className="bracket__slot-name">{b ? nameOf(b) : "BYE"}</span>
-                          {winnerId && bId === winnerId ? <span className="bracket__slot-flag">✓</span> : null}
-                        </div>
                       </div>
                     );
                   })
@@ -623,11 +549,9 @@ export function GroupPlusPlayoffView({
     );
   }
 
-  /* ---------------------------------- UI ---------------------------------- */
-
   return (
     <div className="roundrobin-wrap">
-      {/* ГРУППЫ (через RoundRobinTable) */}
+      {/* ГРУППЫ */}
       <div className="rounds-grid">
         {groups.map((g, gi) => (
           <GroupBlock key={gi} gIndex={gi} group={g} />
@@ -639,12 +563,7 @@ export function GroupPlusPlayoffView({
         <PlayoffBlock />
       </div>
 
-      <div className="hint muted" style={{ marginTop: 8 }}>
-        <div>• Порядок в таблице групп: победы → разница сетов → разница геймов.</div>
-        <div>• Посев плей-офф: крест-накрест из топ-{advancePerGroup} каждой группы. Режим «snake» равномернее распределяет сильных по группам.</div>
-      </div>
-
-      {/* Мобильная клавиатура — ТОЛЬКО для плей-офф (RoundRobinTable управляет своей собственой внутри себя) */}
+      {/* Мобильная клавиатура — оставлена для совместимости, но в новой таблице плей-офф не используется */}
       {mobileKeyboardAvailable && mobileKeyboardContext && (
         <ScoreKeyboard
           inputRef={editingInputRef}
