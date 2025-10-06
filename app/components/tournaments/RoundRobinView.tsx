@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
 import {
@@ -61,6 +61,9 @@ const formatInput = (sets: Array<[number, number]>): string => {
   return sets.map(([a, b]) => `${a}-${b}`).join(", ");
 };
 
+const flipSets = (sets: Array<[number, number]>) =>
+  sets.map(([a, b]) => [b, a] as [number, number]);
+
 const orientScores = (match: Match, perspectiveId: number): Array<[number, number]> => {
   const id1 = match.player1?.id ?? match.team1?.id;
   const id2 = match.player2?.id ?? match.team2?.id;
@@ -84,7 +87,7 @@ function findMatch(aId: number, bId: number, matches: Match[]): Match | null {
 }
 
 /** Получить отображаемые счёты (обычный/перевёрнутый) и значение для инпута */
-function getMatchScores(
+function getMatchScoresFromMatches(
   aId: number,
   bId: number,
   matches: Match[]
@@ -104,7 +107,8 @@ function getMatchScores(
 function computeStatsFor(
   meId: number,
   ids: number[],
-  matches: Match[]
+  matches: Match[],
+  pending?: Map<string, PendingEntry>
 ): { points: number; gamesFor: number; gamesAgainst: number } {
   let points = 0;
   let gamesFor = 0;
@@ -112,31 +116,38 @@ function computeStatsFor(
 
   for (const oppId of ids) {
     if (oppId === meId) continue;
-    const m = findMatch(meId, oppId, matches);
-    if (!m || !m.scores || m.scores.length === 0) continue;
+    const key = pairKey(meId, oppId);
+    const pendingEntry = pending?.get(key);
 
-    // считаем геймы
-    for (const [sA, sB] of m.scores) {
+    let oriented: Array<[number, number]> | null = null;
+
+    if (pendingEntry) {
+      const base = pendingEntry.scores;
+      oriented = pendingEntry.aId === meId ? base : flipSets(base);
+    } else {
+      const m = findMatch(meId, oppId, matches);
+      if (!m || !m.scores || m.scores.length === 0) continue;
       const id1 = m.player1?.id ?? m.team1?.id;
       const amFirst = id1 === meId;
-      const my = amFirst ? sA : sB;
-      const opp = amFirst ? sB : sA;
-      gamesFor += my;
-      gamesAgainst += opp;
+      oriented = m.scores.map(([sA, sB]) => (amFirst ? [sA, sB] : [sB, sA])) as Array<[
+        number,
+        number
+      ]>;
     }
 
-    // победа/поражение по количеству выигранных сетов
+    if (!oriented || oriented.length === 0) continue;
+
     let mySets = 0;
     let oppSets = 0;
-    for (const [sA, sB] of m.scores) {
-      const id1 = m.player1?.id ?? m.team1?.id;
-      const amFirst = id1 === meId;
-      const my = amFirst ? sA : sB;
-      const opp = amFirst ? sB : sA;
-      if (my > opp) mySets++;
-      if (opp > my) oppSets++;
+
+    for (const [my, opp] of oriented) {
+      gamesFor += my;
+      gamesAgainst += opp;
+      if (my > opp) mySets += 1;
+      else if (opp > my) oppSets += 1;
     }
-    if (mySets > oppSets) points += 1; // 1 очко за победу
+
+    if (mySets > oppSets) points += 1;
   }
 
   return { points, gamesFor, gamesAgainst };
@@ -149,6 +160,13 @@ function computeStatsFor(
 type EditingCell = {
   rowId: number;
   colId: number;
+};
+
+type PendingEntry = {
+  aId: number;
+  bId: number;
+  scores: [number, number][];
+  raw: string;
 };
 
 export function RoundRobinView({
@@ -172,6 +190,7 @@ export function RoundRobinView({
   const keyboardHostRef = useRef<HTMLDivElement | null>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
+  const [pendingScores, setPendingScores] = useState<Map<string, PendingEntry>>(new Map());
 
   useEffect(() => {
     if (!mobileKeyboardAvailable || !mobileKeyboardContext) {
@@ -225,6 +244,23 @@ export function RoundRobinView({
     };
   }, [mobileKeyboardAvailable, mobileKeyboardContext]);
 
+  useEffect(() => {
+    if (!pendingScores.size) return;
+    setPendingScores((prev) => {
+      if (!prev.size) return prev;
+      const next = new Map(prev);
+      let changed = false;
+      for (const [key, entry] of prev) {
+        const actual = getMatchScoresFromMatches(entry.aId, entry.bId, matches);
+        if (actual && actual.display !== "—") {
+          next.delete(key);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [matches, pendingScores]);
+
   // ---------- порядок игроков (стабильно по имени) ----------
   const ordered = useMemo(
     () =>
@@ -248,7 +284,7 @@ export function RoundRobinView({
   // ---------- таблица мест ----------
   const standings = useMemo(() => {
     const rows = ids.map((id) => {
-      const s = computeStatsFor(id, ids, matches);
+      const s = computeStatsFor(id, ids, matches, pendingScores);
       return {
         id,
         ...s,
@@ -269,7 +305,26 @@ export function RoundRobinView({
     sorted.forEach((row, idx) => placeById.set(row.id, idx + 1));
 
     return { rows, placeById };
-  }, [ids, matches, ordered, indexById]);
+  }, [ids, matches, ordered, indexById, pendingScores]);
+
+  const getScoresFor = useCallback(
+    (rowId: number, colId: number) => {
+      const key = pairKey(rowId, colId);
+      const pending = pendingScores.get(key);
+      if (pending) {
+        const rowSets = pending.aId === rowId ? pending.scores : flipSets(pending.scores);
+        const colSets = pending.aId === colId ? pending.scores : flipSets(pending.scores);
+        return {
+          display: formatDisplay(rowSets),
+          mirror: formatDisplay(colSets),
+          input: formatInput(rowSets),
+        };
+      }
+
+      return getMatchScoresFromMatches(rowId, colId, matches);
+    },
+    [pendingScores, matches]
+  );
 
   // ---------- редактирование ----------
   function startEdit(
@@ -313,14 +368,32 @@ export function RoundRobinView({
       return;
     }
 
+    const key = pairKey(aId, bId);
+    const parsedScores = Match.parseScoreStringFlexible(normalized);
+
+    setPendingScores((prev) => {
+      const next = new Map(prev);
+      next.set(key, { aId, bId, scores: parsedScores, raw: normalized });
+      return next;
+    });
+
+    setEditingKey(null);
+    setEditValue("");
+    editingInputRef.current = null;
+    setMobileKeyboardContext(null);
+    setEditingCell(null);
+
     try {
       setSaving(true);
       await onSaveScore?.(aId, bId, normalized);
-      setEditingKey(null);
-      setEditValue("");
-      editingInputRef.current = null;
-      setMobileKeyboardContext(null);
-      setEditingCell(null);
+    } catch (_error) {
+      setPendingScores((prev) => {
+        if (!prev.has(key)) return prev;
+        const next = new Map(prev);
+        next.delete(key);
+        return next;
+      });
+      alert("Не удалось сохранить счёт. Попробуйте ещё раз.");
     } finally {
       setSaving(false);
     }
@@ -428,7 +501,7 @@ export function RoundRobinView({
       );
     };
 
-    const scores = getMatchScores(aId, bId, matches);
+    const scores = getScoresFor(aId, bId);
     if (!scores) {
       if (isLowerTriangle) {
         return (
