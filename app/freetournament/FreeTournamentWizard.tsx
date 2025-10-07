@@ -301,7 +301,7 @@ export default function FreeTournamentWizard() {
 
           <div className="card">
             <FormatView
-              loading={false}
+              loading={tournamentCtx?.loading}
               tournament={tournament}
               participants={participants}
               matches={matches}

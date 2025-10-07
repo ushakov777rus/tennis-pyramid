@@ -755,9 +755,9 @@ export function GroupStageTable({
                   {index + 1}
                 </th>
               ))}
-              <th className="center">Очки</th>
-              <th className="center">Геймы</th>
-              <th className="center">Место</th>
+              <th className="center rotate"><span>Очки</span></th>
+              <th className="center rotate"><span>Геймы</span></th>
+              <th className="center rotate"><span>Место</span></th>
             </tr>
           </thead>
 

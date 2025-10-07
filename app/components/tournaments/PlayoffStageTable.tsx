@@ -76,7 +76,11 @@ export function PlayoffStageTable({
                             }`}
                           >
                             <td className="left">
-                              <span className="rr-participant">{a ? a.displayName() : "Ожидается"}</span>
+                              {a ? (
+                                <span className="rr-participant">{a.displayName()}</span> ) : (
+                                  <span className="rr-participant grey">{"Ожидается"}</span>
+                                )
+                              }
                             </td>
                           </tr>
                           <tr
@@ -85,7 +89,11 @@ export function PlayoffStageTable({
                             }`}
                           >
                             <td className="left">
-                              <span className="rr-participant">{b ? b.displayName() : "Ожидается"}</span>
+                              {b ? (
+                                <span className="rr-participant">{b.displayName()}</span> ) : (
+                                  <span className="rr-participant grey">{"Ожидается"}</span>
+                                )
+                              }
                             </td>
                           </tr>
                         </tbody>
