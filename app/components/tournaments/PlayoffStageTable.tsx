@@ -29,7 +29,7 @@ export type PlayoffStageTableProps = {
   ) => { aRow: (number | null)[]; bRow: (number | null)[] } | null;
 
   /** Компонент для ввода счёта, который уже есть у родителя (используется, когда результата ещё нет) */
-  MatchCell: React.FC<{
+  ScoreCellAdapter: React.FC<{
     a: Participant | null;
     b: Participant | null;
     phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
@@ -42,7 +42,7 @@ export function PlayoffStageTable({
   roundLabel,
   pairWinnerId,
   getOrientedSetsFor,
-  MatchCell,
+  ScoreCellAdapter: ScoreCell,
 }: PlayoffStageTableProps) {
   const cell = (v: number | null) => (v == null ? "—" : String(v));
 
@@ -129,7 +129,7 @@ export function PlayoffStageTable({
                       ) : (
                         <div className="el-score-vs-wrap">
                           {/* Когда очков ещё нет — показываем знакомый редактор "vs" */}
-                          <MatchCell a={a} b={b} phaseFilter={phaseFilter} />
+                          <ScoreCell a={a} b={b} phaseFilter={phaseFilter} />
                         </div>
                       )}
                     </div>

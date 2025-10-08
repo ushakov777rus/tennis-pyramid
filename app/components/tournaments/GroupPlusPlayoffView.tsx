@@ -385,7 +385,7 @@ const PlayoffMatchCell: React.FC<{
           roundLabel={roundLabel}
           pairWinnerId={pairWinnerId}
           getOrientedSetsFor={getOrientedSetsFor}
-          MatchCell={PlayoffMatchCell}
+          ScoreCellAdapter={PlayoffMatchCell}
         />
       </div>
 
