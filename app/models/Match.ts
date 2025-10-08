@@ -112,7 +112,7 @@ export class Match {
   
   formatResult(): string | null {
     if (this.scores && this.scores.length > 0) {
-      return this.scores.map(([s1, s2]) => `${s1}:${s2}`).join(", ");
+      return this.scores.map(([s1, s2]) => `${s1}:${s2}`).join("\n");
     }
     return "—";
   }

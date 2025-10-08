@@ -66,7 +66,7 @@ export function ScoreCell({
     <div className="score-cell">
       {canEdit ? (
         score ? (
-          <span className="badge">{score}</span>
+          <span className="rr-score rr-score--mirror">{score}</span>
         ) : !isEditing ? (
           <div className="score-cell__button-wrap">
             {shouldShowHelpTooltip && <div className="help-tooltip">Введите счёт</div>}
