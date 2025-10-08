@@ -80,7 +80,10 @@ export function RoundRobinView({
   }, [editValue, onSaveScore]);
 
   // Функция для получения счёта матча
-  const getMatchScore = useCallback((aId: number, bId: number): string | null => {
+  const getMatchScore = useCallback((aId: number | undefined, bId: number | undefined): string | null => {
+    if (aId == undefined || bId == undefined)
+      return null;
+
     const match = matches.find((m) => {
       const id1 = m.player1?.id ?? m.team1?.id;
       const id2 = m.player2?.id ?? m.team2?.id;
@@ -90,7 +93,6 @@ export function RoundRobinView({
   }, [matches]);
 
   // Адаптер для GroupStageTable
-// Адаптер для GroupStageTable
   const GroupMatchCell: React.FC<{
     a: Participant | null;
     b: Participant | null;
@@ -101,7 +103,7 @@ export function RoundRobinView({
       b={b}
       phaseFilter={phaseFilter}
       // helpers/state
-      getMatchScore={(aId, bId, f) => getMatchScore(aId, bId)}
+      scoreString={getMatchScore(a?.getId, b?.getId)}
       pairKey={pairKey}
       editingKey={editingKey}
       editValue={editValue}

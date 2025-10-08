@@ -475,11 +475,13 @@ export function GroupStageTable({
       return <td className="rr-diag" aria-hidden />;
     }
 
-    console.log("Cell", aId, bId,getMatchScore(aId, bId));
+    console.log("Cell",rIndex, cIndex, aId, bId, getMatchScore(aId, bId));
 
     const isLowerTriangle = rIndex > cIndex;
     const a = ordered.find(p => p.getId === aId) || null;
     const b = ordered.find(p => p.getId === bId) || null;
+
+    console.log("Cell2",rIndex, cIndex, a?.getId, b?.getId, getMatchScore(aId, bId));
 
     return (
       <td

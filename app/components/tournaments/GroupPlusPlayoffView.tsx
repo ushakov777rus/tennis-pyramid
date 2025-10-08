@@ -79,10 +79,14 @@ function isValidParticipant(p: Participant | null | undefined): p is Participant
 
 function nextPow2(n: number) { let p = 1; while (p < n) p <<= 1; return p; }
 
-function getMatchScore(aId: number, bId: number, filter?: MatchPhaseFilter): string | null {
+function getMatchScore(aId: number | undefined, bId: number | undefined, filter?: MatchPhaseFilter): string | null {
+  if (aId == undefined || bId == undefined)
+    return null;
+
   const match = findMatchBetween(aId, bId, filter);
   return match ? match.formatResult() : null;
 }
+
 function isValidScoreFormat(s: string) {
   const trimmed = s.trim();
   if (!trimmed) return false;
@@ -263,7 +267,7 @@ function pairWinnerId(
       b={b}
       phaseFilter={phaseFilter}
       // helpers/state
-      getMatchScore={(aId, bId, f) => getMatchScore(aId, bId, f)}
+      scoreString={getMatchScore(a?.getId, b?.getId, phaseFilter)}
       pairKey={pairKey}
       editingKey={editingKey}
       editValue={editValue}
@@ -294,7 +298,7 @@ function pairWinnerId(
       b={b}
       phaseFilter={phaseFilter}
       // helpers/state
-      getMatchScore={(aId, bId, f) => getMatchScore(aId, bId, f)}
+      scoreString={getMatchScore(a?.getId, b?.getId, phaseFilter)}
       pairKey={pairKey}
       editingKey={editingKey}
       editValue={editValue}

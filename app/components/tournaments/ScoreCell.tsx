@@ -18,7 +18,7 @@ export type ScoreCellProps = {
   phaseFilter?: MatchPhaseFilter;
 
   /** Хелперы/состояния, приходящие от родителя */
-  getMatchScore: (aId: number, bId: number, filter?: MatchPhaseFilter) => string | null;
+  scoreString: string | null;
   pairKey: (aId: number, bId: number) => string;
   editingKey: string | null;
 
@@ -41,7 +41,7 @@ export function ScoreCell({
   a,
   b,
   phaseFilter,
-  getMatchScore,
+  scoreString,
   pairKey,
   editingKey,
   editValue,
@@ -57,23 +57,25 @@ export function ScoreCell({
   const aId = a?.getId;
   const bId = b?.getId;
   const canEdit = !!aId && !!bId;
-  const score = canEdit ? getMatchScore(aId!, bId!, phaseFilter) : null;
-  const k = canEdit ? pairKey(aId!, bId!) : undefined;
-  const isEditing = !!k && editingKey === k;
-  const shouldShowHelpTooltip = canEdit && !score && !isEditing && showHelpTooltip;
+  const localScoreString = canEdit ? scoreString : null;
+  const kkk = canEdit ? pairKey(aId!, bId!) : undefined;
+  const isEditing = !!kkk && editingKey === kkk;
+  const shouldShowHelpTooltip = canEdit && !localScoreString && !isEditing && showHelpTooltip;
+
+  console.log("ScoreCell", aId, bId, localScoreString);
 
   return (
     <div className="score-cell">
       {canEdit ? (
-        score ? (
-          <span className="rr-score rr-score--mirror">{score}</span>
+        localScoreString ? (
+          <span className="rr-score rr-score--mirror">{localScoreString}</span>
         ) : !isEditing ? (
           <div className="score-cell__button-wrap">
             {shouldShowHelpTooltip && <div className="help-tooltip">Введите счёт</div>}
             <button
               type="button"
               className="vs vs-click"
-              onClick={() => onStartEdit(aId!, bId!, score, phaseFilter)}
+              onClick={() => onStartEdit(aId!, bId!, localScoreString, phaseFilter)}
               title="Добавить счёт"
               aria-label="Добавить счёт"
             >
