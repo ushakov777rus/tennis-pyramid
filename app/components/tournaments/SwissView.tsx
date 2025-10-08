@@ -8,7 +8,7 @@ import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
 
 import "./PyramidView.css";
-import "./RoundRobinTable.css";
+import "./GroupStageTable.css";
 import "@/app/components/ParticipantsView.css";
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 

@@ -1,17 +1,17 @@
 "use client";
 
+import "./GroupStageTable.css";
+import "./PyramidView.css";
+import "@/app/components/ParticipantsView.css";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
 import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 import {
-  ScoreKeyboard,
   useScoreKeyboardAvailable,
 } from "@/app/components/controls/ScoreKeyboard";
 
-import "./RoundRobinTable.css";
-import "./PyramidView.css";
-import "@/app/components/ParticipantsView.css";
 
 /**
  * Публичные пропсы для таблицы кругового турнира.
@@ -233,7 +233,6 @@ export function GroupStageTable({
   groupParticipants: participants,
   groupMatches: matches,
   groupIndex,
-  onSaveScore,
   ScoreCellAdapter: ScoreCell,
 }: GroupStageTableProps) {
   /** Текущая редактируемая пара (ключ из двух ID). */
@@ -389,7 +388,7 @@ export function GroupStageTable({
         .filter(isValidParticipant)
         .slice()
         .sort((a, b) =>
-          a.displayName(false).localeCompare(b.displayName(false), "ru")
+          a.displayName().localeCompare(b.displayName(), "ru")
         ),
     [participants]
   );
@@ -475,6 +474,8 @@ export function GroupStageTable({
     if (aId === bId) {
       return <td className="rr-diag" aria-hidden />;
     }
+
+    console.log("Cell", aId, bId,getMatchScore(aId, bId));
 
     const isLowerTriangle = rIndex > cIndex;
     const a = ordered.find(p => p.getId === aId) || null;

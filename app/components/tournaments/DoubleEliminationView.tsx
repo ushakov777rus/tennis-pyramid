@@ -11,7 +11,7 @@ import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/contr
 import { PhaseMeta, useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 
 import "./PyramidView.css";
-import "./RoundRobinTable.css";
+import "./GroupStageTable.css";
 import "@/app/components/ParticipantsView.css";
 
 type DoubleEliminationViewProps = {

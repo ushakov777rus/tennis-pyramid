@@ -1,6 +1,6 @@
 "use client";
 
-import "./PlayoffStage.css"
+import "./PlayoffStageTable.css"
 
 import React from "react";
 import { Participant } from "@/app/models/Participant";
@@ -52,7 +52,7 @@ export function PlayoffStageTable({
         const title = roundLabel(rIndex, pairs.length);
         return (
           <div key={rIndex} className="bracket__round">
-            <div className="bracket__round-title">
+            <div className="card bracket__round-title">
               <span className="bracket__badge">{title}</span>
             </div>
 

@@ -1,6 +1,6 @@
 :root {
   --bracket-bg: var(--background, #0f0f0f);
-  --bracket-border: rgba(166, 255, 0, .3);;
+  --bracket-border: rgb(63 77 36 / 30%);
 }
 
 .bracket {

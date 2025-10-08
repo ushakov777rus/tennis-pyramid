@@ -16,8 +16,8 @@ import { GroupStageTable } from "./GroupStageTable";
 import { PlayoffStageTable } from "./PlayoffStageTable";
 
 import "./PyramidView.css";
-import "./RoundRobinTable.css";
-import "./PlayoffStage.css"
+import "./GroupStageTable.css";
+import "./PlayoffStageTable.css"
 import "@/app/components/ParticipantsView.css";
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 

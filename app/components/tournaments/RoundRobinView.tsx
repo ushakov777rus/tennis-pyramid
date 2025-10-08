@@ -4,7 +4,6 @@ import { useCallback, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
 import { GroupStageTable } from "./GroupStageTable";
-import type { GroupStageTableProps } from "./GroupStageTable";
 import { ScoreCell } from "./ScoreCell";
 import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
 
