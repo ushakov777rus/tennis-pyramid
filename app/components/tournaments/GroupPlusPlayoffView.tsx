@@ -278,6 +278,7 @@ function pairWinnerId(
       }}
       onSave={(aId, bId, f) => saveEdit(aId, bId, f)}
       onCancel={cancelEdit}
+      showHelpTooltip={false}
     />
   );
 
@@ -308,7 +309,7 @@ function pairWinnerId(
       }}
       onSave={(aId, bId, f) => saveEdit(aId, bId, f)}
       onCancel={cancelEdit}
-      showHelpTooltip={true}
+      showHelpTooltip={false}
     />
   );
 

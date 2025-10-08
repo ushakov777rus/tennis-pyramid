@@ -118,7 +118,7 @@ export function RoundRobinView({
       }}
       onSave={(aId, bId, f) => saveEdit(aId, bId)}
       onCancel={cancelEdit}
-      showHelpTooltip={true}
+      showHelpTooltip={false}
     />
   );
 
