@@ -252,6 +252,7 @@
   z-index: 2;
   width: var(--rr-index-width);
   min-width: var(--rr-index-width);
+  background-color: var(--rr-roundrobin-bg);
 }
 
 .rr-name-cell {

@@ -480,8 +480,6 @@ export function GroupStageTable({
     const a = ordered.find(p => p.getId === aId) || null;
     const b = ordered.find(p => p.getId === bId) || null;
 
-    console.log("Cell2",rIndex, cIndex, a?.getId, b?.getId, getMatchScore(aId, bId));
-
     return (
       <td
         data-rr-cell={`${aId}-${bId}`}
