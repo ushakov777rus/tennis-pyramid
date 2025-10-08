@@ -29,6 +29,7 @@ export type GroupStageTableProps = {
   ScoreCellAdapter: React.FC<{
     a: Participant | null;
     b: Participant | null;
+    scoreString: string | null;
     phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
   }>;
 };
@@ -475,8 +476,6 @@ export function GroupStageTable({
       return <td className="rr-diag" aria-hidden />;
     }
 
-    console.log("Cell",rIndex, cIndex, aId, bId, getMatchScore(aId, bId));
-
     const isLowerTriangle = rIndex > cIndex;
     const a = ordered.find(p => p.getId === aId) || null;
     const b = ordered.find(p => p.getId === bId) || null;
@@ -488,7 +487,11 @@ export function GroupStageTable({
         data-rr-cell={`${aId}-${bId}`}
         className={`rr-cell ${isLowerTriangle ? '' : 'rr-cell--mirror'} ${!getMatchScore(aId, bId) ? 'rr-empty' : ''}`}
       >
-        <ScoreCell a={a} b={b} phaseFilter={{ phase: PhaseType.Group }} />
+        <ScoreCell 
+          a={a} 
+          b={b} 
+          scoreString={getMatchScore(aId, bId)}
+          phaseFilter={{ phase: PhaseType.Group }} />
       </td>
     );
   }

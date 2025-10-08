@@ -79,14 +79,6 @@ function isValidParticipant(p: Participant | null | undefined): p is Participant
 
 function nextPow2(n: number) { let p = 1; while (p < n) p <<= 1; return p; }
 
-function getMatchScore(aId: number | undefined, bId: number | undefined, filter?: MatchPhaseFilter): string | null {
-  if (aId == undefined || bId == undefined)
-    return null;
-
-  const match = findMatchBetween(aId, bId, filter);
-  return match ? match.formatResult() : null;
-}
-
 function isValidScoreFormat(s: string) {
   const trimmed = s.trim();
   if (!trimmed) return false;
@@ -260,14 +252,15 @@ function pairWinnerId(
   const PlayoffMatchCell: React.FC<{
     a: Participant | null;
     b: Participant | null;
+    scoreString: string | null;
     phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
-  }> = ({ a, b, phaseFilter }) => (
+  }> = ({ a, b, scoreString, phaseFilter }) => (
     <ScoreCell
       a={a}
       b={b}
       phaseFilter={phaseFilter}
       // helpers/state
-      scoreString={getMatchScore(a?.getId, b?.getId, phaseFilter)}
+      scoreString={scoreString}
       pairKey={pairKey}
       editingKey={editingKey}
       editValue={editValue}
@@ -291,14 +284,15 @@ function pairWinnerId(
   const GroupMatchCell: React.FC<{
     a: Participant | null;
     b: Participant | null;
+    scoreString: string | null;
     phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
-  }> = ({ a, b, phaseFilter }) => (
+  }> = ({ a, b, scoreString, phaseFilter }) => (
     <ScoreCell
       a={a}
       b={b}
       phaseFilter={phaseFilter}
       // helpers/state
-      scoreString={getMatchScore(a?.getId, b?.getId, phaseFilter)}
+      scoreString={scoreString}
       pairKey={pairKey}
       editingKey={editingKey}
       editValue={editValue}

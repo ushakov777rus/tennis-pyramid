@@ -79,31 +79,19 @@ export function RoundRobinView({
     }
   }, [editValue, onSaveScore]);
 
-  // Функция для получения счёта матча
-  const getMatchScore = useCallback((aId: number | undefined, bId: number | undefined): string | null => {
-    if (aId == undefined || bId == undefined)
-      return null;
-
-    const match = matches.find((m) => {
-      const id1 = m.player1?.id ?? m.team1?.id;
-      const id2 = m.player2?.id ?? m.team2?.id;
-      return (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
-    });
-    return match ? match.formatResult() : null;
-  }, [matches]);
-
   // Адаптер для GroupStageTable
   const GroupMatchCell: React.FC<{
     a: Participant | null;
     b: Participant | null;
+    scoreString: string | null;
     phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
-  }> = ({ a, b, phaseFilter }) => (
+  }> = ({ a, b, scoreString, phaseFilter }) => (
     <ScoreCell
       a={a}
       b={b}
+      scoreString={scoreString}
       phaseFilter={phaseFilter}
-      // helpers/state
-      scoreString={getMatchScore(a?.getId, b?.getId)}
+      // helpers/state      
       pairKey={pairKey}
       editingKey={editingKey}
       editValue={editValue}

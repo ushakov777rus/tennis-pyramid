@@ -32,9 +32,51 @@ export type PlayoffStageTableProps = {
   ScoreCellAdapter: React.FC<{
     a: Participant | null;
     b: Participant | null;
+    scoreString: string | null;
     phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
   }>;
 };
+
+/** Найти матч между участниками с учётом фазы/раунда (если проставлены в модели Match) */
+function findMatchBetweenWithPhase(
+  aId: number,
+  bId: number,
+  matches: Match[],
+  meta?: { phase?: PhaseType; roundIndex?: number | null }
+): Match | undefined {
+  return matches.find((m) => {
+    const id1 = m.player1?.id ?? m.team1?.id ?? 0;
+    const id2 = m.player2?.id ?? m.team2?.id ?? 0;
+    const samePair = (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
+    if (!samePair) return false;
+
+    if (meta?.phase && (m as any).phase !== meta.phase) return false;
+    if (meta?.phase === PhaseType.Playoff && meta.roundIndex != null) {
+      if (((m as any).roundIndex ?? null) !== (meta.roundIndex ?? null)) return false;
+    }
+    return true;
+  });
+}
+
+
+/** Счёт матча "6:3, 4:6, 10:8" или null, если матча нет */
+function getMatchScore(
+  aId: number | undefined,
+  bId: number | undefined,
+  matches: Match[],
+  meta?: { phase?: PhaseType; roundIndex?: number | null }
+): string | null {
+  if(aId == undefined || bId == undefined)
+    return "—";
+
+  const match = findMatchBetweenWithPhase(aId, bId, matches, meta);
+  if (!match) return null;
+  if (match.scores && match.scores.length > 0) {
+    return match.scores.map(([s1, s2]) => `${s1}:${s2}`).join(", ");
+  }
+  return "—";
+}
+
 
 export function PlayoffStageTable({
   resolvedPlayoff,
@@ -51,8 +93,8 @@ export function PlayoffStageTable({
       {resolvedPlayoff.map((pairs, rIndex) => {
         const title = roundLabel(rIndex, pairs.length);
         return (
-          <div key={rIndex} className="bracket__round">
-            <div className="card bracket__round-title">
+          <div key={rIndex} className="card bracket__round">
+            <div className="bracket__round-title">
               <span className="bracket__badge">{title}</span>
             </div>
 
@@ -78,7 +120,7 @@ export function PlayoffStageTable({
                               winnerId && aId === winnerId ? "bracket__row--winner" : ""
                             }`}
                           >
-                            <td className="left">
+                            <td className="left rr-name-cell">
                               {a ? (
                                 <span className="rr-participant">{a.displayName()}</span> ) : (
                                   <span className="rr-participant grey">{"Ожидается"}</span>
@@ -91,7 +133,7 @@ export function PlayoffStageTable({
                               winnerId && bId === winnerId ? "bracket__row--winner" : ""
                             }`}
                           >
-                            <td className="left">
+                            <td className="left rr-name-cell">
                               {b ? (
                                 <span className="rr-participant">{b.displayName()}</span> ) : (
                                   <span className="rr-participant grey">{"Ожидается"}</span>
@@ -129,7 +171,11 @@ export function PlayoffStageTable({
                       ) : (
                         <div className="el-score-vs-wrap">
                           {/* Когда очков ещё нет — показываем знакомый редактор "vs" */}
-                          <ScoreCell a={a} b={b} phaseFilter={phaseFilter} />
+                          <ScoreCell 
+                            a={a} 
+                            b={b} 
+                            scoreString={getMatchScore(a?.getId, b?.getId, matches, phaseFilter)}
+                            phaseFilter={phaseFilter} />
                         </div>
                       )}
                     </div>
