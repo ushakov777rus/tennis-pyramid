@@ -2,16 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
-import { Match } from "@/app/models/Match";
-import {
-  SaveIconButton,
-  CancelIconButton,
-} from "@/app/components/controls/IconButtons";
+import { Match, PhaseType } from "@/app/models/Match";
 import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 import {
   ScoreKeyboard,
   useScoreKeyboardAvailable,
 } from "@/app/components/controls/ScoreKeyboard";
+import { ScoreCell, type MatchPhaseFilter } from "./ScoreCell";
 
 import "./RoundRobinTable.css";
 import "./PyramidView.css";
@@ -433,76 +430,67 @@ export function GroupStageTable({
   /**
    * Возвращает видимые счёты либо из оптимистичного кэша, либо из сохранённых матчей.
    */
-  const getScoresFor = useCallback(
-    (rowId: number, colId: number) => {
-      const key = pairKey(rowId, colId);
+  const getMatchScore = useCallback(
+    (aId: number, bId: number): string | null => {
+      const key = pairKey(aId, bId);
       const pending = pendingScores.get(key);
       if (pending) {
-        const rowSets = pending.aId === rowId ? pending.scores : flipSets(pending.scores);
-        const colSets = pending.aId === colId ? pending.scores : flipSets(pending.scores);
-        return {
-          display: formatDisplay(rowSets),
-          mirror: formatDisplay(colSets),
-          input: formatInput(rowSets),
-        };
+        const rowSets = pending.aId === aId ? pending.scores : flipSets(pending.scores);
+        return formatDisplay(rowSets);
       }
 
-      return getMatchScoresFromMatches(rowId, colId, matches);
+      const scores = getMatchScoresFromMatches(aId, bId, matches);
+      return scores?.display || null;
     },
     [pendingScores, matches]
   );
 
   /**
    * Открывает редактор для пары участников.
-   *
-   * @param aId ID участника в строке.
-   * @param bId ID участника в колонке.
-   * @param currentScore Текущий счёт для префила или null.
-   * @param anchor Координаты ячейки для корректного скролла.
    */
-  function startEdit(
+  const onStartEdit = useCallback((
     aId: number,
     bId: number,
     currentScore: string | null,
-    anchor?: EditingCell
-  ) {
+    filter?: MatchPhaseFilter
+  ) => {
     const key = pairKey(aId, bId);
     setEditingKey(key);
     setEditValue(currentScore ?? "");
     setEditingCell({
-      rowId: anchor?.rowId ?? aId,
-      colId: anchor?.colId ?? bId,
+      rowId: aId,
+      colId: bId,
     });
     editingInputRef.current = null;
     if (mobileKeyboardAvailable) {
       setMobileKeyboardContext({ aId, bId });
     }
-  }
+  }, [mobileKeyboardAvailable]);
 
   /**
    * Отменяет редактирование и сбрасывает вспомогательные состояния.
    */
-  function cancelEdit() {
+  const onCancel = useCallback(() => {
     setEditingKey(null);
     setEditValue("");
     editingInputRef.current = null;
     setMobileKeyboardContext(null);
     setEditingCell(null);
-  }
+  }, []);
 
   /**
    * Сохраняет введённый счёт с оптимистичным UI.
-   *
-   * @param aId ID участника в строке.
-   * @param bId ID участника в колонке.
-   * @param raw Необязательное значение (для мобильной клавиатуры).
    */
-  async function saveEdit(aId: number, bId: number, raw?: string) {
+  const onSave = useCallback(async (
+    aId: number,
+    bId: number,
+    filter?: MatchPhaseFilter
+  ) => {
     const currentNode = editingInputRef.current;
     const fallbackValue =
       currentNode instanceof HTMLInputElement ? currentNode.value : editValue;
 
-    const nextValue = (raw ?? fallbackValue ?? "").trim();
+    const nextValue = (fallbackValue ?? "").trim();
 
     const normalized = nextValue.replaceAll("/", "-");
     if (!Match.isValidScoreFormat(normalized)) {
@@ -539,10 +527,65 @@ export function GroupStageTable({
     } finally {
       setSaving(false);
     }
-  }
+  }, [editValue, onSaveScore]);
 
   /**
-   * Рендерит ячейку матрицы: sticky-раскладка, редактирование, оптимистичные данные.
+   * Показывает подсказку только для самой первой пустой ячейки.
+   */
+  const firstHelpTooltip = useFirstHelpTooltip();
+
+  /**
+   * Компонент ячейки матча для использования в таблице
+   */
+  const ScoreCellAdapter = useCallback(({ a, b, phaseFilter }: {
+    a: Participant | null;
+    b: Participant | null;
+    phaseFilter?: MatchPhaseFilter;
+  }) => {
+    const aId = a?.getId;
+    const bId = b?.getId;
+    
+    if (!aId || !bId) {
+      return <span className="vs vs-placeholder" aria-hidden>vs</span>;
+    }
+
+    const isLowerTriangle = indexById.get(aId)! > indexById.get(bId)!;
+    const key = pairKey(aId, bId);
+    const isActiveCell = editingKey === key && editingCell?.rowId === aId && editingCell?.colId === bId;
+
+    return (
+      <ScoreCell
+        a={a}
+        b={b}
+        phaseFilter={phaseFilter}
+        getMatchScore={getMatchScore}
+        pairKey={pairKey}
+        editingKey={editingKey}
+        editValue={editValue}
+        setEditValue={setEditValue}
+        saving={saving}
+        onStartEdit={onStartEdit}
+        onSave={onSave}
+        onCancel={onCancel}
+        inputRef={editingInputRef}
+        mobileKeyboardAvailable={mobileKeyboardAvailable}
+      />
+    );
+  }, [
+    indexById,
+    editingKey,
+    editingCell,
+    editValue,
+    saving,
+    getMatchScore,
+    onStartEdit,
+    onSave,
+    onCancel,
+    mobileKeyboardAvailable
+  ]);
+
+  /**
+   * Рендерит ячейку матрицы с использованием универсального ScoreCell
    */
   function Cell({
     aId,
@@ -560,187 +603,18 @@ export function GroupStageTable({
     }
 
     const isLowerTriangle = rIndex > cIndex;
-    const key = pairKey(aId, bId);
-    const isEditing = editingKey === key;
-    const isActiveCell = isEditing && editingCell?.rowId === aId && editingCell?.colId === bId;
-
-    const renderEditor = () => (
-      <div className="score-edit-wrap">
-        <input
-          className="input score-input"
-          value={editValue}
-          readOnly={mobileKeyboardAvailable}
-          ref={(node) => {
-            editingInputRef.current = node;
-          }}
-          placeholder="6-4, 4-6, 10-8"
-          pattern="[0-9\\s,/:-]*"
-          inputMode={mobileKeyboardAvailable ? "numeric" : undefined}
-          autoFocus={!mobileKeyboardAvailable}
-          onFocus={(event) => {
-            if (mobileKeyboardAvailable) event.currentTarget.blur();
-          }}
-          onKeyDown={(event) => {
-            if (!mobileKeyboardAvailable) {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                saveEdit(aId, bId);
-              }
-              if (event.key === "Escape") {
-                event.preventDefault();
-                cancelEdit();
-              }
-            }
-          }}
-          onChange={(event) => {
-            if (!mobileKeyboardAvailable) {
-              setEditValue(event.target.value);
-            }
-          }}
-        />
-
-        {!mobileKeyboardAvailable && (
-          <>
-            <SaveIconButton
-              className="lg"
-              title="Сохранить счёт"
-              aria-label="Сохранить счёт"
-              onClick={() => saveEdit(aId, bId)}
-              disabled={saving}
-            />
-            <CancelIconButton
-              className="lg"
-              title="Отмена"
-              aria-label="Отмена"
-              onClick={cancelEdit}
-              disabled={saving}
-            />
-          </>
-        )}
-      </div>
-    );
-
-    const makeButton = (
-      handler: () => void,
-      {
-        withTooltip = true,
-      }: { withTooltip?: boolean } = {}
-    ) => {
-      const shouldShowHelp = withTooltip && !isActiveCell && firstHelpTooltip();
-      return (
-        <div className="score-cell__button-wrap">
-          {shouldShowHelp && <div className="help-tooltip">Введите счёт</div>}
-          <button
-            type="button"
-            className="vs vs-click"
-            onClick={handler}
-            title="Добавить счёт"
-            aria-label="Добавить счёт"
-          >
-            vs
-          </button>
-        </div>
-      );
-    };
-
-    const scores = getScoresFor(aId, bId);
-    if (!scores) {
-      if (isLowerTriangle) {
-        return (
-          <td
-            data-rr-cell={`${aId}-${bId}`}
-            className={`rr-cell ${isActiveCell ? "editing" : ""}`}
-          >
-            {isActiveCell
-              ? renderEditor()
-              : makeButton(() =>
-                  startEdit(aId, bId, null, { rowId: aId, colId: bId })
-                )}
-          </td>
-        );
-      }
-
-      return (
-        <td
-          data-rr-cell={`${aId}-${bId}`}
-          className={`rr-cell rr-cell--mirror rr-empty ${isActiveCell ? "editing" : ""}`}
-        >
-          {isActiveCell
-            ? renderEditor()
-            : makeButton(() =>
-                startEdit(aId, bId, null, { rowId: aId, colId: bId })
-              )}
-        </td>
-      );
-    }
-
-    if (isLowerTriangle) {
-      return (
-        <td
-          data-rr-cell={`${aId}-${bId}`}
-          className={`rr-cell ${isActiveCell ? "editing" : ""}`}
-        >
-          {!isActiveCell && (
-            scores.display !== "—"
-              ? (
-                  <button
-                    type="button"
-                    className="rr-score"
-                    onClick={() =>
-                      startEdit(aId, bId, scores.input || null, {
-                        rowId: aId,
-                        colId: bId,
-                      })
-                    }
-                    title="Изменить счёт"
-                  >
-                    {scores.display}
-                  </button>
-                )
-              : makeButton(() =>
-                  startEdit(aId, bId, null, { rowId: aId, colId: bId })
-                )
-          )}
-          {isActiveCell && renderEditor()}
-        </td>
-      );
-    }
+    const a = ordered.find(p => p.getId === aId) || null;
+    const b = ordered.find(p => p.getId === bId) || null;
 
     return (
       <td
         data-rr-cell={`${aId}-${bId}`}
-        className={`rr-cell rr-cell--mirror ${isActiveCell ? "editing" : ""}`}
+        className={`rr-cell ${isLowerTriangle ? '' : 'rr-cell--mirror'} ${!getMatchScore(aId, bId) ? 'rr-empty' : ''}`}
       >
-        {!isActiveCell && (
-          scores.display !== "—"
-            ? (
-                <button
-                  type="button"
-                  className="rr-score rr-score--mirror"
-                  onClick={() =>
-                    startEdit(aId, bId, scores.input || null, {
-                      rowId: aId,
-                      colId: bId,
-                    })
-                  }
-                  title="Изменить счёт"
-                >
-                  {scores.display}
-                </button>
-              )
-            : makeButton(() =>
-                startEdit(aId, bId, null, { rowId: aId, colId: bId })
-              )
-        )}
-        {isActiveCell && renderEditor()}
+        <ScoreCellAdapter a={a} b={b} />
       </td>
     );
   }
-
-  /**
-   * Показывает подсказку только для самой первой пустой ячейки.
-   */
-  const firstHelpTooltip = useFirstHelpTooltip();
 
   return (
     <div ref={wrapRef} className="roundrobin-wrap">
@@ -808,9 +682,9 @@ export function GroupStageTable({
             value={editValue}
             onChange={setEditValue}
             onSave={() =>
-              void saveEdit(mobileKeyboardContext.aId, mobileKeyboardContext.bId, editValue)
+              void onSave(mobileKeyboardContext.aId, mobileKeyboardContext.bId)
             }
-            onCancel={cancelEdit}
+            onCancel={onCancel}
             disabled={saving}
             autoFocus={false}
           />

@@ -32,6 +32,9 @@ export type ScoreCellProps = {
 
   inputRef: RefObject<HTMLInputElement | HTMLDivElement | null>;
   mobileKeyboardAvailable: boolean;
+  
+  /** Опционально: для показа подсказки в групповом этапе */
+  showHelpTooltip?: boolean;
 };
 
 export function ScoreCell({
@@ -49,6 +52,7 @@ export function ScoreCell({
   onCancel,
   inputRef,
   mobileKeyboardAvailable,
+  showHelpTooltip = false,
 }: ScoreCellProps) {
   const aId = a?.getId;
   const bId = b?.getId;
@@ -56,7 +60,7 @@ export function ScoreCell({
   const score = canEdit ? getMatchScore(aId!, bId!, phaseFilter) : null;
   const k = canEdit ? pairKey(aId!, bId!) : undefined;
   const isEditing = !!k && editingKey === k;
-  const shouldShowHelpTooltip = canEdit && !score && !isEditing;
+  const shouldShowHelpTooltip = canEdit && !score && !isEditing && showHelpTooltip;
 
   return (
     <div className="score-cell">
