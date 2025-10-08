@@ -352,7 +352,7 @@ const PlayoffMatchCell: React.FC<{
   function GroupBlock({ gIndex, group }: { gIndex: number; group: Participant[] }) {
     const matchesForGroup = groupMatches[gIndex];
     return (
-      <div className={`${editingKey ? "card--no-transition" : ""}`.trim()}>
+      <div className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}>
         <div className="history-table-head">
           <strong>Группа {String.fromCharCode(65 + gIndex)}</strong>
         </div>

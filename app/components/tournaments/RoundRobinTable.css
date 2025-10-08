@@ -1,6 +1,6 @@
 :root {
-  --rr-index-width: 30px;
-  --rr-roundrobin-border: rgba(166, 255, 0, .3);
+  --rr-index-width: 25px;
+  --rr-roundrobin-border: rgb(63 77 36 / 30%);
   --rr-roundrobin-bg: var(--background, #0f0f0f);
 }
 
@@ -172,7 +172,6 @@
   border-spacing: 0;
   table-layout: auto;
   min-width: 100%;
-  border: 1px solid var(--rr-roundrobin-border);
 }
 
 .rr-matrix th,
@@ -185,6 +184,17 @@
   border-left: none;
   border-bottom: none;
 }
+
+.rr-matrix tr > td:last-of-type,
+.rr-matrix tr > th:last-of-type {
+  border-right: none;
+}
+
+.rr-matrix td:last-child,
+.rr-matrix th:last-child {
+  border-right: none;
+}
+
 
 .rr-matrix thead th {
   position: sticky;
