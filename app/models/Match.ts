@@ -109,10 +109,12 @@ export class Match {
       return this.player2?.id || this.team2?.id || 0;
     }
   }
-
-  formatResult(): string {
-    if (!this.scores || this.scores.length === 0) return "-";
-    return this.scores.map(([a, b]) => `${a}-${b}`).join(", ");
+  
+  formatResult(): string | null {
+    if (this.scores && this.scores.length > 0) {
+      return this.scores.map(([s1, s2]) => `${s1}:${s2}`).join(", ");
+    }
+    return "—";
   }
 
   static getWinnerId(scores: [number, number][], id1: number, id2: number): [number, number] {

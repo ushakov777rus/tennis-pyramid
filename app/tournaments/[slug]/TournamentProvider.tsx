@@ -67,6 +67,8 @@ type AddMatchArgs = {
   roundIndex?: number | null;
 };
 
+export type PhaseMeta = { phase?: PhaseType; roundIndex?: number | null; groupIndex?: number | null };
+
 export type TournamentContextShape = {
   // meta
   loading: boolean;
@@ -93,6 +95,7 @@ export type TournamentContextShape = {
   addMatch: (args: AddMatchArgs) => Promise<void>;
   updateMatch: (m: Match) => Promise<void>;
   deleteMatch: (m: Match) => Promise<void>;
+  findMatchBetween: (aParticipantId: number, bParticipantId: number, meta?: PhaseMeta) => Match | null;
 
   addPlayerToTournament?: (playerId: number) => Promise<void>;
   removeParticipant?: (participant: Participant) => Promise<void>;
@@ -475,6 +478,32 @@ export function TournamentProvider({
     });
   }, []);
 
+  const findMatchBetween = useCallback(
+    (aParticipantId: number, bParticipantId: number, meta?: PhaseMeta): Match | null => {
+      const tryFind = (useMeta: boolean) =>
+        matches.find((m) => {
+          const id1 = m.player1?.id ?? m.team1?.id ?? 0;
+          const id2 = m.player2?.id ?? m.team2?.id ?? 0;
+          const samePair = (id1 === aParticipantId && id2 === bParticipantId) || (id1 === bParticipantId && id2 === aParticipantId);
+          if (!samePair) return false;
+          if (!useMeta || !meta) return true;
+          if (meta.phase && (m as any).phase !== meta.phase) return false;
+          if (meta.groupIndex != null && ((m as any).groupIndex ?? null) !== meta.groupIndex) return false;
+          if (meta.roundIndex != null && ((m as any).roundIndex ?? null) !== meta.roundIndex) return false;
+          return true;
+        });
+
+      if (meta) {
+        const matchWithMeta = tryFind(true);
+        if (matchWithMeta) return matchWithMeta;
+      }
+      return tryFind(false) ?? null;
+    },
+    [matches]
+  );
+
+
+
   const value = useMemo<TournamentContextShape>(
     () => ({
       loading: initialLoading,
@@ -499,6 +528,7 @@ export function TournamentProvider({
       addMatch,
       updateMatch,
       deleteMatch,
+      findMatchBetween,
 
       addPlayerToTournament,
       removeParticipant,
@@ -527,6 +557,7 @@ export function TournamentProvider({
       addMatch,
       updateMatch,
       deleteMatch,
+      findMatchBetween,
       addPlayerToTournament,
       removeParticipant,
       addTeamToTournament,

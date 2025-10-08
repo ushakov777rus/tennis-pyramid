@@ -10,6 +10,7 @@ import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/contr
 import "./PyramidView.css";
 import "./RoundRobinTable.css";
 import "@/app/components/ParticipantsView.css";
+import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 
 type SwissViewProps = {
   participants: Participant[];
@@ -37,22 +38,6 @@ function havePlayed(aId: number, bId: number, matches: Match[]) {
   });
 }
 
-function findMatchBetween(aId: number, bId: number, matches: Match[]) {
-  return matches.find((m) => {
-    const id1 = m.player1?.id ?? m.team1?.id ?? 0;
-    const id2 = m.player2?.id ?? m.team2?.id ?? 0;
-    return (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
-  });
-}
-
-function getMatchScore(aId: number, bId: number, matches: Match[]): string | null {
-  const match = findMatchBetween(aId, bId, matches);
-  if (!match) return null;
-  if (match.scores && match.scores.length > 0) {
-    return match.scores.map(([s1, s2]) => `${s1}:${s2}`).join(", ");
-  }
-  return "—";
-}
 
 function isValidScoreFormat(s: string) {
   const trimmed = s.trim();
@@ -208,6 +193,12 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
     aId: number;
     bId: number;
   } | null>(null);
+
+    const {
+      findMatchBetween
+    } = useTournament();
+  
+  
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
 
   // Базовая «стабильная» сортировка списка на первый раунд (если нет рейтингов)
@@ -294,7 +285,8 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
   function MatchRow({ a, b }: { a: Participant | null; b: Participant | null }) {
     const aId = pid(a); const bId = pid(b);
     const canEdit = !!aId && !!bId;
-    const score = canEdit ? getMatchScore(aId!, bId!, matches) : null;
+    const localMatch = findMatchBetween(aId!, bId!);
+    const score = canEdit ? localMatch?.formatResult() : null;
     const k = canEdit ? pairKey(aId!, bId!) : undefined;
     const isEditing = !!k && editingKey === k;
     const shouldShowHelpTooltip = canEdit && !score && !isEditing && firstHelpTooltip();
@@ -314,7 +306,7 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
                 <button
                   type="button"
                   className="vs vs-click"
-                  onClick={() => startEdit(aId!, bId!, score)}
+                  onClick={() => startEdit(aId!, bId!, score ?? null)}
                   title="Добавить счёт"
                   aria-label="Добавить счёт"
                 >vs</button>

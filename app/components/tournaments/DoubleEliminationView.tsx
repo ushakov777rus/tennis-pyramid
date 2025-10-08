@@ -8,6 +8,7 @@ import { Match, PhaseType } from "@/app/models/Match";
 import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
 import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
+import { PhaseMeta, useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 
 import "./PyramidView.css";
 import "./RoundRobinTable.css";
@@ -44,31 +45,31 @@ const BRACKET_GROUP_WB = 0;
 const BRACKET_GROUP_LB = 1;
 const BRACKET_GROUP_GF = 2;
 
-type PhaseMeta = { phase?: PhaseType; roundIndex?: number | null; groupIndex?: number | null };
+/* ---------- Главный компонент Double Elimination ---------- */
 
-function findMatchBetween(aId: number, bId: number, matches: Match[], meta?: PhaseMeta): Match | undefined {
-  const tryFind = (useMeta: boolean) =>
-    matches.find((m) => {
-      const id1 = m.player1?.id ?? m.team1?.id ?? 0;
-      const id2 = m.player2?.id ?? m.team2?.id ?? 0;
-      const samePair = (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
-      if (!samePair) return false;
-      if (!useMeta || !meta) return true;
-      if (meta.phase && (m as any).phase !== meta.phase) return false;
-      if (meta.groupIndex != null && ((m as any).groupIndex ?? null) !== meta.groupIndex) return false;
-      if (meta.roundIndex != null && ((m as any).roundIndex ?? null) !== meta.roundIndex) return false;
-      return true;
-    });
+export function DoubleEliminationView({
+  participants,
+  matches,
+  onSaveScore,
+}: DoubleEliminationViewProps) {
+  const {
+    findMatchBetween
+  } = useTournament();
 
-  if (meta) {
-    const matchWithMeta = tryFind(true);
-    if (matchWithMeta) return matchWithMeta;
-  }
-  return tryFind(false);
-}
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+  const mobileKeyboardAvailable = useScoreKeyboardAvailable();
+  const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
+    aId: number;
+    bId: number;
+    meta?: { phase: PhaseType; groupIndex: number | null; roundIndex: number | null };
+  } | null>(null);
+  const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
+  const firstHelpTooltip = useFirstHelpTooltip();
 
-function getMatchScore(aId: number, bId: number, matches: Match[], meta?: PhaseMeta): string | null {
-  const match = findMatchBetween(aId, bId, matches, meta);
+  function getMatchScore(aId: number, bId: number, meta?: PhaseMeta): string | null {
+  const match = findMatchBetween(aId, bId, meta);
   if (!match) return null;
   if (match.scores && match.scores.length > 0) {
     return match.scores.map(([s1, s2]) => `${s1}:${s2}`).join(", ");
@@ -123,7 +124,7 @@ function resultOfPair(
   }
   if (!aId || !bId) return { winnerId: null, loserId: null };
 
-  const m = findMatchBetween(aId, bId, matches);
+  const m = findMatchBetween(aId, bId);
   if (!m) return { winnerId: null, loserId: null };
   const w = m.getWinnerId?.();
   if (!w || w <= 0) return { winnerId: null, loserId: null };
@@ -131,24 +132,6 @@ function resultOfPair(
   return { winnerId: w, loserId: l ?? null };
 }
 
-/* ---------- Главный компонент Double Elimination ---------- */
-
-export function DoubleEliminationView({
-  participants,
-  matches,
-  onSaveScore,
-}: DoubleEliminationViewProps) {
-  const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState<string>("");
-  const [saving, setSaving] = useState(false);
-  const mobileKeyboardAvailable = useScoreKeyboardAvailable();
-  const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
-    aId: number;
-    bId: number;
-    meta?: { phase: PhaseType; groupIndex: number | null; roundIndex: number | null };
-  } | null>(null);
-  const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
-  const firstHelpTooltip = useFirstHelpTooltip();
 
   const ordered = useMemo(
     () =>
@@ -230,7 +213,7 @@ export function DoubleEliminationView({
       if (aId && !bId) return aId;   // автопроход: это не BYE-паддинг, это натуральное «одиночное» место
       if (!aId && bId) return bId;
       if (!aId || !bId) return null;
-      const m = findMatchBetween(aId, bId, matches);
+      const m = findMatchBetween(aId, bId);
       if (!m) return null;
       const w = m.getWinnerId?.();
       return w && w > 0 ? w : null;
@@ -311,7 +294,7 @@ console.log("resolvedLB 2",rounds);
     const aId = pid(a);
     const bId = pid(b);
     if (!aId || !bId) return null;
-    const m = findMatchBetween(aId, bId, matches);
+    const m = findMatchBetween(aId, bId);
     if (!m) return null;
     const w = m.getWinnerId?.();
     return w && w > 0 ? w : null;
@@ -431,7 +414,7 @@ console.log("resolvedLB 2",rounds);
               const bId = pid(b);
               const canEdit = !!aId && !!bId;
               const scoreMeta = phaseMeta;
-              const score = canEdit ? getMatchScore(aId!, bId!, matches, scoreMeta) : null;
+              const score = canEdit ? getMatchScore(aId!, bId!, scoreMeta) : null;
               const k = canEdit ? pairKey(aId!, bId!) : `${rKeyPrefix}_${i}`;
               const isEditing = canEdit && editingKey === k;
 

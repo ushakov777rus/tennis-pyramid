@@ -1,8 +1,11 @@
 "use client";
 
+import "./PlayoffStage.css"
+
 import React from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
+
 
 /** Совпадает с тем, как блок плей-офф использовался внутри GroupPlusPlayoffView */
 export type PlayoffStageTableProps = {
