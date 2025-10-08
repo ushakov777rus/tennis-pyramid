@@ -19,6 +19,7 @@ import "@/app/components/ParticipantsView.css";
 export type GroupStageTableProps = {
   participants: Participant[];
   matches: Match[];
+  groupIndex?: number;
   onSaveScore?: (
     aId: number,
     bId: number,
@@ -231,6 +232,7 @@ function computeStatsFor(
 export function GroupStageTable({
   participants,
   matches,
+  groupIndex,
   onSaveScore,
   ScoreCellAdapter: ScoreCell,
 }: GroupStageTableProps) {
@@ -452,27 +454,6 @@ export function GroupStageTable({
   );
 
   /**
-   * Открывает редактор для пары участников.
-   */
-  const onStartEdit = useCallback((
-    aId: number,
-    bId: number,
-    currentScore: string | null
-  ) => {
-    const key = pairKey(aId, bId);
-    setEditingKey(key);
-    setEditValue(currentScore ?? "");
-    setEditingCell({
-      rowId: aId,
-      colId: bId,
-    });
-    editingInputRef.current = null;
-    if (mobileKeyboardAvailable) {
-      setMobileKeyboardContext({ aId, bId });
-    }
-  }, [mobileKeyboardAvailable]);
-
-  /**
    * Отменяет редактирование и сбрасывает вспомогательные состояния.
    */
   const onCancel = useCallback(() => {
@@ -571,6 +552,13 @@ export function GroupStageTable({
   }
 
   return (
+    <div className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}>
+      {groupIndex !== undefined && groupIndex !== null && (
+        <div className="history-table-head">
+          <strong>Группа {String.fromCharCode(65 + groupIndex)}</strong>
+        </div>)
+      }
+
     <div ref={wrapRef} className="roundrobin-wrap">
       <div className="rr-scroll">
         <table ref={tableRef} className="rr-matrix round-table">
@@ -644,6 +632,7 @@ export function GroupStageTable({
           />
         )}
       </div>
+    </div>
     </div>
   );
 }

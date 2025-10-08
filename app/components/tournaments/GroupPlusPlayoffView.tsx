@@ -228,6 +228,7 @@ function pairWinnerId(
     editingInputRef.current = null;
     setMobileKeyboardContext(null);
   }, [editingInputRef]);
+  
   const saveEdit = useCallback(async (aId: number, bId: number, phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }, raw?: string) => {
     const node = editingInputRef.current;
     const draft = node instanceof HTMLInputElement ? node.value : editValue;
@@ -381,20 +382,15 @@ function pairWinnerId(
   function GroupBlock({ gIndex, group }: { gIndex: number; group: Participant[] }) {
     const matchesForGroup = groupMatches[gIndex];
     return (
-      <div className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}>
-        <div className="history-table-head">
-          <strong>Группа {String.fromCharCode(65 + gIndex)}</strong>
-        </div>
-
         <GroupStageTable
           participants={group}
           matches={matchesForGroup}
+          groupIndex={gIndex}
           onSaveScore={(aId, bId, score) =>
             onSaveScore?.(aId, bId, score, { phase: PhaseType.Group, groupIndex: gIndex, roundIndex: null })
           }
           ScoreCellAdapter={GroupMatchCell}
         />
-      </div>
     );
   }
 
