@@ -17,8 +17,8 @@ import "@/app/components/ParticipantsView.css";
  * Публичные пропсы для таблицы кругового турнира.
  */
 export type GroupStageTableProps = {
-  participants: Participant[];
-  matches: Match[];
+  groupParticipants: Participant[];
+  groupMatches: Match[];
   groupIndex?: number;
   onSaveScore?: (
     aId: number,
@@ -230,8 +230,8 @@ function computeStatsFor(
  * @returns JSX-разметка таблицы с редактированием счёта.
  */
 export function GroupStageTable({
-  participants,
-  matches,
+  groupParticipants: participants,
+  groupMatches: matches,
   groupIndex,
   onSaveScore,
   ScoreCellAdapter: ScoreCell,
@@ -454,67 +454,6 @@ export function GroupStageTable({
   );
 
   /**
-   * Отменяет редактирование и сбрасывает вспомогательные состояния.
-   */
-  const onCancel = useCallback(() => {
-    setEditingKey(null);
-    setEditValue("");
-    editingInputRef.current = null;
-    setMobileKeyboardContext(null);
-    setEditingCell(null);
-  }, []);
-
-  /**
-   * Сохраняет введённый счёт с оптимистичным UI.
-   */
-  const onSave = useCallback(async (
-    aId: number,
-    bId: number
-  ) => {
-    const currentNode = editingInputRef.current;
-    const fallbackValue =
-      currentNode instanceof HTMLInputElement ? currentNode.value : editValue;
-
-    const nextValue = (fallbackValue ?? "").trim();
-
-    const normalized = nextValue.replaceAll("/", "-");
-    if (!Match.isValidScoreFormat(normalized)) {
-      alert('Неверный формат счёта. Примеры: "6-4, 4-6" или "6/4, 4/6"');
-      return;
-    }
-
-    const key = pairKey(aId, bId);
-    const parsedScores = Match.parseScoreStringFlexible(normalized);
-
-    setPendingScores((prev) => {
-      const next = new Map(prev);
-      next.set(key, { aId, bId, scores: parsedScores, raw: normalized });
-      return next;
-    });
-
-    setEditingKey(null);
-    setEditValue("");
-    editingInputRef.current = null;
-    setMobileKeyboardContext(null);
-    setEditingCell(null);
-
-    try {
-      setSaving(true);
-      await onSaveScore?.(aId, bId, normalized);
-    } catch (_error) {
-      setPendingScores((prev) => {
-        if (!prev.has(key)) return prev;
-        const next = new Map(prev);
-        next.delete(key);
-        return next;
-      });
-      alert("Не удалось сохранить счёт. Попробуйте ещё раз.");
-    } finally {
-      setSaving(false);
-    }
-  }, [editValue, onSaveScore]);
-
-  /**
    * Показывает подсказку только для самой первой пустой ячейки.
    */
   const firstHelpTooltip = useFirstHelpTooltip();
@@ -616,21 +555,6 @@ export function GroupStageTable({
             })}
           </tbody>
         </table>
-      </div>
-      <div ref={keyboardHostRef}>
-        {mobileKeyboardAvailable && mobileKeyboardContext && (
-          <ScoreKeyboard
-            inputRef={editingInputRef}
-            value={editValue}
-            onChange={setEditValue}
-            onSave={() =>
-              void onSave(mobileKeyboardContext.aId, mobileKeyboardContext.bId)
-            }
-            onCancel={onCancel}
-            disabled={saving}
-            autoFocus={false}
-          />
-        )}
       </div>
     </div>
     </div>

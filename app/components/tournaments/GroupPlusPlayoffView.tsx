@@ -383,8 +383,8 @@ function pairWinnerId(
     const matchesForGroup = groupMatches[gIndex];
     return (
         <GroupStageTable
-          participants={group}
-          matches={matchesForGroup}
+          groupParticipants={group}
+          groupMatches={matchesForGroup}
           groupIndex={gIndex}
           onSaveScore={(aId, bId, score) =>
             onSaveScore?.(aId, bId, score, { phase: PhaseType.Group, groupIndex: gIndex, roundIndex: null })

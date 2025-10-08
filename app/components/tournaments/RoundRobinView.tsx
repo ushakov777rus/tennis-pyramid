@@ -126,8 +126,8 @@ export function RoundRobinView({
   return (
     <>
       <GroupStageTable
-        participants={participants}
-        matches={matches}
+        groupParticipants={participants}
+        groupMatches={matches}
         onSaveScore={onSaveScore}
         ScoreCellAdapter={GroupMatchCell}
       />
