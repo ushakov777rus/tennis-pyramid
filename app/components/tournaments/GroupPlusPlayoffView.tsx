@@ -4,7 +4,6 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
 
-import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
 import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
 import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 // NEW import
@@ -252,37 +251,66 @@ function pairWinnerId(
     }
   }, [editValue, editingInputRef, onSaveScore]);
 
-  // Адаптер для PlayoffBlock: сохраняем прежний контракт (a, b, phaseFilter),
-// но внутрь прокидываем все нужные зависимости MatchCellBase.
-const PlayoffMatchCell: React.FC<{
-  a: Participant | null;
-  b: Participant | null;
-  phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
-}> = ({ a, b, phaseFilter }) => (
-  <ScoreCell
-    a={a}
-    b={b}
-    phaseFilter={phaseFilter}
-    // helpers/state
-    getMatchScore={(aId, bId, f) => getMatchScore(aId, bId, f)}
-    pairKey={pairKey}
-    editingKey={editingKey}
-    editValue={editValue}
-    setEditValue={setEditValue}
-    saving={saving}
-    inputRef={editingInputRef}
-    mobileKeyboardAvailable={mobileKeyboardAvailable}
-    onStartEdit={(aId, bId, currentScore, f) => {
-      startEdit(aId, bId, currentScore);
-      if (mobileKeyboardAvailable) {
-        setMobileKeyboardContext({ aId, bId, phaseFilter: f });
-      }
-    }}
-    onSave={(aId, bId, f) => saveEdit(aId, bId, f)}
-    onCancel={cancelEdit}
-  />
-);
+  // Адаптер для PlayoffBlock
+  const PlayoffMatchCell: React.FC<{
+    a: Participant | null;
+    b: Participant | null;
+    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
+  }> = ({ a, b, phaseFilter }) => (
+    <ScoreCell
+      a={a}
+      b={b}
+      phaseFilter={phaseFilter}
+      // helpers/state
+      getMatchScore={(aId, bId, f) => getMatchScore(aId, bId, f)}
+      pairKey={pairKey}
+      editingKey={editingKey}
+      editValue={editValue}
+      setEditValue={setEditValue}
+      saving={saving}
+      inputRef={editingInputRef}
+      mobileKeyboardAvailable={mobileKeyboardAvailable}
+      onStartEdit={(aId, bId, currentScore, f) => {
+        startEdit(aId, bId, currentScore);
+        if (mobileKeyboardAvailable) {
+          setMobileKeyboardContext({ aId, bId, phaseFilter: f });
+        }
+      }}
+      onSave={(aId, bId, f) => saveEdit(aId, bId, f)}
+      onCancel={cancelEdit}
+    />
+  );
 
+  // Адаптер для GroupStageTable
+  const GroupMatchCell: React.FC<{
+    a: Participant | null;
+    b: Participant | null;
+    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
+  }> = ({ a, b, phaseFilter }) => (
+    <ScoreCell
+      a={a}
+      b={b}
+      phaseFilter={phaseFilter}
+      // helpers/state
+      getMatchScore={(aId, bId, f) => getMatchScore(aId, bId, f)}
+      pairKey={pairKey}
+      editingKey={editingKey}
+      editValue={editValue}
+      setEditValue={setEditValue}
+      saving={saving}
+      inputRef={editingInputRef}
+      mobileKeyboardAvailable={mobileKeyboardAvailable}
+      onStartEdit={(aId, bId, currentScore, f) => {
+        startEdit(aId, bId, currentScore);
+        if (mobileKeyboardAvailable) {
+          setMobileKeyboardContext({ aId, bId, phaseFilter: f });
+        }
+      }}
+      onSave={(aId, bId, f) => saveEdit(aId, bId, f)}
+      onCancel={cancelEdit}
+      showHelpTooltip={true}
+    />
+  );
 
   const ordered = useMemo(
     () => participants.filter(isValidParticipant).slice().sort((a, b) => a.displayName(false).localeCompare(b.displayName(false), "ru")),
@@ -363,6 +391,7 @@ const PlayoffMatchCell: React.FC<{
           onSaveScore={(aId, bId, score) =>
             onSaveScore?.(aId, bId, score, { phase: PhaseType.Group, groupIndex: gIndex, roundIndex: null })
           }
+          ScoreCellAdapter={GroupMatchCell}
         />
       </div>
     );

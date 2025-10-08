@@ -8,7 +8,6 @@ import {
   ScoreKeyboard,
   useScoreKeyboardAvailable,
 } from "@/app/components/controls/ScoreKeyboard";
-import { ScoreCell, type MatchPhaseFilter } from "./ScoreCell";
 
 import "./RoundRobinTable.css";
 import "./PyramidView.css";
@@ -25,6 +24,12 @@ export type GroupStageTableProps = {
     bId: number,
     score: string
   ) => Promise<void> | void;
+  /** Компонент для ввода счёта (как в PlayoffStageTable) */
+  ScoreCellAdapter: React.FC<{
+    a: Participant | null;
+    b: Participant | null;
+    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
+  }>;
 };
 
 /**
@@ -227,6 +232,7 @@ export function GroupStageTable({
   participants,
   matches,
   onSaveScore,
+  ScoreCellAdapter: ScoreCell,
 }: GroupStageTableProps) {
   /** Текущая редактируемая пара (ключ из двух ID). */
   const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -451,8 +457,7 @@ export function GroupStageTable({
   const onStartEdit = useCallback((
     aId: number,
     bId: number,
-    currentScore: string | null,
-    filter?: MatchPhaseFilter
+    currentScore: string | null
   ) => {
     const key = pairKey(aId, bId);
     setEditingKey(key);
@@ -483,8 +488,7 @@ export function GroupStageTable({
    */
   const onSave = useCallback(async (
     aId: number,
-    bId: number,
-    filter?: MatchPhaseFilter
+    bId: number
   ) => {
     const currentNode = editingInputRef.current;
     const fallbackValue =
@@ -535,57 +539,7 @@ export function GroupStageTable({
   const firstHelpTooltip = useFirstHelpTooltip();
 
   /**
-   * Компонент ячейки матча для использования в таблице
-   */
-  const ScoreCellAdapter = useCallback(({ a, b, phaseFilter }: {
-    a: Participant | null;
-    b: Participant | null;
-    phaseFilter?: MatchPhaseFilter;
-  }) => {
-    const aId = a?.getId;
-    const bId = b?.getId;
-    
-    if (!aId || !bId) {
-      return <span className="vs vs-placeholder" aria-hidden>vs</span>;
-    }
-
-    const isLowerTriangle = indexById.get(aId)! > indexById.get(bId)!;
-    const key = pairKey(aId, bId);
-    const isActiveCell = editingKey === key && editingCell?.rowId === aId && editingCell?.colId === bId;
-
-    return (
-      <ScoreCell
-        a={a}
-        b={b}
-        phaseFilter={phaseFilter}
-        getMatchScore={getMatchScore}
-        pairKey={pairKey}
-        editingKey={editingKey}
-        editValue={editValue}
-        setEditValue={setEditValue}
-        saving={saving}
-        onStartEdit={onStartEdit}
-        onSave={onSave}
-        onCancel={onCancel}
-        inputRef={editingInputRef}
-        mobileKeyboardAvailable={mobileKeyboardAvailable}
-      />
-    );
-  }, [
-    indexById,
-    editingKey,
-    editingCell,
-    editValue,
-    saving,
-    getMatchScore,
-    onStartEdit,
-    onSave,
-    onCancel,
-    mobileKeyboardAvailable
-  ]);
-
-  /**
-   * Рендерит ячейку матрицы с использованием универсального ScoreCell
+   * Рендерит ячейку матрицы с использованием переданного ScoreCellAdapter
    */
   function Cell({
     aId,
@@ -611,7 +565,7 @@ export function GroupStageTable({
         data-rr-cell={`${aId}-${bId}`}
         className={`rr-cell ${isLowerTriangle ? '' : 'rr-cell--mirror'} ${!getMatchScore(aId, bId) ? 'rr-empty' : ''}`}
       >
-        <ScoreCellAdapter a={a} b={b} />
+        <ScoreCell a={a} b={b} phaseFilter={{ phase: PhaseType.Group }} />
       </td>
     );
   }

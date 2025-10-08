@@ -478,7 +478,13 @@ export const FormatView = React.memo(function FormatView({
   }
 
   if (tournament.isRoundRobin()) {
-    return <RoundRobinView participants={participants} matches={matches} onSaveScore={onSaveScoreRoundRobin} />;
+    return (
+      <RoundRobinView 
+        participants={participants} 
+        matches={matches} 
+        onSaveScore={onSaveScoreRoundRobin} 
+      />      
+    );
   }
 
   if (tournament.isSingleElimination()) {
