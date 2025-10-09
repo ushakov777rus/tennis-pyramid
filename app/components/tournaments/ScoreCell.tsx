@@ -1,9 +1,10 @@
 "use client";
 
-import React, { RefObject } from "react";
+import React, { RefObject, useCallback, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { PhaseType } from "@/app/models/Match";
 import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
+import { ScoreKeyboard, useScoreKeyboardAvailable } from "../controls/ScoreKeyboard";
 
 /** Локальный тип фильтра фазы (совпадает по форме с используемым в родителе) */
 export type MatchPhaseFilter = {
@@ -19,19 +20,13 @@ export type ScoreCellProps = {
 
   /** Хелперы/состояния, приходящие от родителя */
   scoreString: string | null;
-  pairKey: (aId: number, bId: number) => string;
-  editingKey: string | null;
 
   editValue: string;
   setEditValue: (v: string) => void;
-  saving: boolean;
 
-  onStartEdit: (aId: number, bId: number, currentScore: string | null, filter?: MatchPhaseFilter) => void;
   onSave: (aId: number, bId: number, filter?: MatchPhaseFilter) => void;
-  onCancel: () => void;
 
   inputRef: RefObject<HTMLInputElement | HTMLDivElement | null>;
-  mobileKeyboardAvailable: boolean;
   
   /** Опционально: для показа подсказки в групповом этапе */
   showHelpTooltip?: boolean;
@@ -42,18 +37,70 @@ export function ScoreCell({
   b,
   phaseFilter,
   scoreString,
-  pairKey,
-  editingKey,
   editValue,
   setEditValue,
-  saving,
-  onStartEdit,
   onSave,
-  onCancel,
   inputRef,
-  mobileKeyboardAvailable,
   showHelpTooltip = false,
 }: ScoreCellProps) {
+
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
+
+  const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
+    aId: number;
+    bId: number;
+  } | null>(null);
+
+  const mobileKeyboardAvailable = useScoreKeyboardAvailable();
+  
+  // Вспомогательные функции
+  const pairKey = useCallback((aId: number, bId: number) => 
+    `${aId}_${bId}`, []);
+
+  const startEdit = useCallback((aId: number, bId: number, currentScore: string | null) => {
+    const k = pairKey(aId, bId);
+    setEditingKey(k);
+    setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
+
+    editingInputRef.current = null;
+  }, [pairKey]);
+
+  const cancelEdit = useCallback(() => {
+    setEditingKey(null);
+    setEditValue("");
+    editingInputRef.current = null;
+    setMobileKeyboardContext(null);
+  }, []);
+
+  const saveEdit = useCallback(async (aId: number, bId: number) => {
+    const node = editingInputRef.current;
+    const draft = node instanceof HTMLInputElement ? node.value : editValue;
+    const nextValue = (draft ?? "").trim();
+
+    if (!nextValue) {
+      alert('Введите счёт');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      await onSave?.(aId, bId, { phase: PhaseType.Group });
+      setEditingKey(null);
+      setEditValue("");
+      editingInputRef.current = null;
+      setMobileKeyboardContext(null);
+    } catch (err) {
+      console.error("Ошибка при сохранении счёта:", err);
+      alert(err instanceof Error ? err.message : "Не удалось сохранить счёт");
+    } finally {
+      setSaving(false);
+    }
+  }, [editValue, onSave]);
+
+
   const aId = a?.getId;
   const bId = b?.getId;
   const canEdit = !!aId && !!bId;
@@ -62,7 +109,10 @@ export function ScoreCell({
   const isEditing = !!kkk && editingKey === kkk;
   const shouldShowHelpTooltip = canEdit && !localScoreString && !isEditing && showHelpTooltip;
 
+  console.log("ScoreCell", mobileKeyboardAvailable, mobileKeyboardContext);
+
   return (
+    <>
     <div className="score-cell">
       {canEdit ? (
         localScoreString ? (
@@ -73,7 +123,13 @@ export function ScoreCell({
             <button
               type="button"
               className="vs vs-click"
-              onClick={() => onStartEdit(aId!, bId!, localScoreString, phaseFilter)}
+              onClick={() => 
+                {
+                  startEdit(aId!, bId!, localScoreString)
+                  if (mobileKeyboardAvailable) {
+                    setMobileKeyboardContext({ aId, bId});
+                  }
+                }}
               title="Добавить счёт"
               aria-label="Добавить счёт"
             >
@@ -105,7 +161,7 @@ export function ScoreCell({
                   }
                   if (e.key === "Escape") {
                     e.preventDefault();
-                    onCancel();
+                    cancelEdit();
                   }
                 }
               }}
@@ -126,7 +182,7 @@ export function ScoreCell({
                 <CancelIconButton
                   className="lg"
                   title="Отмена"
-                  onClick={onCancel}
+                  onClick={cancelEdit}
                   disabled={saving}
                 />
               </>
@@ -139,5 +195,21 @@ export function ScoreCell({
         </span>
       )}
     </div>
+
+    {/* Мобильная клавиатура */}
+    {mobileKeyboardAvailable && mobileKeyboardContext && (
+      <ScoreKeyboard
+        inputRef={editingInputRef}
+        value={editValue}
+        onChange={setEditValue}
+        onSave={() =>
+          saveEdit(mobileKeyboardContext.aId, mobileKeyboardContext.bId)
+        }
+        onCancel={cancelEdit}
+        disabled={saving}
+        autoFocus={false}
+      />
+    )}
+    </>
   );
 }

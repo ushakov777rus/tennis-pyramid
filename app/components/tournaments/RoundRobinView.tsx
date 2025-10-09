@@ -5,7 +5,6 @@ import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
 import { GroupStageTable } from "./GroupStageTable";
 import { ScoreCell } from "./ScoreCell";
-import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
 
 type RoundRobinViewProps = {
   participants: Participant[];
@@ -30,29 +29,11 @@ export function RoundRobinView({
   const [editValue, setEditValue] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
-  const mobileKeyboardAvailable = useScoreKeyboardAvailable();
+
   const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
     aId: number;
     bId: number;
   } | null>(null);
-
-  // Вспомогательные функции
-  const pairKey = useCallback((aId: number, bId: number) => 
-    `${Math.min(aId, bId)}_${Math.max(aId, bId)}`, []);
-
-  const startEdit = useCallback((aId: number, bId: number, currentScore: string | null) => {
-    const k = pairKey(aId, bId);
-    setEditingKey(k);
-    setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
-    editingInputRef.current = null;
-  }, [pairKey]);
-
-  const cancelEdit = useCallback(() => {
-    setEditingKey(null);
-    setEditValue("");
-    editingInputRef.current = null;
-    setMobileKeyboardContext(null);
-  }, []);
 
   const saveEdit = useCallback(async (aId: number, bId: number) => {
     const node = editingInputRef.current;
@@ -91,26 +72,14 @@ export function RoundRobinView({
       b={b}
       scoreString={scoreString}
       phaseFilter={phaseFilter}
-      // helpers/state      
-      pairKey={pairKey}
-      editingKey={editingKey}
+      // helpers/state 
       editValue={editValue}
       setEditValue={setEditValue}
-      saving={saving}
       inputRef={editingInputRef}
-      mobileKeyboardAvailable={mobileKeyboardAvailable}
-      onStartEdit={(aId, bId, currentScore, f) => {
-        startEdit(aId, bId, currentScore);
-        if (mobileKeyboardAvailable) {
-          setMobileKeyboardContext({ aId, bId});
-        }
-      }}
       onSave={(aId, bId, f) => saveEdit(aId, bId)}
-      onCancel={cancelEdit}
       showHelpTooltip={false}
     />
   );
-
 
   return (
     <>
@@ -120,21 +89,6 @@ export function RoundRobinView({
         onSaveScore={onSaveScore}
         ScoreCellAdapter={GroupMatchCell}
       />
-      
-      {/* Мобильная клавиатура */}
-      {mobileKeyboardAvailable && mobileKeyboardContext && (
-        <ScoreKeyboard
-          inputRef={editingInputRef}
-          value={editValue}
-          onChange={setEditValue}
-          onSave={() =>
-            saveEdit(mobileKeyboardContext.aId, mobileKeyboardContext.bId)
-          }
-          onCancel={cancelEdit}
-          disabled={saving}
-          autoFocus={false}
-        />
-      )}
     </>
   );
 }

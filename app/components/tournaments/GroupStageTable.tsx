@@ -349,6 +349,7 @@ export function GroupStageTable({
     if (!wrap) return;
     const bottomGap = keyboardHeight > 0 ? `${keyboardHeight + 16}px` : "0px";
     wrap.style.setProperty("--rr-bottom-gap", bottomGap);
+    console.log("Set bottom padding", bottomGap);
   }, [keyboardHeight]);
 
   /**

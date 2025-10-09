@@ -261,21 +261,12 @@ function pairWinnerId(
       phaseFilter={phaseFilter}
       // helpers/state
       scoreString={scoreString}
-      pairKey={pairKey}
-      editingKey={editingKey}
       editValue={editValue}
       setEditValue={setEditValue}
       saving={saving}
       inputRef={editingInputRef}
       mobileKeyboardAvailable={mobileKeyboardAvailable}
-      onStartEdit={(aId, bId, currentScore, f) => {
-        startEdit(aId, bId, currentScore);
-        if (mobileKeyboardAvailable) {
-          setMobileKeyboardContext({ aId, bId, phaseFilter: f });
-        }
-      }}
       onSave={(aId, bId, f) => saveEdit(aId, bId, f)}
-      onCancel={cancelEdit}
       showHelpTooltip={false}
     />
   );
@@ -293,21 +284,12 @@ function pairWinnerId(
       phaseFilter={phaseFilter}
       // helpers/state
       scoreString={scoreString}
-      pairKey={pairKey}
-      editingKey={editingKey}
       editValue={editValue}
       setEditValue={setEditValue}
       saving={saving}
       inputRef={editingInputRef}
       mobileKeyboardAvailable={mobileKeyboardAvailable}
-      onStartEdit={(aId, bId, currentScore, f) => {
-        startEdit(aId, bId, currentScore);
-        if (mobileKeyboardAvailable) {
-          setMobileKeyboardContext({ aId, bId, phaseFilter: f });
-        }
-      }}
       onSave={(aId, bId, f) => saveEdit(aId, bId, f)}
-      onCancel={cancelEdit}
       showHelpTooltip={false}
     />
   );
