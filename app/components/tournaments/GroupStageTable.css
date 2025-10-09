@@ -1,5 +1,14 @@
 :root {
-  --rr-index-width: 25px;
+  --rr-index-min-width: 25px;
+  --rr-index-width: 5%;
+
+  --rr-name-min-width: 120px;
+  --rr-name-width: 30%;
+
+  --rr-score-min-width: 30px;
+  --rr-score-width: 10%;
+
+
   --rr-roundrobin-border: rgb(63 77 36 / 30%);
   --rr-roundrobin-bg: var(--background, #0f0f0f);
 }
@@ -44,10 +53,6 @@
   border-bottom: 1px solid #2a2a2a;
 }
 
-.round-table {
-  width: 100%;
-  border-collapse: collapse;
-}
 
 .grid-row {
   display: grid;
@@ -55,12 +60,6 @@
   align-items: center;
 }
 
-.round-table th,
-.round-table td {
-  vertical-align: middle;
-  padding: 6px 0px;
-  border: 0;
-}
 
 .grid-row > :nth-child(1) {
   text-align: left;
@@ -82,36 +81,6 @@
   text-overflow: ellipsis;
 }
 
-.round-table tbody .grid-row + .grid-row > td {
-  border-top: 1px dashed rgba(0, 0, 0, 0.12);
-}
-
-.round-table .history-empty {
-  text-align: center;
-  padding: 10px;
-  color: #666;
-}
-
-.round-table tbody .grid-row:hover > td {
-  background: rgba(0, 0, 0, 0.03);
-}
-
-@media (max-width: 360px) {
-  .round-table {
-    font-size: 0.95rem;
-  }
-}
-
-.round-table .badge,
-.round-table .vs {
-  display: inline-block;
-  max-width: 100%;
-  vertical-align: middle;
-}
-
-.round-table thead .grid-row > th {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-}
 
 .score-cell {
   text-align: center;
@@ -176,6 +145,8 @@
 
 .rr-matrix th,
 .rr-matrix td {
+  text-align: center;
+  vertical-align: middle;
   height: 45px;
   font-size: 12px;
   text-align: center;
@@ -194,7 +165,6 @@
 .rr-matrix th:last-child {
   border-right: none;
 }
-
 
 .rr-matrix thead th {
   position: sticky;
@@ -232,7 +202,7 @@
 .rr-header-index {
   position: sticky;
   width: var(--rr-index-width);
-  min-width: var(--rr-index-width);
+  min-width: var(--rr-index-min-width);
   left: 0;
   z-index: 4;
 }
@@ -240,10 +210,16 @@
 .rr-header-name {
   position: sticky;
   left: var(--rr-index-width);
-  width: 120px;
+  width: var(--rr-name-width);
+  min-width: var(--rr-name-min-width);
   text-align: left;
   z-index: 3;
   top: 0;
+}
+
+.rr-header-score {
+  width: var(--rr-scorewidth);
+  min-width: var(--rr-score-min-width);
 }
 
 .rr-index-cell {
@@ -266,7 +242,6 @@
 }
 
 .rr-diag {
-  width: 30px;
   background: rgba(166, 255, 0, 0.1);
 }
 

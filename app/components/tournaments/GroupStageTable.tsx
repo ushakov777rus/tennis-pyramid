@@ -342,17 +342,6 @@ export function GroupStageTable({
   }, [matches, pendingScores]);
 
   /**
-   * Добавляем снизу padding под таблицей, чтобы клавиатура её не перекрывала.
-   */
-  useEffect(() => {
-    const wrap = wrapRef.current;
-    if (!wrap) return;
-    const bottomGap = keyboardHeight > 0 ? `${keyboardHeight + 16}px` : "0px";
-    wrap.style.setProperty("--rr-bottom-gap", bottomGap);
-    console.log("Set bottom padding", bottomGap);
-  }, [keyboardHeight]);
-
-  /**
    * Скроллим окно так, чтобы активная ячейка была видна при появлении клавиатуры.
    */
   useEffect(() => {
@@ -503,15 +492,15 @@ export function GroupStageTable({
         </div>)
       }
 
-    <div ref={wrapRef} className="roundrobin-wrap">
+    <div ref={wrapRef}>
       <div className="rr-scroll">
-        <table ref={tableRef} className="rr-matrix round-table">
+        <table ref={tableRef} className="rr-matrix">
           <thead>
             <tr>
               <th className="center rr-header-index">#</th>
               <th className="left rr-header-name">Игроки</th>
               {ordered.map((_, index) => (
-                <th key={index} className="center">
+                <th key={index} className="center rr-header-score">
                   {index + 1}
                 </th>
               ))}

@@ -87,11 +87,13 @@ export function RoundRobinView({
   };
 
   return (
-    <GroupStageTable
-      groupParticipants={participants}
-      groupMatches={matches}
-      onSaveScore={onSaveScore}
-      ScoreCellAdapter={GroupMatchCell}
-    />
+    <div className="card-container">
+      <GroupStageTable
+        groupParticipants={participants}
+        groupMatches={matches}
+        onSaveScore={onSaveScore}
+        ScoreCellAdapter={GroupMatchCell}
+      />
+    </div>
   );
 }

@@ -632,3 +632,17 @@ body {
     max-width: 320px;
   }
 }
+
+
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 20px;
+  justify-items: center;
+}
+
+/* Для одной карточки - центрируем с фиксированной шириной */
+.card-container:has(> :only-child) {
+  grid-template-columns: minmax(380px, 800px);
+  justify-content: space-around;
+}
