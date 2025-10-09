@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import "./ScoreKeyboard.css";
 
@@ -14,6 +14,8 @@ const NUMBER_ROWS: Array<Array<string>> = [
 
 export type ScoreKeyboardProps = {
   inputRef: React.RefObject<HTMLElement | null>;
+  participantA: string;
+  participantB: string;
   value: string;
   onChange: (value: string) => void;
   onSave: () => void;
@@ -22,37 +24,30 @@ export type ScoreKeyboardProps = {
   autoFocus?: boolean;
 };
 
-function useIsMobileViewport(breakpoint = 768) {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
+export function useScoreKeyboardAvailable(breakpoint = 768) {
+  const subscribe = useCallback((callback: () => void) => {
+    if (typeof window === "undefined") return () => {};
+    
     const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
-    const listener = (event: MediaQueryListEvent | MediaQueryList) => {
-      setIsMobile("matches" in event ? event.matches : mq.matches);
-    };
-
-    listener(mq);
-    mq.addEventListener?.("change", listener);
-    mq.addListener?.(listener as any);
-
-    return () => {
-      mq.removeEventListener?.("change", listener);
-      mq.removeListener?.(listener as any);
-    };
+    const listener = () => callback();
+    
+    mq.addEventListener("change", listener);
+    return () => mq.removeEventListener("change", listener);
   }, [breakpoint]);
 
-  return isMobile;
-}
+  const getSnapshot = useCallback(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia(`(max-width: ${breakpoint}px)`).matches;
+  }, [breakpoint]);
 
-export function useScoreKeyboardAvailable(breakpoint = 900) {
-  return useIsMobileViewport(breakpoint);
+  return useSyncExternalStore(subscribe, getSnapshot, () => false);
 }
 
 export function ScoreKeyboard({
   inputRef,
   value,
+  participantA,
+  participantB,
   onChange,
   onSave,
   onCancel,
@@ -182,6 +177,12 @@ export function ScoreKeyboard({
       aria-label="Редактор счёта"
       style={undefined}
     >
+      <div className="score-kb__participants">
+        <div className="score-kb__key">{participantA}</div>
+        <div className="score-kb__vs">VS</div>
+        <div className="score-kb__key">{participantB}</div>
+      </div>
+
       <div className="score-kb__formula">
         <span className="score-kb__fx" aria-hidden>
           Счет

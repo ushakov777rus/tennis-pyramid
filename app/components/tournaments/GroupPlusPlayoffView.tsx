@@ -1,18 +1,13 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
 
-import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
 import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
-// NEW import
 import { ScoreCell } from "./ScoreCell";
 
-
-/* Сетка групп рисуется компонентом матрицы */
 import { GroupStageTable } from "./GroupStageTable";
-/* ⬇️ Новый импорт вынесенного блока плей-офф */
 import { PlayoffStageTable } from "./PlayoffStageTable";
 
 import "./PyramidView.css";
@@ -20,8 +15,6 @@ import "./GroupStageTable.css";
 import "./PlayoffStageTable.css"
 import "@/app/components/ParticipantsView.css";
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
-
-/* ========================= TYPES, HELPERS — без изменений ========================= */
 
 type MatchPhaseFilter = {
   phase?: PhaseType;
@@ -38,18 +31,31 @@ type GroupPlusPlayoffViewProps = {
     score: string,
     meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
   ) => Promise<void> | void;
-
+  onOpenKeyboard?: (
+    editingKey: string,
+    context: { participantA: Participant; participantB: Participant },
+    initialValue: string,
+    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+  ) => void;
+  onCloseKeyboard?: () => void;
+  keyboardState?: {
+    isOpen: boolean;
+    editingKey: string | null;
+    mobileKeyboardContext: { participantA: Participant; participantB: Participant } | null;
+    editValue: string;
+  };
   groupsCount?: number;
   advancePerGroup?: number;
   seeding?: "simple" | "snake";
 };
 
-/* ============================== MAIN COMPONENT ============================== */
-
 export function GroupPlusPlayoffView({
   participants,
   matches,
   onSaveScore,
+  onOpenKeyboard,
+  onCloseKeyboard,
+  keyboardState,
   groupsCount = 2,
   advancePerGroup = 2,
   seeding = "snake",
@@ -59,240 +65,247 @@ export function GroupPlusPlayoffView({
     findMatchBetween
   } = useTournament();
 
-
-  // состояния для (опционального) редактирования плей-офф
-  const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState<string>("");
-  const [saving, setSaving] = useState(false);
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
-  const mobileKeyboardAvailable = useScoreKeyboardAvailable();
-  const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
-    aId: number;
-    bId: number;
-    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
-  } | null>(null);
-
-
-function isValidParticipant(p: Participant | null | undefined): p is Participant {
-  return !!p && (!!p.player || !!p.team);
-}
-
-function nextPow2(n: number) { let p = 1; while (p < n) p <<= 1; return p; }
-
-function isValidScoreFormat(s: string) {
-  const trimmed = s.trim();
-  if (!trimmed) return false;
-  const setRe = /^\s*\d+\s*[:-]\s*\d+\s*$/;
-  return trimmed.split(",").every((part) => setRe.test(part.trim()));
-}
-function distributeIntoGroups(items: Participant[], groupsCount: number, mode: "simple" | "snake"): Participant[][] {
-  const groups: Participant[][] = Array.from({ length: groupsCount }, () => []);
-  if (mode === "simple") {
-    items.forEach((p, i) => groups[i % groupsCount].push(p));
-  } else {
-    let idx = 0, dir = 1;
-    for (const p of items) {
-      groups[idx].push(p);
-      idx += dir;
-      if (idx === groupsCount) { idx = groupsCount - 1; dir = -1; }
-      else if (idx < 0) { idx = 0; dir = 1; }
-    }
-  }
-  return groups;
-}
-type GroupStats = { id: number; name: string; wins: number; setsDiff: number; gamesDiff: number; };
-function computeGroupStats(group: Participant[], matches: Match[]): GroupStats[] {
-  const map = new Map<number, GroupStats>();
-  
-  for (const p of group) 
-    map.set(p.getId, { id: p.getId, name: p.displayName(), wins: 0, setsDiff: 0, gamesDiff: 0 });
-
-  for (let i = 0; i < group.length; i++) {
-    for (let j = i + 1; j < group.length; j++) {
-      const a = group[i], b = group[j];
-      const aId = a.getId, bId = b.getId;
-      const m = findMatchBetween(aId, bId);
-      if (!m || !m.scores || m.scores.length === 0) continue;
-
-      let aSets = 0, bSets = 0, aGames = 0, bGames = 0;
-      for (const [s1, s2] of m.scores) {
-        aGames += s1; bGames += s2;
-        if (s1 > s2) aSets++; else if (s2 > s1) bSets++;
-      }
-      if (aSets > bSets) map.get(aId)!.wins += 1;
-      else if (bSets > aSets) map.get(bId)!.wins += 1;
-      map.get(aId)!.setsDiff += (aSets - bSets);
-      map.get(bId)!.setsDiff += (bSets - aSets);
-      map.get(aId)!.gamesDiff += (aGames - bGames);
-      map.get(bId)!.gamesDiff += (bGames - aGames);
-    }
-  }
-
-  return Array.from(map.values()).sort((x, y) => {
-    if (y.wins !== x.wins) return y.wins - x.wins;
-    if (y.setsDiff !== x.setsDiff) return y.setsDiff - x.setsDiff;
-    return y.gamesDiff - x.gamesDiff;
-  });
-}
-function isCompletedMatch(m?: Match | null): boolean { return !!(m && m.scores && m.scores.length > 0); }
-function countCompletedPairsInGroup(group: Participant[], matches: Match[]): number {
-  let done = 0;
-  for (let i = 0; i < group.length; i++) {
-    for (let j = i + 1; j < group.length; j++) {
-      const aId = group[i].getId, bId = group[j].getId;
-      if (isCompletedMatch(findMatchBetween(aId, bId))) done++;
-    }
-  }
-  return done;
-}
-function isGroupStarted(group: Participant[], matches: Match[]): boolean {
-  return countCompletedPairsInGroup(group, matches) > 0;
-}
-function makePlayoffQualifiersFromFiltered(
-  groups: Participant[][],
-  statsPerGroup: GroupStats[][],
-  topK: number,
-  matchesPerGroup: Match[][]
-): (Participant | null)[] {
-  const out: (Participant | null)[] = [];
-  const G = groups.length;
-  const order: number[] = Array.from({ length: G }, (_, i) => i);
-
-  function pick(gi: number, place: number) {
-    const group = groups[gi];
-    const stats = statsPerGroup[gi];
-    if (!isGroupStarted(group, matchesPerGroup[gi])) { out.push(null); return; }
-    const slot = stats[place]; if (!slot) { out.push(null); return; }
-    out.push(group.find(pp => pp.getId === slot.id) ?? null);
-  }
-
-  for (const gi of order) pick(gi, 0);
-  if (topK >= 2) for (const gi of [...order].reverse()) pick(gi, 1);
-  for (let place = 3; place <= topK; place++) {
-    const wave = place % 2 === 1 ? order : [...order].reverse();
-    for (const gi of wave) pick(gi, place - 1);
-  }
-  return out;
-}
-function buildSingleElimPairs(entrants: (Participant | null)[]) {
-  const size = nextPow2(entrants.length || 1);
-  const padded = entrants.slice();
-  while (padded.length < size) padded.push(null);
-  const r0: Array<[Participant | null, Participant | null]> = [];
-  for (let i = 0; i < size; i += 2) r0.push([padded[i], padded[i + 1]]);
-  const rounds: Array<Array<[Participant | null, Participant | null]>> = [r0];
-  let cur = r0.length;
-  while (cur > 1) {
-    rounds.push(new Array(cur / 2).fill(null).map(() => [null, null]));
-    cur = cur / 2;
-  }
-  return rounds;
-}
-function pairWinnerId(
-  a: Participant | null,
-  b: Participant | null,
-  matches: Match[],
-  filter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
-): number | null {
-  const aId = a?.getId; 
-  const bId = b?.getId;
-  
-  if (aId && !bId) return aId;
-  if (!aId && bId) return bId;
-  if (!aId || !bId) return null;
-  const m = findMatchBetween(aId, bId, filter);
-  if (!m) return null;
-  const w = m.getWinnerId?.();
-  return w && w > 0 ? w : null;
-}
-
-
-
-
   const firstHelpTooltip = useFirstHelpTooltip();
 
-  const pairKey = useCallback((aId: number, bId: number) => `${Math.min(aId, bId)}_${Math.max(aId, bId)}`, []);
-  const startEdit = useCallback((aId: number, bId: number, currentScore: string | null) => {
-    const k = pairKey(aId, bId);
-    setEditingKey(k);
-    setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
-    editingInputRef.current = null;
-  }, [pairKey, editingInputRef]);
-  const cancelEdit = useCallback(() => {
-    setEditingKey(null);
-    setEditValue("");
-    editingInputRef.current = null;
-    setMobileKeyboardContext(null);
-  }, [editingInputRef]);
-  
-  const saveEdit = useCallback(async (aId: number, bId: number, phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }, raw?: string) => {
-    const node = editingInputRef.current;
-    const draft = node instanceof HTMLInputElement ? node.value : editValue;
-    const nextValue = (raw ?? draft ?? "").trim();
-    if (!isValidScoreFormat(nextValue)) {
-      alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"');
-      return;
-    }
-    try {
-      setSaving(true);
-      const meta = phaseFilter
-        ? { phase: phaseFilter.phase!, groupIndex: phaseFilter.groupIndex ?? null, roundIndex: phaseFilter.roundIndex ?? null }
-        : undefined;
-      await onSaveScore?.(aId, bId, nextValue, meta);
-      setEditingKey(null);
-      setEditValue("");
-      editingInputRef.current = null;
-      setMobileKeyboardContext(null);
-    } finally {
-      setSaving(false);
-    }
-  }, [editValue, editingInputRef, onSaveScore]);
+  // Вспомогательные функции
+  function isValidParticipant(p: Participant | null | undefined): p is Participant {
+    return !!p && (!!p.player || !!p.team);
+  }
 
-  // Адаптер для PlayoffBlock
-  const PlayoffMatchCell: React.FC<{
-    a: Participant | null;
-    b: Participant | null;
-    scoreString: string | null;
-    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
-  }> = ({ a, b, scoreString, phaseFilter }) => (
-    <ScoreCell
-      a={a}
-      b={b}
-      phaseFilter={phaseFilter}
-      // helpers/state
-      scoreString={scoreString}
-      editValue={editValue}
-      setEditValue={setEditValue}
-      saving={saving}
-      inputRef={editingInputRef}
-      mobileKeyboardAvailable={mobileKeyboardAvailable}
-      onSave={(aId, bId, f) => saveEdit(aId, bId, f)}
-      showHelpTooltip={false}
-    />
-  );
+  function nextPow2(n: number) { let p = 1; while (p < n) p <<= 1; return p; }
 
-  // Адаптер для GroupStageTable
+  function distributeIntoGroups(items: Participant[], groupsCount: number, mode: "simple" | "snake"): Participant[][] {
+    const groups: Participant[][] = Array.from({ length: groupsCount }, () => []);
+    if (mode === "simple") {
+      items.forEach((p, i) => groups[i % groupsCount].push(p));
+    } else {
+      let idx = 0, dir = 1;
+      for (const p of items) {
+        groups[idx].push(p);
+        idx += dir;
+        if (idx === groupsCount) { idx = groupsCount - 1; dir = -1; }
+        else if (idx < 0) { idx = 0; dir = 1; }
+      }
+    }
+    return groups;
+  }
+
+  type GroupStats = { id: number; name: string; wins: number; setsDiff: number; gamesDiff: number; };
+  function computeGroupStats(group: Participant[], matches: Match[]): GroupStats[] {
+    const map = new Map<number, GroupStats>();
+    
+    for (const p of group) 
+      map.set(p.getId, { id: p.getId, name: p.displayName(), wins: 0, setsDiff: 0, gamesDiff: 0 });
+
+    for (let i = 0; i < group.length; i++) {
+      for (let j = i + 1; j < group.length; j++) {
+        const a = group[i], b = group[j];
+        const aId = a.getId, bId = b.getId;
+        const m = findMatchBetween(aId, bId);
+        if (!m || !m.scores || m.scores.length === 0) continue;
+
+        let aSets = 0, bSets = 0, aGames = 0, bGames = 0;
+        for (const [s1, s2] of m.scores) {
+          aGames += s1; bGames += s2;
+          if (s1 > s2) aSets++; else if (s2 > s1) bSets++;
+        }
+        if (aSets > bSets) map.get(aId)!.wins += 1;
+        else if (bSets > aSets) map.get(bId)!.wins += 1;
+        map.get(aId)!.setsDiff += (aSets - bSets);
+        map.get(bId)!.setsDiff += (bSets - aSets);
+        map.get(aId)!.gamesDiff += (aGames - bGames);
+        map.get(bId)!.gamesDiff += (bGames - aGames);
+      }
+    }
+
+    return Array.from(map.values()).sort((x, y) => {
+      if (y.wins !== x.wins) return y.wins - x.wins;
+      if (y.setsDiff !== x.setsDiff) return y.setsDiff - x.setsDiff;
+      return y.gamesDiff - x.gamesDiff;
+    });
+  }
+
+  function isCompletedMatch(m?: Match | null): boolean { return !!(m && m.scores && m.scores.length > 0); }
+  function countCompletedPairsInGroup(group: Participant[], matches: Match[]): number {
+    let done = 0;
+    for (let i = 0; i < group.length; i++) {
+      for (let j = i + 1; j < group.length; j++) {
+        const aId = group[i].getId, bId = group[j].getId;
+        if (isCompletedMatch(findMatchBetween(aId, bId))) done++;
+      }
+    }
+    return done;
+  }
+  function isGroupStarted(group: Participant[], matches: Match[]): boolean {
+    return countCompletedPairsInGroup(group, matches) > 0;
+  }
+  function makePlayoffQualifiersFromFiltered(
+    groups: Participant[][],
+    statsPerGroup: GroupStats[][],
+    topK: number,
+    matchesPerGroup: Match[][]
+  ): (Participant | null)[] {
+    const out: (Participant | null)[] = [];
+    const G = groups.length;
+    const order: number[] = Array.from({ length: G }, (_, i) => i);
+
+    function pick(gi: number, place: number) {
+      const group = groups[gi];
+      const stats = statsPerGroup[gi];
+      if (!isGroupStarted(group, matchesPerGroup[gi])) { out.push(null); return; }
+      const slot = stats[place]; if (!slot) { out.push(null); return; }
+      out.push(group.find(pp => pp.getId === slot.id) ?? null);
+    }
+
+    for (const gi of order) pick(gi, 0);
+    if (topK >= 2) for (const gi of [...order].reverse()) pick(gi, 1);
+    for (let place = 3; place <= topK; place++) {
+      const wave = place % 2 === 1 ? order : [...order].reverse();
+      for (const gi of wave) pick(gi, place - 1);
+    }
+    return out;
+  }
+  function buildSingleElimPairs(entrants: (Participant | null)[]) {
+    const size = nextPow2(entrants.length || 1);
+    const padded = entrants.slice();
+    while (padded.length < size) padded.push(null);
+    const r0: Array<[Participant | null, Participant | null]> = [];
+    for (let i = 0; i < size; i += 2) r0.push([padded[i], padded[i + 1]]);
+    const rounds: Array<Array<[Participant | null, Participant | null]>> = [r0];
+    let cur = r0.length;
+    while (cur > 1) {
+      rounds.push(new Array(cur / 2).fill(null).map(() => [null, null]));
+      cur = cur / 2;
+    }
+    return rounds;
+  }
+  function pairWinnerId(
+    a: Participant | null,
+    b: Participant | null,
+    matches: Match[],
+    filter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+  ): number | null {
+    const aId = a?.getId; 
+    const bId = b?.getId;
+    
+    if (aId && !bId) return aId;
+    if (!aId && bId) return bId;
+    if (!aId || !bId) return null;
+    const m = findMatchBetween(aId, bId, filter);
+    if (!m) return null;
+    const w = m.getWinnerId?.();
+    return w && w > 0 ? w : null;
+  }
+
+  // Обработчики для сохранения
+  const handleSaveGroup = useCallback((aId: number, bId: number, groupIndex: number) => {
+    if (onSaveScore) {
+      onSaveScore(aId, bId, keyboardState?.editValue || "", { 
+        phase: PhaseType.Group, 
+        groupIndex, 
+        roundIndex: null 
+      });
+    }
+  }, [onSaveScore, keyboardState?.editValue]);
+
+  const handleSavePlayoff = useCallback((aId: number, bId: number, roundIndex: number) => {
+    if (onSaveScore) {
+      onSaveScore(aId, bId, keyboardState?.editValue || "", { 
+        phase: PhaseType.Playoff, 
+        groupIndex: null, 
+        roundIndex 
+      });
+    }
+  }, [onSaveScore, keyboardState?.editValue]);
+
+  // Адаптер для группового этапа
   const GroupMatchCell: React.FC<{
     a: Participant | null;
     b: Participant | null;
     scoreString: string | null;
     phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
-  }> = ({ a, b, scoreString, phaseFilter }) => (
-    <ScoreCell
-      a={a}
-      b={b}
-      phaseFilter={phaseFilter}
-      // helpers/state
-      scoreString={scoreString}
-      editValue={editValue}
-      setEditValue={setEditValue}
-      saving={saving}
-      inputRef={editingInputRef}
-      mobileKeyboardAvailable={mobileKeyboardAvailable}
-      onSave={(aId, bId, f) => saveEdit(aId, bId, f)}
-      showHelpTooltip={false}
-    />
-  );
+  }> = ({ a, b, scoreString, phaseFilter }) => {
+    const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
+      if (!onOpenKeyboard || !a || !b) return;
+      
+      onOpenKeyboard(
+        `${aId}_${bId}`,
+        { participantA: a, participantB: b },
+        currentScore && currentScore !== "—" ? currentScore : "",
+        { 
+          phase: PhaseType.Group, 
+          groupIndex: phaseFilter?.groupIndex ?? null, 
+          roundIndex: null 
+        }
+      );
+    }, [onOpenKeyboard, a, b, phaseFilter?.groupIndex]);
+
+    const handleSave = useCallback((aId: number, bId: number) => {
+      handleSaveGroup(aId, bId, phaseFilter?.groupIndex ?? 0);
+    }, [handleSaveGroup, phaseFilter?.groupIndex]);
+
+    return (
+      <ScoreCell
+        a={a}
+        b={b}
+        scoreString={scoreString}
+        phaseFilter={phaseFilter}
+        editingKey={keyboardState?.editingKey}
+        editValue={keyboardState?.editValue || ""}
+        setEditValue={(value) => { /* глобальное состояние управляется родителем */ }}
+        inputRef={editingInputRef}
+        onSave={handleSave}
+        onCancel={onCloseKeyboard}
+        onOpenKeyboard={onOpenKeyboard ? handleOpenKeyboard : undefined}
+        showHelpTooltip={false}
+      />
+    );
+  };
+
+  // Адаптер для плей-офф
+  const PlayoffMatchCell: React.FC<{
+    a: Participant | null;
+    b: Participant | null;
+    scoreString: string | null;
+    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
+  }> = ({ a, b, scoreString, phaseFilter }) => {
+    const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
+      if (!onOpenKeyboard || !a || !b) return;
+      
+      onOpenKeyboard(
+        `${aId}_${bId}`,
+        { participantA: a, participantB: b },
+        currentScore && currentScore !== "—" ? currentScore : "",
+        { 
+          phase: PhaseType.Playoff, 
+          groupIndex: null, 
+          roundIndex: phaseFilter?.roundIndex ?? null 
+        }
+      );
+    }, [onOpenKeyboard, a, b, phaseFilter?.roundIndex]);
+
+    const handleSave = useCallback((aId: number, bId: number) => {
+      handleSavePlayoff(aId, bId, phaseFilter?.roundIndex ?? 0);
+    }, [handleSavePlayoff, phaseFilter?.roundIndex]);
+
+    return (
+      <ScoreCell
+        a={a}
+        b={b}
+        scoreString={scoreString}
+        phaseFilter={phaseFilter}
+        editingKey={keyboardState?.editingKey}
+        editValue={keyboardState?.editValue || ""}
+        setEditValue={(value) => { /* глобальное состояние управляется родителем */ }}
+        inputRef={editingInputRef}
+        onSave={handleSave}
+        onCancel={onCloseKeyboard}
+        onOpenKeyboard={onOpenKeyboard ? handleOpenKeyboard : undefined}
+        showHelpTooltip={false}
+      />
+    );
+  };
 
   const ordered = useMemo(
     () => participants.filter(isValidParticipant).slice().sort((a, b) => a.displayName(false).localeCompare(b.displayName(false), "ru")),
@@ -358,19 +371,18 @@ function pairWinnerId(
   }, [resolvedPlayoff]);
 
   /* ---------------------------------- UI ---------------------------------- */
-//TODO убрать заголовок в GroupStageTable
   function GroupBlock({ gIndex, group }: { gIndex: number; group: Participant[] }) {
     const matchesForGroup = groupMatches[gIndex];
     return (
-        <GroupStageTable
-          groupParticipants={group}
-          groupMatches={matchesForGroup}
-          groupIndex={gIndex}
-          onSaveScore={(aId, bId, score) =>
-            onSaveScore?.(aId, bId, score, { phase: PhaseType.Group, groupIndex: gIndex, roundIndex: null })
-          }
-          ScoreCellAdapter={GroupMatchCell}
-        />
+      <GroupStageTable
+        groupParticipants={group}
+        groupMatches={matchesForGroup}
+        groupIndex={gIndex}
+        onSaveScore={(aId, bId, score) =>
+          onSaveScore?.(aId, bId, score, { phase: PhaseType.Group, groupIndex: gIndex, roundIndex: null })
+        }
+        ScoreCellAdapter={GroupMatchCell}
+      />
     );
   }
 
@@ -394,25 +406,6 @@ function pairWinnerId(
           ScoreCellAdapter={PlayoffMatchCell}
         />
       </div>
-
-      {/* Мобильная клавиатура — оставлена для совместимости */}
-      {mobileKeyboardAvailable && mobileKeyboardContext && (
-        <ScoreKeyboard
-          inputRef={editingInputRef}
-          value={editValue}
-          onChange={setEditValue}
-          onSave={() =>
-            saveEdit(
-              mobileKeyboardContext.aId,
-              mobileKeyboardContext.bId,
-              mobileKeyboardContext.phaseFilter
-            )
-          }
-          onCancel={cancelEdit}
-          disabled={saving}
-          autoFocus={false}
-        />
-      )}
     </div>
   );
 }

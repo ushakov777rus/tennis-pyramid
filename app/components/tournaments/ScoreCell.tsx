@@ -21,15 +21,22 @@ export type ScoreCellProps = {
   /** Хелперы/состояния, приходящие от родителя */
   scoreString: string | null;
 
-  editValue: string;
+  // Состояние редактирования (может быть глобальным или локальным)
+  editingKey?: string | null;
+  editValue: string | null;
   setEditValue: (v: string) => void;
 
+  // Обработчики
   onSave: (aId: number, bId: number, filter?: MatchPhaseFilter) => void;
+  onCancel?: () => void;
+  onOpenKeyboard?: (aId: number, bId: number, currentScore: string | null) => void;
+  onStartEdit?: (aId: number, bId: number, currentScore: string | null) => void;
 
   inputRef: RefObject<HTMLInputElement | HTMLDivElement | null>;
   
   /** Опционально: для показа подсказки в групповом этапе */
   showHelpTooltip?: boolean;
+  saving?: boolean;
 };
 
 export function ScoreCell({
@@ -37,69 +44,103 @@ export function ScoreCell({
   b,
   phaseFilter,
   scoreString,
+  editingKey: externalEditingKey,
   editValue,
   setEditValue,
   onSave,
+  onCancel,
+  onOpenKeyboard,
+  onStartEdit,
   inputRef,
   showHelpTooltip = false,
+  saving = false,
 }: ScoreCellProps) {
 
-  const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
-
+  // Локальное состояние для случаев, когда нет глобального управления
+  const [localEditingKey, setLocalEditingKey] = useState<string | null>(null);
+  const [localSaving, setLocalSaving] = useState(false);
   const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
     aId: number;
     bId: number;
   } | null>(null);
 
+  const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
   const mobileKeyboardAvailable = useScoreKeyboardAvailable();
+
+  // Определяем, используем ли глобальное или локальное состояние
+  const isGlobalKeyboard = !!onOpenKeyboard;
+  const editingKey = isGlobalKeyboard ? externalEditingKey : localEditingKey;
+  const isSaving = isGlobalKeyboard ? saving : localSaving;
   
   // Вспомогательные функции
   const pairKey = useCallback((aId: number, bId: number) => 
     `${aId}_${bId}`, []);
 
   const startEdit = useCallback((aId: number, bId: number, currentScore: string | null) => {
-    const k = pairKey(aId, bId);
-    setEditingKey(k);
-    setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
+    const initialValue = currentScore && currentScore !== "—" ? currentScore : "";
 
-    editingInputRef.current = null;
-  }, [pairKey]);
+    if (onOpenKeyboard) {
+      // Используем глобальную клавиатуру
+      onOpenKeyboard(aId, bId, currentScore);
+    } else if (onStartEdit) {
+      // Используем переданный обработчик (для обратной совместимости)
+      onStartEdit(aId, bId, currentScore);
+    } else {
+      // Локальное управление (старое поведение)
+      const k = pairKey(aId, bId);
+      setLocalEditingKey(k);
+      setEditValue(initialValue);
+      editingInputRef.current = null;
+
+      // Устанавливаем контекст для мобильной клавиатуры
+      if (mobileKeyboardAvailable) {
+        setMobileKeyboardContext({ aId, bId });
+      }
+    }
+  }, [onOpenKeyboard, onStartEdit, pairKey, setEditValue, mobileKeyboardAvailable]);
 
   const cancelEdit = useCallback(() => {
-    setEditingKey(null);
-    setEditValue("");
-    editingInputRef.current = null;
-    setMobileKeyboardContext(null);
-  }, []);
+    if (onCancel) {
+      // Глобальная отмена
+      onCancel();
+    } else {
+      // Локальная отмена
+      setLocalEditingKey(null);
+      setEditValue("");
+      editingInputRef.current = null;
+      setMobileKeyboardContext(null);
+    }
+  }, [onCancel, setEditValue]);
 
   const saveEdit = useCallback(async (aId: number, bId: number) => {
-    const node = editingInputRef.current;
-    const draft = node instanceof HTMLInputElement ? node.value : editValue;
-    const nextValue = (draft ?? "").trim();
+    const needScore = editValue && editValue.trim();
 
-    if (!nextValue) {
+    if (needScore) {
       alert('Введите счёт');
       return;
     }
 
     try {
-      setSaving(true);
-      await onSave?.(aId, bId, { phase: PhaseType.Group });
-      setEditingKey(null);
-      setEditValue("");
-      editingInputRef.current = null;
-      setMobileKeyboardContext(null);
+      if (!isGlobalKeyboard) {
+        setLocalSaving(true);
+      }
+      
+      await onSave(aId, bId, phaseFilter);
+      cancelEdit();
     } catch (err) {
       console.error("Ошибка при сохранении счёта:", err);
       alert(err instanceof Error ? err.message : "Не удалось сохранить счёт");
     } finally {
-      setSaving(false);
+      if (!isGlobalKeyboard) {
+        setLocalSaving(false);
+      }
     }
-  }, [editValue, onSave]);
+  }, [editValue, onSave, phaseFilter, cancelEdit, isGlobalKeyboard]);
 
+  const handleSaveClick = useCallback(() => {
+    if (!a?.getId || !b?.getId) return;
+    saveEdit(a.getId, b.getId);
+  }, [a, b, saveEdit]);
 
   const aId = a?.getId;
   const bId = b?.getId;
@@ -109,107 +150,84 @@ export function ScoreCell({
   const isEditing = !!kkk && editingKey === kkk;
   const shouldShowHelpTooltip = canEdit && !localScoreString && !isEditing && showHelpTooltip;
 
-  console.log("ScoreCell", mobileKeyboardAvailable, mobileKeyboardContext);
-
   return (
     <>
-    <div className="score-cell">
-      {canEdit ? (
-        localScoreString ? (
-          <span className="rr-score rr-score--mirror">{localScoreString}</span>
-        ) : !isEditing ? (
-          <div className="score-cell__button-wrap">
-            {shouldShowHelpTooltip && <div className="help-tooltip">Введите счёт</div>}
-            <button
-              type="button"
-              className="vs vs-click"
-              onClick={() => 
-                {
-                  startEdit(aId!, bId!, localScoreString)
-                  if (mobileKeyboardAvailable) {
-                    setMobileKeyboardContext({ aId, bId});
+      <div className="score-cell">
+        {canEdit ? (
+          localScoreString ? (
+            <span className="rr-score rr-score--mirror">{localScoreString}</span>
+          ) : !isEditing ? (
+            <div className="score-cell__button-wrap">
+              {shouldShowHelpTooltip && <div className="help-tooltip">Введите счёт</div>}
+              <button
+                type="button"
+                className="vs vs-click"
+                onClick={() => startEdit(aId!, bId!, localScoreString)}
+                title="Добавить счёт"
+                aria-label="Добавить счёт"
+              >
+                vs
+              </button>
+            </div>
+          ) : (
+            <div className="score-edit-wrap">
+              <input
+                className="input score-input"
+                value={editValue ? editValue : ""}
+                readOnly={mobileKeyboardAvailable}
+                ref={(node) => {
+                  // синхронизируем внешний ref
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (inputRef as any).current = node;
+                }}
+                placeholder="6-4, 4-6, 10-8"
+                pattern="[0-9\\s,:-]*"
+                autoFocus={!mobileKeyboardAvailable}
+                onFocus={(e) => {
+                  if (mobileKeyboardAvailable) e.currentTarget.blur();
+                }}
+                onKeyDown={(e) => {
+                  if (!mobileKeyboardAvailable) {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleSaveClick();
+                    }
+                    if (e.key === "Escape") {
+                      e.preventDefault();
+                      cancelEdit();
+                    }
                   }
                 }}
-              title="Добавить счёт"
-              aria-label="Добавить счёт"
-            >
-              vs
-            </button>
-          </div>
+                onChange={(e) => {
+                  if (!mobileKeyboardAvailable) {
+                    setEditValue(e.target.value);
+                  }
+                }}
+              />
+              {!mobileKeyboardAvailable && (
+                <>
+                  <SaveIconButton
+                    className="lg"
+                    title="Сохранить счёт"
+                    onClick={handleSaveClick}
+                    disabled={isSaving}
+                  />
+                  <CancelIconButton
+                    className="lg"
+                    title="Отмена"
+                    onClick={cancelEdit}
+                    disabled={isSaving}
+                  />
+                </>
+              )}
+            </div>
+          )
         ) : (
-          <div className="score-edit-wrap">
-            <input
-              className="input score-input"
-              value={editValue}
-              readOnly={mobileKeyboardAvailable}
-              ref={(node) => {
-                // синхронизируем внешний ref
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (inputRef as any).current = node;
-              }}
-              placeholder="6-4, 4-6, 10-8"
-              pattern="[0-9\\s,:-]*"
-              autoFocus={!mobileKeyboardAvailable}
-              onFocus={(e) => {
-                if (mobileKeyboardAvailable) e.currentTarget.blur();
-              }}
-              onKeyDown={(e) => {
-                if (!mobileKeyboardAvailable) {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    onSave(aId!, bId!, phaseFilter);
-                  }
-                  if (e.key === "Escape") {
-                    e.preventDefault();
-                    cancelEdit();
-                  }
-                }
-              }}
-              onChange={(e) => {
-                if (!mobileKeyboardAvailable) {
-                  setEditValue(e.target.value);
-                }
-              }}
-            />
-            {!mobileKeyboardAvailable && (
-              <>
-                <SaveIconButton
-                  className="lg"
-                  title="Сохранить счёт"
-                  onClick={() => onSave(aId!, bId!, phaseFilter)}
-                  disabled={saving}
-                />
-                <CancelIconButton
-                  className="lg"
-                  title="Отмена"
-                  onClick={cancelEdit}
-                  disabled={saving}
-                />
-              </>
-            )}
-          </div>
-        )
-      ) : (
-        <span className="vs vs-placeholder" aria-hidden>
-          vs
-        </span>
-      )}
-    </div>
-
-    {/* Мобильная клавиатура */}
-    {mobileKeyboardAvailable && mobileKeyboardContext && (
-      <ScoreKeyboard
-        inputRef={editingInputRef}
-        value={editValue}
-        onChange={setEditValue}
-        onSave={() =>
-          saveEdit(mobileKeyboardContext.aId, mobileKeyboardContext.bId)
-        }
-        onCancel={cancelEdit}
-        disabled={saving}
-        autoFocus={false}
-      />
-    )}
+          <span className="vs vs-placeholder" aria-hidden>
+            vs
+          </span>
+        )}
+      </div>
     </>
   );
 }

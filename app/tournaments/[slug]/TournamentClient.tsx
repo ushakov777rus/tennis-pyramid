@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useUser } from "@/app/components/UserContext";
-import { usePathname, useSearchParams } from "next/navigation"; // Добавьте этот импорт
+import { usePathname, useSearchParams } from "next/navigation";
 
 import { Tournament, TournamentStatus } from "@/app/models/Tournament";
 import { Player } from "@/app/models/Player";
@@ -16,10 +16,11 @@ import { LoggedIn } from "@/app/components/RoleGuard";
 import { RatingView } from "@/app/components/RatingView";
 import { MatchHistoryModal } from "@/app/components/MatchHistoryModal";
 import { MatchHistoryView } from "@/app/components/matches/MatchHistoryView";
-import { TournamentParticipantsView } from "@/app/components/ParticipantsView"; // Исправил импорт
+import { TournamentParticipantsView } from "@/app/components/ParticipantsView";
 import { AddMatchCard } from "@/app/components/AddMatchCard";
 
 import { ScrollableTabs, TabItem } from "@/app/components/controls/ScrollableTabs";
+import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
 
 import "./Page.css";
 
@@ -34,11 +35,19 @@ import { SwissView } from "@/app/components/tournaments/SwissView";
 import { AboutTournament } from "@/app/components/AboutTournament";
 import { UserRole } from "@/app/models/Users";
 import { SimpleBreadcrumbs } from "@/app/components/controls/BreadCrumbs";
-import { ScoreCell } from "@/app/components/tournaments/ScoreCell";
 
 const todayISO = new Date().toISOString().split("T")[0];
 
 type ViewKey = "bracket" | "matches" | "participants" | "results" | "aboutt";
+
+// Тип для состояния клавиатуры
+type KeyboardState = {
+  isOpen: boolean;
+  editingKey: string | null;
+  mobileKeyboardContext: { participantA: Participant; participantB: Participant } | null;
+  editValue: string;
+  phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
+};
 
 export default function TournamentClient() {
   const {
@@ -56,7 +65,7 @@ export default function TournamentClient() {
   } = useTournament();
 
   const { user } = useUser();
-  const searchParams = useSearchParams(); // Добавьте это
+  const searchParams = useSearchParams();
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -66,6 +75,18 @@ export default function TournamentClient() {
   const [matchScore, setMatchScore] = useState<string>("");
 
   const [view, setView] = useState<ViewKey>("aboutt");
+
+  // Состояние для глобальной клавиатуры
+  const [keyboardState, setKeyboardState] = useState<KeyboardState>({
+    isOpen: false,
+    editingKey: null,
+    mobileKeyboardContext: null,
+    editValue: "",
+    phaseFilter: undefined,
+  });
+
+  const mobileKeyboardAvailable = useScoreKeyboardAvailable();
+  const editingInputRef = useRef<HTMLInputElement>(null);
 
   const showBracketTab = tournament ? !tournament.isCustom() : true;
 
@@ -278,6 +299,56 @@ export default function TournamentClient() {
     [tournament, matches, updateMatch, addMatch, reload]
   );
 
+  // Функции для управления глобальной клавиатурой
+  const openKeyboard = useCallback((
+    editingKey: string,
+    context: { participantA: Participant; participantB: Participant },
+    initialValue: string,
+    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+  ) => {
+    setKeyboardState({
+      isOpen: true,
+      editingKey,
+      mobileKeyboardContext: context,
+      editValue: initialValue,
+      phaseFilter,
+    });
+  }, []);
+
+  const closeKeyboard = useCallback(() => {
+    setKeyboardState({
+      isOpen: false,
+      editingKey: null,
+      mobileKeyboardContext: null,
+      editValue: "",
+      phaseFilter: undefined,
+    });
+  }, []);
+
+  const updateKeyboardValue = useCallback((value: string) => {
+    setKeyboardState(prev => ({ ...prev, editValue: value }));
+  }, []);
+
+  const handleKeyboardSave = useCallback(async () => {
+    if (!keyboardState.mobileKeyboardContext) return;
+
+    const { participantA: aId, participantB: bId } = keyboardState.mobileKeyboardContext;
+    const score = keyboardState.editValue.trim();
+
+    if (!score) {
+      alert('Введите счёт');
+      return;
+    }
+
+    try {
+      await handleSaveScore(aId.getId, bId.getId, score);
+      closeKeyboard();
+    } catch (err) {
+      console.error("Ошибка при сохранении счёта:", err);
+      alert(err instanceof Error ? err.message : "Не удалось сохранить счёт");
+    }
+  }, [keyboardState, closeKeyboard]);
+
   const handleEditMatchSave = useCallback(
     async (updatedMatch: Match) => {
       try {
@@ -384,9 +455,13 @@ export default function TournamentClient() {
                 selectedIds={selectedIds}
                 onSelect={setSelectedIds}
                 onShowHistoryPlayer={handleShowHistoryPlayer}
-                onSaveScoreRoundRobin={handleSaveScore}
+                onSaveScore={handleSaveScore}
                 onPositionsChange={updatePositions}
                 onGoToParticipants={canAccessParticipantsTab ? () => setView("participants") : undefined}
+                // Передаем функции для управления клавиатурой
+                onOpenKeyboard={openKeyboard}
+                onCloseKeyboard={closeKeyboard}
+                keyboardState={keyboardState}
               />}
 
             {view === "matches" && 
@@ -404,6 +479,21 @@ export default function TournamentClient() {
               <AboutTournament />}
           </div>
         </div>
+
+        {/* Глобальная клавиатура */}
+        {mobileKeyboardAvailable && keyboardState.isOpen && (
+          <ScoreKeyboard
+            inputRef={editingInputRef}
+            participantA={keyboardState.mobileKeyboardContext ? keyboardState.mobileKeyboardContext?.participantA.displayName() : ""}
+            participantB={keyboardState.mobileKeyboardContext ? keyboardState.mobileKeyboardContext?.participantB.displayName() : ""}
+            value={keyboardState.editValue}
+            onChange={updateKeyboardValue}
+            onSave={handleKeyboardSave}
+            onCancel={closeKeyboard}
+            disabled={false}
+            autoFocus={false}
+          />
+        )}
 
         {/* Модалка истории */}
         {historyParticipant && (
@@ -430,9 +520,12 @@ export const FormatView = React.memo(function FormatView({
   selectedIds,
   onSelect,
   onShowHistoryPlayer,
-  onSaveScoreRoundRobin,
+  onSaveScore: onSaveScoreRoundRobin,
   onPositionsChange,
   onGoToParticipants,
+  onOpenKeyboard,
+  onCloseKeyboard,
+  keyboardState,
 }: {
   loading: boolean;
   tournament: Tournament;
@@ -441,7 +534,7 @@ export const FormatView = React.memo(function FormatView({
   selectedIds: number[];
   onSelect: (ids: number[]) => void;
   onShowHistoryPlayer: (participant: Participant) => void;
-  onSaveScoreRoundRobin: (
+  onSaveScore: (
     aId: number,
     bId: number,
     score: string,
@@ -449,6 +542,14 @@ export const FormatView = React.memo(function FormatView({
   ) => void;
   onPositionsChange?: (next: Participant[]) => Promise<void> | void;
   onGoToParticipants?: () => void;
+  onOpenKeyboard?: (
+    editingKey: string,
+    context: { participantA: Participant; participantB: Participant },
+    initialValue: string,
+    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+  ) => void;
+  onCloseKeyboard?: () => void;
+  keyboardState?: KeyboardState;
 }) {
   const handleShowHistory = useCallback(
     (participant?: Participant) => {
@@ -483,19 +584,40 @@ export const FormatView = React.memo(function FormatView({
       <RoundRobinView 
         participants={participants} 
         matches={matches} 
-        onSaveScore={onSaveScoreRoundRobin} 
+        onSaveScore={onSaveScoreRoundRobin}
+        onOpenKeyboard={onOpenKeyboard}
+        onCloseKeyboard={onCloseKeyboard}
+        keyboardState={keyboardState}
       />      
     );
   }
-
+/*
   if (tournament.isSingleElimination()) {
-    return <SingleEliminationView participants={participants} matches={matches} onSaveScore={onSaveScoreRoundRobin} />;
+    return (
+      <SingleEliminationView 
+        participants={participants} 
+        matches={matches} 
+        onSaveScore={onSaveScoreRoundRobin}
+        onOpenKeyboard={onOpenKeyboard}
+        onCloseKeyboard={onCloseKeyboard}
+        keyboardState={keyboardState}
+      />
+    );
   }
 
   if (tournament.isDoubleElimination()) {
-    return <DoubleEliminationView participants={participants} matches={matches} onSaveScore={onSaveScoreRoundRobin} />;
+    return (
+      <DoubleEliminationView 
+        participants={participants} 
+        matches={matches} 
+        onSaveScore={onSaveScoreRoundRobin}
+        onOpenKeyboard={onOpenKeyboard}
+        onCloseKeyboard={onCloseKeyboard}
+        keyboardState={keyboardState}
+      />
+    );
   }
-
+*/
   if (tournament.isGroupsPlayoff()) {
     return (
       <GroupPlusPlayoffView
@@ -503,12 +625,25 @@ export const FormatView = React.memo(function FormatView({
         matches={matches}
         onSaveScore={onSaveScoreRoundRobin}
         groupsCount={tournament.settings.groupsplayoff ? tournament.settings.groupsplayoff.groupsCount : 2}
+        onOpenKeyboard={onOpenKeyboard}
+        onCloseKeyboard={onCloseKeyboard}
+        keyboardState={keyboardState}
       />
     );
   }
-
+/*
   if (tournament.isSwiss()) {
-    return <SwissView participants={participants} matches={matches} onSaveScore={onSaveScoreRoundRobin} roundsCount={5} />;
+    return (
+      <SwissView 
+        participants={participants} 
+        matches={matches} 
+        onSaveScore={onSaveScoreRoundRobin} 
+        roundsCount={5}
+        onOpenKeyboard={onOpenKeyboard}
+        onCloseKeyboard={onCloseKeyboard}
+        keyboardState={keyboardState}
+      />
+    );
   }
 
   // "pyramid" и fallback используют один и тот же обработчик
@@ -520,7 +655,11 @@ export const FormatView = React.memo(function FormatView({
       onShowHistory={handleShowHistory}
       matches={matches}
       onPositionsChange={onPositionsChange}
-      maxLevel={tournament.settings.pyramid ? tournament.settings.pyramid.maxLevel : 5} // Если турнир создан через визард, в нем нет настроек и мы просто даем по умолчанию 5 уровней
+      maxLevel={tournament.settings.pyramid ? tournament.settings.pyramid.maxLevel : 5}
+      onOpenKeyboard={onOpenKeyboard}
+      onCloseKeyboard={onCloseKeyboard}
+      keyboardState={keyboardState}
     />
   );
+  */
 });

@@ -308,7 +308,7 @@ export default function FreeTournamentWizard() {
               selectedIds={formatSelection}
               onSelect={setFormatSelection}
               onShowHistoryPlayer={handleShowHistoryPlayer}
-              onSaveScoreRoundRobin={handleSaveScore}
+              onSaveScore={handleSaveScore}
               onPositionsChange={isOwner ? tournamentCtx.updatePositions : undefined}
           />
           </div>
