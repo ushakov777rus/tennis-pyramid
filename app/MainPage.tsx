@@ -5,12 +5,17 @@ import { StatsFooter } from "./components/StatsFooter";
 
 export default function HomePage() {
   return (
-    <div className="page-container-no-padding" style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      minHeight: '100vh' 
-    }}>
+    <div 
+      className="page-container-no-padding" 
+      style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100dvh', // Используем dvh вместо vh для мобильных устройств
+        width: '100%',
+        
+      }}
+    >
       <Link
         href="/freetournament"
         className="btn-base floating-cta"
@@ -18,7 +23,9 @@ export default function HomePage() {
         style={{
           fontSize: '1.5rem',
           padding: '1rem 2rem',
-          textDecoration: 'none'
+          textDecoration: 'none',
+          
+          zIndex: 2
         }}
       >
         Быстрый турнир
