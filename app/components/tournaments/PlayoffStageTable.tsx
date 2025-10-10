@@ -10,7 +10,7 @@ import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 
 /** Совпадает с тем, как блок плей-офф использовался внутри GroupPlusPlayoffView */
 export type PlayoffStageTableProps = {
-  playOffParticipants: Participant[];
+  playOffParticipants: (Participant | null)[];
   matches: Match[];
 
   /** Компонент для ввода счёта, который уже есть у родителя (используется, когда результата ещё нет) */
@@ -69,28 +69,31 @@ export function PlayoffStageTable({
 
   // Вспомогательные функции
   /** Вернуть победителя пары, если он определён (счёт есть). BYE допускаем только если allowBye=true */
-  function getWinnerOfPair(
-    a: Participant | null,
-    b: Participant | null,
-    byId: Map<number, Participant>,
-    allowBye: boolean,
-    metaForPhase?: { phase?: PhaseType; roundIndex?: number | null }
-  ): Participant | null {
-    if (allowBye) {
-      if (a && !b) return a;               // BYE только на первом переходе
-      if (!a && b) return b;
-    }
-    if (!a || !b) return null;
-
-    const aId = a.getId;
-    const bId = b.getId;
-    const match = findMatchBetween(aId, bId, metaForPhase);
-    if (!match) return null;
-
-    const wid = match.getWinnerId?.() ?? 0;
-    if (!wid) return null;
-    return byId.get(wid) ?? null;
+/** Вернуть победителя пары, если он определён (счёт есть). BYE допускаем только если allowBye=true */
+function getWinnerOfPair(
+  a: Participant | null,
+  b: Participant | null,
+  byId: Map<number, Participant>,
+  allowBye: boolean,
+  metaForPhase?: { phase?: PhaseType; roundIndex?: number | null }
+): Participant | null {
+  if (allowBye) {
+    if (a && !b) return a;               // BYE только на первом переходе
+    if (!a && b) return b;
   }
+  if (!a || !b) return null;
+
+  const aId = a.getId;
+  const bId = b.getId;
+  const match = findMatchBetween(aId, bId, metaForPhase);
+  
+  // Добавляем проверку: матч должен быть сыгран (иметь счёт)
+  if (!match || !match.scores || match.scores.length === 0) return null;
+
+  const wid = match.getWinnerId?.() ?? 0;
+  if (!wid) return null;
+  return byId.get(wid) ?? null;
+}
 
   /** Получить ID победителя пары */
   function pairWinnerId(
@@ -133,49 +136,55 @@ export function PlayoffStageTable({
   }
   
   /** Строит сетку олимпийки: массив раундов, каждый раунд = массив пар [A,B] */
-  function buildSingleEliminationRounds(
-    base: Participant[]
-  ): (Array<[Participant | null, Participant | null]>)[] {
-    const byId = new Map<number, Participant>();
-    for (const p of base) byId.set(p.getId, p);
-
-    // 1) Паддинг до степени двойки
-    const valid = base.slice();
-    const size = nextPow2(valid.length || 1);
-    while (valid.length < size) valid.push(null as unknown as Participant);
-
-    // 2) Раунд 1: попарно [0,1], [2,3], ...
-    const rounds: (Array<[Participant | null, Participant | null]>)[] = [];
-    const first: Array<[Participant | null, Participant | null]> = [];
-    for (let i = 0; i < valid.length; i += 2) {
-      const a = (valid[i] ?? null) as Participant | null;
-      const b = (valid[i + 1] ?? null) as Participant | null;
-      first.push([a, b]);
+function buildSingleEliminationRounds(
+  base: (Participant | null)[]
+): (Array<[Participant | null, Participant | null]>)[] {
+  const byId = new Map<number, Participant>();
+  
+  // Исправление: добавляем проверку на null
+  for (const p of base) {
+    if (p !== null) {
+      byId.set(p.getId, p);
     }
-    rounds.push(first);
-
-    // 3) Следующие раунды: победители двух соседних пар
-    let prev = first;
-    let layer = 1;
-    while (prev.length > 1) {
-      const next: Array<[Participant | null, Participant | null]> = [];
-      for (let i = 0; i < prev.length; i += 2) {
-        const [a1, b1] = prev[i];
-        const [a2, b2] = prev[i + 1] ?? [null, null];
-
-        const allowBye = (layer === 1);
-        const winnerLeft  = getWinnerOfPair(a1, b1, byId, allowBye, { phase: PhaseType.Playoff, roundIndex: layer - 1 });
-        const winnerRight = getWinnerOfPair(a2, b2, byId, allowBye, { phase: PhaseType.Playoff, roundIndex: layer - 1 });
-
-        next.push([winnerLeft, winnerRight]);
-      }
-      rounds.push(next);
-      prev = next;
-      layer += 1;
-    }
-
-    return rounds;
   }
+
+  // 1) Паддинг до степени двойки
+  const valid = base.slice();
+  const size = nextPow2(valid.length || 1);
+  while (valid.length < size) valid.push(null);
+
+  // 2) Раунд 1: попарно [0,1], [2,3], ...
+  const rounds: (Array<[Participant | null, Participant | null]>)[] = [];
+  const first: Array<[Participant | null, Participant | null]> = [];
+  for (let i = 0; i < valid.length; i += 2) {
+    const a = valid[i] ?? null;
+    const b = valid[i + 1] ?? null;
+    first.push([a, b]);
+  }
+  rounds.push(first);
+
+  // 3) Следующие раунды: победители двух соседних пар
+  let prev = first;
+  let layer = 1;
+  while (prev.length > 1) {
+    const next: Array<[Participant | null, Participant | null]> = [];
+    for (let i = 0; i < prev.length; i += 2) {
+      const [a1, b1] = prev[i];
+      const [a2, b2] = prev[i + 1] ?? [null, null];
+
+      const allowBye = (layer === 1);
+      const winnerLeft  = getWinnerOfPair(a1, b1, byId, allowBye, { phase: PhaseType.Playoff, roundIndex: layer - 1 });
+      const winnerRight = getWinnerOfPair(a2, b2, byId, allowBye, { phase: PhaseType.Playoff, roundIndex: layer - 1 });
+
+      next.push([winnerLeft, winnerRight]);
+    }
+    rounds.push(next);
+    prev = next;
+    layer += 1;
+  }
+
+  return rounds;
+}
  
   // Построение сетки плей-офф
   const resolvedPlayoff = useMemo(

@@ -154,8 +154,8 @@ export function GroupPlusPlayoffView({
     statsPerGroup: GroupStats[][],
     topK: number,
     matchesPerGroup: Match[][]
-  ): Participant[] {
-    const out: Participant[] = [];
+  ): (Participant | null)[] {
+    const out: (Participant | null)[] = [];
     
     // Проходим по всем местам от 1 до topK
     for (let place = 0; place < topK; place++) {
@@ -163,19 +163,45 @@ export function GroupPlusPlayoffView({
       for (let gi = 0; gi < groups.length; gi++) {
         const group = groups[gi];
         const stats = statsPerGroup[gi];
-              
+        const groupMatches = matchesPerGroup[gi];
+                
         // Берем участника на текущем месте (place) в текущей группе
         const slot = stats[place];
         
-        // Находим участника по ID и добавляем в список
-        const qualifier = group.find(pp => pp.getId === slot?.id) ?? null;
-        if (qualifier)
+        if (!slot) {
+          out.push(null);
+          continue;
+        }
+        
+        // Находим участника по ID
+        const qualifier = group.find(pp => pp.getId === slot.id) ?? null;
+        
+        // Проверяем, сыграл ли этот участник хотя бы один матч
+        const hasPlayed = qualifier && hasParticipantPlayedAnyMatch(qualifier.getId, group, groupMatches);
+        
+        if (qualifier && hasPlayed) {
           out.push(qualifier);
+        } else {
+          out.push(null);
+        }
       }
     }
     
     return out;
   }
+
+// Вспомогательная функция для проверки, сыграл ли участник хотя бы один матч
+function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[], matches: Match[]): boolean {
+  for (const p of group) {
+    if (p.getId === participantId) continue; // пропускаем самого себя
+    
+    const match = findMatchBetween(participantId, p.getId);
+    if (match && isCompletedMatch(match)) {
+      return true;
+    }
+  }
+  return false;
+}
 
   function buildSingleElimPairs(entrants: (Participant | null)[]) {
     const size = nextPow2(entrants.length || 1);
