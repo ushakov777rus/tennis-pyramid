@@ -3,10 +3,11 @@
 import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 
-import { NavigationBar } from "./NavigationBar";
+
 import { SideNavigationBar } from "./controls/SideNavigationBar";
 import { GuestIntroSlider } from "./GuestIntroSlider";
 import { useUser } from "./UserContext";
+import { NavigationBar } from "./controls/NavigationBar";
 
 const HIDDEN_PREFIXES = ["/tg/"];
 

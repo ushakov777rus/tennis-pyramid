@@ -33,21 +33,21 @@ export function GuestIntroSlider() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (pathname !== "/") return;
+    if (pathname !== "/about") return;
     const stored = localStorage.getItem(STORAGE_KEY) === "1";
     setShouldSkip(stored);
     setDontShow(stored);
   }, [pathname]);
 
   useEffect(() => {
-    if (pathname === "/") return;
+    if (pathname === "/about") return;
     setVisible(false);
   }, [pathname]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (loading) return;
-    if (pathname !== "/") return;
+    if (pathname !== "/about") return;
     if (user) return; // показываем только гостям
     if (shouldSkip) return;
 

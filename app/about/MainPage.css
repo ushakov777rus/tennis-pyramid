@@ -1,0 +1,78 @@
+/* Главный блок */
+.main {
+  text-align: center;
+}
+
+/* Секции */
+.section {
+  padding:20px;
+}
+
+.section h2 {
+  margin-bottom: 1rem; /* или любое значение */
+}
+
+.section p {
+  margin-bottom: 1rem; /* или любое значение */
+}
+
+
+.section-title {
+  font-size: 16px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.page-footer {
+  background: #222;
+  color: #fff;
+  padding: 30px 20px;
+  margin-top: 60px;
+
+    display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 20px auto;
+  gap: 20px;
+
+  flex-direction: row;
+
+}
+
+.footer-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 0 auto;
+  gap: 20px;
+}
+
+.footer-section {
+    flex: auto;
+    flex-direction: column;
+    display: flex
+;
+    margin: auto;
+}
+
+.footer-section h3 {
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.footer-section a {
+  color: #fff; /* зелёный в стиле теннисного мяча */
+  text-decoration: none;
+}
+
+.footer-section a:hover {
+  text-decoration: underline;
+}
+
+/* Адаптив для мобилок */
+@media (max-width: 768px) {
+  .footer-container {
+    flex-direction: column;
+    text-align: center;
+  }
+}

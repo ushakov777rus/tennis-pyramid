@@ -9,7 +9,8 @@ import "./NavigationBar.css";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useUser } from "./UserContext";
+import { useUser } from "../UserContext";
+
 
 export function NavigationBar() {
   const { user } = useUser();
@@ -67,7 +68,8 @@ export function NavigationBar() {
         <Link href="/clubs" className={isActive("/clubs") ? "active" : ""} onClick={() => setMenuOpen(false)}>Клубы</Link>
         <Link href="/tournaments" className={isActive("/tournaments") ? "active" : ""} onClick={() => setMenuOpen(false)}>Турниры</Link>
         <Link href="/rating" className={isActive("/rating") ? "active" : ""} onClick={() => setMenuOpen(false)}>Игроки</Link>
-        <Link href="/matches" className={isActive("/matches") ? "active" : ""} onClick={() => setMenuOpen(false)}>Матчи</Link>
+        {/* <Link href="/matches" className={isActive("/matches") ? "active" : ""} onClick={() => setMenuOpen(false)}>Матчи</Link>*/}
+        <Link href="/about" className={isActive("/about") ? "active" : ""} onClick={() => setMenuOpen(false)}>О проекте</Link>
       </nav>
       <UserBadge />
     </header>
