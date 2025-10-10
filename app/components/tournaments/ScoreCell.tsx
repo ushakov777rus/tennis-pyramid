@@ -115,7 +115,7 @@ export function ScoreCell({
   const saveEdit = useCallback(async (aId: number, bId: number) => {
     const needScore = editValue && editValue.trim();
 
-    if (needScore) {
+    if (!needScore) {
       alert('Введите счёт');
       return;
     }
@@ -174,7 +174,7 @@ export function ScoreCell({
               <input
                 className="input score-input"
                 value={editValue ? editValue : ""}
-                readOnly={mobileKeyboardAvailable}
+                readOnly={mobileKeyboardAvailable && isGlobalKeyboard}
                 ref={(node) => {
                   // синхронизируем внешний ref
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -182,9 +182,10 @@ export function ScoreCell({
                 }}
                 placeholder="6-4, 4-6, 10-8"
                 pattern="[0-9\\s,:-]*"
-                autoFocus={!mobileKeyboardAvailable}
+                autoFocus={!mobileKeyboardAvailable || !isGlobalKeyboard}
                 onFocus={(e) => {
-                  if (mobileKeyboardAvailable) e.currentTarget.blur();
+                  if (mobileKeyboardAvailable && isGlobalKeyboard) 
+                    e.currentTarget.blur();
                 }}
                 onKeyDown={(e) => {
                   if (!mobileKeyboardAvailable) {
@@ -199,7 +200,7 @@ export function ScoreCell({
                   }
                 }}
                 onChange={(e) => {
-                  if (!mobileKeyboardAvailable) {
+                  if (!(mobileKeyboardAvailable && isGlobalKeyboard)) {
                     setEditValue(e.target.value);
                   }
                 }}

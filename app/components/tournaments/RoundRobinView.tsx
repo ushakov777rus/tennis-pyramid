@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
 import { GroupStageTable } from "./GroupStageTable";
@@ -40,13 +40,21 @@ export function RoundRobinView({
 }: RoundRobinViewProps) {
 
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement |null>(null);
+  const [editValue, setEditValue] = useState("");
 
-  // Обработчик для onSave (без глобальной клавиатуры)
+  // Обработчик для onSave
   const handleSave = useCallback((aId: number, bId: number) => {
     if (onSaveScore) {
-      onSaveScore(aId, bId, keyboardState?.editValue || "", { phase: PhaseType.Group });
+      onSaveScore(aId, bId, editValue || "", { phase: PhaseType.Group });
     }
-  }, [onSaveScore, keyboardState?.editValue]);
+  }, [onSaveScore, editValue]);
+
+  // Синхронизируем с глобальной клавиатурой если она открыта
+  useEffect(() => {
+    if (keyboardState?.isOpen) {
+      setEditValue(keyboardState.editValue);
+    }
+  }, [keyboardState]);
 
   // Адаптер для GroupStageTable
   const GroupMatchCell: React.FC<{
@@ -58,6 +66,9 @@ export function RoundRobinView({
     const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
       
+      // Сбрасываем локальное состояние при открытии клавиатуры
+      setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
+      
       onOpenKeyboard(
         `${aId}_${bId}`,
         { participantA: a, participantB: b },
@@ -65,6 +76,11 @@ export function RoundRobinView({
         { phase: PhaseType.Group }
       );
     }, [onOpenKeyboard, a, b]);
+
+    const handleCancel = useCallback(() => {
+      setEditValue("");
+      onCloseKeyboard?.();
+    }, [onCloseKeyboard]);
 
     return (
       <ScoreCell
@@ -74,12 +90,12 @@ export function RoundRobinView({
         phaseFilter={phaseFilter}
         // Состояние редактирования
         editingKey={keyboardState?.editingKey}
-        editValue={keyboardState?.editValue || ""}
-        setEditValue={(value) => { /* глобальное состояние управляется родителем */ }}
+        editValue={editValue}
+        setEditValue={setEditValue}
         inputRef={editingInputRef}
         // Обработчики
         onSave={handleSave}
-        onCancel={onCloseKeyboard}
+        onCancel={handleCancel}
         onOpenKeyboard={onOpenKeyboard ? handleOpenKeyboard : undefined}
         showHelpTooltip={false}
       />
