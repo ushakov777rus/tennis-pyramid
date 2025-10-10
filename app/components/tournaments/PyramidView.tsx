@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useUser } from "@/app/components/UserContext";
 import { Participant } from "@/app/models/Participant";
-import { Match } from "@/app/models/Match";
+import { Match, PhaseType } from "@/app/models/Match";
 import "./PyramidView.css";
 import {
   DragDropContext,
@@ -19,6 +19,19 @@ type PyramidViewProps = {
   onSelect: (ids: number[]) => void;
   selectedIds: number[];
   onShowHistory?: (participant?: Participant) => void;
+  onOpenKeyboard?: (
+    editingKey: string,
+    context: { participantA: Participant; participantB: Participant },
+    initialValue: string,
+    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+  ) => void;
+  onCloseKeyboard?: () => void;
+  keyboardState?: {
+    isOpen: boolean;
+    editingKey: string | null;
+    mobileKeyboardContext: { participantA: Participant; participantB: Participant } | null;
+    editValue: string;
+  };  
   matches: Match[];
   onPositionsChange?: (next: Participant[]) => Promise<void> | void;
   maxLevel: number;

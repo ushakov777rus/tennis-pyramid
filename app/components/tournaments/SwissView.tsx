@@ -1,22 +1,35 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useCallback, useEffect } from "react";
 import { Participant } from "@/app/models/Participant";
-import { Match } from "@/app/models/Match";
-import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
-import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
-import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
-
-import "./PyramidView.css";
-import "./GroupStageTable.css";
-import "@/app/components/ParticipantsView.css";
+import { Match, PhaseType } from "@/app/models/Match";
+import { PlayoffStageTable } from "./PlayoffStageTable";
+import { ScoreCell } from "./ScoreCell";
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 
 type SwissViewProps = {
   participants: Participant[];
   matches: Match[];
-  roundsCount: number; // сколько раундов швейцарки играть
-  onSaveScore?: (aId: number, bId: number, score: string) => Promise<void> | void;
+  roundsCount: number;
+  onSaveScore?: (
+    aId: number,
+    bId: number,
+    score: string,
+    meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+  ) => Promise<void> | void;
+  onOpenKeyboard?: (
+    editingKey: string,
+    context: { participantA: Participant; participantB: Participant },
+    initialValue: string,
+    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+  ) => void;
+  onCloseKeyboard?: () => void;
+  keyboardState?: {
+    isOpen: boolean;
+    editingKey: string | null;
+    mobileKeyboardContext: { participantA: Participant; participantB: Participant } | null;
+    editValue: string;
+  };
 };
 
 /* ========= Утилиты ========= */
@@ -27,7 +40,7 @@ function isValidParticipant(p: Participant | null | undefined): p is Participant
 
 function pid(p: Participant | null | undefined): number | null {
   if (!p) return null;
-  return p.getId; // «не трогай getId»
+  return p.getId;
 }
 
 function havePlayed(aId: number, bId: number, matches: Match[]) {
@@ -38,28 +51,15 @@ function havePlayed(aId: number, bId: number, matches: Match[]) {
   });
 }
 
-
-function isValidScoreFormat(s: string) {
-  const trimmed = s.trim();
-  if (!trimmed) return false;
-  const setRe = /^\s*\d+\s*[:-]\s*\d+\s*$/;
-  return trimmed.split(",").every((part) => setRe.test(part.trim()));
-}
-
-function NameCell({ p }: { p: Participant }) {
-  return <span className="player">{p.displayName(false)}</span>;
-}
-
-
 /* ========= Подсчёт очков и тай-брейков ========= */
 
 type PStats = {
   id: number;
-  points: number;     // победы = 1, поражение = 0
-  setsDiff: number;   // Δ сетов
-  gamesDiff: number;  // Δ геймов
-  oppIds: number[];   // соперники
-  beatIds: number[];  // побеждённые соперники
+  points: number;
+  setsDiff: number;
+  gamesDiff: number;
+  oppIds: number[];
+  beatIds: number[];
 };
 
 function emptyPStats(ids: number[]): Map<number, PStats> {
@@ -92,7 +92,6 @@ function computeStats(participants: Participant[], matches: Match[]): Map<number
 
     if (aSets > bSets) { a.points += 1; a.beatIds.push(bId); }
     else if (bSets > aSets) { b.points += 1; b.beatIds.push(aId); }
-    // ничьи не поддерживаем (теннис), при необходимости: a.points += 0.5; b.points += 0.5;
   }
   return st;
 }
@@ -109,13 +108,6 @@ function sonnebornBerger(st: Map<number, PStats>, id: number) {
 
 /* ========= Пейринг швейцарки ========= */
 
-/**
- * Гридовый, но надёжный алгоритм:
- * - Сортируем по очкам (desc), затем по Buchholz, затем по SB, затем по имени.
- * - Идём сверху вниз, пытаясь спарить с первым доступным из той же «очки-группы»,
- *   кто ещё не играл с этим участником. Если не нашли — расширяем поиск вниз (float).
- * - При нечётном количестве: нижний получает BYE (автопобеда).
- */
 function swissPairRound(
   participants: Participant[],
   matches: Match[],
@@ -131,7 +123,6 @@ function swissPairRound(
     const sba = sonnebornBerger(stats, a.getId);
     const sbb = sonnebornBerger(stats, b.getId);
     if (sbb !== sba) return sbb - sba;
-    // стабильность на имени
     const an = a.displayName(false);
     const bn = b.displayName(false);
     return an.localeCompare(bn, "ru");
@@ -150,7 +141,6 @@ function swissPairRound(
       continue;
     }
 
-    // Найти первого возможного соперника
     let found: Participant | null = null;
     for (let j = i + 1; j < N; j++) {
       const B = sorted[j];
@@ -165,9 +155,7 @@ function swissPairRound(
       }
     }
 
-    // Не нашли — попробуем downfloat (кто угодно ниже)
     if (!found) {
-      // Если ниже все уже играли — дадим BYE (или можно сделать «жёсткий своп» c последним неиспользованным)
       used.add(aId);
       pairs.push([A, null]);
     }
@@ -175,7 +163,6 @@ function swissPairRound(
     i++;
   }
 
-  // Если вдруг остался один неиспользованный — он получит BYE
   const remain = sorted.filter((p) => !used.has(p.getId));
   if (remain.length === 1) pairs.push([remain[0], null]);
 
@@ -184,46 +171,56 @@ function swissPairRound(
 
 /* ========= Компонент ========= */
 
-export function SwissView({ participants, matches, roundsCount, onSaveScore }: SwissViewProps) {
-  const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState<string>("");
-  const [saving, setSaving] = useState(false);
-  const mobileKeyboardAvailable = useScoreKeyboardAvailable();
-  const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
-    aId: number;
-    bId: number;
-  } | null>(null);
-
-    const {
-      findMatchBetween
-    } = useTournament();
-  
-  
+export function SwissView({
+  participants,
+  matches,
+  roundsCount,
+  onSaveScore,
+  onOpenKeyboard,
+  onCloseKeyboard,
+  keyboardState,
+}: SwissViewProps) {
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
+  const [editValue, setEditValue] = useState("");
 
-  // Базовая «стабильная» сортировка списка на первый раунд (если нет рейтингов)
+  // Синхронизируем с глобальной клавиатурой если она открыта
+  useEffect(() => {
+    if (keyboardState?.isOpen) {
+      setEditValue(keyboardState.editValue);
+    }
+  }, [keyboardState]);
+
+  const {
+    findMatchBetween
+  } = useTournament();
+
+  // Обработчик для сохранения счёта
+  const handleSave = useCallback((aId: number, bId: number, roundIndex: number) => {
+    if (onSaveScore) {
+      onSaveScore(aId, bId, editValue || "", {
+        phase: PhaseType.Swiss,
+        groupIndex: null,
+        roundIndex,
+      });
+    }
+  }, [onSaveScore, editValue]);
+
+  // Базовая сортировка
   const ordered = useMemo(
     () =>
       participants
         .filter(isValidParticipant)
         .slice()
-        .sort((a, b) =>
-          a
-            .displayName(false)
-            .localeCompare(b.displayName(false), "ru")
-        ),
+        .sort((a, b) => a.displayName(false).localeCompare(b.displayName(false), "ru")),
     [participants]
   );
 
   // Статы по текущим результатам
   const stats = useMemo(() => computeStats(ordered, matches), [ordered, matches]);
 
-  // Строим пары для всех раундов, используя текущие результаты к моменту рендера
-  // (если часть раундов уже сыграна — пейринг следующих будет учитывать набранные очки)
+  // Строим пары для всех раундов
   const swissRounds = useMemo(() => {
     const rounds: Array<Array<[Participant | null, Participant | null]>> = [];
-    // На каждый «будущий» раунд смотрим текущие статы — UI всегда показывает «актуальную» следующую сетку
-    // (если вы хотите фиксировать пейринг прошлого — храните его отдельно в БД).
     for (let r = 0; r < Math.max(1, roundsCount); r++) {
       const pairs = swissPairRound(ordered, matches, stats);
       rounds.push(pairs);
@@ -231,7 +228,7 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
     return rounds;
   }, [ordered, matches, stats, roundsCount]);
 
-  // Таблица (стоят по текущим статам)
+  // Таблица участников
   const standings = useMemo(() => {
     const rows = Array.from(stats.values()).map((s) => {
       const bh = buchholz(stats, s.id);
@@ -248,158 +245,72 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
     return rows;
   }, [stats]);
 
-  // --- редактирование счёта ---
-  const pairKey = (aId: number, bId: number) => `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
-  const firstHelpTooltip = useFirstHelpTooltip();
-  function startEdit(aId: number, bId: number, currentScore: string | null) {
-    const k = pairKey(aId, bId);
-    setEditingKey(k);
-    setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
-    editingInputRef.current = null;
-    if (mobileKeyboardAvailable) {
-      setMobileKeyboardContext({ aId, bId });
-    }
-  }
-  function cancelEdit() {
-    setEditingKey(null);
-    setEditValue("");
-    editingInputRef.current = null;
-    setMobileKeyboardContext(null);
-  }
-  async function saveEdit(aId: number, bId: number, raw?: string) {
-    const currentNode = editingInputRef.current;
-    const fallbackValue = currentNode instanceof HTMLInputElement ? currentNode.value : editValue;
-    const nextValue = (raw ?? fallbackValue ?? "").trim();
-    if (!isValidScoreFormat(nextValue)) { alert('Неверный формат счёта. Пример: "6-4, 4-6, 10-8"'); return; }
-    try {
-      setSaving(true);
-      await onSaveScore?.(aId, bId, nextValue);
-      setEditingKey(null);
-      setEditValue("");
-      editingInputRef.current = null;
-      setMobileKeyboardContext(null);
-    }
-    finally { setSaving(false); }
-  }
+  // Адаптер для ScoreCell
+  const SwissScoreCell: React.FC<{
+    a: Participant | null;
+    b: Participant | null;
+    scoreString: string | null;
+    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
+  }> = ({ a, b, scoreString, phaseFilter }) => {
+    const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
+      if (!onOpenKeyboard || !a || !b) return;
+      
+      setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
+      
+      onOpenKeyboard(
+        `${aId}_${bId}`,
+        { participantA: a, participantB: b },
+        currentScore && currentScore !== "—" ? currentScore : "",
+        phaseFilter
+      );
+    }, [onOpenKeyboard, a, b, phaseFilter]);
 
-  function MatchRow({ a, b }: { a: Participant | null; b: Participant | null }) {
-    const aId = pid(a); const bId = pid(b);
-    const canEdit = !!aId && !!bId;
-    const localMatch = findMatchBetween(aId!, bId!);
-    const score = canEdit ? localMatch?.formatResult() : null;
-    const k = canEdit ? pairKey(aId!, bId!) : undefined;
-    const isEditing = !!k && editingKey === k;
-    const shouldShowHelpTooltip = canEdit && !score && !isEditing && firstHelpTooltip();
+    const handleSaveWithRound = useCallback((aId: number, bId: number) => {
+      if (phaseFilter?.roundIndex != null) {
+        handleSave(aId, bId, phaseFilter.roundIndex);
+      }
+    }, [handleSave, phaseFilter]);
+
+    const handleCancel = useCallback(() => {
+      setEditValue("");
+      onCloseKeyboard?.();
+    }, [onCloseKeyboard]);
 
     return (
-      <tr className={`grid-row ${isEditing ? "editing-row" : ""}`}>
-        <td>{a ? <NameCell p={a}/> : <span className="player muted">BYE</span>}</td>
-        <td className="score-cell">
-          {canEdit ? (
-            score ? (
-              <span className="badge">{score}</span>
-            ) : !isEditing ? (
-              <div className="score-cell__button-wrap">
-                {shouldShowHelpTooltip && (
-                  <div className="help-tooltip">Введите счёт</div>
-                )}
-                <button
-                  type="button"
-                  className="vs vs-click"
-                  onClick={() => startEdit(aId!, bId!, score ?? null)}
-                  title="Добавить счёт"
-                  aria-label="Добавить счёт"
-                >vs</button>
-              </div>
-            ) : (
-              <div className="score-edit-wrap">
-                <input
-                  className="input score-input"
-                  value={editValue}
-                  readOnly={mobileKeyboardAvailable}
-                  ref={(node) => {
-                    editingInputRef.current = node;
-                  }}
-                  placeholder="6-4, 6-4"
-                  pattern="[0-9\\s,:-]*"
-                  inputMode={mobileKeyboardAvailable ? "numeric" : undefined}
-                  autoFocus={!mobileKeyboardAvailable}
-                  onFocus={(e) => {
-                    if (mobileKeyboardAvailable) e.currentTarget.blur();
-                  }}
-                  onKeyDown={(e) => {
-                    if (!mobileKeyboardAvailable) {
-                      if (e.key === "Enter") { e.preventDefault(); saveEdit(aId!, bId!); }
-                      if (e.key === "Escape") { e.preventDefault(); cancelEdit(); }
-                    }
-                  }}
-                  onChange={(e) => {
-                    if (!mobileKeyboardAvailable) {
-                      setEditValue(e.target.value);
-                    }
-                  }}
-                />
-                {!mobileKeyboardAvailable && (
-                  <>
-                    <SaveIconButton
-                      className="lg"
-                      title="Сохранить счёт"
-                      aria-label="Сохранить счёт"
-                      onClick={() => saveEdit(aId!, bId!)}
-                      disabled={saving}
-                    />
-                    <CancelIconButton
-                      className="lg"
-                      title="Отмена"
-                      aria-label="Отмена"
-                      onClick={cancelEdit}
-                      disabled={saving}
-                    />
-                  </>
-                )}
-              </div>
-            )
-          ) : (
-            <span className="badge muted">—</span>
-          )}
-        </td>
-        <td>{b ? <NameCell p={b}/> : <span className="player muted">BYE</span>}</td>
-      </tr>
+      <ScoreCell
+        a={a}
+        b={b}
+        scoreString={scoreString}
+        phaseFilter={phaseFilter}
+        editingKey={keyboardState?.editingKey}
+        editValue={editValue}
+        setEditValue={setEditValue}
+        inputRef={editingInputRef}
+        onSave={handleSaveWithRound}
+        onCancel={handleCancel}
+        onOpenKeyboard={onOpenKeyboard ? handleOpenKeyboard : undefined}
+        showHelpTooltip={false}
+      />
     );
-  }
+  };
 
   return (
     <div className="roundrobin-wrap">
       {/* РАУНДЫ ШВЕЙЦАРКИ */}
       <div className="rounds-grid">
         {swissRounds.map((pairs, rIndex) => (
-          <div
+          <PlayoffStageTable
             key={rIndex}
-            className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}
-          >
-            <div className="history-table-head">
-              <strong>Швейцарка — Раунд {rIndex + 1}</strong>
-            </div>
-            <table className="round-table">
-              <thead>
-                <tr className="grid-row">
-                  <th>Участник</th>
-                  <th>Счёт</th>
-                  <th>Участник</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pairs.length ? pairs.map(([a,b], i) => <MatchRow key={i} a={a} b={b}/>) :
-                  <tr className="grid-row"><td colSpan={3} className="history-empty">Нет пар</td></tr>}
-              </tbody>
-            </table>
-          </div>
+            playOffParticipants={pairs.flat()}
+            matches={matches}
+            ScoreCellAdapter={SwissScoreCell}
+          />
         ))}
       </div>
 
       {/* ТАБЛИЦА УЧАСТНИКОВ */}
       <div
-        className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}
+        className="card"
         style={{ marginTop: 16 }}
       >
         <div className="history-table-head"><strong>Таблица</strong></div>
@@ -436,18 +347,8 @@ export function SwissView({ participants, matches, roundsCount, onSaveScore }: S
           <div>• BYE считается как победа (+1 очко), соперник отсутствует.</div>
         </div>
       </div>
-
-      {mobileKeyboardAvailable && mobileKeyboardContext && (
-        <ScoreKeyboard
-          inputRef={editingInputRef}
-          value={editValue}
-          onChange={setEditValue}
-          onSave={() => void saveEdit(mobileKeyboardContext.aId, mobileKeyboardContext.bId)}
-          onCancel={cancelEdit}
-          disabled={saving}
-          autoFocus={false}
-        />
-      )}
     </div>
   );
 }
+
+export default SwissView;

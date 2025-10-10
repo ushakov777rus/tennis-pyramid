@@ -604,7 +604,7 @@ export const FormatView = React.memo(function FormatView({
       />
     );
   }
-/*
+
   if (tournament.isDoubleElimination()) {
     return (
       <DoubleEliminationView 
@@ -617,7 +617,7 @@ export const FormatView = React.memo(function FormatView({
       />
     );
   }
-*/
+
   if (tournament.isGroupsPlayoff()) {
     return (
       <GroupPlusPlayoffView
@@ -631,7 +631,7 @@ export const FormatView = React.memo(function FormatView({
       />
     );
   }
-/*
+
   if (tournament.isSwiss()) {
     return (
       <SwissView 
@@ -661,5 +661,5 @@ export const FormatView = React.memo(function FormatView({
       keyboardState={keyboardState}
     />
   );
-  */
+  
 });
