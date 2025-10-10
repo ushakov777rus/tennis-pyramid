@@ -362,14 +362,6 @@ export function GroupPlusPlayoffView({
     };
   }
 
-  /** Заголовок раунда плей-офф */
-  const roundLabel = useCallback((roundIndex: number, pairsCount: number) => {
-    if (pairsCount === 0) return `Раунд ${roundIndex + 1}`;
-    const isLast = roundIndex === resolvedPlayoff.length - 1;
-    if (pairsCount === 1) return "Финал";
-    return `1/${pairsCount}`;
-  }, [resolvedPlayoff]);
-
   /* ---------------------------------- UI ---------------------------------- */
   function GroupBlock({ gIndex, group }: { gIndex: number; group: Participant[] }) {
     const matchesForGroup = groupMatches[gIndex];
@@ -387,9 +379,9 @@ export function GroupPlusPlayoffView({
   }
 
   return (
-    <div className="roundrobin-wrap">
+    <div>
       {/* ГРУППЫ */}
-      <div className="rounds-grid">
+      <div className="card-container">
         {groups.map((g, gi) => (
           <GroupBlock key={gi} gIndex={gi} group={g} />
         ))}
@@ -398,7 +390,7 @@ export function GroupPlusPlayoffView({
       {/* ПЛЕЙ-ОФФ */}
       <div style={{ marginTop: 16 }}>
         <PlayoffStageTable
-          resolvedPlayoff={resolvedPlayoff}
+          playOffParticipants={qualifiers}
           matches={matches}
           roundLabel={roundLabel}
           pairWinnerId={pairWinnerId}

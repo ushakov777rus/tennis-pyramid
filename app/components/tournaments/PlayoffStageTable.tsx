@@ -2,31 +2,16 @@
 
 import "./PlayoffStageTable.css"
 
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
+import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 
 
 /** Совпадает с тем, как блок плей-офф использовался внутри GroupPlusPlayoffView */
 export type PlayoffStageTableProps = {
-  resolvedPlayoff: Array<Array<[Participant | null, Participant | null]>>;
+  playOffParticipants: Participant[];
   matches: Match[];
-  /** Заголовок раунда (например, "Финал", "1/2", "1/4" и т.п.) */
-  roundLabel: (roundIndex: number, pairsCount: number) => string;
-
-  /** Хелперы из родителя — переиспользуем логику без дублирования */
-  pairWinnerId: (
-    a: Participant | null,
-    b: Participant | null,
-    matches: Match[],
-    filter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
-  ) => number | null;
-
-  getOrientedSetsFor: (
-    a: Participant | null,
-    b: Participant | null,
-    phaseFilter: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
-  ) => { aRow: (number | null)[]; bRow: (number | null)[] } | null;
 
   /** Компонент для ввода счёта, который уже есть у родителя (используется, когда результата ещё нет) */
   ScoreCellAdapter: React.FC<{
@@ -37,59 +22,172 @@ export type PlayoffStageTableProps = {
   }>;
 };
 
-/** Найти матч между участниками с учётом фазы/раунда (если проставлены в модели Match) */
-function findMatchBetweenWithPhase(
-  aId: number,
-  bId: number,
-  matches: Match[],
-  meta?: { phase?: PhaseType; roundIndex?: number | null }
-): Match | undefined {
-  return matches.find((m) => {
-    const id1 = m.player1?.id ?? m.team1?.id ?? 0;
-    const id2 = m.player2?.id ?? m.team2?.id ?? 0;
-    const samePair = (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
-    if (!samePair) return false;
-
-    if (meta?.phase && (m as any).phase !== meta.phase) return false;
-    if (meta?.phase === PhaseType.Playoff && meta.roundIndex != null) {
-      if (((m as any).roundIndex ?? null) !== (meta.roundIndex ?? null)) return false;
-    }
-    return true;
-  });
+/** Следующая степень двойки >= n */
+function nextPow2(n: number) {
+  if (n <= 1) return 1;
+  let p = 1;
+  while (p < n) p <<= 1;
+  return p;
 }
-
-
-/** Счёт матча "6:3, 4:6, 10:8" или null, если матча нет */
-function getMatchScore(
-  aId: number | undefined,
-  bId: number | undefined,
-  matches: Match[],
-  meta?: { phase?: PhaseType; roundIndex?: number | null }
-): string | null {
-  if(aId == undefined || bId == undefined)
-    return "—";
-
-  const match = findMatchBetweenWithPhase(aId, bId, matches, meta);
-  if (!match) return null;
-  if (match.scores && match.scores.length > 0) {
-    return match.scores.map(([s1, s2]) => `${s1}:${s2}`).join(", ");
-  }
-  return "—";
-}
-
 
 export function PlayoffStageTable({
-  resolvedPlayoff,
-  matches,
-  roundLabel,
-  pairWinnerId,
-  getOrientedSetsFor,
+  playOffParticipants,
+  matches, // TODO зачем мы передаем через пропс если можно из useTournament брать, поиск работает все равно с учетом фазы турнира
   ScoreCellAdapter: ScoreCell,
 }: PlayoffStageTableProps) {
+
+  const {
+    findMatchBetween
+  } = useTournament();
+  
+  /** Заголовок раунда плей-офф */
+  const roundLabel = useCallback((roundIndex: number, pairsCount: number) => {
+    if (pairsCount === 0) return `Раунд ${roundIndex + 1}`;
+    const isLast = roundIndex === resolvedPlayoff.length - 1;
+    if (pairsCount === 1) return "Финал";
+    return `1/${pairsCount}`;
+  }, [playOffParticipants]);
+
+
+  /** Счёт матча "6:3, 4:6, 10:8" или null, если матча нет */
+  function getMatchScore(
+    aId: number | undefined,
+    bId: number | undefined,
+    matches: Match[],
+    meta?: { phase?: PhaseType; roundIndex?: number | null }
+  ): string | null {
+    if(aId == undefined || bId == undefined)
+      return "—";
+
+    const match = findMatchBetween(aId, bId, meta);
+    if (!match) return null;
+    if (match.scores && match.scores.length > 0) {
+      return match.scores.map(([s1, s2]) => `${s1}:${s2}`).join(", ");
+    }
+    return "—";
+  }
+
+  // Вспомогательные функции
+  /** Вернуть победителя пары, если он определён (счёт есть). BYE допускаем только если allowBye=true */
+  function getWinnerOfPair(
+    a: Participant | null,
+    b: Participant | null,
+    byId: Map<number, Participant>,
+    allowBye: boolean,
+    metaForPhase?: { phase?: PhaseType; roundIndex?: number | null }
+  ): Participant | null {
+    if (allowBye) {
+      if (a && !b) return a;               // BYE только на первом переходе
+      if (!a && b) return b;
+    }
+    if (!a || !b) return null;
+
+    const aId = a.getId;
+    const bId = b.getId;
+    const match = findMatchBetween(aId, bId, metaForPhase);
+    if (!match) return null;
+
+    const wid = match.getWinnerId?.() ?? 0;
+    if (!wid) return null;
+    return byId.get(wid) ?? null;
+  }
+
+  /** Получить ID победителя пары */
+  function pairWinnerId(
+    a: Participant | null,
+    b: Participant | null,
+    matches: Match[],
+    filter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+  ): number | null {
+    if (!a || !b) return null;
+    
+    const match = findMatchBetween(a.getId, b.getId, filter);
+    if (!match) return null;
+    
+    return match.getWinnerId?.() ?? null;
+  }
+
+  /** Получить ориентированные сеты для отображения в таблице */
+  function getOrientedSetsFor(
+    a: Participant | null,
+    b: Participant | null,
+    phaseFilter: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+  ): { aRow: (number | null)[]; bRow: (number | null)[] } | null {
+    if (!a || !b) return null;
+
+    const match = findMatchBetween(a.getId, b.getId, phaseFilter);
+    if (!match || !match.scores || match.scores.length === 0) return null;
+
+    const aRow: (number | null)[] = [];
+    const bRow: (number | null)[] = [];
+
+    match.scores.forEach(([scoreA, scoreB]) => {
+      aRow.push(scoreA);
+      bRow.push(scoreB);
+    });
+
+    // Дополняем до 3 сетов null значениями если нужно
+    while (aRow.length < 3) aRow.push(null);
+    while (bRow.length < 3) bRow.push(null);
+
+    return { aRow, bRow };
+  }
+  
+  /** Строит сетку олимпийки: массив раундов, каждый раунд = массив пар [A,B] */
+  function buildSingleEliminationRounds(
+    base: Participant[]
+  ): (Array<[Participant | null, Participant | null]>)[] {
+    const byId = new Map<number, Participant>();
+    for (const p of base) byId.set(p.getId, p);
+
+    // 1) Паддинг до степени двойки
+    const valid = base.slice();
+    const size = nextPow2(valid.length || 1);
+    while (valid.length < size) valid.push(null as unknown as Participant);
+
+    // 2) Раунд 1: попарно [0,1], [2,3], ...
+    const rounds: (Array<[Participant | null, Participant | null]>)[] = [];
+    const first: Array<[Participant | null, Participant | null]> = [];
+    for (let i = 0; i < valid.length; i += 2) {
+      const a = (valid[i] ?? null) as Participant | null;
+      const b = (valid[i + 1] ?? null) as Participant | null;
+      first.push([a, b]);
+    }
+    rounds.push(first);
+
+    // 3) Следующие раунды: победители двух соседних пар
+    let prev = first;
+    let layer = 1;
+    while (prev.length > 1) {
+      const next: Array<[Participant | null, Participant | null]> = [];
+      for (let i = 0; i < prev.length; i += 2) {
+        const [a1, b1] = prev[i];
+        const [a2, b2] = prev[i + 1] ?? [null, null];
+
+        const allowBye = (layer === 1);
+        const winnerLeft  = getWinnerOfPair(a1, b1, byId, allowBye, { phase: PhaseType.Playoff, roundIndex: layer - 1 });
+        const winnerRight = getWinnerOfPair(a2, b2, byId, allowBye, { phase: PhaseType.Playoff, roundIndex: layer - 1 });
+
+        next.push([winnerLeft, winnerRight]);
+      }
+      rounds.push(next);
+      prev = next;
+      layer += 1;
+    }
+
+    return rounds;
+  }
+ 
+  // Построение сетки плей-офф
+  const resolvedPlayoff = useMemo(
+    () => buildSingleEliminationRounds(playOffParticipants),
+    [playOffParticipants, matches]
+  );
+
   const cell = (v: number | null) => (v == null ? "—" : String(v));
 
   return (
-    <div className="bracket">
+    <div className="card-container">
       {resolvedPlayoff.map((pairs, rIndex) => {
         const title = roundLabel(rIndex, pairs.length);
         return (

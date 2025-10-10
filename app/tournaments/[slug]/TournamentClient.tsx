@@ -591,7 +591,7 @@ export const FormatView = React.memo(function FormatView({
       />      
     );
   }
-/*
+
   if (tournament.isSingleElimination()) {
     return (
       <SingleEliminationView 
@@ -604,7 +604,7 @@ export const FormatView = React.memo(function FormatView({
       />
     );
   }
-
+/*
   if (tournament.isDoubleElimination()) {
     return (
       <DoubleEliminationView 
