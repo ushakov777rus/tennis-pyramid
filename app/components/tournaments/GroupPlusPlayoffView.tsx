@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
 
@@ -66,7 +66,15 @@ export function GroupPlusPlayoffView({
   } = useTournament();
 
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
+  const [editValue, setEditValue] = useState("");
   const firstHelpTooltip = useFirstHelpTooltip();
+
+  // Синхронизируем с глобальной клавиатурой если она открыта
+  useEffect(() => {
+    if (keyboardState?.isOpen) {
+      setEditValue(keyboardState.editValue);
+    }
+  }, [keyboardState]);
 
   // Вспомогательные функции
   function isValidParticipant(p: Participant | null | undefined): p is Participant {
@@ -140,32 +148,35 @@ export function GroupPlusPlayoffView({
   function isGroupStarted(group: Participant[], matches: Match[]): boolean {
     return countCompletedPairsInGroup(group, matches) > 0;
   }
+
   function makePlayoffQualifiersFromFiltered(
     groups: Participant[][],
     statsPerGroup: GroupStats[][],
     topK: number,
     matchesPerGroup: Match[][]
-  ): (Participant | null)[] {
-    const out: (Participant | null)[] = [];
-    const G = groups.length;
-    const order: number[] = Array.from({ length: G }, (_, i) => i);
-
-    function pick(gi: number, place: number) {
-      const group = groups[gi];
-      const stats = statsPerGroup[gi];
-      if (!isGroupStarted(group, matchesPerGroup[gi])) { out.push(null); return; }
-      const slot = stats[place]; if (!slot) { out.push(null); return; }
-      out.push(group.find(pp => pp.getId === slot.id) ?? null);
+  ): Participant[] {
+    const out: Participant[] = [];
+    
+    // Проходим по всем местам от 1 до topK
+    for (let place = 0; place < topK; place++) {
+      // Для каждого места собираем участников из всех групп
+      for (let gi = 0; gi < groups.length; gi++) {
+        const group = groups[gi];
+        const stats = statsPerGroup[gi];
+              
+        // Берем участника на текущем месте (place) в текущей группе
+        const slot = stats[place];
+        
+        // Находим участника по ID и добавляем в список
+        const qualifier = group.find(pp => pp.getId === slot?.id) ?? null;
+        if (qualifier)
+          out.push(qualifier);
+      }
     }
-
-    for (const gi of order) pick(gi, 0);
-    if (topK >= 2) for (const gi of [...order].reverse()) pick(gi, 1);
-    for (let place = 3; place <= topK; place++) {
-      const wave = place % 2 === 1 ? order : [...order].reverse();
-      for (const gi of wave) pick(gi, place - 1);
-    }
+    
     return out;
   }
+
   function buildSingleElimPairs(entrants: (Participant | null)[]) {
     const size = nextPow2(entrants.length || 1);
     const padded = entrants.slice();
@@ -180,6 +191,7 @@ export function GroupPlusPlayoffView({
     }
     return rounds;
   }
+
   function pairWinnerId(
     a: Participant | null,
     b: Participant | null,
@@ -201,23 +213,23 @@ export function GroupPlusPlayoffView({
   // Обработчики для сохранения
   const handleSaveGroup = useCallback((aId: number, bId: number, groupIndex: number) => {
     if (onSaveScore) {
-      onSaveScore(aId, bId, keyboardState?.editValue || "", { 
+      onSaveScore(aId, bId, editValue || "", { 
         phase: PhaseType.Group, 
         groupIndex, 
         roundIndex: null 
       });
     }
-  }, [onSaveScore, keyboardState?.editValue]);
+  }, [onSaveScore, editValue]);
 
   const handleSavePlayoff = useCallback((aId: number, bId: number, roundIndex: number) => {
     if (onSaveScore) {
-      onSaveScore(aId, bId, keyboardState?.editValue || "", { 
+      onSaveScore(aId, bId, editValue || "", { 
         phase: PhaseType.Playoff, 
         groupIndex: null, 
         roundIndex 
       });
     }
-  }, [onSaveScore, keyboardState?.editValue]);
+  }, [onSaveScore, editValue]);
 
   // Адаптер для группового этапа
   const GroupMatchCell: React.FC<{
@@ -228,6 +240,8 @@ export function GroupPlusPlayoffView({
   }> = ({ a, b, scoreString, phaseFilter }) => {
     const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
+      
+      setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
       
       onOpenKeyboard(
         `${aId}_${bId}`,
@@ -245,6 +259,11 @@ export function GroupPlusPlayoffView({
       handleSaveGroup(aId, bId, phaseFilter?.groupIndex ?? 0);
     }, [handleSaveGroup, phaseFilter?.groupIndex]);
 
+    const handleCancel = useCallback(() => {
+      setEditValue("");
+      onCloseKeyboard?.();
+    }, [onCloseKeyboard]);
+
     return (
       <ScoreCell
         a={a}
@@ -252,11 +271,11 @@ export function GroupPlusPlayoffView({
         scoreString={scoreString}
         phaseFilter={phaseFilter}
         editingKey={keyboardState?.editingKey}
-        editValue={keyboardState?.editValue || ""}
-        setEditValue={(value) => { /* глобальное состояние управляется родителем */ }}
+        editValue={editValue}
+        setEditValue={setEditValue}
         inputRef={editingInputRef}
         onSave={handleSave}
-        onCancel={onCloseKeyboard}
+        onCancel={handleCancel}
         onOpenKeyboard={onOpenKeyboard ? handleOpenKeyboard : undefined}
         showHelpTooltip={false}
       />
@@ -272,6 +291,8 @@ export function GroupPlusPlayoffView({
   }> = ({ a, b, scoreString, phaseFilter }) => {
     const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
+      
+      setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
       
       onOpenKeyboard(
         `${aId}_${bId}`,
@@ -289,6 +310,11 @@ export function GroupPlusPlayoffView({
       handleSavePlayoff(aId, bId, phaseFilter?.roundIndex ?? 0);
     }, [handleSavePlayoff, phaseFilter?.roundIndex]);
 
+    const handleCancel = useCallback(() => {
+      setEditValue("");
+      onCloseKeyboard?.();
+    }, [onCloseKeyboard]);
+
     return (
       <ScoreCell
         a={a}
@@ -296,11 +322,11 @@ export function GroupPlusPlayoffView({
         scoreString={scoreString}
         phaseFilter={phaseFilter}
         editingKey={keyboardState?.editingKey}
-        editValue={keyboardState?.editValue || ""}
-        setEditValue={(value) => { /* глобальное состояние управляется родителем */ }}
+        editValue={editValue}
+        setEditValue={setEditValue}
         inputRef={editingInputRef}
         onSave={handleSave}
-        onCancel={onCloseKeyboard}
+        onCancel={handleCancel}
         onOpenKeyboard={onOpenKeyboard ? handleOpenKeyboard : undefined}
         showHelpTooltip={false}
       />
@@ -321,48 +347,7 @@ export function GroupPlusPlayoffView({
     () => makePlayoffQualifiersFromFiltered(groups, groupStats, advancePerGroup, groupMatches),
     [groups, groupStats, advancePerGroup, groupMatches]
   );
-  const playoffRounds = useMemo(() => buildSingleElimPairs(qualifiers), [qualifiers]);
 
-  const resolvedPlayoff = useMemo(() => {
-    const copy = playoffRounds.map(r => r.map(([a, b]) => [a, b] as [Participant | null, Participant | null]));
-    for (let r = 1; r < copy.length; r++) {
-      const prev = copy[r - 1];
-      for (let i = 0; i < copy[r].length; i++) {
-        const w1 = pairWinnerId(prev[i * 2][0], prev[i * 2][1], matches, { phase: PhaseType.Playoff, roundIndex: r - 1 });
-        const w2 = pairWinnerId(prev[i * 2 + 1][0], prev[i * 2 + 1][1], matches, { phase: PhaseType.Playoff, roundIndex: r - 1 });
-        copy[r][i][0] = w1 ? ordered.find(p => p.getId === w1) ?? null : null;
-        copy[r][i][1] = w2 ? ordered.find(p => p.getId === w2) ?? null : null;
-      }
-    }
-    return copy;
-  }, [playoffRounds, matches, ordered]);
-
-  /** Разложение сетов по строкам для таблицы матча плей-офф */
-  function getOrientedSetsFor(
-    a: Participant | null,
-    b: Participant | null,
-    phaseFilter: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
-  ) {
-    const aId = a?.getId;
-    const bId = b?.getId;
-    if (!aId || !bId) return null;
-
-    const m = findMatchBetween(aId, bId, phaseFilter);
-    if (!m || !m.scores || m.scores.length === 0) return null;
-
-    const id1 = m.player1?.id ?? m.team1?.id;
-    const aFirst = id1 === aId;
-    const s1 = m.scores[0], s2 = m.scores[1], s3 = m.scores[2];
-
-    const val = (s?: [number, number], first?: boolean) => (s ? (first ? s[0] : s[1]) : null);
-
-    return {
-      aRow: [val(s1, aFirst), val(s2, aFirst), val(s3, aFirst)],
-      bRow: [val(s1, !aFirst), val(s2, !aFirst), val(s3, !aFirst)],
-    };
-  }
-
-  /* ---------------------------------- UI ---------------------------------- */
   function GroupBlock({ gIndex, group }: { gIndex: number; group: Participant[] }) {
     const matchesForGroup = groupMatches[gIndex];
     return (
@@ -392,9 +377,6 @@ export function GroupPlusPlayoffView({
         <PlayoffStageTable
           playOffParticipants={qualifiers}
           matches={matches}
-          roundLabel={roundLabel}
-          pairWinnerId={pairWinnerId}
-          getOrientedSetsFor={getOrientedSetsFor}
           ScoreCellAdapter={PlayoffMatchCell}
         />
       </div>
