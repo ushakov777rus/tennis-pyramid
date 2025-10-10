@@ -4,7 +4,7 @@ import "./GroupStageTable.css";
 import "./PyramidView.css";
 import "@/app/components/ParticipantsView.css";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
 import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
@@ -451,7 +451,7 @@ export function GroupStageTable({
   /**
    * Рендерит ячейку матрицы с использованием переданного ScoreCellAdapter
    */
-  function Cell({
+  function ScoreCellWrapper({
     aId,
     bId,
     rIndex,
@@ -463,7 +463,7 @@ export function GroupStageTable({
     cIndex: number;
   }) {
     if (aId === bId) {
-      return <td className="rr-diag" aria-hidden />;
+      return <div className="rr-diag" aria-hidden />;
     }
 
     const isLowerTriangle = rIndex > cIndex;
@@ -471,7 +471,7 @@ export function GroupStageTable({
     const b = ordered.find(p => p.getId === bId) || null;
 
     return (
-      <td
+      <div
         data-rr-cell={`${aId}-${bId}`}
         className={`rr-cell ${isLowerTriangle ? '' : 'rr-cell--mirror'} ${!getMatchScore(aId, bId) ? 'rr-empty' : ''}`}
       >
@@ -480,77 +480,128 @@ export function GroupStageTable({
           b={b} 
           scoreString={getMatchScore(aId, bId)}
           phaseFilter={{ phase: PhaseType.Group }} />
-      </td>
+      </div>
     );
   }
 
   return (
     <div className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}>
       {groupIndex !== undefined && groupIndex !== null && (
-        <div className="history-table-head">
+        <div className="rr-header">
           <strong>Группа {String.fromCharCode(65 + groupIndex)}</strong>
         </div>)
       }
 
-    <div ref={wrapRef}>
-      <div className="rr-scroll">
-        <table ref={tableRef} className="rr-matrix">
-          <thead>
-            <tr>
-              <th className="center rr-header-index">#</th>
-              <th className="left rr-header-name">Игроки</th>
-              {ordered.map((_, index) => (
-                <th key={index} className="center rr-header-score">
-                  {index + 1}
-                </th>
-              ))}
-              <th className="center rotate"><span>Очки</span></th>
-              <th className="center rotate"><span>Геймы</span></th>
-              <th className="center rotate"><span>Место</span></th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {ordered.map((participant, rowIndex) => {
-              const aId = participant.getId;
-              const stats = standings.rows.find((row) => row.id === aId)!;
-              const place = standings.placeById.get(aId)!;
-
-              return (
-                <tr key={aId} className={editingKey ? "card--no-transition" : ""}>
-                  <td
-                    data-rr-cell={`${aId}-${aId}`}
-                    className="center rr-index-cell"
-                  >
-                    {rowIndex + 1}
-                  </td>
-
-                  <td className="left rr-name-cell">
-                    <span className="rr-participant">{participant.displayName(false)}</span>
-                  </td>
-
-                  {ordered.map((opponent, colIndex) => (
-                    <Cell
-                      key={`${aId}_${opponent.getId}`}
-                      aId={aId}
-                      bId={opponent.getId}
-                      rIndex={rowIndex}
-                      cIndex={colIndex}
-                    />
-                  ))}
-
-                  <td className="center">{stats.points}</td>
-                  <td className="center">
-                    {stats.gamesFor}:{stats.gamesAgainst}
-                  </td>
-                  <td className="center">{place}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+<div 
+  ref={tableRef} 
+  className="rr-matrix" 
+  style={{
+    '--participants-count': ordered.length
+  } as React.CSSProperties}
+>
+  {/* Заголовки - должны быть в первой строке */}
+  <div className="rr-index-header center" style={{ gridColumn: 1, gridRow: 1 }}>#</div>
+  <div className="rr-name-header left" style={{ gridColumn: 2, gridRow: 1 }}>Игроки</div>
+  
+  {ordered.map((_, index) => (
+    <div 
+      key={index} 
+      className="center rr-header-score"
+      style={{ gridColumn: index + 3, gridRow: 1 }}
+    >
+      {index + 1}
     </div>
+  ))}
+  
+  <div 
+    className="center rotate" 
+    style={{ gridColumn: ordered.length + 3, gridRow: 1 }}
+  >
+    <span>Очки</span>
+  </div>
+  <div 
+    className="center rotate" 
+    style={{ gridColumn: ordered.length + 4, gridRow: 1 }}
+  >
+    <span>Геймы</span>
+  </div>
+  <div 
+    className="center rotate" 
+    style={{ gridColumn: ordered.length + 5, gridRow: 1 }}
+  >
+    <span>Место</span>
+  </div>
+
+  {/* Данные */}
+  {ordered.map((participant, rowIndex) => {
+    const aId = participant.getId;
+    const stats = standings.rows.find((row) => row.id === aId)!;
+    const place = standings.placeById.get(aId)!;
+    
+    const gridRow = rowIndex + 2; // +2 потому что заголовки в строке 1
+
+    return (
+      <React.Fragment key={aId}>
+        {/* Индекс */}
+        <div
+          data-rr-cell={`${aId}-${aId}`}
+          className={`center rr-index-cell ${editingKey ? "card--no-transition" : ""}`}
+          style={{ gridColumn: 1, gridRow }}
+        >
+          {rowIndex + 1}
+        </div>
+
+        {/* Имя игрока */}
+        <div 
+          className={`left rr-name-cell ${editingKey ? "card--no-transition" : ""}`}
+          style={{ gridColumn: 2, gridRow }}
+        >
+          <span className="rr-participant">{participant.displayName(false)}</span>
+        </div>
+
+        {/* Ячейки с противниками */}
+        {ordered.map((opponent, colIndex) => (
+          <div
+            key={`${aId}_${opponent.getId}`}
+            style={{ gridColumn: colIndex + 3, gridRow }}
+            className={editingKey ? "card--no-transition" : ""}
+          >
+            <ScoreCellWrapper
+              aId={aId}
+              bId={opponent.getId}
+              rIndex={rowIndex}
+              cIndex={colIndex}
+            />
+          </div>
+        ))}
+
+        {/* Очки */}
+        <div 
+          className={`center ${editingKey ? "card--no-transition" : ""}`}
+          style={{ gridColumn: ordered.length + 3, gridRow }}
+        >
+          {stats.points}
+        </div>
+
+        {/* Геймы */}
+        <div 
+          className={`center ${editingKey ? "card--no-transition" : ""}`}
+          style={{ gridColumn: ordered.length + 4, gridRow }}
+        >
+          {stats.gamesFor}:{stats.gamesAgainst}
+        </div>
+
+        {/* Место */}
+        <div 
+          className={`center ${editingKey ? "card--no-transition" : ""}`}
+          style={{ gridColumn: ordered.length + 5, gridRow }}
+        >
+          {place}
+        </div>
+      </React.Fragment>
+    );
+  })}
+</div>
     </div>
   );
 }

@@ -1,126 +1,17 @@
 :root {
   --rr-index-min-width: 25px;
-  --rr-index-width: 5%;
 
   --rr-name-min-width: 120px;
-  --rr-name-width: 30%;
 
   --rr-score-min-width: 30px;
-  --rr-score-width: 10%;
-
 
   --rr-roundrobin-border: rgb(63 77 36 / 30%);
   --rr-roundrobin-bg: var(--background, #0f0f0f);
 }
 
-.roundrobin-wrap {
-  position: relative;
-  --rr-bottom-gap: 0px;
-  padding-bottom: var(--rr-bottom-gap);
-}
-
-/* ===== Layout utilities preserved from the legacy stylesheet ===== */
-.rounds-grid {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  min-width: 0;
-}
-
-/* дайте грид-айтему право ужиматься */
-.rounds-grid > * {
-  min-width: 0;          /* ключевая строчка */
-  overflow: hidden;      /* опционально: прячет “торчащие” углы sticky-колонок */
-}
-
-/* можно оставить, но главное правило выше */
-.rounds-grid > * .roundrobin-wrap { min-width: 0; }
-
-
-/* 2) Внутренняя обёртка компонента тоже должна уметь сжиматься */
-.rounds-grid > * .roundrobin-wrap {
-  min-width: 0;
-}
-
-@media (max-width: 768px) {
-  .rounds-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.history-table-head {
+.rr-header {
   padding: 5px 12px;
   border-bottom: 1px solid #2a2a2a;
-}
-
-
-.grid-row {
-  display: grid;
-  grid-template-columns: 37% 26% 37%;
-  align-items: center;
-}
-
-
-.grid-row > :nth-child(1) {
-  text-align: left;
-}
-
-.grid-row > :nth-child(2) {
-  text-align: center;
-  margin: auto;
-}
-
-.grid-row > :nth-child(3) {
-  text-align: right;
-}
-
-.grid-row > :nth-child(1),
-.grid-row > :nth-child(3) {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-
-.score-cell {
-  text-align: center;
-  white-space: nowrap;
-}
-
-.score-cell__button-wrap {
-  position: relative;
-  display: inline-block;
-}
-
-.score-edit-wrap {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  justify-content: center;
-}
-
-.muted {
-  opacity: 0.7;
-}
-
-.vs-placeholder {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px dashed currentColor;
-  opacity: 0.5;
-  user-select: none;
-  cursor: default;
-}
-
-.vs-click {
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  cursor: pointer;
-  color: #a6ff00;
-  text-decoration: underline;
 }
 
 /* ===== Scroll container and matrix styling ===== */
@@ -135,126 +26,62 @@
   scrollbar-gutter: stable;
 }
 
-.rr-matrix {
-  width: max-content;
-  border-collapse: separate;
-  border-spacing: 0;
-  table-layout: auto;
-  min-width: 100%;
-}
-
-.rr-matrix th,
-.rr-matrix td {
-  text-align: center;
-  vertical-align: middle;
-  height: 45px;
-  font-size: 12px;
-  text-align: center;
-  padding: 2px 2px;
-  border: 1px solid var(--rr-roundrobin-border);
-  border-left: none;
-  border-bottom: none;
-}
-
-.rr-matrix tr > td:last-of-type,
-.rr-matrix tr > th:last-of-type {
-  border-right: none;
-}
-
-.rr-matrix td:last-child,
-.rr-matrix th:last-child {
-  border-right: none;
-}
-
-.rr-matrix thead th {
-  position: sticky;
-  top: 0;
-  background: var(--rr-roundrobin-bg);
-}
-
-.rr-matrix th.rotate {
-  position: relative;
-  vertical-align: bottom;
-  text-align: left;
-  white-space: nowrap;
-  padding: 0;
-  /* ключевые строки: */
-  width: auto;
-  min-width: 35px;
-  max-width: 60px; /* или auto при адаптивной таблице */
-}
-
-.rr-matrix th.rotate span {
-  position: absolute;
-  bottom: 0;
-  left: 6px;
-  transform: rotate(-45deg);
-  transform-origin: bottom left;
-  display: inline-block;
-  /* вот эти строки позволяют ячейке подстроиться под текст */
-  width: max-content;
-  white-space: nowrap;
-  margin-left: 6px;
-  margin-bottom: 2px;
-}
-
-
-.rr-header-index {
-  position: sticky;
-  width: var(--rr-index-width);
-  min-width: var(--rr-index-min-width);
-  left: 0;
-  z-index: 4;
-}
-
-.rr-header-name {
-  position: sticky;
-  left: var(--rr-index-width);
-  width: var(--rr-name-width);
-  min-width: var(--rr-name-min-width);
-  text-align: left;
-  z-index: 3;
-  top: 0;
-}
-
-.rr-header-score {
-  width: var(--rr-scorewidth);
-  min-width: var(--rr-score-min-width);
-}
-
-.rr-index-cell {
-  position: sticky;
-  left: 0;
-  z-index: 2;
-  width: var(--rr-index-width);
-  min-width: var(--rr-index-width);
-  background-color: var(--rr-roundrobin-bg);
-}
-
-.rr-name-cell {
-  position: sticky;
-  left: var(--rr-index-width);
-  z-index: 1;
-  width: 120px;
-  max-width: 120px;
-  text-align: left;
-  background: var(--rr-roundrobin-bg);
-}
-
-.rr-diag {
-  background: rgba(166, 255, 0, 0.1);
-}
-
-.rr-empty {
-  background: transparent;
-}
-
 .rr-scroll::-webkit-scrollbar {
   height: 10px;
 }
 
 .rr-scroll::-webkit-scrollbar-thumb {
   border-radius: 8px;
+}
+
+
+.rr-matrix {
+  display: grid;
+
+  grid-template-columns: 
+    minmax(var(--rr-index-min-width), auto)  /* 0.5 доли от свободного пространства */
+    minmax(var(--rr-name-min-width), auto)   /* 1 доля */
+    repeat(var(--participants-count), minmax(var(--rr-score-min-width), auto))
+    minmax(35px, auto)
+    minmax(35px, auto)
+    minmax(35px, auto);
+
+  /* Ширина строки минимум 370px и может растягиваться */
+  
+  overflow-x: auto;
+  width: 100%;
+  min-width: max-content; /* Добавь это */
+}
+
+/* Стили для ячеек */
+.rr-matrix > * {
+  padding: 2px 2px;
+  border: 1px solid var(--rr-roundrobin-border);
+  height: 45px;
+  font-size: 12px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  vertical-align: middle;
+  background: var(--rr-roundrobin-bg);
+}
+
+.rr-index-header,
+.rr-name-header,
+.rr-index-cell,
+.rr-name-cell {
+  position: sticky;
+  z-index: 3;
+}
+
+.rr-index-header,
+.rr-index-cell {
+  left: 0;
+}
+
+.rr-name-cell,
+.rr-name-header {
+  left: var(--rr-index-min-width);
 }
 
 .rr-participant {
@@ -282,27 +109,54 @@
   white-space: pre-line;
 }
 
-.rr-score--mirror {
+
+.vs-placeholder {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px dashed currentColor;
+  opacity: 0.5;
+  user-select: none;
+  cursor: default;
+}
+
+.vs-click {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  color: #a6ff00;
+  text-decoration: underline;
+}
+
+.score-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.score-cell__button-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.score-edit-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   justify-content: center;
 }
 
-/* (опционально) если где-то есть ещё обёртка над .rr-scroll */
-.group-stage, .group-stage__inner {
-  min-width: 0;
+.rr-diag {
+  background: rgba(166, 255, 0, 0.1);
 }
 
-.rr-index-cell { left: 0; z-index: 5; }
-.rr-name-cell  { left: var(--rr-index-width); z-index: 4; }
-
-.rr-index-cell,
-.rr-header-index,
-.rr-name-cell,
-.rr-header-name {
-  border-right: none;
+.rr-empty {
+  background: transparent;
 }
 
-
-
-
-
-
+.rotate {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  justify-content: center;
+}
