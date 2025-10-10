@@ -1,6 +1,7 @@
 // app/components/SideNav.tsx
 "use client";
 
+import "@/app/components/UserBadge.css"
 import "./SideNavigationBar.css";
 
 import {

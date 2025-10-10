@@ -71,7 +71,7 @@ export function NavigationBar() {
         {/* <Link href="/matches" className={isActive("/matches") ? "active" : ""} onClick={() => setMenuOpen(false)}>Матчи</Link>*/}
         <Link href="/about" className={isActive("/about") ? "active" : ""} onClick={() => setMenuOpen(false)}>О проекте</Link>
       </nav>
-      <UserBadge />
+      {/*<UserBadge />*/}
     </header>
   );
 }

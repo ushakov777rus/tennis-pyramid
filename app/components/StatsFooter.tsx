@@ -8,6 +8,7 @@ import { TournamentsRepository } from "@/app/repositories/TournamentsRepository"
 import { ClubsRepository } from "@/app/repositories/ClubsRepository";
 import { AuthContainer } from "@/app/components/AuthContainer";
 import { UserRole } from "@/app/models/Users";
+import "./StatsFooter.css";
 
 export function StatsFooter() {
   const [matchesCount, setMatchesCount] = useState<number | null>(null);
@@ -64,97 +65,57 @@ export function StatsFooter() {
 
   return (
     <>
-      <footer style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        background: 'var(--background, #0f0f0f)',
-        borderTop: '1px solid var(--bracket-border, rgb(63 77 36 / 30%))',
-        padding: '16px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-        zIndex: 1000
-      }}>
+      <footer className="stats-footer">
         {/* Текст с кнопками */}
-        <div style={{
-          textAlign: 'center',
-          fontSize: '0.9rem',
-          opacity: 0.9,
-          marginBottom: '8px'
-        }}>
-        <button
-            onClick={openLogin}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#A6FF00',
-              textDecoration: 'underline',
-              cursor: 'pointer',
-              fontSize: '0.9rem'
-            }}
-          >
-            Войдите
-          </button>
-          <span style={{ marginRight: '8px' }}> или</span>
-          <button
-            onClick={openRegister}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#A6FF00',
-              textDecoration: 'underline',
-              cursor: 'pointer',
-              fontSize: '0.9rem'
-            }}
-          >
-            Зарегистрируйтесь
-          </button>
-          <span style={{ margin: '0 8px' }}>для просмотра своих турниров</span>
-
+        <div className="stats-footer__auth-text">
+          <div className="stats-footer__auth-line">
+            <button
+              onClick={openLogin}
+              className="stats-footer__auth-button"
+            >
+              Войдите
+            </button>
+            <span>{" или "}</span>
+            <button
+              onClick={openRegister}
+              className="stats-footer__auth-button"
+            >
+              Зарегистрируйтесь
+            </button>
+          </div>
+          <div className="stats-footer__auth-line">
+            <span>для просмотра своих турниров</span>
+          </div>
         </div>
 
         {/* Статистика */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-around',
-          alignItems: 'center'
-        }}>
-          <Link href="/clubs" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#A6FF00' }}>
-                {clubsCount ?? "…"}
-              </div>
-              <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>Клубов</div>
+        <div className="stats-footer__stats">
+          <Link href="/clubs" className="stats-footer__stat-item">
+            <div className="stats-footer__stat-value">
+              {clubsCount ?? "…"}
             </div>
+            <div className="stats-footer__stat-label">Клубов</div>
           </Link>
 
-          <Link href="/tournaments" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#A6FF00' }}>
-                {tournamentsCount ?? "…"}
-              </div>
-              <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>Турниров</div>
+          <Link href="/tournaments" className="stats-footer__stat-item">
+            <div className="stats-footer__stat-value">
+              {tournamentsCount ?? "…"}
             </div>
+            <div className="stats-footer__stat-label">Турниров</div>
           </Link>
 
-          <Link href="/rating" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#A6FF00' }}>
-                {playersCount ?? "…"}
-              </div>
-              <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>Участников</div>
+          <Link href="/rating" className="stats-footer__stat-item">
+            <div className="stats-footer__stat-value">
+              {playersCount ?? "…"}
             </div>
+            <div className="stats-footer__stat-label">Участников</div>
           </Link>
 
-          <Link href="/matches" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#A6FF00' }}>
-                {matchesCount ?? "…"}
-              </div>
-              <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>Матчей</div>
+          <Link href="/matches" className="stats-footer__stat-item">
+            <div className="stats-footer__stat-value">
+              {matchesCount ?? "…"}
             </div>
+            <div className="stats-footer__stat-label">Матчей</div>
           </Link>
         </div>
       </footer>

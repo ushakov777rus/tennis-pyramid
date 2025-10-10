@@ -1,0 +1,104 @@
+.stats-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--background, #0f0f0f);
+  border-top: 1px solid var(--bracket-border, rgb(63 77 36 / 30%));
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1000;
+}
+
+.stats-footer__auth-text {
+  text-align: center;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  padding-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border-bottom: 1px solid var(--bracket-border, rgba(63, 77, 36, .3));
+}
+
+.stats-footer__auth-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.stats-footer__auth-button {
+  background: none;
+  border: none;
+  color: #A6FF00;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+}
+
+.stats-footer__stats {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.stats-footer__stat-item {
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+.stats-footer__stat-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #A6FF00;
+}
+
+.stats-footer__stat-label {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+/* Мобильные стили */
+@media (max-width: 768px) {
+  .stats-footer {
+    padding: 12px;
+  }
+  
+  .stats-footer__auth-text {
+    font-size: 0.85rem;
+  }
+  
+  .stats-footer__stats {
+    gap: 8px;
+  }
+  
+  .stats-footer__stat-value {
+    font-size: 1.1rem;
+  }
+  
+  .stats-footer__stat-label {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-footer__auth-text {
+    gap: 6px;
+  }
+  
+.stats-footer__auth-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  white-space: pre; /* Сохраняет пробелы */
+}
+}
