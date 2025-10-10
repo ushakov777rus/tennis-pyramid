@@ -97,7 +97,7 @@ export function StatsFooter() {
           >
             Войдите
           </button>
-          <span style={{ marginRight: '8px' }}> или </span>
+          <span style={{ marginRight: '8px' }}> или</span>
           <button
             onClick={openRegister}
             style={{
