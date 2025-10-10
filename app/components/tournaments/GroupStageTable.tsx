@@ -463,7 +463,7 @@ export function GroupStageTable({
     cIndex: number;
   }) {
     if (aId === bId) {
-      return <div className="rr-diag" aria-hidden />;
+      return <div className="" aria-hidden />;
     }
 
     const isLowerTriangle = rIndex > cIndex;
@@ -526,7 +526,7 @@ export function GroupStageTable({
     <span>Геймы</span>
   </div>
   <div 
-    className="center rotate" 
+    className="center rotate no-right-border" 
     style={{ gridColumn: ordered.length + 5, gridRow: 1 }}
   >
     <span>Место</span>
@@ -560,20 +560,23 @@ export function GroupStageTable({
         </div>
 
         {/* Ячейки с противниками */}
-        {ordered.map((opponent, colIndex) => (
-          <div
-            key={`${aId}_${opponent.getId}`}
-            style={{ gridColumn: colIndex + 3, gridRow }}
-            className={editingKey ? "card--no-transition" : ""}
-          >
-            <ScoreCellWrapper
-              aId={aId}
-              bId={opponent.getId}
-              rIndex={rowIndex}
-              cIndex={colIndex}
-            />
-          </div>
-        ))}
+        {ordered.map((opponent, colIndex) => {
+          const isDiagonal = aId === opponent.getId;
+          return (
+            <div
+              key={`${aId}_${opponent.getId}`}
+              style={{ gridColumn: colIndex + 3, gridRow }}
+              className={`${editingKey ? "card--no-transition" : ""} ${isDiagonal ? 'rr-diag' : ''}`}
+            >
+              <ScoreCellWrapper
+                aId={aId}
+                bId={opponent.getId}
+                rIndex={rowIndex}
+                cIndex={colIndex}
+              />
+            </div>
+          );
+        })}
 
         {/* Очки */}
         <div 
@@ -593,7 +596,7 @@ export function GroupStageTable({
 
         {/* Место */}
         <div 
-          className={`center ${editingKey ? "card--no-transition" : ""}`}
+          className={`center  no-right-border ${editingKey ? "card--no-transition" : ""}`}
           style={{ gridColumn: ordered.length + 5, gridRow }}
         >
           {place}

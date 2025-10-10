@@ -20,6 +20,11 @@
 
   -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
   mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+
+  max-width: 800px;
+  margin: auto;
+  width: 100%;
+  justify-content: space-around; 
 }
 
 .tabs-scroll::-webkit-scrollbar { display: none; }

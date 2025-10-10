@@ -55,8 +55,9 @@
 
 /* Стили для ячеек */
 .rr-matrix > * {
+  display: flex;
   padding: 2px 2px;
-  border: 1px solid var(--rr-roundrobin-border);
+  /*border: 1px solid var(--rr-roundrobin-border);*/
   height: 45px;
   font-size: 12px;
   align-items: center;
@@ -64,7 +65,16 @@
   text-align: center;
   vertical-align: middle;
   background: var(--rr-roundrobin-bg);
+  border: 1px solid var(--rr-roundrobin-border);
+  /* Убираем внешние границы у всех ячеек */
+  border-top: none;
+  border-left: none;
 }
+
+ .no-right-border {
+  border-right: none;
+ }
+
 
 .rr-index-header,
 .rr-name-header,
@@ -157,6 +167,10 @@
 
 .rotate {
   writing-mode: vertical-rl;
-  transform: rotate(180deg);
   justify-content: center;
+}
+
+.rotate span {
+  display: block;
+  transform: rotate(-135deg); /* Вращаем только текст */
 }
