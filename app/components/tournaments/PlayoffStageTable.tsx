@@ -96,7 +96,6 @@ export function PlayoffStageTable({
   function pairWinnerId(
     a: Participant | null,
     b: Participant | null,
-    matches: Match[],
     filter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
   ): number | null {
     if (!a || !b) return null;
@@ -202,7 +201,7 @@ export function PlayoffStageTable({
                   const phaseFilter = { phase: PhaseType.Playoff, roundIndex: rIndex as number };
                   const aId = a?.getId;
                   const bId = b?.getId;
-                  const winnerId = pairWinnerId(a, b, matches, phaseFilter);
+                  const winnerId = pairWinnerId(a, b, phaseFilter);
 
                   const oriented = getOrientedSetsFor(a, b, phaseFilter);
                   const aRow = oriented?.aRow ?? [null, null, null];
@@ -218,9 +217,13 @@ export function PlayoffStageTable({
                               winnerId && aId === winnerId ? "bracket__row--winner" : ""
                             }`}
                           >
-                            <td className="left rr-name-cell">
+                            <td className={`left rr-name-cell ${
+                              winnerId && aId === winnerId ? "bracket__row--winner" : ""
+                            }`}>
                               {a ? (
-                                <span className="rr-participant">{a.displayName()}</span> ) : (
+                                <span className={`rr-participant ${
+                              winnerId && aId === winnerId ? "bracket__row--winner" : ""
+                            }`}>{a.displayName()}</span> ) : (
                                   <span className="rr-participant grey">{"Ожидается"}</span>
                                 )
                               }
@@ -233,7 +236,9 @@ export function PlayoffStageTable({
                           >
                             <td className="left rr-name-cell">
                               {b ? (
-                                <span className="rr-participant">{b.displayName()}</span> ) : (
+                                <span className={`rr-participant ${
+                              winnerId && aId === winnerId ? "bracket__row--winner" : ""
+                            }`}>{b.displayName()}</span> ) : (
                                   <span className="rr-participant grey">{"Ожидается"}</span>
                                 )
                               }
@@ -267,14 +272,20 @@ export function PlayoffStageTable({
                           </tbody>
                         </table>
                       ) : (
-                        <div className="el-score-vs-wrap">
-                          {/* Когда очков ещё нет — показываем знакомый редактор "vs" */}
-                          <ScoreCell 
-                            a={a} 
-                            b={b} 
-                            scoreString={getMatchScore(a?.getId, b?.getId, matches, phaseFilter)}
-                            phaseFilter={phaseFilter} />
-                        </div>
+                        <table className="bracket__table">
+                          <tbody>
+                            <tr>
+                              <td>
+                                {/* Когда очков ещё нет — показываем знакомый редактор "vs" */}
+                                <ScoreCell 
+                                  a={a} 
+                                  b={b} 
+                                  scoreString={getMatchScore(a?.getId, b?.getId, matches, phaseFilter)}
+                                  phaseFilter={phaseFilter} />
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       )}
                     </div>
                   );

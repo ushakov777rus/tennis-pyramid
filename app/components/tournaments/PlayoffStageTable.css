@@ -1,16 +1,36 @@
 :root {
   --bracket-bg: var(--background, #0f0f0f);
   --bracket-border: rgb(63 77 36 / 30%);
+  --bracket-winner-bg: rgba(166, 255, 0, 0.1);
 }
 
-.bracket {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(240px, 1fr);
-  gap: 24px;
-  overflow-x: auto;
-  padding: 12px 0;
+.bracket__table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
 }
+
+.bracket__table th,
+.bracket__table td {
+  background: var(--bracket-bg);
+  border: 1px solid var(--bracket-border);
+  padding: 2px 2px;
+  white-space: nowrap;
+  height: 45px;
+  vertical-align: middle;
+}
+
+.bracket__table .left { 
+  text-align: left; 
+  width: 150px;
+  max-width: 150px;
+}
+.bracket__table .center { text-align: center; }
+
+
+
+
+
 
 .bracket__round {
   display: flex;
@@ -128,30 +148,9 @@
   margin: 8px 0;
 }
 
-.bracket__table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-.bracket__table th,
-.bracket__table td {
-  border: 1px solid var(--bracket-border);
-  padding: 2px 2px;
-  white-space: nowrap;
-  height: 45px;
-  vertical-align: middle;
-}
-
-.bracket__table .left { 
-  text-align: left; 
-  width: 150px;
-  max-width: 150px;
-}
-.bracket__table .center { text-align: center; }
 
 .bracket__row--winner td {
-  background: var(--background);
+  background: var(--bracket-winner-bg);
   font-weight: 600;
 }
 

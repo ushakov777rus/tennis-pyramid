@@ -105,7 +105,6 @@
   font-size: 12px;
   height: calc(2.5em + 8px);
   white-space: pre;
-  background: var(--rr-roundrobin-bg);
   text-align: left;
 }
 
