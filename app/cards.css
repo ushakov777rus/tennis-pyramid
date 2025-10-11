@@ -152,6 +152,12 @@
   grid-template-columns: 1fr; /* по умолчанию одна колонка */
 }
 
+.card-grid-wrapper {
+  container-type: inline-size; /* измеряем ширину контейнера */
+  container-name: card-grid;
+}
+
+
 @container card-grid (max-width: 1024px) {
   .card-grid-new {
     grid-template-columns: repeat(2, 1fr);

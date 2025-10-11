@@ -210,10 +210,6 @@ tr.editing { background: rgba(166, 255, 0, 0.05); }
   }
 }
 
-.card-grid-wrapper {
-  container-type: inline-size; /* измеряем ширину контейнера */
-  container-name: card-grid;
-}
 
 
 
