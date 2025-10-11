@@ -642,3 +642,28 @@ body {
   grid-template-columns: minmax(380px, 800px);
   justify-content: space-around;
 }
+
+.card-grid-new {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);; /* по умолчанию одна колонка */
+}
+
+.card-grid-one-column {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr; /* по умолчанию одна колонка */
+}
+
+@container card-grid (max-width: 1024px) {
+  .card-grid-new {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@container card-grid (max-width: 600px) {
+.card-grid-new {
+  grid-template-columns: 1fr;
+}
+
+}

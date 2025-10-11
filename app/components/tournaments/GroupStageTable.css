@@ -108,6 +108,13 @@
   text-align: left;
 }
 
+@media (max-width: 400px) {
+  .rr-participant {
+    max-width: 115;
+  }
+}
+
+
 .rr-score {
   display: inline-flex;
   padding: 2px 2px;
