@@ -45,7 +45,7 @@ export function RoundRobinView({
   // Обработчик для onSave
   const handleSave = useCallback((aId: number, bId: number) => {
     if (onSaveScore) {
-      onSaveScore(aId, bId, editValue || "", { phase: PhaseType.Group, groupIndex: 0, roundIndex: 0 });
+      onSaveScore(aId, bId, editValue || "", { phase: PhaseType.Group, groupIndex: null, roundIndex: null });
     }
   }, [onSaveScore, editValue]);
 
@@ -61,7 +61,7 @@ export function RoundRobinView({
     a: Participant | null;
     b: Participant | null;
     scoreString: string | null;
-    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
+    phaseFilter: MatchPhase;
   }> = ({ a, b, scoreString, phaseFilter }) => {
     const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
@@ -73,7 +73,7 @@ export function RoundRobinView({
         `${aId}_${bId}`,
         { participantA: a, participantB: b },
         currentScore && currentScore !== "—" ? currentScore : "",
-        { phase: PhaseType.Group, groupIndex: 0, roundIndex: 0 }
+        { phase: PhaseType.Group, groupIndex: null, roundIndex: null }
       );
     }, [onOpenKeyboard, a, b]);
 
@@ -107,6 +107,7 @@ export function RoundRobinView({
       <GroupStageTable
         groupParticipants={participants}
         groupMatches={matches}
+        groupIndex={null}
         onSaveScore={onSaveScore}
         ScoreCellAdapter={GroupMatchCell}
       />
