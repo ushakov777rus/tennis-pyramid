@@ -137,12 +137,6 @@
   opacity: 0.5;
 }
 
-@media (min-width: 901px) {
-  .score-kb {
-    display: none;
-  }
-}
-
 @supports (bottom: constant(safe-area-inset-bottom)) {
   .score-kb {
     --score-kb-safe-bottom: constant(safe-area-inset-bottom, 0px);

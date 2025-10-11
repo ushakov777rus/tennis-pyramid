@@ -65,7 +65,7 @@ export function ScoreCell({
   } | null>(null);
 
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
-  const mobileKeyboardAvailable = useScoreKeyboardAvailable();
+
 
   // Определяем, используем ли глобальное или локальное состояние
   const isGlobalKeyboard = !!onOpenKeyboard;
@@ -93,11 +93,9 @@ export function ScoreCell({
       editingInputRef.current = null;
 
       // Устанавливаем контекст для мобильной клавиатуры
-      if (mobileKeyboardAvailable) {
-        setMobileKeyboardContext({ aId, bId });
-      }
+      setMobileKeyboardContext({ aId, bId });
     }
-  }, [onOpenKeyboard, onStartEdit, pairKey, setEditValue, mobileKeyboardAvailable]);
+  }, [onOpenKeyboard, onStartEdit, pairKey, setEditValue]);
 
   const cancelEdit = useCallback(() => {
     if (onCancel) {
@@ -174,7 +172,7 @@ export function ScoreCell({
               <input
                 className="input score-input"
                 value={editValue ? editValue : ""}
-                readOnly={mobileKeyboardAvailable && isGlobalKeyboard}
+                readOnly={isGlobalKeyboard}
                 ref={(node) => {
                   // синхронизируем внешний ref
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -182,13 +180,13 @@ export function ScoreCell({
                 }}
                 placeholder="6-4, 4-6, 10-8"
                 pattern="[0-9\\s,:-]*"
-                autoFocus={!mobileKeyboardAvailable || !isGlobalKeyboard}
+                autoFocus={!isGlobalKeyboard}
                 onFocus={(e) => {
-                  if (mobileKeyboardAvailable && isGlobalKeyboard) 
+                  if (isGlobalKeyboard) 
                     e.currentTarget.blur();
                 }}
                 onKeyDown={(e) => {
-                  if (!mobileKeyboardAvailable) {
+
                     if (e.key === "Enter") {
                       e.preventDefault();
                       handleSaveClick();
@@ -197,30 +195,14 @@ export function ScoreCell({
                       e.preventDefault();
                       cancelEdit();
                     }
-                  }
+
                 }}
                 onChange={(e) => {
-                  if (!(mobileKeyboardAvailable && isGlobalKeyboard)) {
+                  if (isGlobalKeyboard) {
                     setEditValue(e.target.value);
                   }
                 }}
               />
-              {!mobileKeyboardAvailable && (
-                <>
-                  <SaveIconButton
-                    className="lg"
-                    title="Сохранить счёт"
-                    onClick={handleSaveClick}
-                    disabled={isSaving}
-                  />
-                  <CancelIconButton
-                    className="lg"
-                    title="Отмена"
-                    onClick={cancelEdit}
-                    disabled={isSaving}
-                  />
-                </>
-              )}
             </div>
           )
         ) : (

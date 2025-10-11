@@ -24,7 +24,7 @@ export type ScoreKeyboardProps = {
   autoFocus?: boolean;
 };
 
-export function useScoreKeyboardAvailable(breakpoint = 768) {
+export function useScoreKeyboardAvailable(breakpoint = 400) {
   const subscribe = useCallback((callback: () => void) => {
     if (typeof window === "undefined") return () => {};
     
@@ -55,6 +55,8 @@ export function ScoreKeyboard({
   autoFocus = true,
 }: ScoreKeyboardProps) {
   const internalRef = useRef<HTMLInputElement | null>(null);
+
+  const mobile = useScoreKeyboardAvailable();
 
   useEffect(() => {
     if (!inputRef) return;
@@ -219,53 +221,56 @@ export function ScoreKeyboard({
         </button>
       </div>
 
-      <div className="score-kb__numbers">
-        {numberRows.map((row, idx) => (
-          <Fragment key={idx}>
-            {row.map((key, i) => {
-              if (key === DYNAMIC_KEY) {
+      {/* Условный рендеринг панели с цифрами */}
+      {mobile && (
+        <div className="score-kb__numbers">
+          {numberRows.map((row, idx) => (
+            <Fragment key={idx}>
+              {row.map((key, i) => {
+                if (key === DYNAMIC_KEY) {
+                  return (
+                    <button
+                      key={`${idx}-${i}-${key}`}
+                      type="button"
+                      className="score-kb__key score-kb__key--dynamic"
+                      onClick={() => {
+                        if (dynamicKey.kind === "visible") {
+                          handleInsert(dynamicKey.insert);
+                        }
+                      }}
+                      disabled={disabled || dynamicKey.kind !== "visible"}
+                      style={
+                        dynamicKey.kind === "visible"
+                          ? undefined
+                          : {
+                              visibility: "hidden",
+                            }
+                      }
+                      aria-hidden={dynamicKey.kind === "visible" ? undefined : true}
+                      tabIndex={dynamicKey.kind === "visible" ? undefined : -1}
+                    >
+                      {dynamicKey.kind === "visible" ? dynamicKey.label : ""}
+                    </button>
+                  );
+                }
+                const isBackspace = key === "⌫";
                 return (
                   <button
                     key={`${idx}-${i}-${key}`}
                     type="button"
-                    className="score-kb__key score-kb__key--dynamic"
-                    onClick={() => {
-                      if (dynamicKey.kind === "visible") {
-                        handleInsert(dynamicKey.insert);
-                      }
-                    }}
-                    disabled={disabled || dynamicKey.kind !== "visible"}
-                    style={
-                      dynamicKey.kind === "visible"
-                        ? undefined
-                        : {
-                            visibility: "hidden",
-                          }
-                    }
-                    aria-hidden={dynamicKey.kind === "visible" ? undefined : true}
-                    tabIndex={dynamicKey.kind === "visible" ? undefined : -1}
+                    className={`score-kb__key ${isBackspace ? "score-kb__key--backspace" : ""}`.trim()}
+                    onClick={() => (isBackspace ? handleBackspace() : handleInsert(key))}
+                    disabled={disabled}
+                    aria-label={isBackspace ? "Удалить" : undefined}
                   >
-                    {dynamicKey.kind === "visible" ? dynamicKey.label : ""}
+                    {key}
                   </button>
                 );
-              }
-              const isBackspace = key === "⌫";
-              return (
-                <button
-                  key={`${idx}-${i}-${key}`}
-                  type="button"
-                  className={`score-kb__key ${isBackspace ? "score-kb__key--backspace" : ""}`.trim()}
-                  onClick={() => (isBackspace ? handleBackspace() : handleInsert(key))}
-                  disabled={disabled}
-                  aria-label={isBackspace ? "Удалить" : undefined}
-                >
-                  {key}
-                </button>
-              );
-            })}
-          </Fragment>
-        ))}
-      </div>
+              })}
+            </Fragment>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -20,7 +20,7 @@ import { TournamentParticipantsView } from "@/app/components/ParticipantsView";
 import { AddMatchCard } from "@/app/components/AddMatchCard";
 
 import { ScrollableTabs, TabItem } from "@/app/components/controls/ScrollableTabs";
-import { ScoreKeyboard, useScoreKeyboardAvailable } from "@/app/components/controls/ScoreKeyboard";
+import { ScoreKeyboard } from "@/app/components/controls/ScoreKeyboard";
 
 import "./Page.css";
 
@@ -85,7 +85,6 @@ export default function TournamentClient() {
     phaseFilter: undefined,
   });
 
-  const mobileKeyboardAvailable = useScoreKeyboardAvailable();
   const editingInputRef = useRef<HTMLInputElement>(null);
 
   const showBracketTab = tournament ? !tournament.isCustom() : true;
@@ -481,7 +480,7 @@ export default function TournamentClient() {
         </div>
 
         {/* Глобальная клавиатура */}
-        {mobileKeyboardAvailable && keyboardState.isOpen && (
+        {keyboardState.isOpen && (
           <ScoreKeyboard
             inputRef={editingInputRef}
             participantA={keyboardState.mobileKeyboardContext ? keyboardState.mobileKeyboardContext?.participantA.displayName() : ""}

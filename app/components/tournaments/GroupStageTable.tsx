@@ -8,10 +8,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Participant } from "@/app/models/Participant";
 import { Match, PhaseType } from "@/app/models/Match";
 import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
-import {
-  useScoreKeyboardAvailable,
-} from "@/app/components/controls/ScoreKeyboard";
-
 
 /**
  * Публичные пропсы для таблицы кругового турнира.
@@ -243,8 +239,6 @@ export function GroupStageTable({
   /** Флаг отправки счёта. */
   const [saving, setSaving] = useState(false);
 
-  /** Нужно ли показывать кастомную цифровую клавиатуру (мобайл). */
-  const mobileKeyboardAvailable = useScoreKeyboardAvailable();
   /** Контекст для мобильной клавиатуры: какие ID сейчас редактируются. */
   const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
     aId: number;
@@ -267,61 +261,6 @@ export function GroupStageTable({
   const [pendingScores, setPendingScores] = useState<Map<string, PendingEntry>>(new Map());
 
   /**
-   * Измеряем высоту клавиатуры, чтобы зарезервировать под неё место.
-   */
-  useEffect(() => {
-    if (!mobileKeyboardAvailable || !mobileKeyboardContext) {
-      setKeyboardHeight(0);
-      return;
-    }
-
-    const host = keyboardHostRef.current;
-    if (!host) return;
-
-    const getKeyboardNode = () => host.querySelector<HTMLElement>(".score-kb");
-
-    const updateHeight = () => {
-      const node = getKeyboardNode();
-      if (!node) return;
-      const next = Math.ceil(node.getBoundingClientRect().height);
-      setKeyboardHeight((prev) => (prev === next ? prev : next));
-    };
-
-    updateHeight();
-
-    let observer: ResizeObserver | null = null;
-    let resizeHandler: (() => void) | null = null;
-    let fallbackId: number | null = null;
-
-    if (typeof ResizeObserver !== "undefined") {
-      const node = getKeyboardNode();
-      if (node) {
-        observer = new ResizeObserver(updateHeight);
-        observer.observe(node);
-      }
-    }
-
-    if (typeof window !== "undefined") {
-      resizeHandler = () => updateHeight();
-      window.addEventListener("resize", resizeHandler);
-
-      if (!observer) {
-        fallbackId = window.setInterval(updateHeight, 250);
-      }
-    }
-
-    return () => {
-      observer?.disconnect();
-      if (resizeHandler && typeof window !== "undefined") {
-        window.removeEventListener("resize", resizeHandler);
-      }
-      if (fallbackId != null && typeof window !== "undefined") {
-        window.clearInterval(fallbackId);
-      }
-    };
-  }, [mobileKeyboardAvailable, mobileKeyboardContext]);
-
-  /**
    * Сбрасываем оптимистичные записи, когда с сервера пришли реальные матчи.
    */
   useEffect(() => {
@@ -340,35 +279,6 @@ export function GroupStageTable({
       return changed ? next : prev;
     });
   }, [matches, pendingScores]);
-
-  /**
-   * Скроллим окно так, чтобы активная ячейка была видна при появлении клавиатуры.
-   */
-  useEffect(() => {
-    if (!mobileKeyboardAvailable || !editingCell) return;
-    const table = tableRef.current;
-    if (!table) return;
-
-    const cell = table.querySelector<HTMLElement>(
-      `[data-rr-cell="${editingCell.rowId}-${editingCell.colId}"]`
-    );
-    if (!cell) return;
-
-    const rect = cell.getBoundingClientRect();
-    const viewportPadding = 24;
-    const availableBottom = window.innerHeight - (keyboardHeight || 0) - viewportPadding;
-    let delta = 0;
-
-    if (rect.bottom > availableBottom) {
-      delta = rect.bottom - availableBottom;
-    } else if (rect.top < viewportPadding) {
-      delta = rect.top - viewportPadding;
-    }
-
-    if (Math.abs(delta) > 1) {
-      window.scrollBy({ top: delta, behavior: "smooth" });
-    }
-  }, [mobileKeyboardAvailable, editingCell, keyboardHeight, mobileKeyboardContext]);
 
   /**
    * Упорядоченный список валидных участников для детерминированного рендера.
