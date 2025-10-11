@@ -3,6 +3,8 @@
 import React, { RefObject, useCallback, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { MatchPhase, PhaseType } from "@/app/models/Match";
+import { useUser } from "../UserContext";
+import { UserRole } from "@/app/models/Users";
 
 export type ScoreCellProps = {
   a: Participant | null;
@@ -56,6 +58,8 @@ export function ScoreCell({
   } | null>(null);
 
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
+
+  const { user } = useUser();
 
 
   // Определяем, используем ли глобальное или локальное состояние
@@ -152,6 +156,7 @@ export function ScoreCell({
                 type="button"
                 className="vs vs-click"
                 onClick={() => startEdit(aId!, bId!, localScoreString)}
+                disabled={user == null || (user.role != UserRole.SiteAdmin && user.role != UserRole.TournamentAdmin)}
                 title="Добавить счёт"
                 aria-label="Добавить счёт"
               >
