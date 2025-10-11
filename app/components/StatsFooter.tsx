@@ -9,6 +9,7 @@ import { ClubsRepository } from "@/app/repositories/ClubsRepository";
 import { AuthContainer } from "@/app/components/AuthContainer";
 import { UserRole } from "@/app/models/Users";
 import "./StatsFooter.css";
+import { useUser } from "./UserContext";
 
 export function StatsFooter() {
   const [matchesCount, setMatchesCount] = useState<number | null>(null);
@@ -18,6 +19,7 @@ export function StatsFooter() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [authRole, setAuthRole] = useState<UserRole.Player | UserRole.TournamentAdmin>(UserRole.Player);
+  const { user } = useUser();
 
   useEffect(() => {
     let alive = true;
@@ -67,6 +69,7 @@ export function StatsFooter() {
     <>
       <footer className="stats-footer">
         {/* Текст с кнопками */}
+        {!user && (
         <div className="stats-footer__auth-text">
           <div className="stats-footer__auth-line">
             <button
@@ -86,7 +89,7 @@ export function StatsFooter() {
           <div className="stats-footer__auth-line">
             <span>для просмотра своих турниров</span>
           </div>
-        </div>
+        </div>)}
 
         {/* Статистика */}
         <div className="stats-footer__stats">
