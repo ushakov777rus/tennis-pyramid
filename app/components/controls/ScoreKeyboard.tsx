@@ -55,7 +55,6 @@ export function ScoreKeyboard({
   autoFocus = true,
 }: ScoreKeyboardProps) {
   const internalRef = useRef<HTMLInputElement | null>(null);
-
   const mobile = useScoreKeyboardAvailable();
 
   useEffect(() => {
@@ -66,6 +65,27 @@ export function ScoreKeyboard({
   }, [inputRef, autoFocus]);
 
   useEffect(() => {
+  const node = internalRef.current;
+  if (!node) return;
+
+  // Устанавливаем фокус при монтировании клавиатуры
+  node.focus();
+
+  const handleFocusIn = (e: FocusEvent) => {
+    // Если фокус ушёл за пределы клавиатуры — вернуть обратно
+    if (!e.target || !(e.target instanceof Node)) return;
+    if (!node.parentElement?.contains(e.target)) {
+      e.stopPropagation();
+      node.focus();
+    }
+  };
+
+  // Подписка на все попытки смены фокуса
+  document.addEventListener("focusin", handleFocusIn);
+  return () => document.removeEventListener("focusin", handleFocusIn);
+}, []);
+
+  useEffect(() => {
     if (!autoFocus) return;
     const node = internalRef.current;
     if (!node) return;
@@ -74,9 +94,9 @@ export function ScoreKeyboard({
     node.setSelectionRange(pos, pos);
   }, [autoFocus]);
 
-
   const handleInsert = useCallback(
     (symbol: string) => {
+      console.log("handleInsert:");
       const node = internalRef.current;
       const start = node?.selectionStart ?? value.length;
       const end = node?.selectionEnd ?? value.length;
@@ -118,23 +138,63 @@ export function ScoreKeyboard({
 
   const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      onChange(event.target.value);
+      // На десктопе фильтруем ввод, чтобы разрешить только нужные символы
+      if (!mobile) {
+        const filteredValue = event.target.value.replace(/[^\d,\s-]/g, '');
+        onChange(filteredValue);
+      } else {
+        onChange(event.target.value);
+      }
     },
-    [onChange]
+    [onChange, mobile]
   );
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
+      console.log("Key pressed:", event.key);
+      
       if (event.key === "Enter") {
         event.preventDefault();
         if (!disabled) onSave();
+        return;
       }
+      
       if (event.key === "Escape") {
         event.preventDefault();
         onCancel();
+        return;
+      }
+
+      // На десктопе перехватываем ввод и обрабатываем сами
+      if (!mobile) {
+        if (/[\d,-]/.test(event.key)) {
+          event.preventDefault();
+          handleInsert(event.key);
+        } else if (event.key === "Backspace") {
+          event.preventDefault();
+          handleBackspace();
+        } else if (event.key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey) {
+          // Блокируем любые другие символы
+          event.preventDefault();
+        }
       }
     },
-    [disabled, onCancel, onSave]
+    [disabled, onCancel, onSave, mobile, handleInsert, handleBackspace]
+  );
+
+  const handlePaste = useCallback(
+    (event: React.ClipboardEvent<HTMLInputElement>) => {
+      // На десктопе фильтруем вставку
+      if (!mobile) {
+        event.preventDefault();
+        const pastedText = event.clipboardData.getData('text');
+        const filteredText = pastedText.replace(/[^\d,\s-]/g, '');
+        if (filteredText) {
+          handleInsert(filteredText);
+        }
+      }
+    },
+    [mobile, handleInsert]
   );
 
   const dynamicKey = useMemo(() => {
@@ -170,6 +230,7 @@ export function ScoreKeyboard({
 
     return { kind: "hidden" } as const;
   }, [value]);
+  
   const numberRows = useMemo(() => NUMBER_ROWS, []);
 
   return (
@@ -189,18 +250,19 @@ export function ScoreKeyboard({
         <span className="score-kb__fx" aria-hidden>
           Счет
         </span>
-        <input
-          ref={internalRef}
-          className="score-kb__input"
-          value={value}
-          onChange={handleChange}
-          inputMode={autoFocus ? "numeric" : undefined}
-          pattern="[0-9\\s,:-]*"
-          placeholder="6-4, 4-6, 10-8"
-          readOnly={!autoFocus}
-          onFocus={autoFocus ? undefined : (e) => e.currentTarget.blur()}
-          onKeyDown={handleKeyDown}
-        />
+  <input
+    ref={internalRef}
+    className="score-kb__input"
+    value={value}
+    onChange={handleChange}
+    onPaste={handlePaste}
+    inputMode={mobile ? "numeric" : undefined}
+    pattern="[0-9\\s,:-]*"
+    placeholder="6-4, 4-6, 10-8"
+    readOnly={false}
+    onFocus={!autoFocus && mobile ? (e) => e.currentTarget.blur() : undefined}
+    onKeyDown={handleKeyDown}
+  />
         <button
           type="button"
           className="score-kb__action score-kb__action--cancel"

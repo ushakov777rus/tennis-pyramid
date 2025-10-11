@@ -6,7 +6,7 @@ import "@/app/components/ParticipantsView.css";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
-import { Match, PhaseType } from "@/app/models/Match";
+import { Match, MatchPhase, PhaseType } from "@/app/models/Match";
 import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 
 /**
@@ -15,18 +15,19 @@ import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 export type GroupStageTableProps = {
   groupParticipants: Participant[];
   groupMatches: Match[];
-  groupIndex?: number;
+  groupIndex: number | null;
   onSaveScore?: (
     aId: number,
     bId: number,
-    score: string
+    score: string,
+    meta: MatchPhase
   ) => Promise<void> | void;
   /** Компонент для ввода счёта (как в PlayoffStageTable) */
   ScoreCellAdapter: React.FC<{
     a: Participant | null;
     b: Participant | null;
     scoreString: string | null;
-    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
+    phaseFilter: MatchPhase;
   }>;
 };
 
@@ -389,7 +390,7 @@ export function GroupStageTable({
           a={a} 
           b={b} 
           scoreString={getMatchScore(aId, bId)}
-          phaseFilter={{ phase: PhaseType.Group }} />
+          phaseFilter={{ phase: PhaseType.Group, groupIndex: groupIndex, roundIndex: null }} />
       </div>
     );
   }

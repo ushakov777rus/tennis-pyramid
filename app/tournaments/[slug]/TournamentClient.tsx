@@ -7,7 +7,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Tournament, TournamentStatus } from "@/app/models/Tournament";
 import { Player } from "@/app/models/Player";
 import { Team } from "@/app/models/Team";
-import { Match, PhaseType } from "@/app/models/Match";
+import { DEFAULT_MATCH_PHASE, Match, MatchPhase, PhaseType } from "@/app/models/Match";
 import { Participant } from "@/app/models/Participant";
 
 import { TournamentCard } from "@/app/components/TournamentCard";
@@ -46,7 +46,7 @@ type KeyboardState = {
   editingKey: string | null;
   mobileKeyboardContext: { participantA: Participant; participantB: Participant } | null;
   editValue: string;
-  phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
+  phaseFilter: MatchPhase;
 };
 
 export default function TournamentClient() {
@@ -82,7 +82,7 @@ export default function TournamentClient() {
     editingKey: null,
     mobileKeyboardContext: null,
     editValue: "",
-    phaseFilter: undefined,
+    phaseFilter: DEFAULT_MATCH_PHASE,
   });
 
   const editingInputRef = useRef<HTMLInputElement>(null);
@@ -216,7 +216,7 @@ export default function TournamentClient() {
       aId: number,
       bId: number,
       score: string,
-      meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+      meta: MatchPhase
     ) => {
       if (!tournament) return;
 
@@ -303,7 +303,7 @@ export default function TournamentClient() {
     editingKey: string,
     context: { participantA: Participant; participantB: Participant },
     initialValue: string,
-    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+    phaseFilter: MatchPhase
   ) => {
     setKeyboardState({
       isOpen: true,
@@ -320,7 +320,7 @@ export default function TournamentClient() {
       editingKey: null,
       mobileKeyboardContext: null,
       editValue: "",
-      phaseFilter: undefined,
+      phaseFilter: DEFAULT_MATCH_PHASE,
     });
   }, []);
 
@@ -340,7 +340,7 @@ export default function TournamentClient() {
     }
 
     try {
-      await handleSaveScore(aId.getId, bId.getId, score);
+      await handleSaveScore(aId.getId, bId.getId, score, keyboardState.phaseFilter);
       closeKeyboard();
     } catch (err) {
       console.error("Ошибка при сохранении счёта:", err);
@@ -537,7 +537,7 @@ export const FormatView = React.memo(function FormatView({
     aId: number,
     bId: number,
     score: string,
-    meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+    meta: MatchPhase
   ) => void;
   onPositionsChange?: (next: Participant[]) => Promise<void> | void;
   onGoToParticipants?: () => void;
@@ -545,7 +545,7 @@ export const FormatView = React.memo(function FormatView({
     editingKey: string,
     context: { participantA: Participant; participantB: Participant },
     initialValue: string,
-    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+    phaseFilter: MatchPhase
   ) => void;
   onCloseKeyboard?: () => void;
   keyboardState?: KeyboardState;

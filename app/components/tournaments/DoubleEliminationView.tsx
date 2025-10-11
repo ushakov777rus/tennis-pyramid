@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState, useCallback, useEffect } from "react";
 import { Participant } from "@/app/models/Participant";
-import { Match, PhaseType } from "@/app/models/Match";
+import { Match, MatchPhase, PhaseType } from "@/app/models/Match";
 import { PlayoffStageTable } from "./PlayoffStageTable";
 import { ScoreCell } from "./ScoreCell";
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
@@ -14,13 +14,13 @@ type DoubleEliminationViewProps = {
     aId: number,
     bId: number,
     score: string,
-    meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+    meta: MatchPhase
   ) => Promise<void> | void;
   onOpenKeyboard?: (
     editingKey: string,
     context: { participantA: Participant; participantB: Participant },
     initialValue: string,
-    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+    phaseFilter: MatchPhase
   ) => void;
   onCloseKeyboard?: () => void;
   keyboardState?: {
@@ -330,7 +330,7 @@ export function DoubleEliminationView({
     a: Participant | null;
     b: Participant | null;
     scoreString: string | null;
-    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
+    phaseFilter: MatchPhase;
   }> = ({ a, b, scoreString, phaseFilter }) => {
     const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
@@ -379,7 +379,7 @@ export function DoubleEliminationView({
     a: Participant | null;
     b: Participant | null;
     scoreString: string | null;
-    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
+    phaseFilter: MatchPhase;
   }> = ({ a, b, scoreString, phaseFilter }) => {
     const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
@@ -428,7 +428,7 @@ export function DoubleEliminationView({
     a: Participant | null;
     b: Participant | null;
     scoreString: string | null;
-    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
+    phaseFilter: MatchPhase;
   }> = ({ a, b, scoreString, phaseFilter }) => {
     const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;

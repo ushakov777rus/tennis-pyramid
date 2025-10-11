@@ -105,6 +105,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+   pointer-events: auto;
+  cursor: pointer;
 }
 
 .score-kb__extra {
@@ -135,6 +137,8 @@
 .score-kb__key:disabled,
 .score-kb__action:disabled {
   opacity: 0.5;
+  pointer-events: none;
+  
 }
 
 @supports (bottom: constant(safe-area-inset-bottom)) {

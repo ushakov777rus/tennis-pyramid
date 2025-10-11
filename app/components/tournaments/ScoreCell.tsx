@@ -2,21 +2,12 @@
 
 import React, { RefObject, useCallback, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
-import { PhaseType } from "@/app/models/Match";
-import { SaveIconButton, CancelIconButton } from "@/app/components/controls/IconButtons";
-import { ScoreKeyboard, useScoreKeyboardAvailable } from "../controls/ScoreKeyboard";
-
-/** Локальный тип фильтра фазы (совпадает по форме с используемым в родителе) */
-export type MatchPhaseFilter = {
-  phase?: PhaseType;
-  groupIndex?: number | null;
-  roundIndex?: number | null;
-};
+import { MatchPhase, PhaseType } from "@/app/models/Match";
 
 export type ScoreCellProps = {
   a: Participant | null;
   b: Participant | null;
-  phaseFilter?: MatchPhaseFilter;
+  phaseFilter: MatchPhase;
 
   /** Хелперы/состояния, приходящие от родителя */
   scoreString: string | null;
@@ -27,7 +18,7 @@ export type ScoreCellProps = {
   setEditValue: (v: string) => void;
 
   // Обработчики
-  onSave: (aId: number, bId: number, filter?: MatchPhaseFilter) => void;
+  onSave: (aId: number, bId: number, filter: MatchPhase) => void;
   onCancel?: () => void;
   onOpenKeyboard?: (aId: number, bId: number, currentScore: string | null) => void;
   onStartEdit?: (aId: number, bId: number, currentScore: string | null) => void;
@@ -169,40 +160,7 @@ export function ScoreCell({
             </div>
           ) : (
             <div className="score-edit-wrap">
-              <input
-                className="input score-input"
-                value={editValue ? editValue : ""}
-                readOnly={isGlobalKeyboard}
-                ref={(node) => {
-                  // синхронизируем внешний ref
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  (inputRef as any).current = node;
-                }}
-                placeholder="6-4, 4-6, 10-8"
-                pattern="[0-9\\s,:-]*"
-                autoFocus={!isGlobalKeyboard}
-                onFocus={(e) => {
-                  if (isGlobalKeyboard) 
-                    e.currentTarget.blur();
-                }}
-                onKeyDown={(e) => {
-
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleSaveClick();
-                    }
-                    if (e.key === "Escape") {
-                      e.preventDefault();
-                      cancelEdit();
-                    }
-
-                }}
-                onChange={(e) => {
-                  if (isGlobalKeyboard) {
-                    setEditValue(e.target.value);
-                  }
-                }}
-              />
+              <span className="rr-score rr-score--mirror">{editValue ? editValue.replace(/,/g, '\n') : ""}</span>
             </div>
           )
         ) : (

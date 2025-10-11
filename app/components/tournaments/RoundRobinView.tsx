@@ -2,7 +2,7 @@
 
 import { useRef, useCallback, useState, useEffect } from "react";
 import { Participant } from "@/app/models/Participant";
-import { Match, PhaseType } from "@/app/models/Match";
+import { Match, MatchPhase, PhaseType } from "@/app/models/Match";
 import { GroupStageTable } from "./GroupStageTable";
 import { ScoreCell } from "./ScoreCell";
 
@@ -13,13 +13,13 @@ type RoundRobinViewProps = {
     aId: number,
     bId: number,
     score: string,
-    meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+    meta: MatchPhase
   ) => Promise<void> | void;
   onOpenKeyboard?: (
     editingKey: string,
     context: { participantA: Participant; participantB: Participant },
     initialValue: string,
-    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+    phaseFilter: MatchPhase
   ) => void;
   onCloseKeyboard?: () => void;
   keyboardState?: {
@@ -45,7 +45,7 @@ export function RoundRobinView({
   // Обработчик для onSave
   const handleSave = useCallback((aId: number, bId: number) => {
     if (onSaveScore) {
-      onSaveScore(aId, bId, editValue || "", { phase: PhaseType.Group });
+      onSaveScore(aId, bId, editValue || "", { phase: PhaseType.Group, groupIndex: 0, roundIndex: 0 });
     }
   }, [onSaveScore, editValue]);
 
@@ -73,7 +73,7 @@ export function RoundRobinView({
         `${aId}_${bId}`,
         { participantA: a, participantB: b },
         currentScore && currentScore !== "—" ? currentScore : "",
-        { phase: PhaseType.Group }
+        { phase: PhaseType.Group, groupIndex: 0, roundIndex: 0 }
       );
     }, [onOpenKeyboard, a, b]);
 

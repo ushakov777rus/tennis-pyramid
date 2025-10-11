@@ -4,7 +4,7 @@ import "./PlayoffStageTable.css"
 
 import React, { useCallback, useMemo } from "react";
 import { Participant } from "@/app/models/Participant";
-import { Match, PhaseType } from "@/app/models/Match";
+import { Match, MatchPhase, PhaseType } from "@/app/models/Match";
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 
 
@@ -18,7 +18,7 @@ export type PlayoffStageTableProps = {
     a: Participant | null;
     b: Participant | null;
     scoreString: string | null;
-    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
+    phaseFilter: MatchPhase;
   }>;
 };
 
@@ -53,8 +53,7 @@ export function PlayoffStageTable({
   function getMatchScore(
     aId: number | undefined,
     bId: number | undefined,
-    matches: Match[],
-    meta?: { phase?: PhaseType; roundIndex?: number | null }
+    meta: MatchPhase
   ): string | null {
     if(aId == undefined || bId == undefined)
       return "—";
@@ -99,7 +98,7 @@ function getWinnerOfPair(
   function pairWinnerId(
     a: Participant | null,
     b: Participant | null,
-    filter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+    filter: MatchPhase
   ): number | null {
     if (!a || !b) return null;
     
@@ -207,7 +206,7 @@ function buildSingleEliminationRounds(
             <div className="bracket__matches">
               {pairs.length ? (
                 pairs.map(([a, b], mIndex) => {
-                  const phaseFilter = { phase: PhaseType.Playoff, roundIndex: rIndex as number };
+                  const phaseFilter = { phase: PhaseType.Playoff, roundIndex: rIndex as number, groupIndex: 0 };
                   const aId = a?.getId;
                   const bId = b?.getId;
                   const winnerId = pairWinnerId(a, b, phaseFilter);
@@ -289,7 +288,7 @@ function buildSingleEliminationRounds(
                                 <ScoreCell 
                                   a={a} 
                                   b={b} 
-                                  scoreString={getMatchScore(a?.getId, b?.getId, matches, phaseFilter)}
+                                  scoreString={getMatchScore(a?.getId, b?.getId, phaseFilter)}
                                   phaseFilter={phaseFilter} />
                               </td>
                             </tr>

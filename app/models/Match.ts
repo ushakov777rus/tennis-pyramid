@@ -8,6 +8,18 @@ export enum PhaseType {
   Swiss = "swiss"
 }
 
+export type MatchPhase = {
+  phase: PhaseType;
+  groupIndex: number | null;
+  roundIndex: number | null;
+};
+
+export const DEFAULT_MATCH_PHASE: MatchPhase = {
+  phase: PhaseType.Group, // или другое значение по умолчанию
+  groupIndex: null,
+  roundIndex: null
+};
+
 
 export class Match {
   id: number;

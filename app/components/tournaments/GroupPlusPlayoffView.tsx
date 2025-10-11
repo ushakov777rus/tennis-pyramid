@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { Participant } from "@/app/models/Participant";
-import { Match, PhaseType } from "@/app/models/Match";
+import { Match, MatchPhase, PhaseType } from "@/app/models/Match";
 
 import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 import { ScoreCell } from "./ScoreCell";
@@ -16,12 +16,6 @@ import "./PlayoffStageTable.css"
 import "@/app/components/ParticipantsView.css";
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 
-type MatchPhaseFilter = {
-  phase?: PhaseType;
-  groupIndex?: number | null;
-  roundIndex?: number | null;
-};
-
 type GroupPlusPlayoffViewProps = {
   participants: Participant[];
   matches: Match[];
@@ -29,13 +23,13 @@ type GroupPlusPlayoffViewProps = {
     aId: number,
     bId: number,
     score: string,
-    meta?: { phase: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+    meta: MatchPhase
   ) => Promise<void> | void;
   onOpenKeyboard?: (
     editingKey: string,
     context: { participantA: Participant; participantB: Participant },
     initialValue: string,
-    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
+    phaseFilter: MatchPhase
   ) => void;
   onCloseKeyboard?: () => void;
   keyboardState?: {
@@ -218,24 +212,6 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
     return rounds;
   }
 
-  function pairWinnerId(
-    a: Participant | null,
-    b: Participant | null,
-    matches: Match[],
-    filter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null }
-  ): number | null {
-    const aId = a?.getId; 
-    const bId = b?.getId;
-    
-    if (aId && !bId) return aId;
-    if (!aId && bId) return bId;
-    if (!aId || !bId) return null;
-    const m = findMatchBetween(aId, bId, filter);
-    if (!m) return null;
-    const w = m.getWinnerId?.();
-    return w && w > 0 ? w : null;
-  }
-
   // Обработчики для сохранения
   const handleSaveGroup = useCallback((aId: number, bId: number, groupIndex: number) => {
     if (onSaveScore) {
@@ -262,7 +238,7 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
     a: Participant | null;
     b: Participant | null;
     scoreString: string | null;
-    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
+    phaseFilter: MatchPhase;
   }> = ({ a, b, scoreString, phaseFilter }) => {
     const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
@@ -313,7 +289,7 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
     a: Participant | null;
     b: Participant | null;
     scoreString: string | null;
-    phaseFilter?: { phase?: PhaseType; groupIndex?: number | null; roundIndex?: number | null };
+    phaseFilter: MatchPhase;
   }> = ({ a, b, scoreString, phaseFilter }) => {
     const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
