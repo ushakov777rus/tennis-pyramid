@@ -104,7 +104,7 @@ export function ScoreCell({
               {shouldShowHelpTooltip && <div className="help-tooltip">Введите счёт</div>}
               <button
                 type="button"
-                className="vs vs-click"
+                className="vs-click"
                 onClick={() => startEdit(aId!, bId!, localScoreString)}
                 disabled={!canManage}
                 title="Добавить счёт"
