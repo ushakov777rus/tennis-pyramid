@@ -237,10 +237,6 @@ export function GroupStageTable({
 }: GroupStageTableProps) {
   /** Текущая редактируемая пара (ключ из двух ID). */
   const [editingKey, setEditingKey] = useState<string | null>(null);
-  /** Текущее текстовое значение вводимого счёта. */
-  const [editValue, setEditValue] = useState<string>("");
-  /** Флаг отправки счёта. */
-  const [saving, setSaving] = useState(false);
 
   /** Контекст для мобильной клавиатуры: какие ID сейчас редактируются. */
   const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
@@ -248,18 +244,8 @@ export function GroupStageTable({
     bId: number;
   } | null>(null);
 
-  /** Ссылка на инпут редактирования (десктоп). */
-  const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
-  /** Ссылка на обёртку (чтобы менять нижний отступ под клавиатуру). */
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-  /** Ссылка на контейнер клавиатуры (для измерения высоты). */
-  const keyboardHostRef = useRef<HTMLDivElement | null>(null);
   /** Ссылка на таблицу (чтобы находить активные ячейки). */
   const tableRef = useRef<HTMLTableElement | null>(null);
-  /** Текущая высота кастомной клавиатуры. */
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-  /** Какая ячейка редактируется (для скролла/позиционирования). */
-  const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
   /** Оптимистично введённые счёты до подтверждения сервером. */
   const [pendingScores, setPendingScores] = useState<Map<string, PendingEntry>>(new Map());
 
