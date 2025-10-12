@@ -60,13 +60,9 @@ export function ScoreCell({
 
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
 
-  const { user } = useUser();
-
-
   // Определяем, используем ли глобальное или локальное состояние
   const isGlobalKeyboard = !!onOpenKeyboard;
   const editingKey = isGlobalKeyboard ? externalEditingKey : localEditingKey;
-  const isSaving = isGlobalKeyboard ? saving : localSaving;
   
   // Вспомогательные функции
   const pairKey = useCallback((aId: number, bId: number) => 
@@ -131,18 +127,13 @@ export function ScoreCell({
     }
   }, [editValue, onSave, phaseFilter, cancelEdit, isGlobalKeyboard]);
 
-  const handleSaveClick = useCallback(() => {
-    if (!a?.getId || !b?.getId) return;
-    saveEdit(a.getId, b.getId);
-  }, [a, b, saveEdit]);
-
   const aId = a?.getId;
   const bId = b?.getId;
   const canEdit = !!aId && !!bId;
   const localScoreString = canEdit ? scoreString : null;
   const kkk = canEdit ? pairKey(aId!, bId!) : undefined;
   const isEditing = !!kkk && editingKey === kkk;
-  const shouldShowHelpTooltip = canEdit && !localScoreString && !isEditing && showHelpTooltip;
+  const shouldShowHelpTooltip = canEdit && !localScoreString && !isEditing && showHelpTooltip && canManage;
 
   return (
     <>
