@@ -15,7 +15,7 @@ import type { Tournament } from "@/app/models/Tournament";
 import type { Player } from "@/app/models/Player";
 import type { Team } from "@/app/models/Team";
 import { Participant } from "@/app/models/Participant";
-import { Match, PhaseType } from "@/app/models/Match";
+import { Match, MatchCreateInput, PhaseType } from "@/app/models/Match";
 
 import {
   PlayersRepository
@@ -52,20 +52,6 @@ type InitialData = {
   matches?: Match[];
 };
 
-/** Старый путь создания матча (оставлен для совместимости с другими видами схем) */
-type AddMatchArgs = {
-  date: Date;
-  type: Tournament["tournament_type"];
-  scores: [number, number][];
-  player1: number | null;
-  player2: number | null;
-  team1: number | null;
-  team2: number | null;
-  tournamentId: number;
-  phase?: PhaseType;
-  groupIndex?: number | null;
-  roundIndex?: number | null;
-};
 
 export type PhaseMeta = { phase?: PhaseType; roundIndex?: number | null; groupIndex?: number | null };
 
@@ -92,7 +78,7 @@ export type TournamentContextShape = {
   setTournamentStatus: (status: TournamentStatus) => void;
 
   // классические мутации (оставлены как есть)
-  addMatch: (args: AddMatchArgs) => Promise<void>;
+  addMatch: (args: MatchCreateInput) => Promise<void>;
   updateMatch: (m: Match) => Promise<void>;
   deleteMatch: (m: Match) => Promise<void>;
   findMatchBetween: (aParticipantId: number, bParticipantId: number, meta?: PhaseMeta) => Match | null;
@@ -242,7 +228,7 @@ export function TournamentProvider({
 
   // ---- Мутации матчей (старая ветка) ----
   const addMatch = useCallback(
-    async (args: AddMatchArgs) => {
+    async (args: MatchCreateInput) => {
       setMutating(true);
       try {
         await MatchRepository.addMatch(

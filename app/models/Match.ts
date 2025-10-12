@@ -20,6 +20,21 @@ export const DEFAULT_MATCH_PHASE: MatchPhase = {
   roundIndex: null
 };
 
+/** Старый путь создания матча (оставлен для совместимости с другими видами схем) */
+export type MatchCreateInput = {
+  date: Date;
+  type: Tournament["tournament_type"];
+  scores: [number, number][];
+  player1: number | null;
+  player2: number | null;
+  team1: number | null;
+  team2: number | null;
+  tournamentId: number;
+  phase?: PhaseType;
+  groupIndex?: number | null;
+  roundIndex?: number | null;
+};
+
 
 export class Match {
   id: number;
