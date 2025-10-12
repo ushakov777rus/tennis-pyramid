@@ -19,6 +19,7 @@ import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 type GroupPlusPlayoffViewProps = {
   participants: Participant[];
   matches: Match[];
+  canManage: boolean;
   onSaveScore?: (
     aId: number,
     bId: number,
@@ -46,6 +47,7 @@ type GroupPlusPlayoffViewProps = {
 export function GroupPlusPlayoffView({
   participants,
   matches,
+  canManage,
   onSaveScore,
   onOpenKeyboard,
   onCloseKeyboard,
@@ -274,6 +276,7 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
         phaseFilter={phaseFilter}
         editingKey={keyboardState?.editingKey}
         editValue={editValue}
+        canManage={canManage}
         setEditValue={setEditValue}
         inputRef={editingInputRef}
         onSave={handleSave}
@@ -325,6 +328,7 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
         phaseFilter={phaseFilter}
         editingKey={keyboardState?.editingKey}
         editValue={editValue}
+        canManage={canManage}
         setEditValue={setEditValue}
         inputRef={editingInputRef}
         onSave={handleSave}

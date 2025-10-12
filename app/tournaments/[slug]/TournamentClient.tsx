@@ -35,6 +35,7 @@ import { SwissView } from "@/app/components/tournaments/SwissView";
 import { AboutTournament } from "@/app/components/AboutTournament";
 import { UserRole } from "@/app/models/Users";
 import { SimpleBreadcrumbs } from "@/app/components/controls/BreadCrumbs";
+import { OWNER_TOKEN_PREFIX } from "@/app/freetournament/constants"; 
 
 const todayISO = new Date().toISOString().split("T")[0];
 
@@ -84,6 +85,30 @@ export default function TournamentClient() {
     editValue: "",
     phaseFilter: DEFAULT_MATCH_PHASE,
   });
+   
+  const [localOwnerToken, setLocalOwnerToken] = useState<string | null>(null);
+  
+  useEffect(() => {
+    if (!tournament?.slug) return;
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem(`${OWNER_TOKEN_PREFIX}${tournament?.slug}`);
+    setLocalOwnerToken(stored);
+  }, [tournament?.slug]);  
+  
+  const ownerTokenFromTournament = tournament?.ownerToken ?? null;
+  const isOwnedByUser = !!(user?.id && tournament?.creator_id && tournament.creator_id === user.id);
+  const hasOwnerTokenMatch =
+    !!ownerTokenFromTournament &&
+    !!localOwnerToken &&
+    localOwnerToken === ownerTokenFromTournament;
+
+  const canManage = 
+    user?.role === UserRole.SiteAdmin ||
+    user?.role === UserRole.TournamentAdmin && isOwnedByUser ||
+    hasOwnerTokenMatch;
+
+  console.log("You can manage this tournament:", canManage, user?.role, isOwnedByUser, hasOwnerTokenMatch);
+  
 
   const editingInputRef = useRef<HTMLInputElement>(null);
 
@@ -91,21 +116,20 @@ export default function TournamentClient() {
 
   const pathname = usePathname();
   const isWizard = pathname.includes("/freetournament");
-  const canAccessParticipantsTab = user?.role === UserRole.SiteAdmin || user?.role === UserRole.TournamentAdmin || isWizard;
 
   const tabs: TabItem[] = useMemo(() => {
     const items: Array<TabItem | false> = [
       !isWizard && { key: "aboutt", label: "О турнире" },
       showBracketTab && { key: "bracket", label: "Сетка" },
       { key: "matches", label: "Матчи" },
-      canAccessParticipantsTab && {
+      canManage && {
         key: "participants",
         label: "Участники",
       },
       { key: "results", label: "Рейтинг" },
     ];
     return items.filter(Boolean) as TabItem[];
-  }, [showBracketTab, canAccessParticipantsTab, isWizard]);
+  }, [showBracketTab, canManage, isWizard]);
 
   // Синхронизация с URL параметром tab
   useEffect(() => {
@@ -449,6 +473,7 @@ export default function TournamentClient() {
               <FormatView
                 loading={loading}
                 tournament={tournament}
+                canManage={canManage}
                 participants={participants}
                 matches={matches}
                 selectedIds={selectedIds}
@@ -456,7 +481,7 @@ export default function TournamentClient() {
                 onShowHistoryPlayer={handleShowHistoryPlayer}
                 onSaveScore={handleSaveScore}
                 onPositionsChange={updatePositions}
-                onGoToParticipants={canAccessParticipantsTab ? () => setView("participants") : undefined}
+                onGoToParticipants={canManage ? () => setView("participants") : undefined}
                 // Передаем функции для управления клавиатурой
                 onOpenKeyboard={openKeyboard}
                 onCloseKeyboard={closeKeyboard}
@@ -469,7 +494,7 @@ export default function TournamentClient() {
                 onEditMatch={handleEditMatchSave} 
                 onDeleteMatch={handleDeleteMatch} />}
 
-            {view === "participants" && 
+            {view === "participants" && canManage &&
               <TournamentParticipantsView isWizard={isWizard}/>}
 
             {view === "results" && <RatingView />}
@@ -514,6 +539,7 @@ export default function TournamentClient() {
 export const FormatView = React.memo(function FormatView({
   loading,
   tournament,
+  canManage,
   participants,
   matches,
   selectedIds,
@@ -528,6 +554,7 @@ export const FormatView = React.memo(function FormatView({
 }: {
   loading: boolean;
   tournament: Tournament;
+  canManage: boolean;
   participants: Participant[];
   matches: Match[];
   selectedIds: number[];
@@ -583,6 +610,7 @@ export const FormatView = React.memo(function FormatView({
       <RoundRobinView 
         participants={participants} 
         matches={matches} 
+        canManage={canManage}
         onSaveScore={onSaveScoreRoundRobin}
         onOpenKeyboard={onOpenKeyboard}
         onCloseKeyboard={onCloseKeyboard}
@@ -596,6 +624,7 @@ export const FormatView = React.memo(function FormatView({
       <SingleEliminationView 
         participants={participants} 
         matches={matches} 
+        canManage={canManage}
         onSaveScore={onSaveScoreRoundRobin}
         onOpenKeyboard={onOpenKeyboard}
         onCloseKeyboard={onCloseKeyboard}
@@ -609,6 +638,7 @@ export const FormatView = React.memo(function FormatView({
       <DoubleEliminationView 
         participants={participants} 
         matches={matches} 
+        canManage={canManage}
         onSaveScore={onSaveScoreRoundRobin}
         onOpenKeyboard={onOpenKeyboard}
         onCloseKeyboard={onCloseKeyboard}
@@ -622,6 +652,7 @@ export const FormatView = React.memo(function FormatView({
       <GroupPlusPlayoffView
         participants={participants}
         matches={matches}
+        canManage={canManage}
         onSaveScore={onSaveScoreRoundRobin}
         groupsCount={tournament.settings.groupsplayoff ? tournament.settings.groupsplayoff.groupsCount : 2}
         onOpenKeyboard={onOpenKeyboard}
@@ -636,6 +667,7 @@ export const FormatView = React.memo(function FormatView({
       <SwissView 
         participants={participants} 
         matches={matches} 
+        canManage={canManage}
         onSaveScore={onSaveScoreRoundRobin} 
         roundsCount={5}
         onOpenKeyboard={onOpenKeyboard}

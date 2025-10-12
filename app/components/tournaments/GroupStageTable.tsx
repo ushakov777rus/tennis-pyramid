@@ -16,6 +16,7 @@ export type GroupStageTableProps = {
   groupParticipants: Participant[];
   groupMatches: Match[];
   groupIndex: number | null;
+  canManage: boolean;
   onSaveScore?: (
     aId: number,
     bId: number,
@@ -231,6 +232,7 @@ export function GroupStageTable({
   groupParticipants: participants,
   groupMatches: matches,
   groupIndex,
+  canManage,
   ScoreCellAdapter: ScoreCell,
 }: GroupStageTableProps) {
   /** Текущая редактируемая пара (ключ из двух ID). */

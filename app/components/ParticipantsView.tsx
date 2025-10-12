@@ -28,7 +28,6 @@ type TournamentModeProps = {
   onAddPlayerToTournament?: (playerId: number) => void | Promise<void>;
   onRemoveParticipant?: (participant: Participant) => void | Promise<void>;
   onCreateTeam?: (player1Id: number, player2Id: number) => void | Promise<void>;
-  canManage?: boolean;
 };
 
 type ClubModeProps = {
@@ -43,7 +42,6 @@ type ClubModeProps = {
   // действия
   onAddPlayerToClub?: (playerId: number) => void | Promise<void>;
   onRemoveMember?: (playerId: number) => void | Promise<void>;
-  canManage?: boolean;
 };
 
 export type ParticipantsViewProps = TournamentModeProps | ClubModeProps;
@@ -436,7 +434,6 @@ export function TournamentParticipantsView({ isWizard = false }: { isWizard?: bo
           ? (p1, p2) => createAndAddTeamToTournament(tournament.id, p1, p2)
           : undefined
       }
-      canManage={isWizard}
       // [NEW] пробрасываем "добавить в клуб" только если контекст клуба есть
       {...(clubCtx?.club
         ? { onAddPlayerToClub: clubCtx.addMember }

@@ -9,6 +9,7 @@ import { ScoreCell } from "./ScoreCell";
 type SingleEliminationViewProps = {
   participants: Participant[];
   matches: Match[];
+  canManage: boolean;
   onSaveScore?: (
     aId: number,
     bId: number,
@@ -33,6 +34,7 @@ type SingleEliminationViewProps = {
 export function SingleEliminationView({
   participants,
   matches,
+  canManage,
   onSaveScore,
   onOpenKeyboard,
   onCloseKeyboard,
@@ -99,6 +101,7 @@ export function SingleEliminationView({
         // Состояние редактирования
         editingKey={keyboardState?.editingKey}
         editValue={editValue}
+        canManage={canManage}
         setEditValue={setEditValue}
         inputRef={editingInputRef}
         // Обработчики

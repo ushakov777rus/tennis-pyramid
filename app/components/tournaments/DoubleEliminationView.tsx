@@ -10,6 +10,7 @@ import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 type DoubleEliminationViewProps = {
   participants: Participant[];
   matches: Match[];
+  canManage: boolean;
   onSaveScore?: (
     aId: number,
     bId: number,
@@ -56,6 +57,7 @@ const BRACKET_GROUP_GF = 2;
 export function DoubleEliminationView({
   participants,
   matches,
+  canManage,
   onSaveScore,
   onOpenKeyboard,
   onCloseKeyboard,
@@ -364,6 +366,7 @@ export function DoubleEliminationView({
         phaseFilter={phaseFilter}
         editingKey={keyboardState?.editingKey}
         editValue={editValue}
+        canManage={canManage}
         setEditValue={setEditValue}
         inputRef={editingInputRef}
         onSave={handleSave}
@@ -413,6 +416,7 @@ export function DoubleEliminationView({
         phaseFilter={phaseFilter}
         editingKey={keyboardState?.editingKey}
         editValue={editValue}
+        canManage={canManage}
         setEditValue={setEditValue}
         inputRef={editingInputRef}
         onSave={handleSave}
@@ -462,6 +466,7 @@ export function DoubleEliminationView({
         phaseFilter={phaseFilter}
         editingKey={keyboardState?.editingKey}
         editValue={editValue}
+        canManage={canManage}
         setEditValue={setEditValue}
         inputRef={editingInputRef}
         onSave={handleSave}

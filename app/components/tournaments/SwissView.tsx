@@ -10,6 +10,7 @@ import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 type SwissViewProps = {
   participants: Participant[];
   matches: Match[];
+  canManage: boolean;
   roundsCount: number;
   onSaveScore?: (
     aId: number,
@@ -174,6 +175,7 @@ function swissPairRound(
 export function SwissView({
   participants,
   matches,
+  canManage,
   roundsCount,
   onSaveScore,
   onOpenKeyboard,
@@ -284,6 +286,7 @@ export function SwissView({
         phaseFilter={phaseFilter}
         editingKey={keyboardState?.editingKey}
         editValue={editValue}
+        canManage={canManage}
         setEditValue={setEditValue}
         inputRef={editingInputRef}
         onSave={handleSaveWithRound}

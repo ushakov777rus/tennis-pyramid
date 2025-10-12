@@ -17,6 +17,7 @@ export type ScoreCellProps = {
   // Состояние редактирования (может быть глобальным или локальным)
   editingKey?: string | null;
   editValue: string | null;
+  canManage: boolean;
   setEditValue: (v: string) => void;
 
   // Обработчики
@@ -39,12 +40,12 @@ export function ScoreCell({
   scoreString,
   editingKey: externalEditingKey,
   editValue,
+  canManage,
   setEditValue,
   onSave,
   onCancel,
   onOpenKeyboard,
   onStartEdit,
-  inputRef,
   showHelpTooltip = false,
   saving = false,
 }: ScoreCellProps) {
@@ -156,7 +157,7 @@ export function ScoreCell({
                 type="button"
                 className="vs vs-click"
                 onClick={() => startEdit(aId!, bId!, localScoreString)}
-                disabled={user == null || (user.role != UserRole.SiteAdmin && user.role != UserRole.TournamentAdmin)}
+                disabled={!canManage}
                 title="Добавить счёт"
                 aria-label="Добавить счёт"
               >

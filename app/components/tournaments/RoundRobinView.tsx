@@ -9,6 +9,7 @@ import { ScoreCell } from "./ScoreCell";
 type RoundRobinViewProps = {
   participants: Participant[];
   matches: Match[];
+  canManage: boolean;
   onSaveScore?: (
     aId: number,
     bId: number,
@@ -33,6 +34,7 @@ type RoundRobinViewProps = {
 export function RoundRobinView({
   participants,
   matches,
+  canManage,
   onSaveScore,
   onOpenKeyboard,
   onCloseKeyboard,
@@ -91,6 +93,7 @@ export function RoundRobinView({
         // Состояние редактирования
         editingKey={keyboardState?.editingKey}
         editValue={editValue}
+        canManage={canManage}
         setEditValue={setEditValue}
         inputRef={editingInputRef}
         // Обработчики
@@ -108,6 +111,7 @@ export function RoundRobinView({
         groupParticipants={participants}
         groupMatches={matches}
         groupIndex={null}
+        canManage={canManage}
         onSaveScore={onSaveScore}
         ScoreCellAdapter={GroupMatchCell}
       />
