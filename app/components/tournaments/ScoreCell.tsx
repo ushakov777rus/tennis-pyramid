@@ -42,17 +42,13 @@ export function ScoreCell({
   editValue,
   canManage,
   setEditValue,
-  onSave,
-  onCancel,
   onOpenKeyboard,
   onStartEdit,
   showHelpTooltip = false,
-  saving = false,
 }: ScoreCellProps) {
 
   // Локальное состояние для случаев, когда нет глобального управления
   const [localEditingKey, setLocalEditingKey] = useState<string | null>(null);
-  const [localSaving, setLocalSaving] = useState(false);
   const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
     aId: number;
     bId: number;
@@ -88,44 +84,6 @@ export function ScoreCell({
       setMobileKeyboardContext({ aId, bId });
     }
   }, [onOpenKeyboard, onStartEdit, pairKey, setEditValue]);
-
-  const cancelEdit = useCallback(() => {
-    if (onCancel) {
-      // Глобальная отмена
-      onCancel();
-    } else {
-      // Локальная отмена
-      setLocalEditingKey(null);
-      setEditValue("");
-      editingInputRef.current = null;
-      setMobileKeyboardContext(null);
-    }
-  }, [onCancel, setEditValue]);
-
-  const saveEdit = useCallback(async (aId: number, bId: number) => {
-    const needScore = editValue && editValue.trim();
-
-    if (!needScore) {
-      alert('Введите счёт');
-      return;
-    }
-
-    try {
-      if (!isGlobalKeyboard) {
-        setLocalSaving(true);
-      }
-      
-      await onSave(aId, bId, phaseFilter);
-      cancelEdit();
-    } catch (err) {
-      console.error("Ошибка при сохранении счёта:", err);
-      alert(err instanceof Error ? err.message : "Не удалось сохранить счёт");
-    } finally {
-      if (!isGlobalKeyboard) {
-        setLocalSaving(false);
-      }
-    }
-  }, [editValue, onSave, phaseFilter, cancelEdit, isGlobalKeyboard]);
 
   const aId = a?.getId;
   const bId = b?.getId;

@@ -311,9 +311,6 @@ export default function TournamentClient() {
             roundIndex: meta?.phase === PhaseType.Playoff ? meta.roundIndex ?? null : null,
           });
         }
-
-        // NB: тут остаётся reload(), т.к. это общий путь для разных схем.
-        await reload({ silent: true });
       } catch (err) {
         console.error("Ошибка при сохранении счёта:", err);
         alert(err instanceof Error ? err.message : "Не удалось сохранить счёт");
