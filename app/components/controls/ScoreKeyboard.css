@@ -79,6 +79,7 @@
   align-items: center;
   justify-content: center;
   border-left: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
 }
 
 .score-kb__action--ok {
