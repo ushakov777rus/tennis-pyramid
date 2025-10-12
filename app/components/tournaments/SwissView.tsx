@@ -39,11 +39,6 @@ function isValidParticipant(p: Participant | null | undefined): p is Participant
   return !!p && (!!p.player || !!p.team);
 }
 
-function pid(p: Participant | null | undefined): number | null {
-  if (!p) return null;
-  return p.getId;
-}
-
 function havePlayed(aId: number, bId: number, matches: Match[]) {
   return !!matches.find((m) => {
     const id1 = m.player1?.id ?? m.team1?.id ?? 0;
