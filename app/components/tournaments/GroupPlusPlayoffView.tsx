@@ -361,6 +361,7 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
         groupParticipants={group}
         groupMatches={matchesForGroup}
         groupIndex={gIndex}
+        canManage={canManage}
         onSaveScore={(aId, bId, score) =>
           onSaveScore?.(aId, bId, score, { phase: PhaseType.Group, groupIndex: gIndex, roundIndex: null })
         }
