@@ -38,10 +38,6 @@ function isValidParticipant(p: Participant | null | undefined): p is Participant
   return !!p && (!!p.player || !!p.team);
 }
 
-function pid(p: Participant | null | undefined): number | null {
-  return p ? p.getId : null;
-}
-
 function nextPow2(n: number) {
   let p = 1;
   while (p < n) p <<= 1;
@@ -133,8 +129,8 @@ export function DoubleEliminationView({
     b: Participant | null,
     allowBye: boolean
   ): { winnerId: number | null; loserId: number | null } {
-    const aId = pid(a);
-    const bId = pid(b);
+    const aId = a?.getId;
+    const bId = b?.getId;
 
     if (allowBye) {
       if (aId && !bId) return { winnerId: aId, loserId: null };
@@ -222,8 +218,8 @@ export function DoubleEliminationView({
     ordered.forEach((p) => idToP.set(p.getId, p));
 
     const pairWinnerId = (a: Participant | null, b: Participant | null): number | null => {
-      const aId = pid(a);
-      const bId = pid(b);
+      const aId = a?.getId;
+      const bId = b?.getId;
       if (aId && !bId) return aId;
       if (!aId && bId) return bId;
       if (!aId || !bId) return null;
@@ -301,8 +297,8 @@ export function DoubleEliminationView({
     const last = resolvedLB[resolvedLB.length - 1];
     if (last.length !== 1) return null;
     const [a, b] = last[0];
-    const aId = pid(a);
-    const bId = pid(b);
+    const aId = a?.getId;
+    const bId = b?.getId;
     if (!aId || !bId) return null;
     const m = findMatchBetween(aId, bId, { phase: PhaseType.Playoff, groupIndex: BRACKET_GROUP_LB });
     if (!m) return null;
