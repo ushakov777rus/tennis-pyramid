@@ -1,0 +1,14 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "destination": "https://honeycup.ru/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "destination": "https://honeycup.ru",
+      "permanent": true
+    }
+  ]
+}
