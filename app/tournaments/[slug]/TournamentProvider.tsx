@@ -45,7 +45,7 @@ export type AddMatchAndMaybeSwapArgs = {
 
 type InitialData = {
   tournamentSlug: string;                         // роутим по slug
-  tournamentPlain?: TournamentPlain | null; // получаем с сервера только POJO
+  tournamentPlain: TournamentPlain; // получаем с сервера только POJO
   players?: Player[];
   participants?: Participant[];
   teams?: Team[];
@@ -97,8 +97,7 @@ export type TournamentContextShape = {
 const TournamentContext = createContext<TournamentContextShape | null>(null);
 
 // helper: собираем модель из plain-объекта
-function toModel(p?: TournamentPlain | null): Tournament | null {
-  if (!p) return null;
+function toModel(p: TournamentPlain): Tournament {
   return new TournamentModel(
     p.id,
     p.name,
@@ -129,7 +128,7 @@ export function TournamentProvider({
 
   // source of truth (на клиенте храним класс-модель)
   const [creator, setCreator] = useState<Player | null>(null);
-  const [tournament, setTournament] = useState<Tournament | null>(
+  const [tournament, setTournament] = useState<Tournament>(
     toModel(initial.tournamentPlain)
   );
   const [players, setPlayers] = useState<Player[]>(initial.players ?? []);
@@ -161,6 +160,11 @@ export function TournamentProvider({
       try {
         // 1) турнир по slug → модель
         const tPlain = await TournamentsRepository.getBySlug(tournamentSlug);
+        if (!tPlain) {
+          console.error("Не удалось загрузить турнир:", tournamentSlug);
+          return;
+        }
+
         const t = toModel(tPlain);
 
         setTournament(t);
@@ -227,32 +231,74 @@ export function TournamentProvider({
   }, [tournamentId, reload, tournament]);
 
   // ---- Мутации матчей (старая ветка) ----
-  const addMatch = useCallback(
-    async (args: MatchCreateInput) => {
-      setMutating(true);
-      try {
-        await MatchRepository.addMatch(
-          args.date,
-          args.type,
-          args.scores,
-          args.player1,
-          args.player2,
-          args.team1,
-          args.team2,
-          args.tournamentId,
-          {
-            phase: args.phase,
-            groupIndex: args.groupIndex ?? null,
-            roundIndex: args.roundIndex ?? null,
-          }
-        );
-        await reload({ silent: true });
-      } finally {
-        setMutating(false);
-      }
-    },
-    [reload]
-  );
+const addMatch = useCallback(
+  async (args: MatchCreateInput) => {
+    setMutating(true);
+    
+    // 1. Создаем оптимистичный матч
+    const optimisticMatch = new Match(
+      -Date.now(), // временный отрицательный ID
+      args.type,
+      args.date,
+      args.scores,
+      tournament, // предполагая, что tournament доступен в scope
+      args.player1 ? { id: args.player1 } as Player : undefined,
+      args.player2 ? { id: args.player2 } as Player : undefined,
+      args.team1 ? { id: args.team1 } as Team : undefined,
+      args.team2 ? { id: args.team2 } as Team : undefined
+    );
+
+    // Добавляем фазовые поля если они есть
+    if (args.phase) {
+      optimisticMatch.phase = args.phase;
+      optimisticMatch.groupIndex = args.groupIndex ?? null;
+      optimisticMatch.roundIndex = args.roundIndex ?? null;
+    }
+
+    // Помечаем как оптимистичный
+    (optimisticMatch as any)._optimistic = true;
+
+    // 2. Сохраняем предыдущее состояние для отката
+    const previousMatches = matches;
+    
+    // 3. Сразу обновляем UI - добавляем матч в начало списка
+    setMatches(prev => [optimisticMatch, ...prev]);
+    
+    try {
+      // 4. Отправляем запрос на сервер
+      await MatchRepository.addMatch(
+        args.date,
+        args.type,
+        args.scores,
+        args.player1,
+        args.player2,
+        args.team1,
+        args.team2,
+        args.tournamentId,
+        {
+          phase: args.phase,
+          groupIndex: args.groupIndex ?? null,
+          roundIndex: args.roundIndex ?? null,
+        }
+      );
+      
+      // 5. После успеха - перезагружаем данные для синхронизации
+      await reload({ silent: true });
+      
+    } catch (error) {
+      // 6. В случае ошибки - откатываем к предыдущему состоянию
+      setMatches(previousMatches);
+      console.error('Failed to add match:', error);
+      
+      // Показываем сообщение об ошибке
+      alert('Не удалось добавить матч. Попробуйте еще раз.');
+      throw error;
+    } finally {
+      setMutating(false);
+    }
+  },
+  [reload, matches, tournament] // зависимости
+);
 
   const updateMatch = useCallback(
     async (m: Match) => {
