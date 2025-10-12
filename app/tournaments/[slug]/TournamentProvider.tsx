@@ -230,75 +230,75 @@ export function TournamentProvider({
     return tid;
   }, [tournamentId, reload, tournament]);
 
-  // ---- Мутации матчей (старая ветка) ----
-const addMatch = useCallback(
-  async (args: MatchCreateInput) => {
-    setMutating(true);
-    
-    // 1. Создаем оптимистичный матч
-    const optimisticMatch = new Match(
-      -Date.now(), // временный отрицательный ID
-      args.type,
-      args.date,
-      args.scores,
-      tournament, // предполагая, что tournament доступен в scope
-      args.player1 ? { id: args.player1 } as Player : undefined,
-      args.player2 ? { id: args.player2 } as Player : undefined,
-      args.team1 ? { id: args.team1 } as Team : undefined,
-      args.team2 ? { id: args.team2 } as Team : undefined
-    );
-
-    // Добавляем фазовые поля если они есть
-    if (args.phase) {
-      optimisticMatch.phase = args.phase;
-      optimisticMatch.groupIndex = args.groupIndex ?? null;
-      optimisticMatch.roundIndex = args.roundIndex ?? null;
-    }
-
-    // Помечаем как оптимистичный
-    (optimisticMatch as any)._optimistic = true;
-
-    // 2. Сохраняем предыдущее состояние для отката
-    const previousMatches = matches;
-    
-    // 3. Сразу обновляем UI - добавляем матч в начало списка
-    setMatches(prev => [optimisticMatch, ...prev]);
-    
-    try {
-      // 4. Отправляем запрос на сервер
-      await MatchRepository.addMatch(
-        args.date,
+  // Оптимистичное добавление матча
+  const addMatch = useCallback(
+    async (args: MatchCreateInput) => {
+      setMutating(true);
+      
+      // 1. Создаем оптимистичный матч
+      const optimisticMatch = new Match(
+        -Date.now(), // временный отрицательный ID
         args.type,
+        args.date,
         args.scores,
-        args.player1,
-        args.player2,
-        args.team1,
-        args.team2,
-        args.tournamentId,
-        {
-          phase: args.phase,
-          groupIndex: args.groupIndex ?? null,
-          roundIndex: args.roundIndex ?? null,
-        }
+        tournament, // предполагая, что tournament доступен в scope
+        args.player1 ? { id: args.player1 } as Player : undefined,
+        args.player2 ? { id: args.player2 } as Player : undefined,
+        args.team1 ? { id: args.team1 } as Team : undefined,
+        args.team2 ? { id: args.team2 } as Team : undefined
       );
+
+      // Добавляем фазовые поля если они есть
+      if (args.phase) {
+        optimisticMatch.phase = args.phase;
+        optimisticMatch.groupIndex = args.groupIndex ?? null;
+        optimisticMatch.roundIndex = args.roundIndex ?? null;
+      }
+
+      // Помечаем как оптимистичный
+      (optimisticMatch as any)._optimistic = true;
+
+      // 2. Сохраняем предыдущее состояние для отката
+      const previousMatches = matches;
       
-      // 5. После успеха - перезагружаем данные для синхронизации
-      await reload({ silent: true });
+      // 3. Сразу обновляем UI - добавляем матч в начало списка
+      setMatches(prev => [optimisticMatch, ...prev]);
       
-    } catch (error) {
-      // 6. В случае ошибки - откатываем к предыдущему состоянию
-      setMatches(previousMatches);
-      console.error('Failed to add match:', error);
-      
-      // Показываем сообщение об ошибке
-      alert('Не удалось добавить матч. Попробуйте еще раз.');
-      throw error;
-    } finally {
-      setMutating(false);
-    }
-  },
-  [reload, matches, tournament] // зависимости
-);
+      try {
+        // 4. Отправляем запрос на сервер
+        await MatchRepository.addMatch(
+          args.date,
+          args.type,
+          args.scores,
+          args.player1,
+          args.player2,
+          args.team1,
+          args.team2,
+          args.tournamentId,
+          {
+            phase: args.phase,
+            groupIndex: args.groupIndex ?? null,
+            roundIndex: args.roundIndex ?? null,
+          }
+        );
+        
+        // 5. После успеха - перезагружаем данные для синхронизации
+        await reload({ silent: true });
+        
+      } catch (error) {
+        // 6. В случае ошибки - откатываем к предыдущему состоянию
+        setMatches(previousMatches);
+        console.error('Failed to add match:', error);
+        
+        // Показываем сообщение об ошибке
+        alert('Не удалось добавить матч. Попробуйте еще раз.');
+        throw error;
+      } finally {
+        setMutating(false);
+      }
+    },
+    [reload, matches, tournament] // зависимости
+  );
 
   const updateMatch = useCallback(
     async (m: Match) => {
