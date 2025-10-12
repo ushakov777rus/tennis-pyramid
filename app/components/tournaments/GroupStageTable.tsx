@@ -384,7 +384,7 @@ export function GroupStageTable({
   }
 
   return (
-    <div className={`card ${editingKey ? "card--no-transition" : ""}`.trim()}>
+    <div className={`card rr-scroll ${editingKey ? "card--no-transition" : ""}`.trim()}>
       {groupIndex !== undefined && groupIndex !== null && (
         <div className="rr-header">
           <strong>Группа {String.fromCharCode(65 + groupIndex)}</strong>

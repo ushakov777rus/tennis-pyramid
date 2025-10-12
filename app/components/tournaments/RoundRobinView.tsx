@@ -106,7 +106,7 @@ export function RoundRobinView({
   };
 
   return (
-    <div className="card-container rr-scroll">
+    <div className="card-container">
       <GroupStageTable
         groupParticipants={participants}
         groupMatches={matches}
