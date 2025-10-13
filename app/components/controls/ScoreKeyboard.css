@@ -106,8 +106,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-   pointer-events: auto;
+  pointer-events: auto;
   cursor: pointer;
+  white-space: pre-line;
 }
 
 .score-kb__extra {
