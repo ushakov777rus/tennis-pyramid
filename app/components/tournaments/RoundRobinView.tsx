@@ -31,7 +31,8 @@ type RoundRobinViewProps = {
     context: { participantA: Participant; participantB: Participant },
     initialValue: string,
     initialDate: string,
-    phaseFilter: MatchPhase
+    phaseFilter: MatchPhase,
+    intent?: "edit" | "pyramid-add"
   ) => void;
   onCloseKeyboard?: () => void;
   keyboardState?: {

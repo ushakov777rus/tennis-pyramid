@@ -42,6 +42,8 @@ const todayISO = new Date().toISOString().split("T")[0];
 type ViewKey = "bracket" | "matches" | "participants" | "results" | "aboutt";
 
 // Тип для состояния клавиатуры
+type KeyboardIntent = "edit" | "pyramid-add";
+
 type KeyboardState = {
   isOpen: boolean;
   editingKey: string | null;
@@ -49,6 +51,7 @@ type KeyboardState = {
   editValue: string;
   editDate: string;
   phaseFilter: MatchPhase;
+  intent: KeyboardIntent;
 };
 
 export default function TournamentClient() {
@@ -86,6 +89,7 @@ export default function TournamentClient() {
     editValue: "",
     editDate: todayISO,
     phaseFilter: DEFAULT_MATCH_PHASE,
+    intent: "edit",
   });
    
   const [localOwnerToken, setLocalOwnerToken] = useState<string | null>(null);
@@ -182,6 +186,17 @@ export default function TournamentClient() {
     [selectableItems]
   );
 
+  const participantsByEntityId = useMemo(() => {
+    const map = new Map<number, Participant>();
+    participants.forEach((participant) => {
+      const entityId = participant.player?.id ?? participant.team?.id ?? null;
+      if (entityId) {
+        map.set(entityId, participant);
+      }
+    });
+    return map;
+  }, [participants]);
+
   /** Универсально определяем победителя и проигравшего по счёту и id A/B. */
   const determineWinnerLoser = useCallback(
     (scores: [number, number][], aId: number, bId: number) => {
@@ -235,6 +250,38 @@ export default function TournamentClient() {
     addMatchAndMaybeSwap,
     determineWinnerLoser,
   ]);
+
+  const handleSavePyramidMatch = useCallback(
+    async (aId: number, bId: number, score: string, matchDateISO: string) => {
+      if (!tournament) return;
+
+      const normalizedDate = matchDateISO || todayISO;
+
+      const scores = Match.parseScoreStringFlexible(score);
+      const { winnerId, loserId } = determineWinnerLoser(scores, aId, bId);
+      const attackerWon = winnerId != null && winnerId === aId;
+
+      await addMatchAndMaybeSwap({
+        date: new Date(normalizedDate),
+        type: tournament.tournament_type,
+        scores,
+        aId,
+        bId,
+        winnerId,
+        loserId,
+        doSwap: tournament.isPyramid() && attackerWon,
+      });
+
+      setSelectedIds(user?.role === UserRole.Player && user.player.id ? [user.player.id] : []);
+    },
+    [
+      tournament,
+      determineWinnerLoser,
+      addMatchAndMaybeSwap,
+      user?.role,
+      user?.player.id,
+    ]
+  );
 
   /** Сохранение счёта из схем (RR/SE/DE/Groups+PO/Swiss/…) */
   const handleSaveScore = useCallback(
@@ -329,7 +376,8 @@ export default function TournamentClient() {
     context: { participantA: Participant; participantB: Participant },
     initialValue: string,
     initialDate: string,
-    phaseFilter: MatchPhase
+    phaseFilter: MatchPhase,
+    intent: KeyboardIntent = "edit"
   ) => {
     setKeyboardState({
       isOpen: true,
@@ -338,6 +386,7 @@ export default function TournamentClient() {
       editValue: initialValue,
       editDate: initialDate || todayISO,
       phaseFilter,
+      intent,
     });
   }, []);
 
@@ -349,8 +398,64 @@ export default function TournamentClient() {
       editValue: "",
       editDate: todayISO,
       phaseFilter: DEFAULT_MATCH_PHASE,
+      intent: "edit",
     });
   }, []);
+
+  useEffect(() => {
+    if (!tournament?.isPyramid()) return;
+    if (tournament.status !== TournamentStatus.Ongoing) return;
+    if (!canManage) return;
+    if (view !== "bracket") return;
+
+    if (selectedIds.length === 2) {
+      const [attackerId, defenderId] = selectedIds;
+      const participantA = participantsByEntityId.get(attackerId);
+      const participantB = participantsByEntityId.get(defenderId);
+      if (!participantA || !participantB) return;
+
+      if (keyboardState.isOpen && keyboardState.intent !== "pyramid-add") {
+        return;
+      }
+
+      const current = keyboardState.mobileKeyboardContext;
+      const isSamePair =
+        keyboardState.isOpen &&
+        keyboardState.intent === "pyramid-add" &&
+        current &&
+        current.participantA.getId === participantA.getId &&
+        current.participantB.getId === participantB.getId;
+
+      if (!isSamePair) {
+        openKeyboard(
+          `${attackerId}_${defenderId}`,
+          { participantA, participantB },
+          "",
+          todayISO,
+          DEFAULT_MATCH_PHASE,
+          "pyramid-add"
+        );
+      }
+    } else if (keyboardState.isOpen && keyboardState.intent === "pyramid-add") {
+      closeKeyboard();
+    }
+  }, [
+    tournament,
+    canManage,
+    view,
+    selectedIds,
+    participantsByEntityId,
+    openKeyboard,
+    closeKeyboard,
+    keyboardState,
+  ]);
+
+  const handleKeyboardCancel = useCallback(() => {
+    if (keyboardState.intent === "pyramid-add") {
+      setSelectedIds((prev) => (prev.length > 0 ? [prev[0]] : []));
+    }
+    closeKeyboard();
+  }, [keyboardState.intent, closeKeyboard, setSelectedIds]);
 
   const updateKeyboardValue = useCallback((value: string) => {
     setKeyboardState(prev => ({ ...prev, editValue: value }));
@@ -373,13 +478,19 @@ export default function TournamentClient() {
     }
 
     try {
+      if (keyboardState.intent === "pyramid-add") {
+        await handleSavePyramidMatch(aId.getId, bId.getId, score, matchDate);
+        closeKeyboard();
+        return;
+      }
+
       await handleSaveScore(aId.getId, bId.getId, score, matchDate, keyboardState.phaseFilter);
       closeKeyboard();
     } catch (err) {
       console.error("Ошибка при сохранении счёта:", err);
       alert(err instanceof Error ? err.message : "Не удалось сохранить счёт");
     }
-  }, [keyboardState, closeKeyboard]);
+  }, [keyboardState, closeKeyboard, handleSavePyramidMatch, handleSaveScore]);
 
   const handleEditMatchSave = useCallback(
     async (updatedMatch: Match) => {
@@ -441,24 +552,6 @@ export default function TournamentClient() {
             onChange={(k) => setView(k as ViewKey)}
             ariaLabel="Разделы турнира"
           />
-
-          {/* Добавление матча — карточка */}
-          {tournament.isPyramid() && tournament.status === TournamentStatus.Ongoing && view === "bracket" && (
-            <LoggedIn>
-              <AddMatchCard
-                options={options}
-                selectedIds={selectedIds}
-                setSelectedIds={setSelectedIds}
-                matchDate={matchDate}
-                setMatchDate={setMatchDate}
-                matchScore={matchScore}
-                setMatchScore={setMatchScore}
-                isAnon={isAnon}
-                isPlayerWithFixedAttacker={isPlayerWithFixedAttacker}
-                onAddMatch={handleAddMatch}
-              />
-            </LoggedIn>
-          )}
 
           {tournament.isCustom() && tournament.status === TournamentStatus.Ongoing && view === "matches" && (
             <LoggedIn>
@@ -524,7 +617,7 @@ export default function TournamentClient() {
             onChange={updateKeyboardValue}
             onDateChange={updateKeyboardDate}
             onSave={handleKeyboardSave}
-            onCancel={closeKeyboard}
+            onCancel={handleKeyboardCancel}
             disabled={false}
             autoFocus={false}
           />
@@ -585,7 +678,8 @@ export const FormatView = React.memo(function FormatView({
     context: { participantA: Participant; participantB: Participant },
     initialValue: string,
     initialDate: string,
-    phaseFilter: MatchPhase
+    phaseFilter: MatchPhase,
+    intent?: KeyboardIntent
   ) => void;
   onCloseKeyboard?: () => void;
   keyboardState?: KeyboardState;
