@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 
 import "./ScoreKeyboard.css";
 
@@ -17,7 +17,9 @@ export type ScoreKeyboardProps = {
   participantA: string;
   participantB: string;
   value: string;
+  dateValue: string;
   onChange: (value: string) => void;
+  onDateChange: (value: string) => void;
   onSave: () => void;
   onCancel: () => void;
   disabled?: boolean;
@@ -49,6 +51,8 @@ export function ScoreKeyboard({
   participantA,
   participantB,
   onChange,
+  dateValue,
+  onDateChange,
   onSave,
   onCancel,
   disabled = false,
@@ -246,23 +250,34 @@ export function ScoreKeyboard({
         <div className="score-kb__key">{participantB}</div>
       </div>
 
+      <div className="score-kb__date">
+        <input
+          type="date"
+          className="score-kb__input"
+          value={dateValue}
+          onChange={(event) => onDateChange(event.target.value)}
+          disabled={disabled}
+        />
+      </div>
+
+
       <div className="score-kb__formula">
         <span className="score-kb__fx" aria-hidden>
           Счет
         </span>
-  <input
-    ref={internalRef}
-    className="score-kb__input"
-    value={value}
-    onChange={handleChange}
-    onPaste={handlePaste}
-    inputMode={mobile ? "numeric" : undefined}
-    pattern="[0-9\\s,:-]*"
-    placeholder="6-4, 4-6, 10-8"
-    readOnly={false}
-    onFocus={!autoFocus && mobile ? (e) => e.currentTarget.blur() : undefined}
-    onKeyDown={handleKeyDown}
-  />
+        <input
+          ref={internalRef}
+          className="score-kb__input"
+          value={value}
+          onChange={handleChange}
+          onPaste={handlePaste}
+          inputMode={mobile ? "numeric" : undefined}
+          pattern="[0-9\\s,:-]*"
+          placeholder="6-4, 4-6, 10-8"
+          readOnly={false}
+          onFocus={!autoFocus && mobile ? (e) => e.currentTarget.blur() : undefined}
+          onKeyDown={handleKeyDown}
+        />
         <button
           type="button"
           className="score-kb__action score-kb__action--cancel"

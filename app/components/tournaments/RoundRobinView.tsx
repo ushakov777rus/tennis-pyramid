@@ -5,6 +5,15 @@ import { Participant } from "@/app/models/Participant";
 import { Match, MatchPhase, PhaseType } from "@/app/models/Match";
 import { GroupStageTable } from "./GroupStageTable";
 import { ScoreCell } from "./ScoreCell";
+import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
+
+const todayISO = new Date().toISOString().split("T")[0];
+
+const formatDateForInput = (value?: Date | string | null): string => {
+  if (!value) return todayISO;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? todayISO : date.toISOString().split("T")[0];
+};
 
 type RoundRobinViewProps = {
   participants: Participant[];
@@ -14,12 +23,14 @@ type RoundRobinViewProps = {
     aId: number,
     bId: number,
     score: string,
+    matchDate: string,
     meta: MatchPhase
   ) => Promise<void> | void;
   onOpenKeyboard?: (
     editingKey: string,
     context: { participantA: Participant; participantB: Participant },
     initialValue: string,
+    initialDate: string,
     phaseFilter: MatchPhase
   ) => void;
   onCloseKeyboard?: () => void;
@@ -28,6 +39,7 @@ type RoundRobinViewProps = {
     editingKey: string | null;
     mobileKeyboardContext: { participantA: Participant; participantB: Participant } | null;
     editValue: string;
+    editDate: string;
   };
 };
 
@@ -40,6 +52,7 @@ export function RoundRobinView({
   onCloseKeyboard,
   keyboardState,
 }: RoundRobinViewProps) {
+  const { findMatchBetween } = useTournament();
 
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement |null>(null);
   const [editValue, setEditValue] = useState("");
@@ -47,7 +60,7 @@ export function RoundRobinView({
   // Обработчик для onSave
   const handleSave = useCallback((aId: number, bId: number) => {
     if (onSaveScore) {
-      onSaveScore(aId, bId, editValue || "", { phase: PhaseType.Group, groupIndex: null, roundIndex: null });
+      onSaveScore(aId, bId, editValue || "", todayISO, { phase: PhaseType.Group, groupIndex: null, roundIndex: null });
     }
   }, [onSaveScore, editValue]);
 
@@ -70,14 +83,17 @@ export function RoundRobinView({
       
       // Сбрасываем локальное состояние при открытии клавиатуры
       setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
+      const match = findMatchBetween(a.getId, b.getId, phaseFilter);
+      const initialDate = formatDateForInput(match?.date ?? null);
       
       onOpenKeyboard(
         `${aId}_${bId}`,
         { participantA: a, participantB: b },
         currentScore && currentScore !== "—" ? currentScore : "",
+        initialDate,
         { phase: PhaseType.Group, groupIndex: null, roundIndex: null }
       );
-    }, [onOpenKeyboard, a, b]);
+    }, [onOpenKeyboard, a, b, findMatchBetween, phaseFilter]);
 
     const handleCancel = useCallback(() => {
       setEditValue("");

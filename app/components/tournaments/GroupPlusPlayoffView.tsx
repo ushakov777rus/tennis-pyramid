@@ -16,6 +16,14 @@ import "./PlayoffStageTable.css"
 import "@/app/components/ParticipantsView.css";
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 
+const todayISO = new Date().toISOString().split("T")[0];
+
+const formatDateForInput = (value?: Date | string | null): string => {
+  if (!value) return todayISO;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? todayISO : date.toISOString().split("T")[0];
+};
+
 type GroupPlusPlayoffViewProps = {
   participants: Participant[];
   matches: Match[];
@@ -24,12 +32,14 @@ type GroupPlusPlayoffViewProps = {
     aId: number,
     bId: number,
     score: string,
+    matchDate: string,
     meta: MatchPhase
   ) => Promise<void> | void;
   onOpenKeyboard?: (
     editingKey: string,
     context: { participantA: Participant; participantB: Participant },
     initialValue: string,
+    initialDate: string,
     phaseFilter: MatchPhase
   ) => void;
   onCloseKeyboard?: () => void;
@@ -38,6 +48,7 @@ type GroupPlusPlayoffViewProps = {
     editingKey: string | null;
     mobileKeyboardContext: { participantA: Participant; participantB: Participant } | null;
     editValue: string;
+    editDate: string;
   };
   groupsCount?: number;
   advancePerGroup?: number;
@@ -217,7 +228,7 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
   // Обработчики для сохранения
   const handleSaveGroup = useCallback((aId: number, bId: number, groupIndex: number) => {
     if (onSaveScore) {
-      onSaveScore(aId, bId, editValue || "", { 
+      onSaveScore(aId, bId, editValue || "", todayISO, { 
         phase: PhaseType.Group, 
         groupIndex, 
         roundIndex: null 
@@ -227,7 +238,7 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
 
   const handleSavePlayoff = useCallback((aId: number, bId: number, roundIndex: number) => {
     if (onSaveScore) {
-      onSaveScore(aId, bId, editValue || "", { 
+      onSaveScore(aId, bId, editValue || "", todayISO, { 
         phase: PhaseType.Playoff, 
         groupIndex: null, 
         roundIndex 
@@ -246,18 +257,25 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
       if (!onOpenKeyboard || !a || !b) return;
       
       setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
+      const match = findMatchBetween(a.getId, b.getId, { 
+        phase: PhaseType.Group, 
+        groupIndex: phaseFilter?.groupIndex ?? null, 
+        roundIndex: null 
+      });
+      const initialDate = formatDateForInput(match?.date ?? null);
       
       onOpenKeyboard(
         `${aId}_${bId}`,
         { participantA: a, participantB: b },
         currentScore && currentScore !== "—" ? currentScore : "",
+        initialDate,
         { 
           phase: PhaseType.Group, 
           groupIndex: phaseFilter?.groupIndex ?? null, 
           roundIndex: null 
         }
       );
-    }, [onOpenKeyboard, a, b, phaseFilter?.groupIndex]);
+    }, [onOpenKeyboard, a, b, findMatchBetween, phaseFilter?.groupIndex]);
 
     const handleSave = useCallback((aId: number, bId: number) => {
       handleSaveGroup(aId, bId, phaseFilter?.groupIndex ?? 0);
@@ -298,18 +316,25 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
       if (!onOpenKeyboard || !a || !b) return;
       
       setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
+      const match = findMatchBetween(a.getId, b.getId, { 
+        phase: PhaseType.Playoff, 
+        groupIndex: null, 
+        roundIndex: phaseFilter?.roundIndex ?? null 
+      });
+      const initialDate = formatDateForInput(match?.date ?? null);
       
       onOpenKeyboard(
         `${aId}_${bId}`,
         { participantA: a, participantB: b },
         currentScore && currentScore !== "—" ? currentScore : "",
+        initialDate,
         { 
           phase: PhaseType.Playoff, 
           groupIndex: null, 
           roundIndex: phaseFilter?.roundIndex ?? null 
         }
       );
-    }, [onOpenKeyboard, a, b, phaseFilter?.roundIndex]);
+    }, [onOpenKeyboard, a, b, findMatchBetween, phaseFilter?.roundIndex]);
 
     const handleSave = useCallback((aId: number, bId: number) => {
       handleSavePlayoff(aId, bId, phaseFilter?.roundIndex ?? 0);
@@ -362,8 +387,8 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
         groupMatches={matchesForGroup}
         groupIndex={gIndex}
         canManage={canManage}
-        onSaveScore={(aId, bId, score) =>
-          onSaveScore?.(aId, bId, score, { phase: PhaseType.Group, groupIndex: gIndex, roundIndex: null })
+        onSaveScore={(aId, bId, score, meta) =>
+          onSaveScore?.(aId, bId, score, todayISO, meta)
         }
         ScoreCellAdapter={GroupMatchCell}
       />

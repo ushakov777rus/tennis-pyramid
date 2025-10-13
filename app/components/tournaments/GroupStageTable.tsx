@@ -21,6 +21,7 @@ export type GroupStageTableProps = {
     aId: number,
     bId: number,
     score: string,
+    matchDate: string,
     meta: MatchPhase
   ) => Promise<void> | void;
   /** Компонент для ввода счёта (как в PlayoffStageTable) */

@@ -47,6 +47,7 @@ type KeyboardState = {
   editingKey: string | null;
   mobileKeyboardContext: { participantA: Participant; participantB: Participant } | null;
   editValue: string;
+  editDate: string;
   phaseFilter: MatchPhase;
 };
 
@@ -83,6 +84,7 @@ export default function TournamentClient() {
     editingKey: null,
     mobileKeyboardContext: null,
     editValue: "",
+    editDate: todayISO,
     phaseFilter: DEFAULT_MATCH_PHASE,
   });
    
@@ -240,6 +242,7 @@ export default function TournamentClient() {
       aId: number,
       bId: number,
       score: string,
+      matchDate: string,
       meta: MatchPhase
     ) => {
       if (!tournament) return;
@@ -270,6 +273,7 @@ export default function TournamentClient() {
         if (existing) {
           // UPDATE: обновляем счёт + (по возможности) фазовые поля
           const updated = { ...existing, scores } as Match;
+          updated.date = new Date(matchDate || todayISO);
           if (meta) {
             (updated as any).phase = meta.phase;
             if (meta.phase === PhaseType.Group) {
@@ -283,7 +287,7 @@ export default function TournamentClient() {
           await updateMatch(updated);
         } else {
           // INSERT: создаём новый матч и сразу проставляем фазу/индексы
-          const date = new Date(todayISO);
+          const date = new Date(matchDate || todayISO);
           let player1: number | null = null;
           let player2: number | null = null;
           let team1: number | null = null;
@@ -324,6 +328,7 @@ export default function TournamentClient() {
     editingKey: string,
     context: { participantA: Participant; participantB: Participant },
     initialValue: string,
+    initialDate: string,
     phaseFilter: MatchPhase
   ) => {
     setKeyboardState({
@@ -331,6 +336,7 @@ export default function TournamentClient() {
       editingKey,
       mobileKeyboardContext: context,
       editValue: initialValue,
+      editDate: initialDate || todayISO,
       phaseFilter,
     });
   }, []);
@@ -341,6 +347,7 @@ export default function TournamentClient() {
       editingKey: null,
       mobileKeyboardContext: null,
       editValue: "",
+      editDate: todayISO,
       phaseFilter: DEFAULT_MATCH_PHASE,
     });
   }, []);
@@ -349,11 +356,16 @@ export default function TournamentClient() {
     setKeyboardState(prev => ({ ...prev, editValue: value }));
   }, []);
 
+  const updateKeyboardDate = useCallback((value: string) => {
+    setKeyboardState(prev => ({ ...prev, editDate: value || todayISO }));
+  }, []);
+
   const handleKeyboardSave = useCallback(async () => {
     if (!keyboardState.mobileKeyboardContext) return;
 
     const { participantA: aId, participantB: bId } = keyboardState.mobileKeyboardContext;
     const score = keyboardState.editValue.trim();
+    const matchDate = keyboardState.editDate || todayISO;
 
     if (!score) {
       alert('Введите счёт');
@@ -361,7 +373,7 @@ export default function TournamentClient() {
     }
 
     try {
-      await handleSaveScore(aId.getId, bId.getId, score, keyboardState.phaseFilter);
+      await handleSaveScore(aId.getId, bId.getId, score, matchDate, keyboardState.phaseFilter);
       closeKeyboard();
     } catch (err) {
       console.error("Ошибка при сохранении счёта:", err);
@@ -508,7 +520,9 @@ export default function TournamentClient() {
             participantA={keyboardState.mobileKeyboardContext ? keyboardState.mobileKeyboardContext?.participantA.displayName() : ""}
             participantB={keyboardState.mobileKeyboardContext ? keyboardState.mobileKeyboardContext?.participantB.displayName() : ""}
             value={keyboardState.editValue}
+            dateValue={keyboardState.editDate}
             onChange={updateKeyboardValue}
+            onDateChange={updateKeyboardDate}
             onSave={handleKeyboardSave}
             onCancel={closeKeyboard}
             disabled={false}
@@ -561,6 +575,7 @@ export const FormatView = React.memo(function FormatView({
     aId: number,
     bId: number,
     score: string,
+    matchDate: string,
     meta: MatchPhase
   ) => void;
   onPositionsChange?: (next: Participant[]) => Promise<void> | void;
@@ -569,6 +584,7 @@ export const FormatView = React.memo(function FormatView({
     editingKey: string,
     context: { participantA: Participant; participantB: Participant },
     initialValue: string,
+    initialDate: string,
     phaseFilter: MatchPhase
   ) => void;
   onCloseKeyboard?: () => void;

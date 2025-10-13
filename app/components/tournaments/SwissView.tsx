@@ -7,6 +7,14 @@ import { PlayoffStageTable } from "./PlayoffStageTable";
 import { ScoreCell } from "./ScoreCell";
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 
+const todayISO = new Date().toISOString().split("T")[0];
+
+const formatDateForInput = (value?: Date | string | null): string => {
+  if (!value) return todayISO;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? todayISO : date.toISOString().split("T")[0];
+};
+
 type SwissViewProps = {
   participants: Participant[];
   matches: Match[];
@@ -16,12 +24,14 @@ type SwissViewProps = {
     aId: number,
     bId: number,
     score: string,
+    matchDate: string,
     meta: MatchPhase
   ) => Promise<void> | void;
   onOpenKeyboard?: (
     editingKey: string,
     context: { participantA: Participant; participantB: Participant },
     initialValue: string,
+    initialDate: string,
     phaseFilter: MatchPhase
   ) => void;
   onCloseKeyboard?: () => void;
@@ -30,6 +40,7 @@ type SwissViewProps = {
     editingKey: string | null;
     mobileKeyboardContext: { participantA: Participant; participantB: Participant } | null;
     editValue: string;
+    editDate: string;
   };
 };
 
@@ -194,7 +205,7 @@ export function SwissView({
   // Обработчик для сохранения счёта
   const handleSave = useCallback((aId: number, bId: number, roundIndex: number) => {
     if (onSaveScore) {
-      onSaveScore(aId, bId, editValue || "", {
+      onSaveScore(aId, bId, editValue || "", todayISO, {
         phase: PhaseType.Swiss,
         groupIndex: null,
         roundIndex,
@@ -253,14 +264,17 @@ export function SwissView({
       if (!onOpenKeyboard || !a || !b) return;
       
       setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
+      const match = findMatchBetween(a.getId, b.getId, phaseFilter);
+      const initialDate = formatDateForInput(match?.date ?? null);
       
       onOpenKeyboard(
         `${aId}_${bId}`,
         { participantA: a, participantB: b },
         currentScore && currentScore !== "—" ? currentScore : "",
+        initialDate,
         phaseFilter
       );
-    }, [onOpenKeyboard, a, b, phaseFilter]);
+    }, [onOpenKeyboard, a, b, findMatchBetween, phaseFilter]);
 
     const handleSaveWithRound = useCallback((aId: number, bId: number) => {
       if (phaseFilter?.roundIndex != null) {

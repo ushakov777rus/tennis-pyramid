@@ -23,6 +23,7 @@ type PyramidViewProps = {
     editingKey: string,
     context: { participantA: Participant; participantB: Participant },
     initialValue: string,
+    initialDate: string,
     phaseFilter: MatchPhase
   ) => void;
   onCloseKeyboard?: () => void;
@@ -31,6 +32,7 @@ type PyramidViewProps = {
     editingKey: string | null;
     mobileKeyboardContext: { participantA: Participant; participantB: Participant } | null;
     editValue: string;
+    editDate: string;
   };  
   matches: Match[];
   onPositionsChange?: (next: Participant[]) => Promise<void> | void;
