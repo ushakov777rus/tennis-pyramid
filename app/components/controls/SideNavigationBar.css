@@ -202,3 +202,14 @@
   .burger-btn { display: none; }
   .drawer-overlay { display: none; }
 }
+
+.user-badge-btn {
+  background: #ccff66;
+  border: none;
+  padding: 5px 14px;
+  border-radius: 6px;
+  color: black;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+}
