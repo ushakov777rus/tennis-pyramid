@@ -70,6 +70,7 @@ export function ClubsClient() {
    * если у пользователя есть creatorId и ровно один клуб — редиректим сразу в него.
    */
   const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/admin");
+  const isPlayer = user?.role === UserRole.Player && pathname.includes("/player");
 
   // Автопереход в единственный клуб
   useEffect(() => {
@@ -143,7 +144,7 @@ export function ClubsClient() {
               <ClubCard
                 club={c}
                 displayName={true}
-                onClick={() => isAdmin ? router.push(`/admin/clubs/${c.slug}`) : router.push(`/player/clubs/${c.slug}`)}
+                onClick={() => isAdmin ? router.push(`/admin/clubs/${c.slug}`) : (isPlayer ? router.push(`/player/clubs/${c.slug}`) : router.push(`/clubs/${c.slug}`))}
                 onDelete={() => {
                   if (confirm(`Удалить клуб «${c.name}»?`)) {
                     void deleteClub(c.id);
