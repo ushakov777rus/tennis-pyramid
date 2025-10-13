@@ -169,8 +169,10 @@ export function UserProfileView({
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="input">
-      <div className="stat-value">{value}</div>
+    <div>
+      <div className="input">
+        <div className="stat-value">{value}</div>
+      </div>
       <div className="stat-label">{label}</div>
     </div>
   );
