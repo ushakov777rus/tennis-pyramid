@@ -387,8 +387,8 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
         groupMatches={matchesForGroup}
         groupIndex={gIndex}
         canManage={canManage}
-        onSaveScore={(aId, bId, score, meta) =>
-          onSaveScore?.(aId, bId, score, todayISO, meta)
+        onSaveScore={(aId, bId, score, matchDate, meta) =>
+          onSaveScore?.(aId, bId, score, matchDate || todayISO, meta)
         }
         ScoreCellAdapter={GroupMatchCell}
       />
