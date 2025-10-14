@@ -12,7 +12,6 @@ export default function robots(): MetadataRoute.Robots {
     host: "honeycup.ru",
     sitemap: [
       "https://honeycup.ru/sitemap.xml",
-      "https://honeycup.ru/server-sitemap.xml",
     ],
   };
 }
