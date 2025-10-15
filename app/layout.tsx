@@ -46,7 +46,6 @@ export const metadata: Metadata = {
     "падел турнирная сетка",
   ],
   alternates: {
-    canonical: "/",
     languages: { ru: "https://honeycup.ru/" },
   },
   openGraph: {

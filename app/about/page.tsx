@@ -373,14 +373,6 @@ export default function AboutPage() {
         <Footer />
       </main>
 
-      <Link
-        href="/freetournament"
-        className="btn-base floating-cta"
-        aria-label="Перейти к созданию быстрого турнира"
-      >
-        Быстрый турнир
-      </Link>
-
       <AuthContainer
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
