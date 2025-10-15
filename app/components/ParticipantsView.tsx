@@ -24,6 +24,7 @@ type TournamentModeProps = {
   isDouble: boolean;
   participants: Participant[]; // участники турнира (Player/Team внутри)
   players: Player[];           // все доступные игроки (для добавления)
+  canManage: boolean;
   // действия
   onAddPlayerToTournament?: (playerId: number) => void | Promise<void>;
   onRemoveParticipant?: (participant: Participant) => void | Promise<void>;
@@ -395,7 +396,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
 
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 
-export function TournamentParticipantsView({ isWizard = false }: { isWizard?: boolean }) {
+export function TournamentParticipantsView({ canManage = false, isWizard = false }: { canManage: boolean, isWizard?: boolean }) {
   const {
     initialLoading,
     refreshing,
@@ -427,6 +428,7 @@ export function TournamentParticipantsView({ isWizard = false }: { isWizard?: bo
       isDouble={isDouble}
       players={isWizard ? [] : players}
       participants={participants}
+      canManage={canManage}
       onAddPlayerToTournament={addPlayerToTournament}
       onRemoveParticipant={removeParticipant}
       onCreateTeam={

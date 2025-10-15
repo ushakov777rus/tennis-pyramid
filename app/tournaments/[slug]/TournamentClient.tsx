@@ -597,7 +597,7 @@ export default function TournamentClient() {
                 onDeleteMatch={handleDeleteMatch} />}
 
             {view === "participants" && canManage &&
-              <TournamentParticipantsView isWizard={isWizard}/>}
+              <TournamentParticipantsView canManage={canManage} isWizard={isWizard}/>}
 
             {view === "results" && <RatingView />}
             
