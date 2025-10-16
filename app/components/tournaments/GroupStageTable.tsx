@@ -7,7 +7,6 @@ import "@/app/components/ParticipantsView.css";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, MatchPhase, PhaseType } from "@/app/models/Match";
-import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 
 /**
  * Публичные пропсы для таблицы кругового турнира.
@@ -357,9 +356,28 @@ export function GroupStageTable({
   );
 
   /**
-   * Показывает подсказку только для самой первой пустой ячейки.
+   * Идентификатор пары для подсказки (первая пустая ячейка в нижнем треугольнике).
    */
-  const firstHelpTooltip = useFirstHelpTooltip();
+  const helpTooltipPair = useMemo(() => {
+    if (!canManage) return null;
+    for (let rIndex = 0; rIndex < ordered.length; rIndex++) {
+      const rowParticipant = ordered[rIndex];
+      if (!rowParticipant) continue;
+      const aId = rowParticipant.getId;
+      for (let cIndex = 0; cIndex < ordered.length; cIndex++) {
+        if (rIndex <= cIndex) continue; // работаем только с нижним треугольником (основная ячейка ввода)
+        const colParticipant = ordered[cIndex];
+        if (!colParticipant) continue;
+        const bId = colParticipant.getId;
+        const scoreString = getMatchScore(aId, bId);
+        const isEmpty = !scoreString || scoreString === "—";
+        if (isEmpty) {
+          return pairKey(aId, bId);
+        }
+      }
+    }
+    return null;
+  }, [canManage, ordered, getMatchScore]);
 
   /**
    * Рендерит ячейку матрицы с использованием переданного ScoreCellAdapter
@@ -384,7 +402,9 @@ export function GroupStageTable({
     const b = ordered.find(p => p.getId === bId) || null;
     const scoreString = getMatchScore(aId, bId);
     const isEmpty = !scoreString || scoreString === "—";
-    const showHelpTooltip = canManage && isEmpty ? firstHelpTooltip() : false;
+    const cellPairKey = pairKey(aId, bId);
+    const showHelpTooltip =
+      canManage && isEmpty && isLowerTriangle && helpTooltipPair === cellPairKey;
 
     return (
       <div
