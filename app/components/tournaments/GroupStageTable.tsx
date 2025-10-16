@@ -386,10 +386,6 @@ export function GroupStageTable({
     const isEmpty = !scoreString || scoreString === "—";
     const showHelpTooltip = canManage && isEmpty ? firstHelpTooltip() : false;
 
-    if (showHelpTooltip) {
-      console.log("Uraaaa");
-    }
-
     return (
       <div
         data-rr-cell={`${aId}-${bId}`}

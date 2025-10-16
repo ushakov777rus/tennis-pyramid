@@ -91,24 +91,6 @@ export function ScoreCell({
   const isEditing = !!kkk && editingKey === kkk;
   const shouldShowHelpTooltip = canEdit && !localScoreString && !isEditing && showHelpTooltip && canManage;
 
-console.log("ScoreCell debug:", {
-    aId,
-    bId,
-    canEdit,
-    localScoreString,
-    kkk,
-    editingKey,
-    isEditing,
-    showHelpTooltip,
-    canManage,
-    shouldShowHelpTooltip
-  });
-
-  if (showHelpTooltip) {
-    console.log("Uraaaaaaaaaaaaaaaaaaa");
-  }
-  console.log("Nop");
-
   return (
     <>
       <div className="score-cell">
