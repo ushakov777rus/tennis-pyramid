@@ -4,7 +4,6 @@ import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, MatchPhase, PhaseType } from "@/app/models/Match";
 
-import { useFirstHelpTooltip } from "@/app/hooks/useFirstHelpTooltip";
 import { ScoreCell } from "./ScoreCell";
 
 import { GroupStageTable } from "./GroupStageTable";
@@ -75,7 +74,6 @@ export function GroupPlusPlayoffView({
 
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
   const [editValue, setEditValue] = useState("");
-  const firstHelpTooltip = useFirstHelpTooltip();
 
   // Синхронизируем с глобальной клавиатурой если она открыта
   useEffect(() => {
@@ -253,7 +251,8 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
     b: Participant | null;
     scoreString: string | null;
     phaseFilter: MatchPhase;
-  }> = ({ a, b, scoreString, phaseFilter }) => {
+    showHelpTooltip: boolean;
+  }> = ({ a, b, scoreString, phaseFilter, showHelpTooltip }) => {
     const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
       
@@ -301,7 +300,7 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
         onSave={handleSave}
         onCancel={handleCancel}
         onOpenKeyboard={onOpenKeyboard ? handleOpenKeyboard : undefined}
-        showHelpTooltip={false}
+        showHelpTooltip={showHelpTooltip}
       />
     );
   };
@@ -312,7 +311,8 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
     b: Participant | null;
     scoreString: string | null;
     phaseFilter: MatchPhase;
-  }> = ({ a, b, scoreString, phaseFilter }) => {
+    showHelpTooltip: boolean;
+  }> = ({ a, b, scoreString, phaseFilter, showHelpTooltip }) => {
     const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
       
@@ -360,7 +360,7 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
         onSave={handleSave}
         onCancel={handleCancel}
         onOpenKeyboard={onOpenKeyboard ? handleOpenKeyboard : undefined}
-        showHelpTooltip={false}
+        showHelpTooltip={showHelpTooltip}
       />
     );
   };

@@ -81,7 +81,8 @@ export function SingleEliminationView({
     b: Participant | null;
     scoreString: string | null;
     phaseFilter: MatchPhase;
-  }> = ({ a, b, scoreString, phaseFilter }) => {
+    showHelpTooltip: boolean;
+  }> = ({ a, b, scoreString, phaseFilter, showHelpTooltip }) => {
     const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
       
@@ -125,7 +126,7 @@ export function SingleEliminationView({
         onSave={handleSaveWithRound}
         onCancel={handleCancel}
         onOpenKeyboard={onOpenKeyboard ? handleOpenKeyboard : undefined}
-        showHelpTooltip={false}
+        showHelpTooltip={showHelpTooltip}
       />
     );
   };

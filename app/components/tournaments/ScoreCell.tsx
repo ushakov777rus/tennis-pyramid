@@ -2,9 +2,7 @@
 
 import React, { RefObject, useCallback, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
-import { MatchPhase, PhaseType } from "@/app/models/Match";
-import { useUser } from "../UserContext";
-import { UserRole } from "@/app/models/Users";
+import { MatchPhase } from "@/app/models/Match";
 
 export type ScoreCellProps = {
   a: Participant | null;
@@ -18,6 +16,7 @@ export type ScoreCellProps = {
   editingKey?: string | null;
   editValue: string | null;
   canManage: boolean;
+  showHelpTooltip: boolean;
   setEditValue: (v: string) => void;
 
   // Обработчики
@@ -29,7 +28,6 @@ export type ScoreCellProps = {
   inputRef: RefObject<HTMLInputElement | HTMLDivElement | null>;
   
   /** Опционально: для показа подсказки в групповом этапе */
-  showHelpTooltip?: boolean;
   saving?: boolean;
 };
 
@@ -44,7 +42,7 @@ export function ScoreCell({
   setEditValue,
   onOpenKeyboard,
   onStartEdit,
-  showHelpTooltip = false,
+  showHelpTooltip,
 }: ScoreCellProps) {
 
   // Локальное состояние для случаев, когда нет глобального управления
@@ -92,6 +90,24 @@ export function ScoreCell({
   const kkk = canEdit ? pairKey(aId!, bId!) : undefined;
   const isEditing = !!kkk && editingKey === kkk;
   const shouldShowHelpTooltip = canEdit && !localScoreString && !isEditing && showHelpTooltip && canManage;
+
+console.log("ScoreCell debug:", {
+    aId,
+    bId,
+    canEdit,
+    localScoreString,
+    kkk,
+    editingKey,
+    isEditing,
+    showHelpTooltip,
+    canManage,
+    shouldShowHelpTooltip
+  });
+
+  if (showHelpTooltip) {
+    console.log("Uraaaaaaaaaaaaaaaaaaa");
+  }
+  console.log("Nop");
 
   return (
     <>

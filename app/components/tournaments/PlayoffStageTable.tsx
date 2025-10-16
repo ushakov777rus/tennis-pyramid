@@ -19,6 +19,7 @@ export type PlayoffStageTableProps = {
     b: Participant | null;
     scoreString: string | null;
     phaseFilter: MatchPhase;
+    showHelpTooltip: boolean;
   }>;
 };
 
@@ -289,7 +290,8 @@ function buildSingleEliminationRounds(
                                   a={a} 
                                   b={b} 
                                   scoreString={getMatchScore(a?.getId, b?.getId, phaseFilter)}
-                                  phaseFilter={phaseFilter} />
+                                  phaseFilter={phaseFilter}
+                                  showHelpTooltip={false} />
                               </td>
                             </tr>
                           </tbody>

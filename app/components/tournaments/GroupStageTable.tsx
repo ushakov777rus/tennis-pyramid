@@ -30,6 +30,7 @@ export type GroupStageTableProps = {
     b: Participant | null;
     scoreString: string | null;
     phaseFilter: MatchPhase;
+    showHelpTooltip: boolean;
   }>;
 };
 
@@ -381,17 +382,26 @@ export function GroupStageTable({
     const isLowerTriangle = rIndex > cIndex;
     const a = ordered.find(p => p.getId === aId) || null;
     const b = ordered.find(p => p.getId === bId) || null;
+    const scoreString = getMatchScore(aId, bId);
+    const isEmpty = !scoreString || scoreString === "—";
+    const showHelpTooltip = canManage && isEmpty ? firstHelpTooltip() : false;
+
+    if (showHelpTooltip) {
+      console.log("Uraaaa");
+    }
 
     return (
       <div
         data-rr-cell={`${aId}-${bId}`}
-        className={`rr-cell ${isLowerTriangle ? '' : 'rr-cell--mirror'} ${!getMatchScore(aId, bId) ? 'rr-empty' : ''}`}
+        className={`rr-cell ${isLowerTriangle ? '' : 'rr-cell--mirror'} ${isEmpty ? 'rr-empty' : ''}`}
       >
         <ScoreCell 
           a={a} 
           b={b} 
-          scoreString={getMatchScore(aId, bId)}
-          phaseFilter={{ phase: PhaseType.Group, groupIndex: groupIndex, roundIndex: null }} />
+          scoreString={scoreString}
+          phaseFilter={{ phase: PhaseType.Group, groupIndex: groupIndex, roundIndex: null }}
+          showHelpTooltip={showHelpTooltip}
+        />
       </div>
     );
   }
