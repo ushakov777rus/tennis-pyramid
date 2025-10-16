@@ -300,6 +300,11 @@ export function GroupStageTable({
 
   /**
    * Подсчитываем таблицу мест (очки, разница геймов, места) с учётом оптимистичных данных.
+   * Порядок определения мест:
+   * 1. Больше очков → выше место
+   * 2. При равных очках: больше разница геймов (gamesFor - gamesAgainst) → выше место  
+   * 3. При равной разнице: меньше проиграно геймов (gamesAgainst) → выше место
+   * 4. При равных проигранных геймах: сортируем по имени
    */
   const standings = useMemo(() => {
     const rows = ids.map((id) => {
@@ -307,15 +312,22 @@ export function GroupStageTable({
       return {
         id,
         ...stats,
-        diff: stats.gamesFor - stats.gamesAgainst,
+        diff: stats.gamesFor - stats.gamesAgainst, // разница геймов
         name: ordered[indexById.get(id)!].displayName(false),
       };
     });
 
     const sorted = rows.slice().sort((a, b) => {
+      // 1. Сначала по очкам (больше очков → выше)
       if (b.points !== a.points) return b.points - a.points;
+      
+      // 2. При равных очках: по разнице геймов (больше разница → выше)
       if (b.diff !== a.diff) return b.diff - a.diff;
-      if (b.gamesFor !== a.gamesFor) return b.gamesFor - a.gamesFor;
+      
+      // 3. При равной разнице: по проигранным геймам (меньше проиграл → выше)
+      if (a.gamesAgainst !== b.gamesAgainst) return a.gamesAgainst - b.gamesAgainst;
+      
+      // 4. При равных проигранных геймах: по имени
       return a.name.localeCompare(b.name, "ru");
     });
 
