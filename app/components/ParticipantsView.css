@@ -8,6 +8,8 @@
   overflow: hidden;
   color: #ccc;
   box-shadow: 0 0 10px rgba(166, 255, 0, 0.1); /* зелёная подсветка */
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .participants-table th {
@@ -71,5 +73,4 @@
   animation: spin .6s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-
 

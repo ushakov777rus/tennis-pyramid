@@ -196,6 +196,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
     props.mode === "tournament" ? "Участники турнира" : "Члены клуба";
 
   return (
+    <div style={{marginTop: "10px"}}>
     <table
       className="participants-table"
       aria-busy={refreshing || mutating || creating}
@@ -390,6 +391,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
         )}
       </tbody>
     </table>
+    </div>
   );
 }
 

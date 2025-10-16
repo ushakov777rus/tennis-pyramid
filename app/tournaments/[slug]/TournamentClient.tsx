@@ -571,7 +571,8 @@ export default function TournamentClient() {
           )}
 
           <div>
-            {view === "bracket" &&             
+            {view === "bracket" &&
+            <div style={{marginTop: "10px"}}>             
               <FormatView
                 loading={loading}
                 tournament={tournament}
@@ -588,18 +589,25 @@ export default function TournamentClient() {
                 onOpenKeyboard={openKeyboard}
                 onCloseKeyboard={closeKeyboard}
                 keyboardState={keyboardState}
-              />}
+              />
+              </div>}
 
             {view === "matches" && 
+            <div style={{maxWidth: "800px", margin: "auto", marginTop: "10px"}}>
               <MatchHistoryView 
                 matches={matches} 
                 onEditMatch={handleEditMatchSave} 
-                onDeleteMatch={handleDeleteMatch} />}
+                onDeleteMatch={handleDeleteMatch} />
+            </div>}
 
             {view === "participants" && canManage &&
               <TournamentParticipantsView canManage={canManage} isWizard={isWizard}/>}
 
-            {view === "results" && <RatingView />}
+            {view === "results" && 
+              <div style={{maxWidth: "800px", margin: "auto"}}>
+                <RatingView />
+              </div>
+            }
             
             {view === "aboutt" && 
               <AboutTournament />}
