@@ -32,6 +32,17 @@
   margin: auto;
 }
 
+.header-hamburger {
+  display: none;
+}
+
+.header-tg {
+  display: flex;
+  justify-content: flex-end;
+  align-items: end;
+}
+
+
 .logo {
   font-weight: 400;
   font-size: 20px;
@@ -133,18 +144,14 @@
 
 
 /* === 📱 Мобильная адаптация === */
-@media (max-width: 768px) {
+@media (max-width: 450px) {
   .header {
     grid-auto-flow: row;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr auto 1fr;
     width: 100%;
     gap: 12px;
     padding: 12px;
     align-items: center;
-  }
-
-  .logo {
-    grid-column: 1 / 2;
   }
 
   .logo-text {
@@ -154,8 +161,13 @@
   .menu-toggle {
     display: flex;
     flex-direction: column;
-    grid-column: 2 / 3;
     justify-self: end;
+  }
+
+  .header-hamburger {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
   }
 
   .nav {

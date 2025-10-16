@@ -8,6 +8,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useUser } from "../UserContext";
+import { IconTelegram } from "./IconButtons";
 
 
 export function NavigationBar() {
@@ -37,6 +38,21 @@ export function NavigationBar() {
  
   return (
     <header className="header">
+      <div className="header-hamburger">
+        <button
+          type="button"
+          className={`menu-toggle ${menuOpen ? "menu-toggle--open" : ""}`}
+          aria-expanded={menuOpen}
+          aria-controls="main-nav"
+          aria-label={menuOpen ? "Закрыть меню" : "Открыть меню"}
+          onClick={() => setMenuOpen((prev) => !prev)}
+        >
+          <span className="menu-toggle__bar" />
+          <span className="menu-toggle__bar" />
+          <span className="menu-toggle__bar" />
+        </button>
+      </div>
+
       <div className="logo">
         <Link href="/" className="logo-link" aria-label="Главная">
           <Image
@@ -49,18 +65,7 @@ export function NavigationBar() {
           {hydrated && <span className="logo-text">HoneyCup</span>}
         </Link>
       </div>
-      <button
-        type="button"
-        className={`menu-toggle ${menuOpen ? "menu-toggle--open" : ""}`}
-        aria-expanded={menuOpen}
-        aria-controls="main-nav"
-        aria-label={menuOpen ? "Закрыть меню" : "Открыть меню"}
-        onClick={() => setMenuOpen((prev) => !prev)}
-      >
-        <span className="menu-toggle__bar" />
-        <span className="menu-toggle__bar" />
-        <span className="menu-toggle__bar" />
-      </button>
+
       <nav id="main-nav" className={`nav ${menuOpen ? "nav-open" : ""}`}>
         <Link href="/" className={isActive("/") ? "active" : ""} onClick={() => setMenuOpen(false)}>Главная</Link>
         <Link href="/clubs" className={isActive("/clubs") ? "active" : ""} onClick={() => setMenuOpen(false)}>Клубы</Link>
@@ -69,6 +74,19 @@ export function NavigationBar() {
         {/* <Link href="/matches" className={isActive("/matches") ? "active" : ""} onClick={() => setMenuOpen(false)}>Матчи</Link>*/}
         <Link href="/about" className={isActive("/about") ? "active" : ""} onClick={() => setMenuOpen(false)}>О проекте</Link>
       </nav>
+      
+      <div className="header-tg">
+        <a
+          href="https://t.me/honeycuptennis"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="footer-icon"
+          aria-label="Telegram"
+        >
+          <IconTelegram />
+        </a>
+      </div>
+
     </header>
   );
 }
