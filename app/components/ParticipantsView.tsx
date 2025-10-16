@@ -226,7 +226,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
             <input
               type="text"
               className="input input-100"
-              placeholder="Фильтр слева (и имя для нового игрока)"
+              placeholder="Поиск игроков (и имя для нового игрока)"
               value={leftFilter}
               onChange={(e) => setLeftFilter(e.target.value)}
             />
@@ -256,7 +256,8 @@ export function ParticipantsView(props: ParticipantsViewProps) {
             <input
               type="text"
               className="input input-100"
-              placeholder="Фильтр справа"
+              placeholder="Поиск участников"
+              disabled={rightList.length===0 && rightFilter.length === 0}
               value={rightFilter}
               onChange={(e) => setRightFilter(e.target.value)}
             />
