@@ -6,6 +6,7 @@ import { Tournament, TournamentStatus, TournamentCreateInput } from "@/app/model
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 import { useUser } from "@/app/components/UserContext";
 import { MatchRepository } from "../repositories/MatchRepository";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 type TournamentStats = { participants: number; matches: number };
 
@@ -26,6 +27,7 @@ export function TournamentsProvider({
   children, clubId } : 
   { children: React.ReactNode; clubId?: number }) {
   const { user } = useUser();
+  const { tournaments: tournamentsText } = useDictionary();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,7 +86,7 @@ export function TournamentsProvider({
         
       } catch (e: any) {
         console.error(e);
-        setError(e?.message ?? "Не удалось загрузить турниры");
+        setError(e?.message ?? tournamentsText.provider.loadFailed);
       } finally {
         if (!background) {
           setLoading(false);
@@ -93,7 +95,7 @@ export function TournamentsProvider({
         setInitialLoaded(true);
       }
     },
-    [clubId, loadStats, initialLoaded, isFetching] // Добавляем isFetching в зависимости
+    [clubId, loadStats, initialLoaded, isFetching, tournamentsText.provider.loadFailed]
   );
 
   // ЕДИНСТВЕННЫЙ эффект для первоначальной загрузки

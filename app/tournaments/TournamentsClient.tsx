@@ -30,6 +30,7 @@ import { canDeleteTournament, canViewTournament } from "@/app/lib/permissions";
 import { CustomSelect } from "../components/controls/CustomSelect";
 import { Club } from "../models/Club";
 import { UserRole } from "../models/Users";
+import { useDictionary } from "../components/LanguageProvider";
 
 type Props = {
   club: Club | null;
@@ -41,6 +42,7 @@ export function TournamentsClient({club} : Props) {
   const router = useRouter();
   const pathname = usePathname();
   const { tournaments, loading, error, createTournament, deleteTournament, stats } = useTournaments();
+  const { tournaments: tournamentsText } = useDictionary();
 
   // --- фильтры
   const [q, setQ] = useState<string>("");
@@ -128,7 +130,7 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
 
   return (
     <div className={className}>
-      {club === null && <h1 className="page-title">Турниры</h1>}
+      {club === null && <h1 className="page-title">{tournamentsText.title}</h1>}
 
       <div className="page-content-container  card-grid-wrapper">
         {/* Панель фильтров */}
@@ -137,7 +139,7 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
             type="text"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Поиск по названию…"
+            placeholder={tournamentsText.searchPlaceholder}
             className="input"
           />
 
@@ -178,14 +180,14 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
                 onClick={() => setFltMy(v => !v)}
                 aria-label="Показывать только мои турниры"
               />
-              <span>Только мои</span>
+              <span>{tournamentsText.filters.onlyMineLabel}</span>
             </div>
           </LoggedIn>
 
           <div className="page-toolbar__reset">
             <CancelIconButton
               onClick={resetFilters}
-              title="Сброс"
+              title={tournamentsText.filters.resetTitle}
             />
           </div>
         </div>

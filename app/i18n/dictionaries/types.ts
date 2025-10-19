@@ -178,4 +178,71 @@ export type Dictionary = {
       tooltip: string;
     };
   };
+  tournaments: {
+    title: string;
+    searchPlaceholder: string;
+    loading: string;
+    errorPrefix: string;
+    deleteConfirm: string;
+    loginRequired: string;
+    filters: {
+      typeAny: string;
+      formatAny: string;
+      statusAny: string;
+      onlyMineLabel: string;
+      onlyMineAria: string;
+      resetTitle: string;
+    };
+    provider: {
+      loadFailed: string;
+    };
+    typeLabels: {
+      single: string;
+      double: string;
+    };
+    formatLabels: {
+      pyramid: string;
+      roundRobin: string;
+      singleElimination: string;
+      doubleElimination: string;
+      groupsPlayoff: string;
+      swiss: string;
+      custom: string;
+    };
+    statusLabels: {
+      draft: string;
+      registration: string;
+      ongoing: string;
+      finished: string;
+    };
+    card: {
+      typeLabel: string;
+      formatLabel: string;
+      datesLabel: string;
+      participantsLabel: string;
+      matchesLabel: string;
+      deleteTitle: string;
+      statusUpdateFailed: string;
+    };
+    modal: {
+      title: string;
+      namePlaceholder: string;
+      advShow: string;
+      advHide: string;
+      minNTRPPlaceholder: string;
+      maxNTRPPlaceholder: string;
+      pyramidLevelsLabel: string;
+      pyramidLevelsHelp: string;
+      groupsCountLabel: string;
+      groupsCountHelp: string;
+      errors: {
+        nameRequired: string;
+        dateRange: string;
+        pyramidLevels: string;
+        ntrpRange: string;
+      };
+      saveButton: string;
+      closeAria: string;
+    };
+  };
 };
