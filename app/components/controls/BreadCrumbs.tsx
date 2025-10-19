@@ -5,6 +5,8 @@ import "./BreadCrumbs.css";
 
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
+import { useDictionary, useLocale } from "@/app/components/LanguageProvider";
+import { stripLocaleFromPath, withLocalePath } from "@/app/i18n/routing";
 
 type SimpleBreadcrumbsProps = {
   clubName?: string;
@@ -16,6 +18,14 @@ type Crumb = { href: string; label: string };
 export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumbsProps) {
   const pathname = usePathname();
   const params = useParams();
+  const locale = useLocale();
+  const { breadcrumbs } = useDictionary();
+
+  const fallbackClub = breadcrumbs.clubFallback;
+  const fallbackTournament = breadcrumbs.tournamentFallback;
+
+  const { path } = stripLocaleFromPath(pathname);
+  const segments = path.split("/").filter(Boolean);
 
   function humanize(slug?: string, fallback = "—"): string {
   if (!slug) return fallback;
@@ -28,10 +38,9 @@ export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumb
 
 const generateBreadcrumbs = (): Crumb[] => {
   const breadcrumbs: Crumb[] = [];
-
-  const segments = pathname.split("/").filter(Boolean); // ["admin","clubs","klub-myacheva","turnir-myaeva", ...]
   const isAdmin = segments[0] === "admin";
-  const isClubs = segments[1] === "clubs";
+  const isPlayer = segments[0] === "player";
+  const isClubs = (isAdmin || isPlayer) && segments[1] === "clubs";
 
   // из useParams(): { slug: string; tournamentSlug?: string }
   const clubSlug = (params as any)?.slug as string | undefined;
@@ -43,16 +52,18 @@ const generateBreadcrumbs = (): Crumb[] => {
     // ----- /admin/clubs/[slug] -----
     if (clubSlug) {
       if (clubSlug != "undefined") {
-        const clubLabel = humanize(clubSlug, clubName ?? "Клуб");
-        breadcrumbs.push({ href: isAdmin ? `/admin/clubs/${clubSlug}?tab=tournaments` : `/player/clubs/${clubSlug}?tab=tournaments`, label: clubName ?? clubLabel });
+        const clubLabel = humanize(clubSlug, clubName ?? fallbackClub);
+        const basePath = isAdmin ? `/admin/clubs/${clubSlug}` : `/player/clubs/${clubSlug}`;
+        const href = `${withLocalePath(locale, basePath)}?tab=tournaments`;
+        breadcrumbs.push({ href, label: clubName ?? clubLabel });
       } else {
-        breadcrumbs.push({ href: `/tournaments`, label: "Турниры" });
+        breadcrumbs.push({ href: withLocalePath(locale, "/tournaments"), label: breadcrumbs.tournaments });
       }
     
 
       // ----- /admin/clubs/[slug]/[tournamentSlug] -----
       if (tournamentSlug) {
-        const tLabel = humanize(tournamentSlug, tournamentName ?? "Турнир");
+        const tLabel = humanize(tournamentSlug, tournamentName ?? fallbackTournament);
         // последняя крошка — без ссылки (href:"")
         breadcrumbs.push({ href: "", label: tournamentName ?? tLabel });
       }
@@ -83,7 +94,7 @@ const generateBreadcrumbs = (): Crumb[] => {
   });
 
   return (
-    <nav aria-label="Хлебные крошки" className="breadcrumbs">
+    <nav aria-label={breadcrumbs.ariaLabel} className="breadcrumbs">
       <ol className="breadcrumbs-list">
         {slots.map((slot, index) => {
           if (!slot) {

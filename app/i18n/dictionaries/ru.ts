@@ -528,6 +528,12 @@ export const ruDictionary: Dictionary = {
     loadFailed: "Ошибка загрузки профиля",
     errorPrefix: "Ошибка:",
   },
+  breadcrumbs: {
+    ariaLabel: "Хлебные крошки",
+    tournaments: "Турниры",
+    clubFallback: "Клуб",
+    tournamentFallback: "Турнир",
+  },
   languageSwitcher: {
     label: "Язык",
     localeNames: {

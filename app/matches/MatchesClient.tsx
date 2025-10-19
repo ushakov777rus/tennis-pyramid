@@ -21,7 +21,7 @@ export function MatchesClient() {
     updateMatch,
     deleteMatch,
   } = useMatches();
-  const { matchesPage, common } = useDictionary();
+  const { matchesPage } = useDictionary();
 
   const handleEditMatch = useCallback(
     async (updated: Match) => {

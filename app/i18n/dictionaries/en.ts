@@ -522,6 +522,12 @@ export const enDictionary: Dictionary = {
     loadFailed: "Failed to load profile",
     errorPrefix: "Error:",
   },
+  breadcrumbs: {
+    ariaLabel: "Breadcrumbs",
+    tournaments: "Tournaments",
+    clubFallback: "Club",
+    tournamentFallback: "Tournament",
+  },
   languageSwitcher: {
     label: "Language",
     localeNames: {

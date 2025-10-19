@@ -443,4 +443,10 @@ export type Dictionary = {
     loadFailed: string;
     errorPrefix: string;
   };
+  breadcrumbs: {
+    ariaLabel: string;
+    tournaments: string;
+    clubFallback: string;
+    tournamentFallback: string;
+  };
 };
