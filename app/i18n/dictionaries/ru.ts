@@ -140,16 +140,6 @@ export const ruDictionary: Dictionary = {
       canonical: "/about",
     },
   },
-  sidebar: {
-    myClub: "Мой клуб",
-    myClubs: "Мои клубы",
-    sections: {
-      admin: "Администрирование",
-      profile: "Мой профиль",
-      navigation: "Навигация",
-    },
-    logout: "Выйти",
-  },
   aboutPage: {
     hero: {
       title: "HoneyCup — турнирная платформа для тенниса, падела и бадминтона",
@@ -231,8 +221,8 @@ export const ruDictionary: Dictionary = {
   languageSwitcher: {
     label: "Язык",
     localeNames: {
-      ru: "Русский",
-      en: "English",
+      ru: "РУ",
+      en: "EN",
     },
   },
 };

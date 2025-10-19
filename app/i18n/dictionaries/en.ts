@@ -135,16 +135,6 @@ export const enDictionary: Dictionary = {
       canonical: "/about",
     },
   },
-  sidebar: {
-    myClub: "My club",
-    myClubs: "My clubs",
-    sections: {
-      admin: "Administration",
-      profile: "My profile",
-      navigation: "Navigation",
-    },
-    logout: "Log out",
-  },
   aboutPage: {
     hero: {
       title: "HoneyCup — tournament platform for tennis, padel, and badminton",
@@ -226,8 +216,8 @@ export const enDictionary: Dictionary = {
   languageSwitcher: {
     label: "Language",
     localeNames: {
-      ru: "Русский",
-      en: "English",
+      ru: "РУ",
+      en: "EN",
     },
   },
 };
