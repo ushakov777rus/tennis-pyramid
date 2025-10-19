@@ -27,6 +27,7 @@ import {
 import { TeamsRepository } from "@/app/repositories/TeamsRepository";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { useUser } from "@/app/components/UserContext";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 /** Аргументы «1 RPC: добавить матч + при необходимости свапнуть позиции в пирамиде» */
 export type AddMatchAndMaybeSwapArgs = {
@@ -125,6 +126,7 @@ export function TournamentProvider({
 }) {
   const { user, loading: userLoading } = useUser();
   const { tournamentSlug } = initial;
+  const { tournaments: tournamentsText } = useDictionary();
 
   // source of truth (на клиенте храним класс-модель)
   const [creator, setCreator] = useState<Player | null>(null);
@@ -225,10 +227,10 @@ export function TournamentProvider({
     await reload({ silent: true });
     const tid = (tournament?.id ?? null);
     if (tid == null) {
-      throw new Error("Турнир не загружен: не удалось определить tournamentId");
+      throw new Error(tournamentsText.errors.tournamentIdMissing);
     }
     return tid;
-  }, [tournamentId, reload, tournament]);
+  }, [tournamentId, reload, tournament, tournamentsText.errors.tournamentIdMissing]);
 
   // Оптимистичное добавление матча
   const addMatch = useCallback(
@@ -291,13 +293,13 @@ export function TournamentProvider({
         console.error('Failed to add match:', error);
         
         // Показываем сообщение об ошибке
-        alert('Не удалось добавить матч. Попробуйте еще раз.');
+        alert(tournamentsText.alerts.addMatchRetry);
         throw error;
       } finally {
         setMutating(false);
       }
     },
-    [reload, matches, tournament] // зависимости
+    [reload, matches, tournament, tournamentsText.alerts.addMatchRetry] // зависимости
   );
 
   const updateMatch = useCallback(
@@ -373,14 +375,14 @@ export function TournamentProvider({
       setMutating(true);
       try {
         const teamId = await TeamsRepository.create(tId, p1, p2);
-        if (!teamId) throw new Error("Не удалось создать команду");
+        if (!teamId) throw new Error(tournamentsText.errors.createTeamFailed);
         await TournamentsRepository.addTeam(tId, teamId);
         await reload({ silent: true });
       } finally {
         setMutating(false);
       }
     },
-    [reload]
+    [reload, tournamentsText.errors.createTeamFailed]
   );
 
   const addTeamToTournament = useCallback(

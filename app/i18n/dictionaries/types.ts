@@ -215,6 +215,31 @@ export type Dictionary = {
       ongoing: string;
       finished: string;
     };
+    tabs: {
+      about: string;
+      bracket: string;
+      matches: string;
+      participants: string;
+      results: string;
+      ariaLabel: string;
+    };
+    alerts: {
+      selectPlayersAndDate: string;
+      addMatchFailed: string;
+      addMatchRetry: string;
+      enterScore: string;
+      saveScoreFallback: string;
+      updateMatchFailed: string;
+      deleteMatchFailed: string;
+    };
+    empty: {
+      addParticipantsButton: string;
+      addParticipantsMessage: string;
+    };
+    errors: {
+      tournamentIdMissing: string;
+      createTeamFailed: string;
+    };
     card: {
       typeLabel: string;
       formatLabel: string;

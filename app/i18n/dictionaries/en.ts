@@ -282,6 +282,31 @@ export const enDictionary: Dictionary = {
       ongoing: "Ongoing",
       finished: "Finished",
     },
+    tabs: {
+      about: "Overview",
+      bracket: "Bracket",
+      matches: "Matches",
+      participants: "Participants",
+      results: "Ranking",
+      ariaLabel: "Tournament sections",
+    },
+    alerts: {
+      selectPlayersAndDate: "Select two players and the match date",
+      addMatchFailed: "Failed to add match",
+      addMatchRetry: "Failed to add match. Try again.",
+      enterScore: "Enter the score",
+      saveScoreFallback: "Failed to save the score",
+      updateMatchFailed: "Failed to update match",
+      deleteMatchFailed: "Failed to delete match",
+    },
+    empty: {
+      addParticipantsButton: "Add participants to the tournament",
+      addParticipantsMessage: "Add participants to the tournament",
+    },
+    errors: {
+      tournamentIdMissing: "Tournament is not loaded: unable to determine tournamentId",
+      createTeamFailed: "Failed to create a team",
+    },
     card: {
       typeLabel: "Type:",
       formatLabel: "Format:",

@@ -36,6 +36,7 @@ import { AboutTournament } from "@/app/components/AboutTournament";
 import { UserRole } from "@/app/models/Users";
 import { SimpleBreadcrumbs } from "@/app/components/controls/BreadCrumbs";
 import { OWNER_TOKEN_PREFIX } from "@/app/freetournament/constants"; 
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 const todayISO = new Date().toISOString().split("T")[0];
 
@@ -68,6 +69,8 @@ export default function TournamentClient() {
     addMatchAndMaybeSwap,
     setTournamentStatus,
   } = useTournament();
+  const { tournaments: tournamentsText } = useDictionary();
+  const { tabs: tournamentTabs, alerts: tournamentAlerts } = tournamentsText;
 
   const { user } = useUser();
   const searchParams = useSearchParams();
@@ -125,17 +128,26 @@ export default function TournamentClient() {
 
   const tabs: TabItem[] = useMemo(() => {
     const items: Array<TabItem | false> = [
-      !isWizard && { key: "aboutt", label: "О турнире" },
-      showBracketTab && { key: "bracket", label: "Сетка" },
-      { key: "matches", label: "Матчи" },
+      !isWizard && { key: "aboutt", label: tournamentTabs.about },
+      showBracketTab && { key: "bracket", label: tournamentTabs.bracket },
+      { key: "matches", label: tournamentTabs.matches },
       canManage && {
         key: "participants",
-        label: "Участники",
+        label: tournamentTabs.participants,
       },
-      { key: "results", label: "Рейтинг" },
+      { key: "results", label: tournamentTabs.results },
     ];
     return items.filter(Boolean) as TabItem[];
-  }, [showBracketTab, canManage, isWizard]);
+  }, [
+    showBracketTab,
+    canManage,
+    isWizard,
+    tournamentTabs.about,
+    tournamentTabs.bracket,
+    tournamentTabs.matches,
+    tournamentTabs.participants,
+    tournamentTabs.results,
+  ]);
 
   // Синхронизация с URL параметром tab
   useEffect(() => {
@@ -211,7 +223,7 @@ export default function TournamentClient() {
   const handleAddMatch = useCallback(async () => {
     if (!tournament) return;
     if (selectedIds.length < 2 || !matchDate) {
-      alert("Выбери двух игроков и дату матча");
+      alert(tournamentAlerts.selectPlayersAndDate);
       return;
     }
 
@@ -238,7 +250,7 @@ export default function TournamentClient() {
       setSelectedIds(user?.role === UserRole.Player && user.player.id ? [user.player.id] : []);
     } catch (e) {
       console.error(e);
-      alert("Не удалось добавить матч");
+      alert(tournamentAlerts.addMatchFailed);
     }
   }, [
     tournament,
@@ -249,6 +261,8 @@ export default function TournamentClient() {
     user?.player.id,
     addMatchAndMaybeSwap,
     determineWinnerLoser,
+    tournamentAlerts.selectPlayersAndDate,
+    tournamentAlerts.addMatchFailed,
   ]);
 
   const handleSavePyramidMatch = useCallback(
@@ -364,10 +378,10 @@ export default function TournamentClient() {
         }
       } catch (err) {
         console.error("Ошибка при сохранении счёта:", err);
-        alert(err instanceof Error ? err.message : "Не удалось сохранить счёт");
+        alert(err instanceof Error ? err.message : tournamentAlerts.saveScoreFallback);
       }
     },
-    [tournament, matches, updateMatch, addMatch, reload]
+    [tournament, matches, updateMatch, addMatch, reload, tournamentAlerts.saveScoreFallback]
   );
 
   // Функции для управления глобальной клавиатурой
@@ -473,7 +487,7 @@ export default function TournamentClient() {
     const matchDate = keyboardState.editDate || todayISO;
 
     if (!score) {
-      alert('Введите счёт');
+      alert(tournamentAlerts.enterScore);
       return;
     }
 
@@ -488,9 +502,16 @@ export default function TournamentClient() {
       closeKeyboard();
     } catch (err) {
       console.error("Ошибка при сохранении счёта:", err);
-      alert(err instanceof Error ? err.message : "Не удалось сохранить счёт");
+      alert(err instanceof Error ? err.message : tournamentAlerts.saveScoreFallback);
     }
-  }, [keyboardState, closeKeyboard, handleSavePyramidMatch, handleSaveScore]);
+  }, [
+    keyboardState,
+    closeKeyboard,
+    handleSavePyramidMatch,
+    handleSaveScore,
+    tournamentAlerts.enterScore,
+    tournamentAlerts.saveScoreFallback,
+  ]);
 
   const handleEditMatchSave = useCallback(
     async (updatedMatch: Match) => {
@@ -498,10 +519,10 @@ export default function TournamentClient() {
         await updateMatch(updatedMatch);
       } catch (err) {
         console.error("Ошибка при обновлении матча:", err);
-        alert("Не удалось обновить матч");
+        alert(tournamentAlerts.updateMatchFailed);
       }
     },
-    [updateMatch]
+    [updateMatch, tournamentAlerts.updateMatchFailed]
   );
 
   const handleDeleteMatch = useCallback(
@@ -510,10 +531,10 @@ export default function TournamentClient() {
         await deleteMatch(match);
       } catch (err) {
         console.error("Ошибка при удалении матча:", err);
-        alert("Не удалось удалить матч");
+        alert(tournamentAlerts.deleteMatchFailed);
       }
     },
-    [deleteMatch]
+    [deleteMatch, tournamentAlerts.deleteMatchFailed]
   );
 
   const handleShowHistoryPlayer = useCallback((participant: Participant) => {
@@ -521,7 +542,7 @@ export default function TournamentClient() {
     setHistoryOpen(true);
   }, []);
 
-  if (!tournament) return <p>Загрузка...</p>;
+  if (!tournament) return <p>{tournamentsText.loading}</p>;
 
   const isPlayerWithFixedAttacker = user?.role === UserRole.Player && !!user?.player.id;
   const className = user ? "page-container-no-padding" : "page-container";
@@ -549,7 +570,7 @@ export default function TournamentClient() {
             items={tabs}
             value={view}
             onChange={(k) => setView(k as ViewKey)}
-            ariaLabel="Разделы турнира"
+            ariaLabel={tournamentTabs.ariaLabel}
           />
 
           {tournament.isCustom() && canManage && view === "matches" && (
@@ -690,6 +711,8 @@ export const FormatView = React.memo(function FormatView({
   onCloseKeyboard?: () => void;
   keyboardState?: KeyboardState;
 }) {
+  const { tournaments: tournamentsDict } = useDictionary();
+  const { empty: tournamentsEmpty } = tournamentsDict;
   const handleShowHistory = useCallback(
     (participant?: Participant) => {
       if (participant) onShowHistoryPlayer(participant);
@@ -702,7 +725,7 @@ export const FormatView = React.memo(function FormatView({
   }
 
   if ( loading ) {
-    return <div>Загрузка</div>;
+    return <div>{tournamentsDict.loading}</div>;
   }
 
   if (participants.length === 0) {
@@ -710,12 +733,12 @@ export const FormatView = React.memo(function FormatView({
       return (
         <div className="empty-participants">
           <button type="button" className="btn-base empty-participants__button" onClick={onGoToParticipants}>
-            Добавьте участников в турнир
+            {tournamentsEmpty.addParticipantsButton}
           </button>
         </div>
       );
     }
-    return <div>Добавьте участников в турнир</div>;
+    return <div>{tournamentsEmpty.addParticipantsMessage}</div>;
   }
 
   if (tournament.isRoundRobin()) {

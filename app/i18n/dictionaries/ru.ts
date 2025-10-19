@@ -288,6 +288,31 @@ export const ruDictionary: Dictionary = {
       ongoing: "Идет",
       finished: "Завершён",
     },
+    tabs: {
+      about: "О турнире",
+      bracket: "Сетка",
+      matches: "Матчи",
+      participants: "Участники",
+      results: "Рейтинг",
+      ariaLabel: "Разделы турнира",
+    },
+    alerts: {
+      selectPlayersAndDate: "Выбери двух игроков и дату матча",
+      addMatchFailed: "Не удалось добавить матч",
+      addMatchRetry: "Не удалось добавить матч. Попробуйте еще раз.",
+      enterScore: "Введите счёт",
+      saveScoreFallback: "Не удалось сохранить счёт",
+      updateMatchFailed: "Не удалось обновить матч",
+      deleteMatchFailed: "Не удалось удалить матч",
+    },
+    empty: {
+      addParticipantsButton: "Добавьте участников в турнир",
+      addParticipantsMessage: "Добавьте участников в турнир",
+    },
+    errors: {
+      tournamentIdMissing: "Турнир не загружен: не удалось определить tournamentId",
+      createTeamFailed: "Не удалось создать команду",
+    },
     card: {
       typeLabel: "Тип:",
       formatLabel: "Формат:",

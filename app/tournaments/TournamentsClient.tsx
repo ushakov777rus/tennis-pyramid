@@ -3,7 +3,7 @@
 import "./page.css";
 import "@/app/MainPage.css";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { CancelIconButton, CheckBoxIcon } from "../components/controls/IconButtons";
@@ -43,6 +43,61 @@ export function TournamentsClient({club} : Props) {
   const pathname = usePathname();
   const { tournaments, loading, error, createTournament, deleteTournament, stats } = useTournaments();
   const { tournaments: tournamentsText } = useDictionary();
+  const typeOptions = useMemo(
+    () =>
+      TYPE_OPTIONS.map((option) =>
+        option.value
+          ? {
+              ...option,
+              label: tournamentsText.typeLabels[option.value as TournamentType],
+            }
+          : { ...option, label: tournamentsText.filters.typeAny }
+      ),
+    [tournamentsText.filters.typeAny, tournamentsText.typeLabels]
+  );
+  const resolveFormatLabel = useCallback(
+    (format: TournamentFormat) => {
+      switch (format) {
+        case TournamentFormat.RoundRobin:
+          return tournamentsText.formatLabels.roundRobin;
+        case TournamentFormat.SingleElimination:
+          return tournamentsText.formatLabels.singleElimination;
+        case TournamentFormat.DoubleElimination:
+          return tournamentsText.formatLabels.doubleElimination;
+        case TournamentFormat.GroupsPlayoff:
+          return tournamentsText.formatLabels.groupsPlayoff;
+        case TournamentFormat.Swiss:
+          return tournamentsText.formatLabels.swiss;
+        case TournamentFormat.Custom:
+          return tournamentsText.formatLabels.custom;
+        case TournamentFormat.Pyramid:
+        default:
+          return tournamentsText.formatLabels.pyramid;
+      }
+    },
+    [tournamentsText.formatLabels]
+  );
+  const formatOptions = useMemo(
+    () =>
+      FORMAT_OPTIONS.map((option) =>
+        option.value
+          ? { ...option, label: resolveFormatLabel(option.value as TournamentFormat) }
+          : { ...option, label: tournamentsText.filters.formatAny }
+      ),
+    [tournamentsText.filters.formatAny, resolveFormatLabel]
+  );
+  const statusOptions = useMemo(
+    () =>
+      STATUS_OPTIONS.map((option) =>
+        option.value
+          ? {
+              ...option,
+              label: tournamentsText.statusLabels[option.value as TournamentStatus],
+            }
+          : { ...option, label: tournamentsText.filters.statusAny }
+      ),
+    [tournamentsText.filters.statusAny, tournamentsText.statusLabels]
+  );
 
   // --- фильтры
   const [q, setQ] = useState<string>("");
@@ -59,7 +114,7 @@ export function TournamentsClient({club} : Props) {
   // 🎯 ПРИНИМАЕМ payload из модалки
   const onCreate = async (payload: TournamentCreateInput) => {
     if (!user?.id) {
-      alert("Вы должны быть авторизованы для создания турнира");
+      alert(tournamentsText.loginRequired);
       return;
     }
 
@@ -80,7 +135,7 @@ export function TournamentsClient({club} : Props) {
   };
 
   const onDelete = async (id: number) => {
-    if (!confirm("Удалить турнир и все его матчи?")) return;
+    if (!confirm(tournamentsText.deleteConfirm)) return;
     await deleteTournament(id);
   };
 
@@ -145,7 +200,7 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
 
           <CustomSelect
             className="input"
-            options={TYPE_OPTIONS}
+            options={typeOptions}
             value={fltType}
             onChange={(val) => setFltType(val as TournamentType)}
             disabled={false}
@@ -155,7 +210,7 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
 
           <CustomSelect
             className="input"
-            options={FORMAT_OPTIONS}
+            options={formatOptions}
             value={fltFormat}
             onChange={(val) => setFltFormat(val as FilterFormat)}
             disabled={false}
@@ -165,7 +220,7 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
 
           <CustomSelect
             className="input"
-            options={STATUS_OPTIONS}
+            options={statusOptions}
             value={fltStatus}
             onChange={(val) => setFltStatus(val as FilterStatus)}
             disabled={false}
@@ -178,7 +233,7 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
               <CheckBoxIcon
                 isSelected={fltMy}
                 onClick={() => setFltMy(v => !v)}
-                aria-label="Показывать только мои турниры"
+                aria-label={tournamentsText.filters.onlyMineAria}
               />
               <span>{tournamentsText.filters.onlyMineLabel}</span>
             </div>
@@ -193,8 +248,12 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
         </div>
 
         {/* Список турниров */}
-        {loading && <div className="card">Загрузка…</div>}
-        {error && <div className="card card-error">Ошибка: {error}</div>}
+        {loading && <div className="card">{tournamentsText.loading}</div>}
+        {error && (
+          <div className="card card-error">
+            {tournamentsText.errorPrefix}: {error}
+          </div>
+        )}
 
         <div className="card-grid-new">
           {/* Карточка создания турниров — только для админов */}
