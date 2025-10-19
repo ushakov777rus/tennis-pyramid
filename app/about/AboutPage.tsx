@@ -16,6 +16,7 @@ import { ClubsRepository } from "@/app/repositories/ClubsRepository";
 import { useUser } from "@/app/components/UserContext";
 import { Footer } from "@/app/Footer";
 import Link from "next/link";
+import { useDictionary } from "../components/LanguageProvider";
 
 type Stat = { label: string; value: number | string; link: string };
 type Feature = { icon: React.ReactNode; label: string; text?: string };
@@ -67,7 +68,6 @@ function IconTrophy() {
   );
 }
 
-
 const IconCalendar = (
   <svg viewBox="0 0 24 24" aria-hidden="true">
     <path d="M7 2v2M17 2v2M3 9h18M5 6h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>
@@ -113,6 +113,7 @@ export default function AboutPage() {
   const [playersCount, setPlayersCount] = useState<number | null>(null);
   const [tournamentsCount, setTournamentsCount] = useState<number | null>(null);
   const [clubsCount, setClubsCount] = useState<number | null>(null);
+  const dictionary = useDictionary();
 
   useEffect(() => {
     let alive = true;
@@ -131,7 +132,7 @@ export default function AboutPage() {
         setTournamentsCount(t ?? 0);
         setClubsCount(c ?? 0);
       } catch (e) {
-        console.error("Не удалось загрузить статистику:", e);
+        console.error(dictionary.common.loading);
         if (!alive) return;
         setMatchesCount((v) => v ?? 0);
         setPlayersCount((v) => v ?? 0);
@@ -148,21 +149,21 @@ export default function AboutPage() {
 
   const stats = useMemo<Stat[]>(
     () => [
-      { label: "МАТЧЕЙ", value: matchesCount ?? "…", link: "/matches" },
-      { label: "УЧАСТНИКОВ", value: playersCount ?? "…", link: "/rating" },
-      { label: "ТУРНИРОВ", value: tournamentsCount ?? "…", link: "/tournaments" },
-      { label: "КЛУБОВ", value: clubsCount  ?? "…", link: "/clubs" },
+      { label: dictionary.aboutPage.stats[0].label, value: matchesCount ?? "…", link: "/matches" },
+      { label: dictionary.aboutPage.stats[1].label, value: playersCount ?? "…", link: "/rating" },
+      { label: dictionary.aboutPage.stats[2].label, value: tournamentsCount ?? "…", link: "/tournaments" },
+      { label: dictionary.aboutPage.stats[3].label, value: clubsCount  ?? "…", link: "/clubs" },
     ],
-    [matchesCount, playersCount, tournamentsCount, clubsCount]
+    [matchesCount, playersCount, tournamentsCount, clubsCount, dictionary]
   );
 
   const features: Feature[] = [
-    { icon: IconCalendar, label: "РАСПИСАНИЕ" },
-    { icon: IconResult,   label: "РЕЗУЛЬТАТЫ" },
-    { icon: IconChart,    label: "СТАТИСТИКА" },
-    { icon: IconBoard,    label: "ОНЛАЙН-ТАБЛО" },
-    { icon: IconNews,     label: "НОВОСТИ И ОБЗОРЫ" },
-    { icon: IconUser,     label: "ЛИЧНЫЕ КАБИНЕТЫ" },
+    { icon: IconCalendar, label: dictionary.aboutPage.features[0] },
+    { icon: IconResult,   label: dictionary.aboutPage.features[1] },
+    { icon: IconChart,    label: dictionary.aboutPage.features[2] },
+    { icon: IconBoard,    label: dictionary.aboutPage.features[3] },
+    { icon: IconNews,     label: dictionary.aboutPage.features[4] },
+    { icon: IconUser,     label: dictionary.aboutPage.features[5] },
   ];
 
   // JSON-LD FAQ
@@ -172,26 +173,26 @@ export default function AboutPage() {
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "Можно ли бесплатно создать турнирную сетку онлайн?",
+        "name": dictionary.aboutPage.faq.items[0].question,
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Да. В HoneyCup есть бесплатный генератор турнирной сетки онлайн для любительских соревнований."
+          "text": dictionary.aboutPage.faq.items[0].answer
         }
       },
       {
         "@type": "Question",
-        "name": "Какие форматы турнирных сеток поддерживаются?",
+        "name": dictionary.aboutPage.faq.items[1].question,
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Круговая система, олимпийка (single elimination), пирамида и другие варианты. Поддерживается настройка под конкретные правила клуба."
+          "text": dictionary.aboutPage.faq.items[1].answer
         }
       },
       {
         "@type": "Question",
-        "name": "Подходит ли платформа для настольного тенниса и падела?",
+        "name": dictionary.aboutPage.faq.items[2].question,
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Да. HoneyCup подходит для большого и настольного тенниса, падела и бадминтона."
+          "text": dictionary.aboutPage.faq.items[2].answer
         }
       }
     ]
@@ -205,7 +206,7 @@ export default function AboutPage() {
       {
         "@type": "ListItem",
         "position": 1,
-        "name": "Главная",
+        "name": dictionary.navigation.home,
         "item": "https://honeycup.ru/"
       }
     ]
@@ -231,7 +232,7 @@ export default function AboutPage() {
 
       {/* H1 содержит главную ключевую группу, но читабельно */}
       <h1 className="page-title">
-        Платформа для проведения любительских теннисных турниров
+        {dictionary.aboutPage.hero.title}
       </h1>
 
       <main className="page-content-container">
@@ -239,7 +240,7 @@ export default function AboutPage() {
         {/* Hero: изображение с alt и приоритетом (если есть /hero.png) */}
         <section className="card" style={{ padding: 0 }}>
           <div className="tennis-hero" style={{ position: "relative", width: "100%", height: "260px" }}>
-            <span className="tennis-hero__title">Погрузись в мир большого тенниса</span>
+            <span className="tennis-hero__title">{dictionary.aboutPage.intro.title}</span>
           </div>
         </section>
 
@@ -257,10 +258,7 @@ export default function AboutPage() {
 
             <div className="card" style={{ height: "100%", display: "flex", alignItems: "center", padding: "20px" }}>
               <p>
-              HoneyCup — турнирная платформа для тенниса, падела, пиклбола и бадминтона. Создавайте и ведите любительские турниры, 
-              используйте генератор турнирной сетки онлайн, публикуйте расписание и результаты, 
-              собирайте статистику и рейтинги, ведите историю матчей. Поддерживаем популярные форматы: 
-              круговая система, группы + плейофф, олимпийка, двойная олимпийка и пирамида.
+                {dictionary.aboutPage.intro.aside}
               </p>
             </div>
           </div>
@@ -278,96 +276,87 @@ export default function AboutPage() {
 
         {/* SEO-блоки с H2 и вкраплением твоих ключей (естественно, без переспама) */}
         <section className="section card" id="generator">
-          <h2>Турнирная сетка за 2 минуты</h2>
+          <h2>{dictionary.aboutPage.generator.title}</h2>
           <p>
-            Запустите турнир без рутины: наш онлайн-генератор бесплатно создаст сетку, распределит участников и подготовит схему к печати и экспорту. Работает для тенниса и других ракеточных видов спорта.
+            {dictionary.aboutPage.generator.paragraph}
           </p>
           <ul className="bullet-list">
-            <li>•	Бесплатный генератор турнирных сеток онлайн</li>
-            <li>•	Быстрое составление и удобная печать</li>
-            <li>•	Форматы: круговая, олимпийка (single elimination), пирамида</li>
+            {dictionary.aboutPage.generator.bullets.map((bullet, index) => (
+              <li key={index}>• {bullet}</li>
+            ))}
           </ul>
         </section>
 
         <section className="section card" id="tennis-platform">
-          <h2>Организация турниров по теннису онлайн</h2>
+          <h2>{dictionary.aboutPage.tennis.title}</h2>
           <p>
-            HoneyCup помогает клубам и тренерам запускать и вести любительские теннисные турниры:
-            регистрация участников, сетки и таблицы, расписание, онлайн-табло, подсчёт результатов,
-            статистика игроков и рейтинги.
+            {dictionary.aboutPage.tennis.paragraph}
           </p>
           <ul className="bullet-list">
-            <li>•	Любительские теннисные турниры в вашем клубе</li>
-            <li>•	Онлайн-табло и публикация результатов</li>
-            <li>•	Статистика, рейтинги, история матчей</li>
+            {dictionary.aboutPage.tennis.bullets.map((bullet, index) => (
+              <li key={index}>• {bullet}</li>
+            ))}
           </ul>
         </section>
 
         {/* CTA блоки */}
-<section>
-  <div className="card-grid-cta">
-    <div
-      className="card card-register clickable"
-      onClick={() => {
-        setSignupRole(UserRole.Player);
-        setIsLoginOpen(true);
-      }}
-    >
-      {/* ИКОНКА ВМЕСТО ЭМОДЗИ */}
-      <div
-        className="card-icon"
-        aria-hidden="true"
-      >
-        <IconMedal />
-      </div>
+        <section>
+          <div className="card-grid-cta">
+            <div
+              className="card card-register clickable"
+              onClick={() => {
+                setSignupRole(UserRole.Player);
+                setIsLoginOpen(true);
+              }}
+            >
+              {/* ИКОНКА ВМЕСТО ЭМОДЗИ */}
+              <div
+                className="card-icon"
+                aria-hidden="true"
+              >
+                <IconMedal />
+              </div>
 
-      Зарегистрироваться как участник
+              {dictionary.aboutPage.ctaCards.playerTitle}
 
-      <div className="badge badge-register">
-        Участвуй в турнирах, прокачивайся, побеждай, попади в рейтинг лучших
-      </div>
-    </div>
+              <div className="badge badge-register">
+                {dictionary.aboutPage.ctaCards.playerBadge}
+              </div>
+            </div>
 
-    <div
-      className="card card-register clickable"
-      onClick={() => {
-        setSignupRole(UserRole.TournamentAdmin);
-        setIsLoginOpen(true);
-      }}
-    >
-      {/* ИКОНКА ВМЕСТО ЭМОДЗИ */}
-      <div
-        className="card-icon"
-        aria-hidden="true"
-      >
-        <IconTrophy />
-      </div>
+            <div
+              className="card card-register clickable"
+              onClick={() => {
+                setSignupRole(UserRole.TournamentAdmin);
+                setIsLoginOpen(true);
+              }}
+            >
+              {/* ИКОНКА ВМЕСТО ЭМОДЗИ */}
+              <div
+                className="card-icon"
+                aria-hidden="true"
+              >
+                <IconTrophy />
+              </div>
 
-      Зарегистрироваться как организатор
+              {dictionary.aboutPage.ctaCards.organizerTitle}
 
-      <div className="badge badge-register">
-        Организовывай турниры, выбирай любой формат, управляй матчами и следи за результатами
-      </div>
-    </div>
-  </div>
-</section>
-
+              <div className="badge badge-register">
+                {dictionary.aboutPage.ctaCards.organizerBadge}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* FAQ для расширенных сниппетов */}
         <section className="section card" id="faq">
-          <h2>Частые вопросы</h2>
-          <details>
-            <summary>Можно ли бесплатно создать турнирную сетку онлайн?</summary>
-            <p>Да. Базовый генератор турнирной сетки доступен бесплатно.</p>
-          </details>
-          <details>
-            <summary>Какие форматы поддерживаются?</summary>
-            <p>Круговая система, олимпийка (single elimination), пирамида и другие.</p>
-          </details>
-          <details>
-            <summary>Подходит ли платформа для настольного тенниса и падела?</summary>
-            <p>Да, HoneyCup подходит для большого и настольного тенниса, падела и бадминтона.</p>
-          </details>
+          <h2>{dictionary.aboutPage.faq.title}</h2>
+          {dictionary.aboutPage.faq.items.map((item, index) => (
+            <details key={index}>
+              <summary>{item.question}</summary>
+              <p>{item.answer}</p>
+            </details>
+          ))}
         </section>
 
         <Footer />

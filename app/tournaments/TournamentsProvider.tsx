@@ -68,10 +68,8 @@ export function TournamentsProvider({
       try {
         let list;
         if (clubId) {
-          console.log("Tournaments provider, load tournaments for club", clubId);
           list = await TournamentsRepository.loadByClub(clubId);
         } else {
-          console.log("Tournaments provider, load all tournaments");
           list = await TournamentsRepository.loadAll();
         }
 
