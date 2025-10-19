@@ -13,7 +13,7 @@ import { useDictionary, useLanguage } from "../LanguageProvider";
 import { stripLocaleFromPath, withLocalePath } from "@/app/i18n/routing";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
-const LOCALE_AWARE_PATHS = new Set(["/", "/tournaments", "/matches", "/rating", "/freetournament", "/about"]);
+const LOCALE_AWARE_PATHS = new Set(["/", "/clubs", "/tournaments", "/matches", "/rating", "/freetournament", "/about"]);
 
 
 export function NavigationBar() {
@@ -63,6 +63,7 @@ export function NavigationBar() {
  
   return (
     <header className="header">
+      <div style={{gridColumn: "1/-1", margin: "auto"}}><LanguageSwitcher /></div>
       <div className="header-hamburger">
         <button
           type="button"
@@ -105,8 +106,8 @@ export function NavigationBar() {
           {dictionary.navigation.home}
         </Link>
         <Link
-          href="/clubs"
-          className={pathname === "/clubs" || pathname.startsWith("/clubs/") ? "active" : ""}
+          href={buildHref("/clubs")}
+          className={isActive("/clubs") ? "active" : ""}
           onClick={() => setMenuOpen(false)}
         >
           {dictionary.navigation.clubs}
@@ -142,7 +143,6 @@ export function NavigationBar() {
       </nav>
 
       <div className="header-actions">
-        <LanguageSwitcher />
         <div className="header-tg">
           <a
             href="https://t.me/honeycuptennis"

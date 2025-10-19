@@ -141,7 +141,7 @@ export function SideNavigationBar() {
       { path: "/", label: dictionary.navigation.home, icon: <IconHome />, localized: true },
       { path: "/tournaments", label: dictionary.navigation.tournaments, icon: <IconTrophy />, localized: true },
       { path: "/rating", label: dictionary.navigation.rating, icon: <IconChart />, localized: true },
-      { path: "/clubs", label: dictionary.navigation.clubs, icon: <IconClubs />, localized: false },
+      { path: "/clubs", label: dictionary.navigation.clubs, icon: <IconClubs />, localized: true },
     ],
     [dictionary],
   );

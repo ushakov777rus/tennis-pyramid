@@ -97,7 +97,7 @@ export function StatsFooter() {
 
         {/* Статистика */}
         <div className="stats-footer__stats">
-          <Link href="/clubs" className="stats-footer__stat-item">
+          <Link href={withLocalePath(locale, "/clubs")} className="stats-footer__stat-item">
             <div className="stats-footer__stat-value">
               {clubsCount ?? "…"}
             </div>

@@ -152,7 +152,7 @@ export const ruDictionary: Dictionary = {
       { key: "matches", label: "МАТЧЕЙ", link: "/matches", localized: true },
       { key: "players", label: "УЧАСТНИКОВ", link: "/rating", localized: true },
       { key: "tournaments", label: "ТУРНИРОВ", link: "/tournaments", localized: true },
-      { key: "clubs", label: "КЛУБОВ", link: "/clubs", localized: false },
+      { key: "clubs", label: "КЛУБОВ", link: "/clubs", localized: true },
     ],
     intro: {
       title: "Всё для любительских турниров",
