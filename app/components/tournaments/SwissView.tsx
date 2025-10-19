@@ -262,7 +262,7 @@ export function SwissView({
     phaseFilter: MatchPhase;
     showHelpTooltip: boolean;
   }> = ({ a, b, scoreString, phaseFilter, showHelpTooltip }) => {
-    const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
+    const handleOpenKeyboard = (aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
       
       setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
@@ -276,18 +276,18 @@ export function SwissView({
         initialDate,
         phaseFilter
       );
-    }, [onOpenKeyboard, a, b, findMatchBetween, phaseFilter]);
+    };
 
-    const handleSaveWithRound = useCallback((aId: number, bId: number) => {
+    const handleSaveWithRound = (aId: number, bId: number) => {
       if (phaseFilter?.roundIndex != null) {
         handleSave(aId, bId, phaseFilter.roundIndex);
       }
-    }, [handleSave, phaseFilter]);
+    };
 
-    const handleCancel = useCallback(() => {
+    const handleCancel = () => {
       setEditValue("");
       onCloseKeyboard?.();
-    }, [onCloseKeyboard]);
+    };
 
     return (
       <ScoreCell

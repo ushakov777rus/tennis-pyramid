@@ -37,7 +37,7 @@ export function SimpleBreadcrumbs({ clubName, tournamentName }: SimpleBreadcrumb
 }
 
 const generateBreadcrumbs = (): Crumb[] => {
-  const breadcrumbs: Crumb[] = [];
+  const crumbs: Crumb[] = [];
   const isAdmin = segments[0] === "admin";
   const isPlayer = segments[0] === "player";
   const isClubs = (isAdmin || isPlayer) && segments[1] === "clubs";
@@ -55,9 +55,9 @@ const generateBreadcrumbs = (): Crumb[] => {
         const clubLabel = humanize(clubSlug, clubName ?? fallbackClub);
         const basePath = isAdmin ? `/admin/clubs/${clubSlug}` : `/player/clubs/${clubSlug}`;
         const href = `${withLocalePath(locale, basePath)}?tab=tournaments`;
-        breadcrumbs.push({ href, label: clubName ?? clubLabel });
+        crumbs.push({ href, label: clubName ?? clubLabel });
       } else {
-        breadcrumbs.push({ href: withLocalePath(locale, "/tournaments"), label: breadcrumbs.tournaments });
+        crumbs.push({ href: withLocalePath(locale, "/tournaments"), label: breadcrumbs.tournaments });
       }
     
 
@@ -65,17 +65,17 @@ const generateBreadcrumbs = (): Crumb[] => {
       if (tournamentSlug) {
         const tLabel = humanize(tournamentSlug, tournamentName ?? fallbackTournament);
         // последняя крошка — без ссылки (href:"")
-        breadcrumbs.push({ href: "", label: tournamentName ?? tLabel });
+        crumbs.push({ href: "", label: tournamentName ?? tLabel });
       }
     }
 
-    return breadcrumbs;
+    return crumbs;
   }
 
   // ----- fallback (если понадобится для публичных путей) -----
   // Здесь можно оставить прежнюю логику public / player веток, если нужно.
   // Пока просто вернём то, что уже собрали.
-  return breadcrumbs;
+  return crumbs;
 };
 
   const raw = generateBreadcrumbs();

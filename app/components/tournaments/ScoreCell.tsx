@@ -47,10 +47,6 @@ export function ScoreCell({
 
   // Локальное состояние для случаев, когда нет глобального управления
   const [localEditingKey, setLocalEditingKey] = useState<string | null>(null);
-  const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
-    aId: number;
-    bId: number;
-  } | null>(null);
 
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
 
@@ -59,8 +55,17 @@ export function ScoreCell({
   const editingKey = isGlobalKeyboard ? externalEditingKey : localEditingKey;
   
   // Вспомогательные функции
-  const pairKey = useCallback((aId: number, bId: number) => 
-    `${aId}_${bId}`, []);
+  const pairKey = useCallback(
+    (aId: number, bId: number) => {
+      const phaseDescriptor = [
+        phaseFilter.phase,
+        phaseFilter.groupIndex ?? "none",
+        phaseFilter.roundIndex ?? "none",
+      ].join(":");
+      return `${phaseDescriptor}_${aId}_${bId}`;
+    },
+    [phaseFilter]
+  );
 
   const startEdit = useCallback((aId: number, bId: number, currentScore: string | null) => {
     const initialValue = currentScore && currentScore !== "—" ? currentScore : "";
@@ -77,9 +82,6 @@ export function ScoreCell({
       setLocalEditingKey(k);
       setEditValue(initialValue);
       editingInputRef.current = null;
-
-      // Устанавливаем контекст для мобильной клавиатуры
-      setMobileKeyboardContext({ aId, bId });
     }
   }, [onOpenKeyboard, onStartEdit, pairKey, setEditValue]);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback, useState, useEffect, useMemo } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, MatchPhase, PhaseType } from "@/app/models/Match";
 import { PlayoffStageTable } from "./PlayoffStageTable";
@@ -83,7 +83,7 @@ export function SingleEliminationView({
     phaseFilter: MatchPhase;
     showHelpTooltip: boolean;
   }> = ({ a, b, scoreString, phaseFilter, showHelpTooltip }) => {
-    const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
+    const handleOpenKeyboard = (aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
       
       setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
@@ -97,18 +97,18 @@ export function SingleEliminationView({
         initialDate,
         phaseFilter
       );
-    }, [onOpenKeyboard, a, b, findMatchBetween, phaseFilter]);
+    };
 
-    const handleSaveWithRound = useCallback((aId: number, bId: number) => {
+    const handleSaveWithRound = (aId: number, bId: number) => {
       if (phaseFilter?.roundIndex != null) {
         handleSave(aId, bId, phaseFilter.roundIndex);
       }
-    }, [handleSave, phaseFilter]);
+    };
 
-    const handleCancel = useCallback(() => {
+    const handleCancel = () => {
       setEditValue("");
       onCloseKeyboard?.();
-    }, [onCloseKeyboard]);
+    };
 
     return (
       <ScoreCell
