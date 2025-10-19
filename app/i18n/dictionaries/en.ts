@@ -401,6 +401,28 @@ export const enDictionary: Dictionary = {
     removeFromTournament: "Remove from tournament",
     removeFromClub: "Remove from club",
   },
+  profile: {
+    unknownPlayer: "Player",
+    copyPhone: "Copy phone",
+    sexBadge: {
+      male: "M",
+      female: "F",
+    },
+    stats: {
+      wins: "Wins",
+      losses: "Losses",
+      winRate: "Win rate",
+      rank: "Rank",
+      tournaments: "Tournaments",
+    },
+    actions: {
+      message: "Message",
+      edit: "Edit",
+      showAll: "Show all",
+    },
+    matchesTitle: "Matches",
+    matchesEmpty: "No matches yet",
+  },
   languageSwitcher: {
     label: "Language",
     localeNames: {

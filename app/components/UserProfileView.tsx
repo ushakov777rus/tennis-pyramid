@@ -9,6 +9,7 @@ import { Match } from "@/app/models/Match";
 import { MatchHistoryView } from "@/app/components/matches/MatchHistoryView";
 import { User } from "@/app/models/Users";
 import { formatPhone } from "./Utils";
+import { useDictionary } from "./LanguageProvider";
 
 /** Краткая статистика игрока для блока “о игроке” */
 export type UserProfileStats = {
@@ -48,6 +49,7 @@ export function UserProfileView({
   onMessage,
 }: Props) {
   const player = user.player; // короче и удобнее
+  const { profile } = useDictionary();
 
   // Инициалы для аватара из имени игрока
   const initials = useMemo(() => {
@@ -80,7 +82,7 @@ export function UserProfileView({
 
           <div className="title-block">
             <div className="name-row">
-              <h2 className="player-name-card">{player?.name ?? "Игрок"}</h2>
+              <h2 className="player-name-card">{player?.name ?? profile.unknownPlayer}</h2>
 
               {player?.ntrp != null && (
                 <span className="badge ntrp">
@@ -89,7 +91,7 @@ export function UserProfileView({
               )}
 
               {player?.sex && (
-                <span className="badge">{player.sex === "F" ? "Ж" : "М"}</span>
+                <span className="badge">{player.sex === "F" ? profile.sexBadge.female : profile.sexBadge.male}</span>
               )}
             </div>
 
@@ -104,7 +106,7 @@ export function UserProfileView({
                         navigator.clipboard?.writeText(player.phone);
                         }
                     }}
-                  title="Скопировать телефон"
+                  title={profile.copyPhone}
                 >
                   {formatPhone(player.phone)}
                 </button>
@@ -116,11 +118,11 @@ export function UserProfileView({
 
         {/* Сетка статистики */}
         <div className="stats-grid">
-          <StatCard label="Победы" value={stats?.wins ?? 0} />
-          <StatCard label="Поражения" value={stats?.losses ?? 0} />
-          <StatCard label="WinRate" value={winRate != null ? `${winRate}%` : "—"} />
-          <StatCard label="Ранг" value={stats?.rank != null ? `#${stats.rank}` : "—"} />
-          <StatCard label="Турниры" value={stats?.tournaments ?? "—"} />
+          <StatCard label={profile.stats.wins} value={stats?.wins ?? 0} />
+          <StatCard label={profile.stats.losses} value={stats?.losses ?? 0} />
+          <StatCard label={profile.stats.winRate} value={winRate != null ? `${winRate}%` : "—"} />
+          <StatCard label={profile.stats.rank} value={stats?.rank != null ? `#${stats.rank}` : "—"} />
+          <StatCard label={profile.stats.tournaments} value={stats?.tournaments ?? "—"} />
         </div>
 
         {/* Кнопки действий */}
@@ -128,12 +130,12 @@ export function UserProfileView({
           <div className="actions">
             {onMessage && (
               <button className="btn primary" onClick={() => onMessage(player)}>
-                Написать
+                {profile.actions.message}
               </button>
             )}
             {onEditPlayer && (
               <button className="btn" onClick={() => onEditPlayer(player)}>
-                Редактировать
+                {profile.actions.edit}
               </button>
             )}
           </div>
@@ -143,10 +145,10 @@ export function UserProfileView({
       {/* Последние матчи */}
       <div className="card">
         <div className="card-title">
-          <h3>Матчи</h3>
+          <h3>{profile.matchesTitle}</h3>
           {onShowFullHistory && player && (
             <button className="btn ghost sm" onClick={() => onShowFullHistory(player)}>
-              Показать всё
+              {profile.actions.showAll}
             </button>
           )}
         </div>
@@ -158,7 +160,7 @@ export function UserProfileView({
             onDeleteMatch={undefined}
           />
         ) : (
-          <div className="empty">Пока нет сыгранных матчей</div>
+          <div className="empty">{profile.matchesEmpty}</div>
         )}
       </div>
     </div>

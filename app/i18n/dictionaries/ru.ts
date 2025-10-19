@@ -407,6 +407,28 @@ export const ruDictionary: Dictionary = {
     removeFromTournament: "Убрать из турнира",
     removeFromClub: "Убрать из клуба",
   },
+  profile: {
+    unknownPlayer: "Игрок",
+    copyPhone: "Скопировать телефон",
+    sexBadge: {
+      male: "М",
+      female: "Ж",
+    },
+    stats: {
+      wins: "Победы",
+      losses: "Поражения",
+      winRate: "WinRate",
+      rank: "Ранг",
+      tournaments: "Турниры",
+    },
+    actions: {
+      message: "Написать",
+      edit: "Редактировать",
+      showAll: "Показать всё",
+    },
+    matchesTitle: "Матчи",
+    matchesEmpty: "Пока нет сыгранных матчей",
+  },
   languageSwitcher: {
     label: "Язык",
     localeNames: {

@@ -334,4 +334,26 @@ export type Dictionary = {
     removeFromTournament: string;
     removeFromClub: string;
   };
+  profile: {
+    unknownPlayer: string;
+    copyPhone: string;
+    sexBadge: {
+      male: string;
+      female: string;
+    };
+    stats: {
+      wins: string;
+      losses: string;
+      winRate: string;
+      rank: string;
+      tournaments: string;
+    };
+    actions: {
+      message: string;
+      edit: string;
+      showAll: string;
+    };
+    matchesTitle: string;
+    matchesEmpty: string;
+  };
 };
