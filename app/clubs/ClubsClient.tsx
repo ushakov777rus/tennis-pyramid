@@ -11,6 +11,7 @@ import { AdminOnly } from "../components/RoleGuard";
 import { AddClubModal } from "./AddClubModal";
 import { useUser } from "../components/UserContext";
 import { UserRole } from "../models/Users";
+import { useDictionary } from "../components/LanguageProvider";
 
 
 /**
@@ -24,6 +25,7 @@ import { UserRole } from "../models/Users";
 export function ClubsClient() {
   const { user } = useUser();
   const { clubs, loading, error, createClub, deleteClub, initialLoaded } = useClubs();
+  const dictionary = useDictionary();
   const pathname = usePathname();
   const router = useRouter();
   
@@ -118,7 +120,7 @@ export function ClubsClient() {
    */
   return (
     <div className={className}>
-      <h1 className="page-title">Клубы</h1>
+      <h1 className="page-title">{dictionary.navigation.clubs}</h1>
 
       <div className="page-content-container  card-grid-wrapper">
         {/* Панель поиска */}
