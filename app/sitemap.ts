@@ -20,6 +20,7 @@ const localizedStaticRoutes: LocalizedStaticRoute[] = [
   { path: "/rating", changeFrequency: "weekly", priority: 0.8 },
   { path: "/freetournament", changeFrequency: "weekly", priority: 0.7 },
   { path: "/about", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/clubs", changeFrequency: "weekly", priority: 0.9 },
 ];
 
 function buildAlternates(path: string) {
@@ -45,16 +46,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   );
 
-  const baseEntries: MetadataRoute.Sitemap = [
-    {
-      url: `${BASE_URL}/clubs`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-  ];
-
-  let tournamentEntries: MetadataRoute.Sitemap = [];
+    let tournamentEntries: MetadataRoute.Sitemap = [];
   try {
     const tournaments = await TournamentsRepository.loadAllSlugs();
     tournamentEntries = tournaments.flatMap((tournament) => {
@@ -79,15 +71,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let clubEntries: MetadataRoute.Sitemap = [];
   try {
     const clubs = await ClubsRepository.loadAllSlugs();
-    clubEntries = clubs.map((club) => ({
-      url: `${BASE_URL}/clubs/${club.slug}`,
-      lastModified: club.updatedAt ? new Date(club.updatedAt) : new Date(),
-      changeFrequency: "weekly",
-      priority: 0.7,
-    }));
+    clubEntries = clubs.flatMap((club) => {
+      const path = `/clubs/${club.slug}`;
+      const alternates = buildAlternates(path);
+      const lastModified = club.updatedAt ? new Date(club.updatedAt) : new Date();
+
+      return locales.map((locale) => ({
+        url: `${BASE_URL}${withLocalePath(locale, path)}`,
+        lastModified,
+        changeFrequency: "weekly",
+        priority: 0.7,
+        alternates: { languages: alternates },
+      }));
+    });
   } catch (error) {
     console.error("Ошибка генерации sitemap (клубы):", error);
   }
 
-  return [...localizedEntries, ...baseEntries, ...tournamentEntries, ...clubEntries];
+  return [...localizedEntries, ...tournamentEntries, ...clubEntries];
 }
