@@ -213,6 +213,38 @@ export const enDictionary: Dictionary = {
       ],
     },
   },
+  clubs: {
+    searchPlaceholder: "Search by name or city…",
+    creatingTitle: "Creating a new club…",
+    loading: "Loading…",
+    errorPrefix: "Error",
+    deleteConfirm: "Delete club «{name}»?",
+    listEmptyTitle: "Create club",
+    addModal: {
+      title: "Create club",
+      namePlaceholder: "Club name",
+      cityPlaceholder: "City",
+      saveButton: "Save",
+      closeAria: "Close modal",
+      errors: {
+        nameRequired: "Enter the club name",
+        loginRequired: "You need to sign in",
+      },
+    },
+    provider: {
+      loadFailed: "Failed to load clubs",
+      authRequired: "You must sign in to create a club.",
+    },
+    card: {
+      emptyBadge: "No clubs found. Create a club and add players to get started.",
+      openAria: "Open club {name}",
+      membersLabel: "Members: {count}",
+      tournamentsLabel: "Tournaments: {count}",
+      applyTitle: "Apply to join",
+      deleteTitle: "Delete club",
+      tooltip: "Not implemented yet",
+    },
+  },
   languageSwitcher: {
     label: "Language",
     localeNames: {

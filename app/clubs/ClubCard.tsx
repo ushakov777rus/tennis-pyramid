@@ -6,6 +6,7 @@ import { ApplyIconButton, DeleteIconButton } from "../components/controls/IconBu
 import { AdminOnly, PlayerOnly } from "../components/RoleGuard";
 import { ClubFallbackLogo } from "./ClubLogo";
 import { useState } from "react";
+import { useDictionary } from "../components/LanguageProvider";
 
 type Props = {
   club: Club | null;
@@ -17,13 +18,14 @@ type Props = {
 export function ClubCard({ club, displayName, onClick, onDelete }: Props) {
   // состояние для временного тултипа "Пока не реализовано"
   const [showTooltip, setShowTooltip] = useState(false);
+  const { clubs: clubsText } = useDictionary();
   
   const className = `card card-800px ${onClick ? "clickable" : ""}`;
 
   if (club == null) {
     return (
       <div>
-        <div className="badge-inform">Клубы не найдены, для того чтобы начать работу - создайте клуб и добавьте в него игроков</div>
+        <div className="badge-inform">{clubsText.card.emptyBadge}</div>
       
         <div className={className} onClick={onClick}>      
           <div className="card-add">
@@ -35,7 +37,7 @@ export function ClubCard({ club, displayName, onClick, onDelete }: Props) {
   }
 
   return (
-    <div className={className} onClick={onClick} aria-label={`Открыть клуб ${club.name}`}>
+    <div className={className} onClick={onClick} aria-label={clubsText.card.openAria.replace("{name}", club.name)}>
       <div className="card-head">
         {displayName && (
           <h3>{club.name}</h3>
@@ -52,15 +54,15 @@ export function ClubCard({ club, displayName, onClick, onDelete }: Props) {
             : <ClubFallbackLogo title={club.name} className="club-fallback" />}
         </div>
         <div className="club-card-info">
-          <div className="club-card-meta">Участников: {club.members_count ?? 0}</div>
-          <div className="club-card-meta">Турниров: {club.tournaments_count ?? 0}</div>
+          <div className="club-card-meta">{clubsText.card.membersLabel.replace("{count}", String(club.members_count ?? 0))}</div>
+          <div className="club-card-meta">{clubsText.card.tournamentsLabel.replace("{count}", String(club.tournaments_count ?? 0))}</div>
           {club.description && <div className="club-card-desc" title={club.description}>{club.description}</div>}
         </div>
       </button>
 
       <PlayerOnly>
         <ApplyIconButton
-          title="Подать заявку на участие"
+          title={clubsText.card.applyTitle}
           onClick={(e) => {
             e.stopPropagation();
             setShowTooltip(true);
@@ -73,7 +75,7 @@ export function ClubCard({ club, displayName, onClick, onDelete }: Props) {
         <div className="card-bottom-toolbar">
           {onDelete && (
             <DeleteIconButton
-              title="Удалить турнир"
+              title={clubsText.card.deleteTitle}
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(club.id);
@@ -84,7 +86,7 @@ export function ClubCard({ club, displayName, onClick, onDelete }: Props) {
       </AdminOnly>
 
       {/* тултип "Пока не реализовано" */}
-      {showTooltip && <div className="invalid-tooltip">Пока не реализовано</div>}
+      {showTooltip && <div className="invalid-tooltip">{clubsText.card.tooltip}</div>}
       
     </div>
   );

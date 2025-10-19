@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ClubCreateInput } from "@/app/models/Club";
 import { useUser } from "../components/UserContext";
+import { useDictionary } from "../components/LanguageProvider";
 
 
 type Props = {
@@ -21,6 +22,7 @@ export function AddClubModal({ isOpen, onClose, onCreate }: Props) {
   const [city, setCity] = useState("");
   const [error, setError] = useState<string | null>(null);
   const { user } = useUser();
+  const { clubs: clubsText } = useDictionary();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -50,8 +52,8 @@ export function AddClubModal({ isOpen, onClose, onCreate }: Props) {
     e.preventDefault();
 
     const trimmed = name.trim();
-    if (!trimmed) { setError("Введите название клуба"); return; }
-    if (!user) { setError("Необходимо залогиниться"); return; }
+    if (!trimmed) { setError(clubsText.addModal.errors.nameRequired); return; }
+    if (!user) { setError(clubsText.addModal.errors.loginRequired); return; }
 
     const payload: ClubCreateInput = {
       name: trimmed,
@@ -79,17 +81,17 @@ export function AddClubModal({ isOpen, onClose, onCreate }: Props) {
           type="button"
           className="modal-close-btn"
           onClick={onClose}
-          aria-label="Закрыть модальное окно"
+          aria-label={clubsText.addModal.closeAria}
         >
           ✖
         </button>
 
-        <h3 className="modal-title" id={titleId}>Создать клуб</h3>
+        <h3 className="modal-title" id={titleId}>{clubsText.addModal.title}</h3>
 
         <form onSubmit={handleSubmit} className="modal-form" noValidate>
           <input
             type="text"
-            placeholder="Название клуба"
+            placeholder={clubsText.addModal.namePlaceholder}
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="input input-100"
@@ -98,7 +100,7 @@ export function AddClubModal({ isOpen, onClose, onCreate }: Props) {
 
           <input
             type="text"
-            placeholder="Город"
+            placeholder={clubsText.addModal.cityPlaceholder}
             value={city}
             onChange={(e) => setCity(e.target.value)}
             className="input input-100"
@@ -107,7 +109,7 @@ export function AddClubModal({ isOpen, onClose, onCreate }: Props) {
           {error && <div className="modal-error" role="alert">{error}</div>}
 
           <div className="modal-actions">
-            <button type="submit" className="modal-submit-btn">Сохранить</button>
+            <button type="submit" className="modal-submit-btn">{clubsText.addModal.saveButton}</button>
           </div>
         </form>
       </div>

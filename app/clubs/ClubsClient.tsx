@@ -11,7 +11,8 @@ import { AdminOnly } from "../components/RoleGuard";
 import { AddClubModal } from "./AddClubModal";
 import { useUser } from "../components/UserContext";
 import { UserRole } from "../models/Users";
-import { useDictionary } from "../components/LanguageProvider";
+import { useDictionary, useLanguage } from "../components/LanguageProvider";
+import { withLocalePath } from "@/app/i18n/routing";
 
 
 /**
@@ -26,6 +27,8 @@ export function ClubsClient() {
   const { user } = useUser();
   const { clubs, loading, error, createClub, deleteClub, initialLoaded } = useClubs();
   const dictionary = useDictionary();
+  const { locale } = useLanguage();
+  const clubsText = dictionary.clubs;
   const pathname = usePathname();
   const router = useRouter();
   
@@ -63,7 +66,12 @@ export function ClubsClient() {
     setModalOpen(false);
 
     if (newClub?.slug) {
-      router.push(`/admin/clubs/${newClub.slug}`);
+      const targetPath = isAdmin
+        ? `/admin/clubs/${newClub.slug}`
+        : isPlayer
+        ? `/player/clubs/${newClub.slug}`
+        : `/clubs/${newClub.slug}`;
+      router.push(withLocalePath(locale, targetPath));
     }
   };
 
@@ -77,7 +85,7 @@ export function ClubsClient() {
   // Автопереход в единственный клуб
   useEffect(() => {
     if (initialLoaded && !loading && isAdmin && clubs.length === 1) {
-      router.replace(`/admin/clubs/${clubs[0].slug}`);
+      router.replace(withLocalePath(locale, `/admin/clubs/${clubs[0].slug}`));
     }
   }, [initialLoaded, loading, isAdmin, clubs, router]);
 
@@ -93,7 +101,7 @@ export function ClubsClient() {
   if (isAdmin && initialLoaded && clubs.length === 0 && !loading) {
     return (
       <div className={className}>
-        <h1 className="page-title">Создание нового клуба...</h1>
+        <h1 className="page-title">{clubsText.creatingTitle}</h1>
         <div className="page-content-container card-grid-wrapper">
           <ul className="card-grid-new">
             <AdminOnly>
@@ -128,7 +136,7 @@ export function ClubsClient() {
           <input
             className="input input-100"
             type="text"
-            placeholder="Поиск по названию или городу…"
+            placeholder={clubsText.searchPlaceholder}
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
@@ -136,8 +144,8 @@ export function ClubsClient() {
         </div>
 
         {/* Состояния загрузки / ошибки */}
-        {loading && <p className="clubs-loading">Загрузка…</p>}
-        {error && <p className="clubs-error">Ошибка: {error}</p>}
+        {loading && <p className="clubs-loading">{clubsText.loading}</p>}
+        {error && <p className="clubs-error">{error}</p>}
 
         {/* Список клубов */}
         <ul className="card-grid-new">
@@ -146,9 +154,17 @@ export function ClubsClient() {
               <ClubCard
                 club={c}
                 displayName={true}
-                onClick={() => isAdmin ? router.push(`/admin/clubs/${c.slug}`) : (isPlayer ? router.push(`/player/clubs/${c.slug}`) : router.push(`/clubs/${c.slug}`))}
+                onClick={() => {
+                  if (isAdmin) {
+                    router.push(withLocalePath(locale, `/admin/clubs/${c.slug}`));
+                  } else if (isPlayer) {
+                    router.push(withLocalePath(locale, `/player/clubs/${c.slug}`));
+                  } else {
+                    router.push(withLocalePath(locale, `/clubs/${c.slug}`));
+                  }
+                }}
                 onDelete={() => {
-                  if (confirm(`Удалить клуб «${c.name}»?`)) {
+                  if (confirm(clubsText.deleteConfirm.replace("{name}", c.name))) {
                     void deleteClub(c.id);
                   }
                 }}

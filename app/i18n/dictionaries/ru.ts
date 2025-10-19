@@ -218,6 +218,38 @@ export const ruDictionary: Dictionary = {
       ],
     },
   },
+  clubs: {
+    searchPlaceholder: "Поиск по названию или городу…",
+    creatingTitle: "Создание нового клуба...",
+    loading: "Загрузка…",
+    errorPrefix: "Ошибка",
+    deleteConfirm: "Удалить клуб «{name}»?",
+    listEmptyTitle: "Создать клуб",
+    addModal: {
+      title: "Создать клуб",
+      namePlaceholder: "Название клуба",
+      cityPlaceholder: "Город",
+      saveButton: "Сохранить",
+      closeAria: "Закрыть модальное окно",
+      errors: {
+        nameRequired: "Введите название клуба",
+        loginRequired: "Необходимо залогиниться",
+      },
+    },
+    provider: {
+      loadFailed: "Не удалось загрузить клубы",
+      authRequired: "Нужно войти в систему, чтобы создать клуб.",
+    },
+    card: {
+      emptyBadge: "Клубы не найдены, для того чтобы начать работу — создайте клуб и добавьте в него игроков",
+      openAria: "Открыть клуб {name}",
+      membersLabel: "Участников: {count}",
+      tournamentsLabel: "Турниров: {count}",
+      applyTitle: "Подать заявку на участие",
+      deleteTitle: "Удалить клуб",
+      tooltip: "Пока не реализовано",
+    },
+  },
   languageSwitcher: {
     label: "Язык",
     localeNames: {

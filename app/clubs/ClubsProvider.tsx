@@ -14,6 +14,7 @@ import type { ClubCreateInput } from "@/app/models/Club";
 import type { Club } from "@/app/models/Club";
 import { useUser } from "@/app/components/UserContext";
 import { UserRole } from "@/app/models/Users";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 type ClubsContextValue = {
   clubs: Club[];
@@ -44,6 +45,7 @@ export function ClubsProvider({
 
   // берём текущего пользователя из контекста
   const { user } = useUser();
+  const { clubs: clubsText } = useDictionary();
 
   /**
    * Загружаем список клубов.
@@ -88,14 +90,14 @@ export function ClubsProvider({
         setClubs(clubsList);
       } catch (e: any) {
         console.error("ClubsProvider.refresh error:", e);
-        setError(e?.message ?? "Не удалось загрузить клубы");
+        setError(e?.message ?? clubsText.provider.loadFailed);
       } finally {
         if (!bg) setLoading(false);
         setInitialLoaded(true);
       }
     },
     // Зависим от user и режима: при смене пользователя/роли/режима — перезагружаем
-    [user, mode]
+    [user, mode, clubsText.provider.loadFailed]
   );
 
   // Загружаем при маунте и при смене user/роли/режима
@@ -109,7 +111,7 @@ export function ClubsProvider({
    */
   const createClub = useCallback(
     async (p: ClubCreateInput): Promise<Club> => {
-      if (!user) throw new Error("Нужно войти в систему, чтобы создать клуб.");
+      if (!user) throw new Error(clubsText.provider.authRequired);
 
       const payload: ClubCreateInput = { ...p, director_id: user.id };
 
@@ -141,7 +143,7 @@ export function ClubsProvider({
         throw e;
       }
     },
-    [user]
+    [user, clubsText.provider.authRequired]
   );
 
   /** Удалить клуб с откатом при ошибке */

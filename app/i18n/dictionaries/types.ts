@@ -146,4 +146,36 @@ export type Dictionary = {
     label: string;
     localeNames: Record<string, string>;
   };
+  clubs: {
+    searchPlaceholder: string;
+    creatingTitle: string;
+    loading: string;
+    errorPrefix: string;
+    deleteConfirm: string;
+    listEmptyTitle: string;
+    addModal: {
+      title: string;
+      namePlaceholder: string;
+      cityPlaceholder: string;
+      saveButton: string;
+      closeAria: string;
+      errors: {
+        nameRequired: string;
+        loginRequired: string;
+      };
+    };
+    provider: {
+      loadFailed: string;
+      authRequired: string;
+    };
+    card: {
+      emptyBadge: string;
+      openAria: string;
+      membersLabel: string;
+      tournamentsLabel: string;
+      applyTitle: string;
+      deleteTitle: string;
+      tooltip: string;
+    };
+  };
 };
