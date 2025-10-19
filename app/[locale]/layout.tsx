@@ -6,14 +6,14 @@ import { UserProvider } from "@/app/components/UserContext";
 import { TournamentsProvider } from "@/app/tournaments/TournamentsProvider";
 import { AppShell } from "@/app/components/AppShell";
 import { getDictionary } from "@/app/i18n/dictionaries";
-import { defaultLocale, isLocale, locales, type Locale } from "@/app/i18n/config";
+import { isLocale, locales, type Locale } from "@/app/i18n/config";
 import { withLocalePath } from "@/app/i18n/routing";
 import Script from "next/script";
 import { YaMetrika } from "@/app/components/analytics/YaMetrika";
 
 type LayoutProps = {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 };
 
 const BASE_URL = "https://honeycup.ru";
@@ -23,7 +23,7 @@ function absoluteLocaleUrl(locale: Locale, path: string) {
 }
 
 export async function generateMetadata({ params }: LayoutProps): Promise<Metadata> {
-  const { locale } = params;
+  const { locale } = await params;
 
   if (!isLocale(locale)) {
     return {};
@@ -92,7 +92,7 @@ export function generateStaticParams() {
 }
 
 export default async function LocaleLayout({ children, params }: LayoutProps) {
-  const { locale } = params;
+  const { locale } = await params;
 
   if (!isLocale(locale)) {
     notFound();

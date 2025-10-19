@@ -60,7 +60,6 @@ export default function TournamentClient() {
     tournament,
     participants,
     matches,
-    reload,
     addMatch,
     updateMatch,
     deleteMatch,

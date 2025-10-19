@@ -27,22 +27,22 @@ export function MatchesClient() {
     async (updated: Match) => {
       try {
         await updateMatch(updated);
-      } catch (e) {
+      } catch {
         alert(matchesPage.updateFailed);
       }
     },
-    [updateMatch]
+    [updateMatch, matchesPage.updateFailed]
   );
 
   const handleDeleteMatch = useCallback(
     async (match: Match) => {
       try {
         await deleteMatch(match);
-      } catch (e) {
+      } catch {
         alert(matchesPage.deleteFailed);
       }
     },
-    [deleteMatch]
+    [deleteMatch, matchesPage.deleteFailed]
   );
 
   const showLoader = loading && !initialLoaded;
