@@ -16,8 +16,6 @@ import { ClubsRepository } from "@/app/repositories/ClubsRepository";
 import { useUser } from "@/app/components/UserContext";
 import { Footer } from "@/app/Footer";
 import Link from "next/link";
-import { useDictionary, useLanguage } from "@/app/components/LanguageProvider";
-import { withLocalePath } from "@/app/i18n/routing";
 
 type Stat = { label: string; value: number | string; link: string };
 type Feature = { icon: React.ReactNode; label: string; text?: string };
@@ -69,48 +67,44 @@ function IconTrophy() {
   );
 }
 
+
 const IconCalendar = (
   <svg viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M7 2v2M17 2v2M3 9h18M5 6h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" />
+    <path d="M7 2v2M17 2v2M3 9h18M5 6h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/>
   </svg>
 );
 const IconResult = (
   <svg viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M21 7l-9 10L3 12" />
+    <path d="M21 7l-9 10L3 12"/>
   </svg>
 );
 const IconChart = (
   <svg viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M4 20h16M7 16v-6M12 20V8M17 20v-9" />
+    <path d="M4 20h16M7 16v-6M12 20V8M17 20v-9"/>
   </svg>
 );
 const IconBoard = (
   <svg viewBox="0 0 24 24" aria-hidden="true">
-    <rect x="3" y="4" width="18" height="14" rx="2" />
-    <path d="M3 10h18M9 4v14" />
+    <rect x="3" y="4" width="18" height="14" rx="2"/>
+    <path d="M3 10h18M9 4v14"/>
   </svg>
 );
 const IconNews = (
   <svg viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M4 19a2 2 0 0 1-2-2V6h16v11a2 2 0 0 1-2 2H4z" />
-    <path d="M22 7v10a2 2 0 0 1-2 2h-2" />
-    <path d="M8 8h6M8 12h8M8 16h5" />
+    <path d="M4 19a2 2 0 0 1-2-2V6h16v11a2 2 0 0 1-2 2H4z"/>
+    <path d="M22 7v10a2 2 0 0 1-2 2h-2"/>
+    <path d="M8 8h6M8 12h8M8 16h5"/>
   </svg>
 );
 const IconUser = (
   <svg viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5z" />
-    <path d="M3 22a9 9 0 0 1 18 0" />
+    <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5z"/>
+    <path d="M3 22a9 9 0 0 1 18 0"/>
   </svg>
 );
 
-const FEATURE_ICONS = [IconCalendar, IconResult, IconChart, IconBoard, IconNews, IconUser];
-
 export default function AboutPage() {
   const { user } = useUser();
-  const { locale } = useLanguage();
-  const dictionary = useDictionary();
-  const pageDict = dictionary.aboutPage;
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [signupRole, setSignupRole] =
     useState<UserRole.Player | UserRole.TournamentAdmin>(UserRole.Player);
@@ -152,190 +146,228 @@ export default function AboutPage() {
     };
   }, []);
 
-  const stats = useMemo<Stat[]>(() => {
-    const values: Record<"matches" | "players" | "tournaments" | "clubs", number | string> = {
-      matches: matchesCount ?? "…",
-      players: playersCount ?? "…",
-      tournaments: tournamentsCount ?? "…",
-      clubs: clubsCount ?? "…",
-    };
-
-    return pageDict.stats.map((stat) => ({
-      label: stat.label,
-      value: values[stat.key],
-      link: stat.localized ? withLocalePath(locale, stat.link) : stat.link,
-    }));
-  }, [pageDict.stats, matchesCount, playersCount, tournamentsCount, clubsCount, locale]);
-
-  const features: Feature[] = useMemo(
-    () =>
-      FEATURE_ICONS.map((icon, index) => ({
-        icon,
-        label: pageDict.features[index] ?? "",
-      })),
-    [pageDict.features]
+  const stats = useMemo<Stat[]>(
+    () => [
+      { label: "МАТЧЕЙ", value: matchesCount ?? "…", link: "/matches" },
+      { label: "УЧАСТНИКОВ", value: playersCount ?? "…", link: "/rating" },
+      { label: "ТУРНИРОВ", value: tournamentsCount ?? "…", link: "/tournaments" },
+      { label: "КЛУБОВ", value: clubsCount  ?? "…", link: "/clubs" },
+    ],
+    [matchesCount, playersCount, tournamentsCount, clubsCount]
   );
 
-  const faqJsonLd = useMemo(
-    () => ({
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: pageDict.faq.items.map((item) => ({
+  const features: Feature[] = [
+    { icon: IconCalendar, label: "РАСПИСАНИЕ" },
+    { icon: IconResult,   label: "РЕЗУЛЬТАТЫ" },
+    { icon: IconChart,    label: "СТАТИСТИКА" },
+    { icon: IconBoard,    label: "ОНЛАЙН-ТАБЛО" },
+    { icon: IconNews,     label: "НОВОСТИ И ОБЗОРЫ" },
+    { icon: IconUser,     label: "ЛИЧНЫЕ КАБИНЕТЫ" },
+  ];
+
+  // JSON-LD FAQ
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
         "@type": "Question",
-        name: item.question,
-        acceptedAnswer: {
+        "name": "Можно ли бесплатно создать турнирную сетку онлайн?",
+        "acceptedAnswer": {
           "@type": "Answer",
-          text: item.answer,
-        },
-      })),
-    }),
-    [pageDict.faq.items]
-  );
+          "text": "Да. В HoneyCup есть бесплатный генератор турнирной сетки онлайн для любительских соревнований."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Какие форматы турнирных сеток поддерживаются?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Круговая система, олимпийка (single elimination), пирамида и другие варианты. Поддерживается настройка под конкретные правила клуба."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Подходит ли платформа для настольного тенниса и падела?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Да. HoneyCup подходит для большого и настольного тенниса, падела и бадминтона."
+        }
+      }
+    ]
+  };
+
+  // JSON-LD Breadcrumbs (Home)
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Главная",
+        "item": "https://honeycup.ru/"
+      }
+    ]
+  };
+
+  const className = user ? "page-container-no-padding" : "page-container";
 
   return (
-    <div className="about-page">
+    <div className={className}>
+      {/* JSON-LD вставляем через Script (SEO) */}
       <Script
-        id="about-faq"
+        id="ld-faq"
         type="application/ld+json"
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
+      <Script
+        id="ld-breadcrumbs"
+        type="application/ld+json"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
 
-      <header className="about__hero card">
-        <div className="about__hero-text">
-          <h1>{pageDict.hero.title}</h1>
-          <p>{pageDict.hero.description}</p>
+      {/* H1 содержит главную ключевую группу, но читабельно */}
+      <h1 className="page-title">
+        Платформа для проведения любительских теннисных турниров
+      </h1>
 
-          <div className="about__cta">
-            <button
-              className="btn-base"
-              onClick={() => {
-                setSignupRole(UserRole.Player);
-                setIsLoginOpen(true);
-              }}
-            >
-              {pageDict.hero.ctaPlayer}
-            </button>
-            <button
-              className="btn-base btn-secondary"
-              onClick={() => {
-                setSignupRole(UserRole.TournamentAdmin);
-                setIsLoginOpen(true);
-              }}
-            >
-              {pageDict.hero.ctaOrganizer}
-            </button>
+      <main className="page-content-container">
+
+        {/* Hero: изображение с alt и приоритетом (если есть /hero.png) */}
+        <section className="card" style={{ padding: 0 }}>
+          <div className="tennis-hero" style={{ position: "relative", width: "100%", height: "260px" }}>
+            <span className="tennis-hero__title">Погрузись в мир большого тенниса</span>
           </div>
-        </div>
+        </section>
 
-        <div className="about__hero-stats">
-          {stats.map((stat) => (
-            <Link key={stat.label} href={stat.link} className="about__stat-card">
-              <div className="about__stat-value">{stat.value}</div>
-              <div className="about__stat-label">{stat.label}</div>
-            </Link>
-          ))}
-        </div>
-      </header>
-
-      <main className="about__content">
-        <section className="section card">
-          <div className="card-grid">
-            <div className="card">
-              <h2>{pageDict.intro.title}</h2>
-              <p>{pageDict.intro.paragraph}</p>
-              <ul className="bullet-list">
-                {pageDict.intro.bullets.map((item) => (
-                  <li key={item}>• {item}</li>
-                ))}
-              </ul>
+        {/* Вступительный абзац (важно для SEO — первые 100–150 слов) */}
+        <section className="about__head">
+          <div className="about__grid">
+            <div className="about__stats">
+              {stats.map((s) => (
+                <Link key={s.label} href={s.link} className="card">
+                  <div className="about__statValue">{s.value}</div>
+                  <div className="about__statLabel">{s.label}</div>
+                </Link>
+              ))}
             </div>
 
-            <div
-              className="card"
-              style={{
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                padding: "20px",
-              }}
-            >
-              <p>{pageDict.intro.aside}</p>
+            <div className="card" style={{ height: "100%", display: "flex", alignItems: "center", padding: "20px" }}>
+              <p>
+              HoneyCup — турнирная платформа для тенниса, падела, пиклбола и бадминтона. Создавайте и ведите любительские турниры, 
+              используйте генератор турнирной сетки онлайн, публикуйте расписание и результаты, 
+              собирайте статистику и рейтинги, ведите историю матчей. Поддерживаем популярные форматы: 
+              круговая система, группы + плейофф, олимпийка, двойная олимпийка и пирамида.
+              </p>
             </div>
           </div>
         </section>
 
+        {/* Блок с фичами */}
         <section className="about__features card">
-          {features.map((feature, index) => (
-            <div key={`${feature.label}-${index}`} className="about__feature">
-              <div className="about__icon" aria-hidden="true">
-                {feature.icon}
-              </div>
-              <div className="about__featureLabel">{feature.label}</div>
+          {features.map((f) => (
+            <div key={f.label} className="about__feature">
+              <div className="about__icon" aria-hidden="true">{f.icon}</div>
+              <div className="about__featureLabel">{f.label}</div>
             </div>
           ))}
         </section>
 
+        {/* SEO-блоки с H2 и вкраплением твоих ключей (естественно, без переспама) */}
         <section className="section card" id="generator">
-          <h2>{pageDict.generator.title}</h2>
-          <p>{pageDict.generator.paragraph}</p>
+          <h2>Турнирная сетка за 2 минуты</h2>
+          <p>
+            Запустите турнир без рутины: наш онлайн-генератор бесплатно создаст сетку, распределит участников и подготовит схему к печати и экспорту. Работает для тенниса и других ракеточных видов спорта.
+          </p>
           <ul className="bullet-list">
-            {pageDict.generator.bullets.map((item) => (
-              <li key={item}>• {item}</li>
-            ))}
+            <li>•	Бесплатный генератор турнирных сеток онлайн</li>
+            <li>•	Быстрое составление и удобная печать</li>
+            <li>•	Форматы: круговая, олимпийка (single elimination), пирамида</li>
           </ul>
         </section>
 
         <section className="section card" id="tennis-platform">
-          <h2>{pageDict.tennis.title}</h2>
-          <p>{pageDict.tennis.paragraph}</p>
+          <h2>Организация турниров по теннису онлайн</h2>
+          <p>
+            HoneyCup помогает клубам и тренерам запускать и вести любительские теннисные турниры:
+            регистрация участников, сетки и таблицы, расписание, онлайн-табло, подсчёт результатов,
+            статистика игроков и рейтинги.
+          </p>
           <ul className="bullet-list">
-            {pageDict.tennis.bullets.map((item) => (
-              <li key={item}>• {item}</li>
-            ))}
+            <li>•	Любительские теннисные турниры в вашем клубе</li>
+            <li>•	Онлайн-табло и публикация результатов</li>
+            <li>•	Статистика, рейтинги, история матчей</li>
           </ul>
         </section>
 
-        <section>
-          <div className="card-grid-cta">
-            <div
-              className="card card-register clickable"
-              onClick={() => {
-                setSignupRole(UserRole.Player);
-                setIsLoginOpen(true);
-              }}
-            >
-              <div className="card-icon" aria-hidden="true">
-                <IconMedal />
-              </div>
-              {pageDict.ctaCards.playerTitle}
-              <div className="badge badge-register">{pageDict.ctaCards.playerBadge}</div>
-            </div>
+        {/* CTA блоки */}
+<section>
+  <div className="card-grid-cta">
+    <div
+      className="card card-register clickable"
+      onClick={() => {
+        setSignupRole(UserRole.Player);
+        setIsLoginOpen(true);
+      }}
+    >
+      {/* ИКОНКА ВМЕСТО ЭМОДЗИ */}
+      <div
+        className="card-icon"
+        aria-hidden="true"
+      >
+        <IconMedal />
+      </div>
 
-            <div
-              className="card card-register clickable"
-              onClick={() => {
-                setSignupRole(UserRole.TournamentAdmin);
-                setIsLoginOpen(true);
-              }}
-            >
-              <div className="card-icon" aria-hidden="true">
-                <IconTrophy />
-              </div>
-              {pageDict.ctaCards.organizerTitle}
-              <div className="badge badge-register">{pageDict.ctaCards.organizerBadge}</div>
-            </div>
-          </div>
-        </section>
+      Зарегистрироваться как участник
 
+      <div className="badge badge-register">
+        Участвуй в турнирах, прокачивайся, побеждай, попади в рейтинг лучших
+      </div>
+    </div>
+
+    <div
+      className="card card-register clickable"
+      onClick={() => {
+        setSignupRole(UserRole.TournamentAdmin);
+        setIsLoginOpen(true);
+      }}
+    >
+      {/* ИКОНКА ВМЕСТО ЭМОДЗИ */}
+      <div
+        className="card-icon"
+        aria-hidden="true"
+      >
+        <IconTrophy />
+      </div>
+
+      Зарегистрироваться как организатор
+
+      <div className="badge badge-register">
+        Организовывай турниры, выбирай любой формат, управляй матчами и следи за результатами
+      </div>
+    </div>
+  </div>
+</section>
+
+
+        {/* FAQ для расширенных сниппетов */}
         <section className="section card" id="faq">
-          <h2>{pageDict.faq.title}</h2>
-          {pageDict.faq.items.map((item) => (
-            <details key={item.question}>
-              <summary>{item.question}</summary>
-              <p>{item.answer}</p>
-            </details>
-          ))}
+          <h2>Частые вопросы</h2>
+          <details>
+            <summary>Можно ли бесплатно создать турнирную сетку онлайн?</summary>
+            <p>Да. Базовый генератор турнирной сетки доступен бесплатно.</p>
+          </details>
+          <details>
+            <summary>Какие форматы поддерживаются?</summary>
+            <p>Круговая система, олимпийка (single elimination), пирамида и другие.</p>
+          </details>
+          <details>
+            <summary>Подходит ли платформа для настольного тенниса и падела?</summary>
+            <p>Да, HoneyCup подходит для большого и настольного тенниса, падела и бадминтона.</p>
+          </details>
         </section>
 
         <Footer />
