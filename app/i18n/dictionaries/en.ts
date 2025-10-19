@@ -467,11 +467,21 @@ export const enDictionary: Dictionary = {
       searchPlaceholder: "Search…",
       empty: "Nothing found",
     },
+    tabs: {
+      ariaLabel: "Switch sections",
+    },
   },
   matchHistory: {
     searchPlaceholder: "Search players/teams…",
     searchAria: "Search by players or teams",
     empty: "No matches yet",
+  },
+  matchesPage: {
+    title: "Matches",
+    loading: "Loading matches…",
+    errorPrefix: "Error:",
+    updateFailed: "Failed to update match",
+    deleteFailed: "Failed to delete match",
   },
   addMatchCard: {
     attackerSingle: "Player A",

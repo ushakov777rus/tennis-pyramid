@@ -473,11 +473,21 @@ export const ruDictionary: Dictionary = {
       searchPlaceholder: "Поиск…",
       empty: "Ничего не найдено",
     },
+    tabs: {
+      ariaLabel: "Переключение разделов",
+    },
   },
   matchHistory: {
     searchPlaceholder: "Поиск по игрокам/командам…",
     searchAria: "Поиск по игрокам или командам",
     empty: "Матчей пока нет",
+  },
+  matchesPage: {
+    title: "Список матчей",
+    loading: "Загрузка матчей…",
+    errorPrefix: "Ошибка:",
+    updateFailed: "Не удалось обновить матч",
+    deleteFailed: "Не удалось удалить матч",
   },
   addMatchCard: {
     attackerSingle: "Игрок 1",

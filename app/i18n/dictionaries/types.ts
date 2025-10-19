@@ -388,11 +388,21 @@ export type Dictionary = {
       searchPlaceholder: string;
       empty: string;
     };
+    tabs: {
+      ariaLabel: string;
+    };
   };
   matchHistory: {
     searchPlaceholder: string;
     searchAria: string;
     empty: string;
+  };
+  matchesPage: {
+    title: string;
+    loading: string;
+    errorPrefix: string;
+    updateFailed: string;
+    deleteFailed: string;
   };
   addMatchCard: {
     attackerSingle: string;

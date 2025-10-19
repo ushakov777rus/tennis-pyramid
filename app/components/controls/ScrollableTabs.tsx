@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import "./ScrollableTabs.css";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 export type TabItem = {
   key: string;
@@ -26,6 +27,8 @@ export function ScrollableTabs({
   ariaLabel, 
   paramName = "tab" 
 }: Props) {
+  const { controls } = useDictionary();
+  const tabsText = controls.tabs;
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -75,7 +78,7 @@ export function ScrollableTabs({
   return (
     <nav
       className="tabs-wrap"
-      aria-label={ariaLabel ?? "Переключение разделов"}
+      aria-label={ariaLabel ?? tabsText.ariaLabel}
     >
       <div
         ref={scrollerRef}

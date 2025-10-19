@@ -10,6 +10,7 @@ import { useMatches } from "./MatchesProvider";
 import "./page.css";
 import "@/app/components/matches/MatchHistoryView.css";
 import { useUser } from "../components/UserContext";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 export function MatchesClient() {
   const {
@@ -20,14 +21,14 @@ export function MatchesClient() {
     updateMatch,
     deleteMatch,
   } = useMatches();
+  const { matchesPage, common } = useDictionary();
 
   const handleEditMatch = useCallback(
     async (updated: Match) => {
       try {
         await updateMatch(updated);
       } catch (e) {
-        console.error("Не удалось обновить матч", e);
-        alert("Не удалось обновить матч");
+        alert(matchesPage.updateFailed);
       }
     },
     [updateMatch]
@@ -38,7 +39,7 @@ export function MatchesClient() {
       try {
         await deleteMatch(match);
       } catch (e) {
-        alert("Не удалось удалить матч");
+        alert(matchesPage.deleteFailed);
       }
     },
     [deleteMatch]
@@ -48,9 +49,9 @@ export function MatchesClient() {
 
   let content: ReactNode = null;
   if (showLoader) {
-    content = <p>Загрузка…</p>;
+    content = <p>{matchesPage.loading}</p>;
   } else if (error) {
-    content = <div style={{ color: "#f04438" }}>{error}</div>;
+    content = <div style={{ color: "#f04438" }}>{matchesPage.errorPrefix} {error}</div>;
   } else {
     content = (
       <MatchHistoryView
@@ -66,7 +67,7 @@ export function MatchesClient() {
 
   return (
     <div className={className}>
-      <h1 className="page-title">Список матчей</h1>
+      <h1 className="page-title">{matchesPage.title}</h1>
 
       <div className="page-content-container">{content}</div>
     </div>
