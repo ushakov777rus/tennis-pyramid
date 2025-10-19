@@ -528,6 +528,21 @@ export const enDictionary: Dictionary = {
     clubFallback: "Club",
     tournamentFallback: "Tournament",
   },
+  clubPage: {
+    tabs: {
+      about: "About",
+      participants: "Participants",
+      tournaments: "Tournaments",
+      rating: "Rating",
+    },
+    loading: "Loading club…",
+    ariaLabel: "Club sections",
+  },
+  aboutTournament: {
+    noData: "No tournament data",
+    organizerFallback: "Organizer",
+    regulationTitle: "Tournament regulation",
+  },
   languageSwitcher: {
     label: "Language",
     localeNames: {

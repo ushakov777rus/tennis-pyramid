@@ -534,6 +534,21 @@ export const ruDictionary: Dictionary = {
     clubFallback: "Клуб",
     tournamentFallback: "Турнир",
   },
+  clubPage: {
+    tabs: {
+      about: "О клубе",
+      participants: "Участники",
+      tournaments: "Турниры",
+      rating: "Рейтинг",
+    },
+    loading: "Загрузка клуба…",
+    ariaLabel: "Разделы клуба",
+  },
+  aboutTournament: {
+    noData: "Нет данных о турнире",
+    organizerFallback: "Организатор",
+    regulationTitle: "Положение о турнире",
+  },
   languageSwitcher: {
     label: "Язык",
     localeNames: {

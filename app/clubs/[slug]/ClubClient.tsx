@@ -16,6 +16,7 @@ import { useUser } from "@/app/components/UserContext";
 import { UserRole } from "@/app/models/Users";
 import { SimpleBreadcrumbs } from "@/app/components/controls/BreadCrumbs";
 import { RatingView } from "@/app/components/RatingView";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 type ViewKey = "aboutc" | "participants" | "tournaments" | "rating";
 
@@ -23,16 +24,17 @@ export default function ClubClient() {
   const { user } = useUser();
   const { club } = useClub();
   const searchParams = useSearchParams(); // Добавьте это
+  const { clubPage, common } = useDictionary();
 
   const [view, setView] = useState<ViewKey>("aboutc");
 
   const tabs: TabItem[] = useMemo(
     () => [
-      { key: "aboutc", label: "О клубе" },
+      { key: "aboutc", label: clubPage.tabs.about },
       (user?.role === UserRole.SiteAdmin || user?.role === UserRole.TournamentAdmin) && 
-        { key: "participants", label: "Участники" },
-      { key: "tournaments", label: "Турниры" },
-      { key: "rating", label: "Рейтинг" },
+        { key: "participants", label: clubPage.tabs.participants },
+      { key: "tournaments", label: clubPage.tabs.tournaments },
+      { key: "rating", label: clubPage.tabs.rating },
     ].filter(Boolean) as TabItem[],
     [user?.role]
   );
@@ -45,7 +47,7 @@ export default function ClubClient() {
     }
   }, [searchParams, tabs]);
 
-  if (!club) return <p>Загрузка...</p>;
+  if (!club) return <p>{clubPage.loading}</p>;
 
   const className = user ? "page-container-no-padding" : "page-container";
 
@@ -65,7 +67,7 @@ export default function ClubClient() {
             items={tabs}
             value={view}
             onChange={(k) => setView(k as ViewKey)}
-            ariaLabel="Разделы клуба"
+            ariaLabel={clubPage.ariaLabel}
           />
 
           <div>

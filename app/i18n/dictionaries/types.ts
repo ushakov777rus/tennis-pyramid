@@ -449,4 +449,19 @@ export type Dictionary = {
     clubFallback: string;
     tournamentFallback: string;
   };
+  clubPage: {
+    tabs: {
+      about: string;
+      participants: string;
+      tournaments: string;
+      rating: string;
+    };
+    loading: string;
+    ariaLabel: string;
+  };
+  aboutTournament: {
+    noData: string;
+    organizerFallback: string;
+    regulationTitle: string;
+  };
 };

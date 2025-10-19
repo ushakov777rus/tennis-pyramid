@@ -5,9 +5,11 @@ import "./AboutTournament.css";
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 import { UserCard } from "@/app/components/UserCard";
 import { UserRole } from "../models/Users";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 export function AboutTournament() {
   const { tournament, creator } = useTournament();
+  const { aboutTournament } = useDictionary();
 
   const {
     organizer_name,
@@ -18,7 +20,7 @@ export function AboutTournament() {
   } = tournament as any;
 
   // Контакты организатора: сначала из турнира, потом fallback к creator
-  const orgName = organizer_name ?? (creator?.displayName ? creator.displayName(false) : creator?.displayName) ?? "Организатор";
+  const orgName = organizer_name ?? (creator?.displayName ? creator.displayName(false) : creator?.displayName) ?? aboutTournament.organizerFallback;
   //const orgRole = (creator?.role as any) ?? "tournament_admin";
   const orgPhone = organizer_phone ?? (creator as any)?.phone ?? null;
   const orgEmail = organizer_email ?? (creator as any)?.email ?? null;
@@ -26,7 +28,7 @@ export function AboutTournament() {
   const orgTg = organizer_telegram ?? (creator as any)?.telegram ?? null;
 
   if (!tournament) {
-    return <div className="card about-card">Нет данных о турнире</div>;
+    return <div className="card about-card">{aboutTournament.noData}</div>;
   }
 
   return (
@@ -45,7 +47,7 @@ export function AboutTournament() {
 
       {tournament.regulation ? (
         <div className="card about-text">
-          <h3>Положение о турнире</h3>
+          <h3>{aboutTournament.regulationTitle}</h3>
           <p className="muted about-regulation-text">{tournament.regulation}</p>
         </div>
       ) : null}
