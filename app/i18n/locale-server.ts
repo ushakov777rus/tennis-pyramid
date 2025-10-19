@@ -9,7 +9,8 @@ export async function resolveServerLocale(): Promise<Locale> {
     return cookieLocale;
   }
 
-  const acceptLanguage = headers().get("accept-language");
+  const headerStore = await headers();
+  const acceptLanguage = headerStore.get("accept-language");
   if (acceptLanguage) {
     const preferred = acceptLanguage
       .split(",")

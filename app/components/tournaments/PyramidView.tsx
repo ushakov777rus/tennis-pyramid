@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useUser } from "@/app/components/UserContext";
 import { Participant } from "@/app/models/Participant";
-import { Match, MatchPhase, PhaseType } from "@/app/models/Match";
+import { Match, MatchPhase } from "@/app/models/Match";
 import "./PyramidView.css";
 import {
   DragDropContext,
