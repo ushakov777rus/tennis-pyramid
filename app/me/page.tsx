@@ -9,6 +9,7 @@ import { Match } from "@/app/models/Match";
 import "@/app/components/matches/MatchHistoryView.css";
 import { UserProfileView } from "@/app/components/UserProfileView";
 import { useUser } from "@/app/components/UserContext";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 /**
  * Показывает профиль текущего пользователя и его последние матчи.
@@ -16,6 +17,7 @@ import { useUser } from "@/app/components/UserContext";
  */
 export default function UserPage() {
   const { user } = useUser();
+  const { mePage, common } = useDictionary();
 
   const [loading, setLoading] = useState(false);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -27,8 +29,7 @@ export default function UserPage() {
     async function load() {
       // если пользователь не залогинен или нет связанного игрока — показываем ошибку
       if (!user?.player?.id) {
-        console.log("UserPage.load", user);
-        setError("Игрок с таким пользователем не найден");
+        setError(mePage.playerNotFound);
         setMatches([]);
         return;
       }
@@ -50,7 +51,7 @@ export default function UserPage() {
           setMatches(playerMatches);
         }
       } catch (e: any) {
-        if (!cancelled) setError(e?.message ?? "Ошибка загрузки профиля");
+        if (!cancelled) setError(e?.message ?? mePage.loadFailed);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -87,22 +88,22 @@ export default function UserPage() {
   const className = user ? "page-container-no-padding" : "page-container";
   // Состояния: нет пользователя / лоадер / ошибка
   if (!user) {
-    return <div className={className}>Нужно войти в систему.</div>;
+    return <div className={className}>{mePage.loginRequired}</div>;
   }
   if (loading) {
     return (
       <div className={className}>
-        <h1 className="page-title">Профиль пользователя</h1>
-        <div className="page-content-container">Загрузка…</div>
+        <h1 className="page-title">{mePage.title}</h1>
+        <div className="page-content-container">{common.loading}</div>
       </div>
     );
   }
   if (error) {
     return (
       <div className={className}>
-        <h1 className="page-title">Профиль пользователя</h1>
+        <h1 className="page-title">{mePage.title}</h1>
         <div className="page-content-container" style={{ color: "#f04438" }}>
-          Ошибка: {error}
+          {mePage.errorPrefix} {error}
         </div>
       </div>
     );
@@ -110,7 +111,7 @@ export default function UserPage() {
 
   return (
     <div className={className}>
-      <h1 className="page-title">Профиль пользователя</h1>
+      <h1 className="page-title">{mePage.title}</h1>
       <UserProfileView
         user={user}
         stats={{ wins, losses, winRate, rank }}

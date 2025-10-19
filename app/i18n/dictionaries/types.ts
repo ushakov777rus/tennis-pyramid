@@ -426,4 +426,11 @@ export type Dictionary = {
     save: string;
     backspace: string;
   };
+  mePage: {
+    title: string;
+    loginRequired: string;
+    playerNotFound: string;
+    loadFailed: string;
+    errorPrefix: string;
+  };
 };

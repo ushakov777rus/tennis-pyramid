@@ -38,7 +38,6 @@ export function MatchesClient() {
       try {
         await deleteMatch(match);
       } catch (e) {
-        console.error("Не удалось удалить матч", e);
         alert("Не удалось удалить матч");
       }
     },

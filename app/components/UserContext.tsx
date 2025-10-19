@@ -8,6 +8,7 @@ import {
   useEffect,
   useCallback,
   useRef,
+  useMemo,
 } from "react";
 import { User } from "../models/Users";
 import { useDictionary } from "@/app/components/LanguageProvider";
@@ -33,7 +34,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { common } = useDictionary();
-  const commonErrors = (common.errors as Record<string, string> | undefined) ?? {};
+  const commonErrors = useMemo(() => (common.errors as Record<string, string> | undefined) ?? {}, [common.errors]);
 
   const inFlight = useRef<AbortController | null>(null);
 

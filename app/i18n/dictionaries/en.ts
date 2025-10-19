@@ -505,6 +505,13 @@ export const enDictionary: Dictionary = {
     save: "Save",
     backspace: "Delete",
   },
+  mePage: {
+    title: "User profile",
+    loginRequired: "Please sign in.",
+    playerNotFound: "No player profile is linked to this account.",
+    loadFailed: "Failed to load profile",
+    errorPrefix: "Error:",
+  },
   languageSwitcher: {
     label: "Language",
     localeNames: {

@@ -511,6 +511,13 @@ export const ruDictionary: Dictionary = {
     save: "Сохранить",
     backspace: "Удалить",
   },
+  mePage: {
+    title: "Профиль пользователя",
+    loginRequired: "Нужно войти в систему.",
+    playerNotFound: "Игрок с таким пользователем не найден",
+    loadFailed: "Ошибка загрузки профиля",
+    errorPrefix: "Ошибка:",
+  },
   languageSwitcher: {
     label: "Язык",
     localeNames: {
