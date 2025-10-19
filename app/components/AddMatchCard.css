@@ -2,6 +2,8 @@
   display: grid;
   gap: 8px;
   align-items: center;
+  max-width: 800px;
+  margin: auto;
 }
 .add-match-card .input { width: 100%; min-width: 0; }
 /* ====== МОБИЛКА: 2 строки × 2 ячейки ====== */

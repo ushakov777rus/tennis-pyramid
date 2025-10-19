@@ -18,7 +18,6 @@ type AddMatchCardProps = {
   setMatchDate: (v: string) => void;
   matchScore: string;
   setMatchScore: (v: string) => void;
-  isAnon: boolean;
   isPlayerWithFixedAttacker: boolean;
   onAddMatch: () => void;
   isPyramid?: boolean;
@@ -34,7 +33,6 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
     setMatchDate,
     matchScore,
     setMatchScore,
-    isAnon,
     isPlayerWithFixedAttacker,
     onAddMatch,
     isPyramid = false,
@@ -98,7 +96,7 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
             options={options}
             value={selectedIds[0] ?? null}
             placeholder={attackerPlaceholder}
-            disabled={isAnon || isPlayerWithFixedAttacker}
+            disabled={isPlayerWithFixedAttacker}
             onChange={onChangeAttacker}
             sort={true}
           />
@@ -108,7 +106,6 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
             options={options}
             value={selectedIds[1] ?? null}
             placeholder={defenderPlaceholder}
-            disabled={isAnon}
             onChange={onChangeDefender}
             sort={true}
           />

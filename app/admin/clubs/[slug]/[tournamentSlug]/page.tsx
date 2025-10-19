@@ -5,8 +5,6 @@ import { ClubsRepository } from "@/app/repositories/ClubsRepository";
 import { ClubProvider } from "@/app/clubs/[slug]/ClubProvider";
 import { TournamentProvider, useOptionalTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 import TournamentClient from "@/app/tournaments/[slug]/TournamentClient";
-import { useUser } from "@/app/components/UserContext";
-import { useEffect, useState } from "react";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

@@ -523,7 +523,6 @@ export default function TournamentClient() {
 
   if (!tournament) return <p>Загрузка...</p>;
 
-  const isAnon = user?.role === undefined;
   const isPlayerWithFixedAttacker = user?.role === UserRole.Player && !!user?.player.id;
   const className = user ? "page-container-no-padding" : "page-container";
 
@@ -553,8 +552,8 @@ export default function TournamentClient() {
             ariaLabel="Разделы турнира"
           />
 
-          {tournament.isCustom() && tournament.status === TournamentStatus.Ongoing && view === "matches" && (
-            <LoggedIn>
+          {tournament.isCustom() && canManage && view === "matches" && (
+            <div style={{marginTop: "10px"}}>
               <AddMatchCard
                 options={options}
                 selectedIds={selectedIds}
@@ -563,11 +562,10 @@ export default function TournamentClient() {
                 setMatchDate={setMatchDate}
                 matchScore={matchScore}
                 setMatchScore={setMatchScore}
-                isAnon={isAnon}
                 isPlayerWithFixedAttacker={isPlayerWithFixedAttacker}
                 onAddMatch={handleAddMatch}
               />
-            </LoggedIn>
+            </div>
           )}
 
           <div>
