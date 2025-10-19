@@ -36,6 +36,7 @@ export const metadata: Metadata = {
   title: pageTitle,
   description: pageDescription,
   keywords,
+  alternates: { canonical: "/freetournament" },
   openGraph: {
     title: `${pageTitle} | Tennis Pyramid`,
     description: openGraphDescription,
