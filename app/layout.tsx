@@ -69,7 +69,7 @@ export const metadata: Metadata = {
       "Создавайте и проводите любительские теннисные турниры: сетки, таблицы, расписания, статистика, рейтинги и онлайн-табло.",
     siteName: "HoneyCup",
     images: [
-      { url: "/og-default.png", width: 1200, height: 630, alt: "HoneyCup — турнирная платформа для тенниса" },
+      { url: "/og-default.png", width: 1200, height: 630, alt: "HoneyCup — турнирная платформа для тенниса, падела и бадминтона" },
     ],
   },
   twitter: {
