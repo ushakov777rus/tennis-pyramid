@@ -80,7 +80,7 @@ export function RoundRobinView({
     phaseFilter: MatchPhase;
     showHelpTooltip: boolean;
   }> = ({ a, b, scoreString, phaseFilter, showHelpTooltip }) => {
-    const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
+    const handleOpenKeyboard = (aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
       
       // Сбрасываем локальное состояние при открытии клавиатуры
@@ -95,12 +95,12 @@ export function RoundRobinView({
         initialDate,
         { phase: PhaseType.Group, groupIndex: null, roundIndex: null }
       );
-    }, [onOpenKeyboard, a, b, findMatchBetween, phaseFilter]);
+    };
 
-    const handleCancel = useCallback(() => {
+    const handleCancel = () => {
       setEditValue("");
       onCloseKeyboard?.();
-    }, [onCloseKeyboard]);
+    };
 
     return (
       <ScoreCell

@@ -314,6 +314,7 @@ export type Dictionary = {
         passwordMismatch: string;
         ntrpRequired: string;
         registrationFailed: string;
+        roleRequired: string;
         network: string;
       };
     };
