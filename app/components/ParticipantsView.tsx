@@ -11,6 +11,7 @@ import {
 } from "./controls/IconButtons";
 import { AdminOnly } from "./RoleGuard";
 import { PlayersRepository } from "@/app/repositories/PlayersRepository"; // [NEW] для создания игрока
+import { useDictionary } from "./LanguageProvider";
 
 /* ===================== Типы пропсов (два режима) ===================== */
 
@@ -49,8 +50,8 @@ export type ParticipantsViewProps = TournamentModeProps | ClubModeProps;
 
 /* ===================== Вспомогательные ===================== */
 
-function InlineSpinner() {
-  return <span className="inline-spinner" aria-label="Loading" />;
+function InlineSpinner({ label }: { label: string }) {
+  return <span className="inline-spinner" aria-label={label} />;
 }
 
 function nameOfPlayerOrParticipant(x: Player | Participant): string {
@@ -64,6 +65,7 @@ function nameOfPlayerOrParticipant(x: Player | Participant): string {
 
 export function ParticipantsView(props: ParticipantsViewProps) {
   const { initialLoading, refreshing, mutating } = props;
+  const { participants: participantsText, common } = useDictionary();
 
   // Фильтры
   const [leftFilter, setLeftFilter] = useState("");
@@ -181,19 +183,21 @@ export function ParticipantsView(props: ParticipantsViewProps) {
     }
   };
 
-  if (initialLoading) return <p>Загрузка...</p>;
+  if (initialLoading) return <p>{participantsText.loading}</p>;
 
   const maxRows = Math.max(leftList.length, rightList.length);
   
   const leftTitle =
     props.mode === "tournament"
       ? props.isDouble
-        ? "Игроки (для пар)"
-        : "Игроки"
-      : "Игроки (добавить в клуб)";
+        ? participantsText.playersDoubleTitle
+        : participantsText.playersSingleTitle
+      : participantsText.playersClubTitle;
 
   const rightTitle =
-    props.mode === "tournament" ? "Участники турнира" : "Члены клуба";
+    props.mode === "tournament"
+      ? participantsText.participantsTournamentTitle
+      : participantsText.membersClubTitle;
 
   return (
     <div style={{marginTop: "10px"}}>
@@ -215,7 +219,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
           </th>
           <th colSpan={2} style={{ width: "50%", position: "relative" }}>
             {rightTitle}{" "}
-            {refreshing || mutating || creating ? <InlineSpinner /> : null}
+            {refreshing || mutating || creating ? <InlineSpinner label={common.loading} /> : null}
           </th>
         </tr>
       </thead>
@@ -227,7 +231,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
             <input
               type="text"
               className="input input-100"
-              placeholder="Поиск игроков (и имя для нового игрока)"
+              placeholder={participantsText.leftFilterPlaceholder}
               value={leftFilter}
               onChange={(e) => setLeftFilter(e.target.value)}
             />
@@ -243,8 +247,8 @@ export function ParticipantsView(props: ParticipantsViewProps) {
                   <PlusIconButton
                     title={
                       props.mode === "tournament"
-                        ? "Создать игрока и добавить в турнир"
-                        : "Создать игрока и добавить в клуб"
+                        ? participantsText.createPlayerTournament
+                        : participantsText.createPlayerClub
                     }
                     onClick={handleCreatePlayerAndAttach}
                     disabled={mutating || creating}
@@ -257,7 +261,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
             <input
               type="text"
               className="input input-100"
-              placeholder="Поиск участников"
+              placeholder={participantsText.rightFilterPlaceholder}
               disabled={rightList.length===0 && rightFilter.length === 0}
               value={rightFilter}
               onChange={(e) => setRightFilter(e.target.value)}
@@ -271,7 +275,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
           <tr>
             <td colSpan={4} style={{ textAlign: "center", opacity: 0.7 }}>
               <div  className="help-cell-tooltip">
-                Введите имя игрока и нажмите +
+                {participantsText.emptyHint}
               </div>
             </td>
           </tr>
@@ -321,7 +325,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
                       props.isDouble ? (
                         showCreateHere && props.onCreateTeam ? (
                           <CreateTeamIconButton
-                            title="Создать команду"
+                            title={participantsText.createTeam}
                             onClick={createTeam}
                             disabled={mutating || creating}
                           />
@@ -329,7 +333,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
                       ) :
                 free && props.onAddPlayerToTournament ? (
                   <PlusIconButton
-                    title="Добавить"
+                    title={participantsText.addToTournament}
                     onClick={async () => {
                       await props.onAddPlayerToTournament?.(free.id);
                       setLeftFilter("");
@@ -340,7 +344,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
             ) :
               free && props.onAddPlayerToClub ? (
                 <PlusIconButton
-                  title="Добавить в клуб"
+                  title={participantsText.addToClub}
                   onClick={async () => {
                     await props.onAddPlayerToClub?.(free.id);
                     setLeftFilter("");
@@ -367,7 +371,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
                       (props.mode === "tournament"
                         ? props.onRemoveParticipant && (
                             <DeleteIconButton
-                              title="Убрать из турнира"
+                              title={participantsText.removeFromTournament}
                               onClick={() =>
                                 props.onRemoveParticipant?.(inRight as Participant)
                               }
@@ -376,7 +380,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
                           )
                         : props.onRemoveMember && (
                             <DeleteIconButton
-                              title="Убрать из клуба"
+                              title={participantsText.removeFromClub}
                               onClick={() =>
                                 props.onRemoveMember?.((inRight as Player).id)
                               }
@@ -400,6 +404,7 @@ export function ParticipantsView(props: ParticipantsViewProps) {
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 
 export function TournamentParticipantsView({ canManage = false, isWizard = false }: { canManage: boolean, isWizard?: boolean }) {
+  const { participants: participantsText } = useDictionary();
   const {
     initialLoading,
     refreshing,
@@ -415,7 +420,7 @@ export function TournamentParticipantsView({ canManage = false, isWizard = false
   // [NEW] попробуем получить клуб (если есть ClubProvider)
   const clubCtx = useOptionalClub();
 
-  if (!tournament) return <p>Загрузка...</p>;
+  if (!tournament) return <p>{participantsText.loading}</p>;
 
   const isDouble =
     typeof tournament.isDouble === "function"
@@ -452,6 +457,7 @@ export function TournamentParticipantsView({ canManage = false, isWizard = false
 import { useClub, useOptionalClub } from "@/app/clubs/[slug]/ClubProvider";
 
 export function ClubParticipantsView() {
+  const { participants: participantsText } = useDictionary();
   const {
     initialLoading,
     refreshing,
@@ -463,7 +469,7 @@ export function ClubParticipantsView() {
     removeMember,
   } = useClub();
 
-  if (!club) return <p>Загрузка...</p>;
+  if (!club) return <p>{participantsText.loading}</p>;
 
   return (
     <ParticipantsView

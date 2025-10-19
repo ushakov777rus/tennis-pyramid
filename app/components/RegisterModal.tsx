@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useUser } from "@/app/components/UserContext";
 import { CustomSelect } from "@/app/components/controls/CustomSelect";
 import { UserRole } from "../models/Users";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 type RegisterModalProps = {
   isOpen: boolean;
@@ -24,6 +25,8 @@ export function RegisterModal({
   initialRole: defaultRole = UserRole.Player,
 }: RegisterModalProps) {
   const { setUser, refresh } = useUser();
+  const { auth } = useDictionary();
+  const { register } = auth;
 
   const [role, setRole] = useState<UserRole>(defaultRole);
   const [fullName, setFullName] = useState("");
@@ -71,13 +74,13 @@ export function RegisterModal({
   async function handleRegister() {
     setError("");
 
-    if (!fullName.trim()) return setError("Укажите имя и фамилию");
-    if (!email.trim()) return setError("Укажите email");
-    if (!isValidEmail(email)) return setError("Укажите корректный email");
-    if (!password) return setError("Введите пароль");
-    if (password.length < 6) return setError("Пароль должен содержать не менее 6 символов");
-    if (password !== password2) return setError("Пароли не совпадают");
-    if (role === "player" && !ntrp.trim()) return setError("Укажите NTRP или 0.0, если не знаете");
+    if (!fullName.trim()) return setError(register.errors.nameRequired);
+    if (!email.trim()) return setError(register.errors.emailRequired);
+    if (!isValidEmail(email)) return setError(register.errors.emailInvalid);
+    if (!password) return setError(register.errors.passwordRequired);
+    if (password.length < 6) return setError(register.errors.passwordLength);
+    if (password !== password2) return setError(register.errors.passwordMismatch);
+    if (role === UserRole.Player && !ntrp.trim()) return setError(register.errors.ntrpRequired);
 
     try {
       setPending(true);
@@ -96,7 +99,7 @@ export function RegisterModal({
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data?.error || "Ошибка регистрации");
+        setError(data?.error || register.errors.registrationFailed);
         return;
       }
 
@@ -106,7 +109,7 @@ export function RegisterModal({
       // вместо onClose здесь — отдаём роль родителю
       onRegistered?.(role);
     } catch {
-      setError("Сеть недоступна или сервер не отвечает");
+      setError(register.errors.network);
     } finally {
       setPending(false);
     }
@@ -128,7 +131,7 @@ export function RegisterModal({
         aria-labelledby="register-title"
       >
         <h2 id="register-title" className="modal-title">
-          Регистрация пользователя
+          {register.title}
         </h2>
 
         <div className="register-form">
@@ -136,19 +139,19 @@ export function RegisterModal({
             <CustomSelect
               className="input input-100"
               options={[
-                { value: "player", label: "Игрок" },
-                { value: "tournament_admin", label: "Организатор" },
+                { value: UserRole.Player, label: register.roles.player },
+                { value: UserRole.TournamentAdmin, label: register.roles.organizer },
               ]}
               value={role}
               onChange={(val) => setRole(val as UserRole)}
-              placeholder="Выберите роль"
+              placeholder={register.rolePlaceholder}
               disabled={pending}
               showSearch={false}
               sort={false}
             />
             <input
               type="text"
-              placeholder="Фамилия и Имя"
+              placeholder={register.namePlaceholder}
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               className="input input-100"
@@ -157,7 +160,7 @@ export function RegisterModal({
             />
             <input
               type="email"
-              placeholder="Email"
+              placeholder={register.emailPlaceholder}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input input-100"
@@ -167,7 +170,7 @@ export function RegisterModal({
             />
             <input
               type="tel"
-              placeholder="Телефон (необязательно)"
+              placeholder={register.phonePlaceholder}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="input input-100"
@@ -179,7 +182,7 @@ export function RegisterModal({
             {role === UserRole.Player && (
               <input
                 type="text"
-                placeholder="NTRP (например 3.5)"
+                placeholder={register.ntrpPlaceholder}
                 value={ntrp}
                 onChange={(e) => setNTRP(e.target.value)}
                 className="input input-100"
@@ -189,7 +192,7 @@ export function RegisterModal({
 
             <input
               type="password"
-              placeholder="Пароль (минимум 6 символов)"
+              placeholder={register.passwordPlaceholder}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="input input-100"
@@ -198,7 +201,7 @@ export function RegisterModal({
             />
             <input
               type="password"
-              placeholder="Повтор пароля"
+              placeholder={register.passwordRepeatPlaceholder}
               value={password2}
               onChange={(e) => setPassword2(e.target.value)}
               className="input input-100"
@@ -214,11 +217,11 @@ export function RegisterModal({
             className="modal-submit-btn"
             disabled={pending}
           >
-            {pending ? "Регистрируем…" : "Зарегистрироваться"}
+            {pending ? register.submitPending : register.submit}
           </button>
 
           <p className="login-footer">
-            Уже есть аккаунт?{" "}
+            {register.hasAccountPrefix}{" "}
             <a
               href="#"
               onClick={(e) => {
@@ -226,7 +229,7 @@ export function RegisterModal({
                 if (!pending) onSwitchToLogin?.();
               }}
             >
-              Войдите
+              {register.loginLink}
             </a>
           </p>
         </div>
@@ -234,7 +237,7 @@ export function RegisterModal({
         <button
           onClick={onClose}
           className="modal-close-btn"
-          aria-label="Закрыть"
+          aria-label={register.closeAria}
           disabled={pending}
         >
           ✖

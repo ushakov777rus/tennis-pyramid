@@ -270,4 +270,68 @@ export type Dictionary = {
       closeAria: string;
     };
   };
+  footer: {
+    contactTitle: string;
+    rights: string;
+    brandLine: string;
+  };
+  auth: {
+    login: {
+      title: string;
+      emailPlaceholder: string;
+      passwordPlaceholder: string;
+      submit: string;
+      errorFallback: string;
+      noAccountPrefix: string;
+      registerLink: string;
+    };
+    register: {
+      title: string;
+      rolePlaceholder: string;
+      namePlaceholder: string;
+      emailPlaceholder: string;
+      phonePlaceholder: string;
+      ntrpPlaceholder: string;
+      passwordPlaceholder: string;
+      passwordRepeatPlaceholder: string;
+      submit: string;
+      submitPending: string;
+      hasAccountPrefix: string;
+      loginLink: string;
+      closeAria: string;
+      roles: {
+        player: string;
+        organizer: string;
+      };
+      errors: {
+        nameRequired: string;
+        emailRequired: string;
+        emailInvalid: string;
+        passwordRequired: string;
+        passwordLength: string;
+        passwordMismatch: string;
+        ntrpRequired: string;
+        registrationFailed: string;
+        network: string;
+      };
+    };
+  };
+  participants: {
+    loading: string;
+    playersDoubleTitle: string;
+    playersSingleTitle: string;
+    playersClubTitle: string;
+    participantsTournamentTitle: string;
+    membersClubTitle: string;
+    leftFilterPlaceholder: string;
+    rightFilterPlaceholder: string;
+    createPlayerTournament: string;
+    createPlayerClub: string;
+    emptyHint: string;
+    addToTournament: string;
+    addToClub: string;
+    createTeam: string;
+    removeFromTournament: string;
+    removeFromClub: string;
+  };
 };

@@ -5,6 +5,7 @@ import "./Auth.css";
 import { useState } from "react";
 import { useUser } from "@/app/components/UserContext";
 import { UserRole } from "../models/Users";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 type LoginModalProps = {
   isOpen: boolean;
@@ -24,6 +25,8 @@ export function LoginModal({
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const { setUser } = useUser();
+  const { auth, common } = useDictionary();
+  const { login } = auth;
 
   if (!isOpen) return null;
 
@@ -39,7 +42,7 @@ export function LoginModal({
     const data = await res.json();
 
     if (!res.ok) {
-      setError(data.error || "Ошибка входа");
+      setError(data.error || login.errorFallback);
       return;
     }
 
@@ -51,13 +54,13 @@ export function LoginModal({
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content modal-content-login modal-content-login--register" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-title">Вход</div>
+        <div className="modal-title">{login.title}</div>
 
         <div className="login-form">
           <div className="login-form__fields">
             <input
               type="email"
-              placeholder="Email"
+              placeholder={login.emailPlaceholder}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input input-100"
@@ -67,7 +70,7 @@ export function LoginModal({
 
             <input
               type="password"
-              placeholder="Пароль"
+              placeholder={login.passwordPlaceholder}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="input input-100"
@@ -75,13 +78,13 @@ export function LoginModal({
           </div>
 
           <button onClick={handleLogin} className="modal-submit-btn">
-            Войти
+            {login.submit}
           </button>
 
           {error && <p className="form-error">{error}</p>}
 
           <p className="login-footer">
-            Нет аккаунта?{" "}
+            {login.noAccountPrefix}{" "}
             <a
               href="#"
               onClick={(e) => {
@@ -89,12 +92,14 @@ export function LoginModal({
                 onSwitchToRegister?.();
               }}
             >
-              Зарегистрируйтесь
+              {login.registerLink}
             </a>
           </p>
         </div>
 
-        <button onClick={onClose} className="modal-close-btn">✖</button>
+        <button onClick={onClose} className="modal-close-btn" aria-label={common.close}>
+          ✖
+        </button>
       </div>
     </div>
   );

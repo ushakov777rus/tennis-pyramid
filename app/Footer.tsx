@@ -2,13 +2,18 @@
 
 import { IconMail, IconTelegram } from "./components/controls/IconButtons";
 import "./Footer.css";
+import { useDictionary } from "./components/LanguageProvider";
 
 export function Footer() {
+  const { footer } = useDictionary();
+  const currentYear = new Date().getFullYear().toString();
+  const brandLine = footer.brandLine.replace("{year}", currentYear);
+
   return (
     <footer>
       <section className="section card footer">
         <div className="footer-section left">
-          <h3>Для связи</h3>
+          <h3>{footer.contactTitle}</h3>
           <div className="footer-icons">
             <a
               href="mailto:honey.cup@yandex.ru"
@@ -30,8 +35,8 @@ export function Footer() {
         </div>
 
         <div className="footer-section right">
-          <h3>© {new Date().getFullYear()} HoneyCup</h3>
-          <p>Все права защищены</p>
+          <h3>{brandLine}</h3>
+          <p>{footer.rights}</p>
         </div>
       </section>
     </footer>

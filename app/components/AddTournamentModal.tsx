@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { TournamentCreateInput, TournamentType, TournamentFormat } from "@/app/models/Tournament";
 import "./AddTournamentModal.css";
 import { TYPE_OPTIONS, FORMAT_OPTIONS } from "@/app/models/Tournament";
 import { CustomSelect } from "./controls/CustomSelect";
 import { Club } from "../models/Club";
+import { useDictionary } from "./LanguageProvider";
 
 type Props = {
   isOpen: boolean;
@@ -17,6 +18,38 @@ type Props = {
 export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const titleId = "add-tournament-title";
+  const { tournaments } = useDictionary();
+  const modalText = tournaments.modal;
+  const typeOptions = useMemo(
+    () =>
+      TYPE_OPTIONS.filter((option) => option.value !== "").map((option) => ({
+        ...option,
+        label: tournaments.typeLabels[option.value as TournamentType],
+      })),
+    [tournaments.typeLabels]
+  );
+  const formatOptions = useMemo(
+    () =>
+      FORMAT_OPTIONS.filter((option) => option.value !== "").map((option) => {
+        const formatValue = option.value as TournamentFormat;
+        const label =
+          formatValue === TournamentFormat.RoundRobin
+            ? tournaments.formatLabels.roundRobin
+            : formatValue === TournamentFormat.SingleElimination
+            ? tournaments.formatLabels.singleElimination
+            : formatValue === TournamentFormat.DoubleElimination
+            ? tournaments.formatLabels.doubleElimination
+            : formatValue === TournamentFormat.GroupsPlayoff
+            ? tournaments.formatLabels.groupsPlayoff
+            : formatValue === TournamentFormat.Swiss
+            ? tournaments.formatLabels.swiss
+            : formatValue === TournamentFormat.Custom
+            ? tournaments.formatLabels.custom
+            : tournaments.formatLabels.pyramid;
+        return { ...option, label };
+      }),
+    [tournaments.formatLabels]
+  );
 
   // базовые поля
   const [name, setName] = useState("");
@@ -73,22 +106,22 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
     e.preventDefault();
 
     const trimmed = name.trim();
-    if (!trimmed) { setError("Введите название турнира"); return; }
+    if (!trimmed) { setError(modalText.errors.nameRequired); return; }
     if (startDate && endDate && startDate > endDate) {
-      setError("Дата начала не может быть позже даты окончания");
+      setError(modalText.errors.dateRange);
       return;
     }
 
     // Валидация для пирамиды
     if (format === TournamentFormat.Pyramid) {
       if (!Number.isFinite(pyramidMaxLevel) || pyramidMaxLevel < 3 || pyramidMaxLevel > 50) {
-        setError("Укажите корректное число уровней пирамиды (3–50).");
+        setError(modalText.errors.pyramidLevels);
         return;
       }
     }
 
     if (minNTRP != null && maxNTRP != null && minNTRP > maxNTRP) {
-      setError("Минимальный NTRP не может быть больше максимального");
+      setError(modalText.errors.ntrpRange);
       return;
     }
 
@@ -156,18 +189,18 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
           type="button"
           className="modal-close-btn"
           onClick={onClose}
-          aria-label="Закрыть модальное окно"
+          aria-label={modalText.closeAria}
         >
           ✖
         </button>
 
-        <h3 className="modal-title" id={titleId}>Создать турнир</h3>
+        <h3 className="modal-title" id={titleId}>{modalText.title}</h3>
 
         <form onSubmit={handleSubmit} className="modal-form" noValidate>
           {/* ЧЕКБОКС — первым полем */}
           <input
             type="text"
-            placeholder="Название турнира"
+            placeholder={modalText.namePlaceholder}
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="input"
@@ -177,7 +210,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
           <div className="modal-grid-2">
             <CustomSelect
               className="input"
-              options={TYPE_OPTIONS.filter(o => o.value !== "")}
+              options={typeOptions}
               value={type}
               onChange={(val) => setType(val as TournamentType)}
               disabled={false}
@@ -187,7 +220,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
 
             <CustomSelect
               className="input"
-              options={FORMAT_OPTIONS.filter(o => o.value !== "")}
+              options={formatOptions}
               value={format}
               onChange={(val) => setFormat(val as TournamentFormat)}
               disabled={false}
@@ -220,7 +253,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
             aria-controls="adv-panel"
             onClick={() => setAdvOpen((v) => !v)}
           >
-            {advOpen ? "Скрыть доп. опции" : "Показать доп. опции"}
+            {advOpen ? modalText.advHide : modalText.advShow}
           </button>
 
           <div
@@ -238,7 +271,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
                 value={minNTRP ?? ""}
                 onChange={(e) => setMinNTRP(e.target.value ? Number(e.target.value) : null)}
                 className="input"
-                placeholder="Мин. NTRP"
+                placeholder={modalText.minNTRPPlaceholder}
               />
               <input
                 type="number"
@@ -248,7 +281,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
                 value={maxNTRP ?? ""}
                 onChange={(e) => setMaxNTRP(e.target.value ? Number(e.target.value) : null)}
                 className="input"
-                placeholder="Макс. NTRP"
+                placeholder={modalText.maxNTRPPlaceholder}
               />
             </div>
 
@@ -256,7 +289,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
             {format === TournamentFormat.Pyramid && (
               <div className="adv-row">
                 <label className="adv-label" htmlFor="pyr-levels">
-                  Макс. уровней пирамиды
+                  {modalText.pyramidLevelsLabel}
                 </label>
                 <input
                   id="pyr-levels"
@@ -268,15 +301,15 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
                   value={pyramidMaxLevel}
                   onChange={(e) => setPyramidMaxLevel(Number(e.target.value) || 0)}
                 />
-                <div className="adv-help">Рекомендуем 10–20, по умолчанию 15</div>
+                <div className="adv-help">{modalText.pyramidLevelsHelp}</div>
               </div>
             )}
 
             {/* Группы плюс плейофф */}
             {format === TournamentFormat.GroupsPlayoff && (
               <div className="adv-row">
-                <label className="adv-label" htmlFor="pyr-levels">
-                  Количество групп
+                <label className="adv-label" htmlFor="groups-count">
+                  {modalText.groupsCountLabel}
                 </label>
                 <input
                   id="groups-count"
@@ -288,7 +321,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
                   value={groupsPlayoffGroupsCount}
                   onChange={(e) => setGroupsPlayoffGroupsCount(Number(e.target.value) || 0)}
                 />
-                <div className="adv-help">Рекомендуем 2–4, по умолчанию 2</div>
+                <div className="adv-help">{modalText.groupsCountHelp}</div>
               </div>
             )}
 
@@ -299,7 +332,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
           {error && <div className="modal-error" role="alert">{error}</div>}
 
           <div className="modal-actions">
-            <button type="submit" className="modal-submit-btn">Сохранить</button>
+            <button type="submit" className="modal-submit-btn">{modalText.saveButton}</button>
           </div>
         </form>
       </div>
