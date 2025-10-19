@@ -8,11 +8,14 @@ import {
   useRef,
   useState,
   useCallback,
+  useMemo,
 } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@/app/components/UserContext";
 import { roleLabel, UserRole } from "@/app/models/Users";
+import { useDictionary, useLanguage } from "../LanguageProvider";
+import { stripLocaleFromPath, withLocalePath } from "@/app/i18n/routing";
 
 /* ===========================
    SVG-иконки 24x24 (#CF6)
@@ -124,27 +127,39 @@ export function SideNavigationBar() {
   const [collapsed, setCollapsed] = useState(false); // desktop collapse
   const [isDesktop, setIsDesktop] = useState(false);
   const pathname = usePathname();
+  const { locale } = useLanguage();
+  const dictionary = useDictionary();
+  const { path: normalizedPath } = stripLocaleFromPath((pathname ?? "/"));
   const panelRef = useRef<HTMLDivElement | null>(null);
   const touchStartX = useRef<number | null>(null);
 
   const isAdmin =
     user?.role === UserRole.SiteAdmin || user?.role === UserRole.TournamentAdmin;
 
-  // основная навигация
-  const mainNav = [
-    { href: "/", label: "Главная", icon: <IconHome /> },
-    { href: "/tournaments", label: "Турниры", icon: <IconTrophy /> },
-    { href: "/rating", label: "Рейтинг игроков", icon: <IconChart /> },
-    { href: "/clubs", label: "Клубы", icon: <IconClubs /> },
-  ];
+  const mainNav = useMemo(
+    () => [
+      { path: "/", label: dictionary.navigation.home, icon: <IconHome />, localized: true },
+      { path: "/tournaments", label: dictionary.navigation.tournaments, icon: <IconTrophy />, localized: true },
+      { path: "/rating", label: dictionary.navigation.rating, icon: <IconChart />, localized: true },
+      { path: "/clubs", label: dictionary.navigation.clubs, icon: <IconClubs />, localized: false },
+    ],
+    [dictionary],
+  );
 
-  const profileNav = [
-    { href: "/me", label: "Профиль", icon: <IconUser /> },
-  ];
+  const profileNav = useMemo(
+    () => [
+      { path: "/me", label: dictionary.navigation.profile, icon: <IconUser />, localized: false },
+    ],
+    [dictionary],
+  );
 
-  const userNav = isAdmin
-    ? [{ href: "/admin", label: "Мой клуб", icon: <IconMyClub /> }]
-    : [{ href: "/player", label: "Мои клубы", icon: <IconMyClub /> }];
+  const userNav = useMemo(
+    () =>
+      isAdmin
+        ? [{ path: "/admin", label: dictionary.sidebar.myClub, icon: <IconMyClub />, localized: false }]
+        : [{ path: "/player", label: dictionary.sidebar.myClubs, icon: <IconMyClub />, localized: false }],
+    [isAdmin, dictionary],
+  );
 
   const close = useCallback(() => setOpen(false), []);
   const toggle = useCallback(() => setOpen((v) => !v), []);
@@ -285,52 +300,70 @@ export function SideNavigationBar() {
         </div>
 
         <div className="drawer-scroll">
-          <Section title="Администрирование" collapsed={collapsed}>
-            {userNav.map((it) => (
-              <NavLink
-                key={it.href}
-                href={it.href}
-                icon={it.icon}
-                label={it.label}
-                collapsed={collapsed}
-                onClick={!isDesktop ? close : undefined}
-                active={pathname === it.href}
-              />
-            ))}
+          <Section title={dictionary.sidebar.sections.admin} collapsed={collapsed}>
+            {userNav.map((it) => {
+              const href = it.localized ? withLocalePath(locale, it.path) : it.path;
+              const active = it.localized
+                ? normalizedPath === it.path || normalizedPath.startsWith(`${it.path}/`)
+                : (pathname ?? "/") === it.path || (pathname ?? "/").startsWith(`${it.path}/`);
+              return (
+                <NavLink
+                  key={it.path}
+                  href={href}
+                  icon={it.icon}
+                  label={it.label}
+                  collapsed={collapsed}
+                  onClick={!isDesktop ? close : undefined}
+                  active={active}
+                />
+              );
+            })}
           </Section>
 
-          <Section title="Мой профиль" collapsed={collapsed}>
-            {profileNav.map((it) => (
-              <NavLink
-                key={it.href}
-                href={it.href}
-                icon={it.icon}
-                label={it.label}
-                collapsed={collapsed}
-                onClick={!isDesktop ? close : undefined}
-                active={pathname === it.href}
-              />
-            ))}
+          <Section title={dictionary.sidebar.sections.profile} collapsed={collapsed}>
+            {profileNav.map((it) => {
+              const href = it.localized ? withLocalePath(locale, it.path) : it.path;
+              const active = it.localized
+                ? normalizedPath === it.path || normalizedPath.startsWith(`${it.path}/`)
+                : (pathname ?? "/") === it.path || (pathname ?? "/").startsWith(`${it.path}/`);
+              return (
+                <NavLink
+                  key={it.path}
+                  href={href}
+                  icon={it.icon}
+                  label={it.label}
+                  collapsed={collapsed}
+                  onClick={!isDesktop ? close : undefined}
+                  active={active}
+                />
+              );
+            })}
           </Section>
 
-          <Section title="Навигация" collapsed={collapsed}>
-            {mainNav.map((it) => (
-              <NavLink
-                key={it.href}
-                href={it.href}
-                icon={it.icon}
-                label={it.label}
-                collapsed={collapsed}
-                onClick={!isDesktop ? close : undefined}
-                active={pathname === it.href}
-              />
-            ))}
+          <Section title={dictionary.sidebar.sections.navigation} collapsed={collapsed}>
+            {mainNav.map((it) => {
+              const href = it.localized ? withLocalePath(locale, it.path) : it.path;
+              const active = it.localized
+                ? normalizedPath === it.path || normalizedPath.startsWith(`${it.path}/`)
+                : (pathname ?? "/") === it.path || (pathname ?? "/").startsWith(`${it.path}/`);
+              return (
+                <NavLink
+                  key={it.path}
+                  href={href}
+                  icon={it.icon}
+                  label={it.label}
+                  collapsed={collapsed}
+                  onClick={!isDesktop ? close : undefined}
+                  active={active}
+                />
+              );
+            })}
           </Section>
         </div>
 
         <div className="drawer-footer">
           <button onClick={handleLogout} className="user-badge-btn">
-            Выйти
+            {dictionary.sidebar.logout}
           </button>
         </div>
       </nav>

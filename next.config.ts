@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
           has: [
             {
               type: 'host',
-              value: 'tennis-pyramid\.vercel\.app',
+              value: 'tennis-pyramid\\.vercel\\.app',
             }
           ]
         }

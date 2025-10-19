@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/app/components/UserContext";
+import { useDictionary } from "./LanguageProvider";
+import { stripLocaleFromPath } from "@/app/i18n/routing";
 
 import "./GuestIntroSlider.css";
 
@@ -14,17 +16,21 @@ type Slide = {
   src: string;
 };
 
-const SLIDES: Slide[] = [
-  {
-    title: "Быстрый запуск турнира",
-    description: "Добавляем новый клуб, создаем турнир и добавляем игроков.",
-    src: "/videos/create club and trnmt.mp4",
-  }
-];
+const VIDEO_SOURCES = ["/videos/create club and trnmt.mp4"];
 
 export function GuestIntroSlider() {
   const { user, loading } = useUser();
   const pathname = usePathname();
+  const dictionary = useDictionary();
+  const { path: normalizedPath } = stripLocaleFromPath(pathname ?? "/");
+  const slides = useMemo<Slide[]>(() => {
+    const base = dictionary.guestIntroSlider.slides.slice(0, VIDEO_SOURCES.length);
+    if (!base.length) return [];
+    return base.map((slide, index) => ({
+      ...slide,
+      src: VIDEO_SOURCES[index],
+    }));
+  }, [dictionary]);
   const [visible, setVisible] = useState(false);
   const [dontShow, setDontShow] = useState(false);
   const [current, setCurrent] = useState(0);
@@ -33,21 +39,21 @@ export function GuestIntroSlider() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (pathname !== "/about") return;
+    if (normalizedPath !== "/about") return;
     const stored = localStorage.getItem(STORAGE_KEY) === "1";
     setShouldSkip(stored);
     setDontShow(stored);
-  }, [pathname]);
+  }, [normalizedPath]);
 
   useEffect(() => {
-    if (pathname === "/about") return;
+    if (normalizedPath === "/about") return;
     setVisible(false);
-  }, [pathname]);
+  }, [normalizedPath]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (loading) return;
-    if (pathname !== "/about") return;
+    if (normalizedPath !== "/about") return;
     if (user) return; // показываем только гостям
     if (shouldSkip) return;
 
@@ -88,15 +94,19 @@ export function GuestIntroSlider() {
     }
   };
 
+  useEffect(() => {
+    setCurrent(0);
+  }, [slides.length]);
+
   const goPrev = () => {
-    setCurrent((prev) => (prev - 1 + SLIDES.length) % SLIDES.length);
+    setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
   };
 
   const goNext = () => {
-    setCurrent((prev) => (prev + 1) % SLIDES.length);
+    setCurrent((prev) => (prev + 1) % slides.length);
   };
 
-  const slide = SLIDES[current];
+  const slide = slides[current] ?? slides[0];
 
   useEffect(() => {
     if (!visible) return;
@@ -131,7 +141,7 @@ export function GuestIntroSlider() {
     }
   }, [visible, slide.src]);
 
-  if (!visible) return null;
+  if (!visible || slides.length === 0 || !slide) return null;
 
   return (
     <div className="guest-slider-overlay" role="dialog" aria-modal="true">
@@ -140,7 +150,7 @@ export function GuestIntroSlider() {
           type="button"
           className="guest-slider__close"
           onClick={close}
-          aria-label="Закрыть подсказки"
+          aria-label={dictionary.guestIntroSlider.close}
         >
           ✖
         </button>
@@ -158,7 +168,7 @@ export function GuestIntroSlider() {
             className="guest-slider__video"
           >
             <source src={slide.src} type="video/mp4" />
-            Ваш браузер не поддерживает воспроизведение видео.
+            {dictionary.guestIntroSlider.unsupported}
           </video>
         </div>
 
@@ -168,13 +178,13 @@ export function GuestIntroSlider() {
 
           <div className="guest-slider__bottom">
             <div className="guest-slider__controls">
-              <button type="button" className="guest-slider__nav" onClick={goPrev} aria-label="Предыдущее видео">
+              <button type="button" className="guest-slider__nav" onClick={goPrev} aria-label={dictionary.guestIntroSlider.previous}>
                 ←
               </button>
               <span className="guest-slider__counter">
-                {current + 1} / {SLIDES.length}
+                {current + 1} / {slides.length}
               </span>
-              <button type="button" className="guest-slider__nav" onClick={goNext} aria-label="Следующее видео">
+              <button type="button" className="guest-slider__nav" onClick={goNext} aria-label={dictionary.guestIntroSlider.next}>
                 →
               </button>
             </div>
@@ -185,7 +195,7 @@ export function GuestIntroSlider() {
                 checked={dontShow}
                 onChange={handleDontShowChange}
               />
-              <span>Больше не показывать</span>
+              <span>{dictionary.guestIntroSlider.dontShow}</span>
             </label>
           </div>
         </div>

@@ -2,10 +2,15 @@
 
 import Link from "next/link";
 import { StatsFooter } from "./components/StatsFooter";
+import { useDictionary, useLanguage } from "./components/LanguageProvider";
+import { withLocalePath } from "./i18n/routing";
 
 export default function HomePage() {
+  const { locale } = useLanguage();
+  const dictionary = useDictionary();
+
   return (
-    <div 
+    <div
       className="page-container-no-padding" 
       style={{ 
         display: 'flex', 
@@ -17,9 +22,9 @@ export default function HomePage() {
       }}
     >
       <Link
-        href="/freetournament"
+        href={withLocalePath(locale, "/freetournament")}
         className="btn-base floating-cta"
-        aria-label="Перейти к созданию быстрого турнира"
+        aria-label={dictionary.landing.fastTournamentAria}
         style={{
           fontSize: '1.5rem',
           padding: '1rem 2rem',
@@ -28,7 +33,7 @@ export default function HomePage() {
           zIndex: 2
         }}
       >
-        Быстрый турнир
+        {dictionary.landing.fastTournamentCta}
       </Link>
 
       <StatsFooter />

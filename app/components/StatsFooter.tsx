@@ -10,6 +10,8 @@ import { AuthContainer } from "@/app/components/AuthContainer";
 import { UserRole } from "@/app/models/Users";
 import "./StatsFooter.css";
 import { useUser } from "./UserContext";
+import { useDictionary, useLanguage } from "./LanguageProvider";
+import { withLocalePath } from "@/app/i18n/routing";
 
 export function StatsFooter() {
   const [matchesCount, setMatchesCount] = useState<number | null>(null);
@@ -20,6 +22,8 @@ export function StatsFooter() {
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [authRole, setAuthRole] = useState<UserRole.Player | UserRole.TournamentAdmin>(UserRole.Player);
   const { user } = useUser();
+  const { locale } = useLanguage();
+  const dictionary = useDictionary();
 
   useEffect(() => {
     let alive = true;
@@ -76,18 +80,18 @@ export function StatsFooter() {
               onClick={openLogin}
               className="stats-footer__auth-button"
             >
-              Войдите
+              {dictionary.statsFooter.loginPrefix}
             </button>
-            <span>{" или "}</span>
+            <span>{dictionary.statsFooter.loginOr}</span>
             <button
               onClick={openRegister}
               className="stats-footer__auth-button"
             >
-              Зарегистрируйтесь
+              {dictionary.statsFooter.registerPrefix}
             </button>
           </div>
           <div className="stats-footer__auth-line">
-            <span>для просмотра своих турниров</span>
+            <span>{dictionary.statsFooter.loginSuffix}</span>
           </div>
         </div>)}
 
@@ -97,28 +101,28 @@ export function StatsFooter() {
             <div className="stats-footer__stat-value">
               {clubsCount ?? "…"}
             </div>
-            <div className="stats-footer__stat-label">Клубов</div>
+            <div className="stats-footer__stat-label">{dictionary.statsFooter.stats.clubs}</div>
           </Link>
 
-          <Link href="/tournaments" className="stats-footer__stat-item">
+          <Link href={withLocalePath(locale, "/tournaments")} className="stats-footer__stat-item">
             <div className="stats-footer__stat-value">
               {tournamentsCount ?? "…"}
             </div>
-            <div className="stats-footer__stat-label">Турниров</div>
+            <div className="stats-footer__stat-label">{dictionary.statsFooter.stats.tournaments}</div>
           </Link>
 
-          <Link href="/rating" className="stats-footer__stat-item">
+          <Link href={withLocalePath(locale, "/rating")} className="stats-footer__stat-item">
             <div className="stats-footer__stat-value">
               {playersCount ?? "…"}
             </div>
-            <div className="stats-footer__stat-label">Участников</div>
+            <div className="stats-footer__stat-label">{dictionary.statsFooter.stats.players}</div>
           </Link>
 
-          <Link href="/matches" className="stats-footer__stat-item">
+          <Link href={withLocalePath(locale, "/matches")} className="stats-footer__stat-item">
             <div className="stats-footer__stat-value">
               {matchesCount ?? "…"}
             </div>
-            <div className="stats-footer__stat-label">Матчей</div>
+            <div className="stats-footer__stat-label">{dictionary.statsFooter.stats.matches}</div>
           </Link>
         </div>
       </footer>

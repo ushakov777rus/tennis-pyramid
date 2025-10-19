@@ -1,86 +1,93 @@
 import { MetadataRoute } from "next";
+
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 import { ClubsRepository } from "@/app/repositories/ClubsRepository";
+import { locales } from "./i18n/config";
+import { withLocalePath } from "./i18n/routing";
+
+const BASE_URL = "https://honeycup.ru";
+
+type LocalizedStaticRoute = {
+  path: string;
+  changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
+  priority: number;
+};
+
+const localizedStaticRoutes: LocalizedStaticRoute[] = [
+  { path: "/", changeFrequency: "weekly", priority: 1 },
+  { path: "/tournaments", changeFrequency: "daily", priority: 0.9 },
+  { path: "/matches", changeFrequency: "daily", priority: 0.8 },
+  { path: "/rating", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/freetournament", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/about", changeFrequency: "monthly", priority: 0.6 },
+];
+
+function buildAlternates(path: string) {
+  return locales.reduce<Record<string, string>>((acc, locale) => {
+    acc[locale] = `${BASE_URL}${withLocalePath(locale, path)}`;
+    return acc;
+  }, {});
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://honeycup.ru";
+  const localizedEntries: MetadataRoute.Sitemap = localizedStaticRoutes.flatMap(
+    ({ path, changeFrequency, priority }) => {
+      const alternates = buildAlternates(path);
+      const lastModified = new Date();
 
-  // Статические страницы
-  const routes: MetadataRoute.Sitemap = [
+      return locales.map((locale) => ({
+        url: `${BASE_URL}${withLocalePath(locale, path)}`,
+        lastModified,
+        changeFrequency,
+        priority,
+        alternates: { languages: alternates },
+      }));
+    }
+  );
+
+  const baseEntries: MetadataRoute.Sitemap = [
     {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/tournaments`,
-      lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/clubs`,
+      url: `${BASE_URL}/clubs`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/matches`,
-      lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/rating`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/freetournament`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/about`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.6,
     },
   ];
 
-  let tournamentUrls: MetadataRoute.Sitemap = [];
-  let clubUrls: MetadataRoute.Sitemap = [];
-
+  let tournamentEntries: MetadataRoute.Sitemap = [];
   try {
-    // Турниры
     const tournaments = await TournamentsRepository.loadAllSlugs();
-    tournamentUrls = tournaments.map((t) => ({
-      url: `${baseUrl}/tournaments/${t.slug}`,
-      lastModified: t.updatedAt ? new Date(t.updatedAt) : new Date(),
-      changeFrequency: "daily",
-      priority: 0.8,
-    }));
-  } catch (e) {
-    console.error("Ошибка генерации sitemap (турниры):", e);
+    tournamentEntries = tournaments.flatMap((tournament) => {
+      const path = `/tournaments/${tournament.slug}`;
+      const alternates = buildAlternates(path);
+      const lastModified = tournament.updatedAt
+        ? new Date(tournament.updatedAt)
+        : new Date();
+
+      return locales.map((locale) => ({
+        url: `${BASE_URL}${withLocalePath(locale, path)}`,
+        lastModified,
+        changeFrequency: "daily",
+        priority: 0.8,
+        alternates: { languages: alternates },
+      }));
+    });
+  } catch (error) {
+    console.error("Ошибка генерации sitemap (турниры):", error);
   }
 
+  let clubEntries: MetadataRoute.Sitemap = [];
   try {
-    // Клубы
     const clubs = await ClubsRepository.loadAllSlugs();
-    // ⚠️ Нужно реализовать метод loadAllSlugs в ClubsRepository
-    // чтобы он возвращал: { slug: string; updatedAt?: string | Date }[]
-    clubUrls = clubs.map((c) => ({
-      url: `${baseUrl}/clubs/${c.slug}`,
-      lastModified: c.updatedAt ? new Date(c.updatedAt) : new Date(),
+    clubEntries = clubs.map((club) => ({
+      url: `${BASE_URL}/clubs/${club.slug}`,
+      lastModified: club.updatedAt ? new Date(club.updatedAt) : new Date(),
       changeFrequency: "weekly",
       priority: 0.7,
     }));
-  } catch (e) {
-    console.error("Ошибка генерации sitemap (клубы):", e);
+  } catch (error) {
+    console.error("Ошибка генерации sitemap (клубы):", error);
   }
 
-  return [...routes, ...tournamentUrls, ...clubUrls];
+  return [...localizedEntries, ...baseEntries, ...tournamentEntries, ...clubEntries];
 }

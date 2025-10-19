@@ -1,12 +1,6 @@
-import type { Metadata } from "next";
-import MainPage from "./MainPage";
+import { redirect } from "next/navigation";
+import { defaultLocale } from "@/app/i18n/config";
 
-export const metadata: Metadata = {
-  alternates: {
-    canonical: "/",
-  },
-};
-
-export default function Page() {
-  return <MainPage />;
+export default function RootRedirectPage() {
+  redirect(`/${defaultLocale}`);
 }

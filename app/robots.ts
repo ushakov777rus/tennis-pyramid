@@ -1,17 +1,17 @@
 import { MetadataRoute } from "next";
 
+const BASE_URL = "https://honeycup.ru";
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
         userAgent: "*",
-        allow: ["/"],
+        allow: ["/", "/ru/", "/en/"],
         disallow: ["/api/", "/admin", "/_next/", "/private/"],
       },
     ],
     host: "honeycup.ru",
-    sitemap: [
-      "https://honeycup.ru/sitemap.xml",
-    ],
+    sitemap: [`${BASE_URL}/sitemap.xml`],
   };
 }
