@@ -10,13 +10,13 @@ export async function POST() {
     
     if (error) {
       console.error("Logout error:", error);
-      return NextResponse.json({ error: "Ошибка при выходе" }, { status: 500 });
+      return NextResponse.json({ error: "Failed to sign out" }, { status: 500 });
     }
 
-    return NextResponse.json({ message: "Выход выполнен успешно" });
+    return NextResponse.json({ message: "Sign-out successful" });
 
   } catch (e) {
     console.error("Logout route error:", e);
-    return NextResponse.json({ error: "Внутренняя ошибка сервера" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

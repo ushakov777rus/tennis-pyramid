@@ -14,6 +14,7 @@ import {
 } from "@/app/components/controls/IconButtons";
 import { AdminOnly } from "../RoleGuard";
 import { useEffect, useState } from "react";
+import { useDictionary } from "@/app/components/LanguageProvider";
 import type { CSSProperties, MouseEvent as ReactMouseEvent } from "react";
 
 type MatchCardProps = {
@@ -29,6 +30,7 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
   // состояние для временного тултипа "Пока не реализовано"
   const [showTooltip, setShowTooltip] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const { matchCard: matchCardText } = useDictionary();
   const scoreSets: Array<[number | string | null, number | string | null]> = Array.isArray(match.scores)
     ? (match.scores as any[])
     : [];
@@ -126,13 +128,13 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
     const nextScores: [number, number][] = [];
     for (const [aStr, bStr] of sanitized) {
       if (aStr === "" || bStr === "") {
-        setError("Заполните обе колонки в каждом сете");
+        setError(matchCardText.setsIncomplete);
         return;
       }
       const a = parseInt(aStr, 10);
       const b = parseInt(bStr, 10);
       if (Number.isNaN(a) || Number.isNaN(b)) {
-        setError("Счёт должен содержать только числа");
+        setError(matchCardText.scoreNumbersOnly);
         return;
       }
       nextScores.push([a, b]);
@@ -160,7 +162,7 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
       setDraftSets(buildDraftSets((updated.scores as any[]) ?? []));
     } catch (err: any) {
       console.error("MatchCard: update failed", err);
-      setError(err?.message ?? "Не удалось сохранить счёт");
+      setError(err?.message ?? matchCardText.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -193,7 +195,7 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
                   className="input match-card-score-input"
                   value={set[0]}
                   onChange={(e) => handleScoreInputChange(i, 0, e.target.value)}
-                  placeholder="0"
+                  placeholder={matchCardText.scorePlaceholder}
                   disabled={saving}
                 />
               </div>
@@ -211,9 +213,9 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
                   className="input match-card-score-input"
                   value={set[1]}
                   onChange={(e) => handleScoreInputChange(i, 1, e.target.value)}
-                  placeholder="0"
-                  disabled={saving}
-                />
+                placeholder={matchCardText.scorePlaceholder}
+                disabled={saving}
+              />
               </div>
             ))}
           </div>
@@ -287,12 +289,12 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
         <AdminOnly>
           <div className="card-bottom-toolbar">
             <SaveIconButton
-              title="Сохранить счёт"
+              title={matchCardText.save}
               onClick={handleSaveEdit}
               disabled={saving}
             />
             <CancelIconButton
-              title="Отменить редактирование"
+              title={matchCardText.cancel}
               onClick={handleCancelEdit}
               disabled={saving}
             />
@@ -301,7 +303,7 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
       ) : (
         <div className="card-bottom-toolbar">
           <LikeIconButton
-            title="Поставить лайк"
+            title={matchCardText.like}
             onClick={(e) => {
               e.stopPropagation();
               setShowTooltip(true);
@@ -310,7 +312,7 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
           />
 
           <CommentIconButton
-            title="Оставить комментарий"
+            title={matchCardText.comment}
             onClick={(e) => {
               e.stopPropagation();
               setShowTooltip(true);
@@ -320,14 +322,14 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
 
           <AdminOnly>
             <EditIconButton
-              title="Редактировать матч"
+              title={matchCardText.edit}
               onClick={handleEditClick}
               disabled={saving}
             />
 
             {onDelete && (
               <DeleteIconButton
-                title="Удалить матч"
+                title={matchCardText.delete}
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete(match);
@@ -336,7 +338,7 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
             )}
           </AdminOnly>
 
-          {showTooltip && <div className="invalid-tooltip">Пока не реализовано</div>}
+          {showTooltip && <div className="invalid-tooltip">{matchCardText.tooltipPending}</div>}
         </div>
       )}
     </div>

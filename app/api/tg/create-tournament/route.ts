@@ -121,7 +121,7 @@ export async function POST(req: Request) {
 
   const name = typeof form?.name === "string" ? form.name.trim() : "";
   if (!name) {
-    return NextResponse.json({ error: "Введите название турнира" }, { status: 400 });
+    return NextResponse.json({ error: "Tournament name is required" }, { status: 400 });
   }
 
   const format = safeTournamentFormat(form?.format);
@@ -131,7 +131,7 @@ export async function POST(req: Request) {
   const endDate = form?.end_date ? String(form.end_date) : null;
 
   if (startDate && endDate && startDate > endDate) {
-    return NextResponse.json({ error: "Дата начала позже даты окончания" }, { status: 400 });
+    return NextResponse.json({ error: "Start date cannot be after end date" }, { status: 400 });
   }
 
   console.log("[tg:create] incoming", {
@@ -192,6 +192,6 @@ export async function POST(req: Request) {
     return NextResponse.json(responseBody, { status: 200 });
   } catch (error: any) {
     console.error("[tg:create] failed", error);
-    return NextResponse.json({ error: "Не удалось создать турнир" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create tournament" }, { status: 500 });
   }
 }

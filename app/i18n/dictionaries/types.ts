@@ -392,4 +392,36 @@ export type Dictionary = {
     searchAria: string;
     empty: string;
   };
+  addMatchCard: {
+    attackerSingle: string;
+    attackerDouble: string;
+    attackerPyramid: string;
+    defenderSingle: string;
+    defenderDouble: string;
+    defenderPyramid: string;
+    scorePlaceholder: string;
+    invalidScore: string;
+    saveScore: string;
+  };
+  matchCard: {
+    scoreNumbersOnly: string;
+    saveFailed: string;
+    scorePlaceholder: string;
+    save: string;
+    cancel: string;
+    tooltipPending: string;
+    like: string;
+    comment: string;
+    edit: string;
+    delete: string;
+    setsIncomplete: string;
+  };
+  scoreKeyboard: {
+    ariaLabel: string;
+    formulaLabel: string;
+    scorePlaceholder: string;
+    cancel: string;
+    save: string;
+    backspace: string;
+  };
 };

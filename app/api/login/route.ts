@@ -9,11 +9,11 @@ export async function POST(req: Request) {
 
     // Валидация
     if (!email || typeof email !== "string" || !email.trim()) {
-      return NextResponse.json({ error: "Укажите email" }, { status: 400 });
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
-    
+
     if (!password || typeof password !== "string") {
-      return NextResponse.json({ error: "Укажите пароль" }, { status: 400 });
+      return NextResponse.json({ error: "Password is required" }, { status: 400 });
     }
 
     // Создаем Supabase клиент
@@ -29,14 +29,14 @@ export async function POST(req: Request) {
       console.error("Login error:", authError);
       
       if (authError.message.includes("Invalid login credentials")) {
-        return NextResponse.json({ error: "Неверный email или пароль" }, { status: 401 });
+        return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
       }
-      
-      return NextResponse.json({ error: "Ошибка при входе: " + authError.message }, { status: 500 });
+
+      return NextResponse.json({ error: "Login failed: " + authError.message }, { status: 500 });
     }
 
     if (!authData.user) {
-      return NextResponse.json({ error: "Пользователь не найден" }, { status: 401 });
+      return NextResponse.json({ error: "User not found" }, { status: 401 });
     }
 
     // Получаем дополнительную информацию о пользователе из таблицы users
@@ -89,7 +89,7 @@ export async function POST(req: Request) {
 
     // Создаём ответ
     const response = NextResponse.json({
-      message: "Вход выполнен успешно",
+      message: "Login successful",
       user,
     });
 
@@ -100,6 +100,6 @@ export async function POST(req: Request) {
 
   } catch (e: any) {
     console.error("Login route error:", e);
-    return NextResponse.json({ error: "Внутренняя ошибка сервера" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

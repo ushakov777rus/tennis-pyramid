@@ -14,7 +14,7 @@ export async function GET() {
     } = await supabase.auth.getSession();
 
     if (sessionError || !session?.user) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const authUser = session.user;
@@ -77,7 +77,7 @@ export async function GET() {
   } catch (e: any) {
     console.error("api/me: server error:", e);
     return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

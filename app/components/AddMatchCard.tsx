@@ -5,6 +5,7 @@ import React, { useCallback, useState } from "react";
 import { CustomSelect } from "@/app/components/controls/CustomSelect";
 import { SaveIconButton } from "./controls/IconButtons";
 import { Match } from "../models/Match";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 import "./AddMatchCard.css"
 
@@ -39,6 +40,7 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
     isDouble = false,
   }) => {
     const [scoreError, setScoreError] = useState(false);
+    const { addMatchCard } = useDictionary();
 
     const onChangeAttacker = useCallback(
       (val: string | number | null) => {
@@ -78,16 +80,16 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
     };
 
     const attackerPlaceholder = isPyramid
-      ? "Нападение"
+      ? addMatchCard.attackerPyramid
       : isDouble
-      ? "Команда 1"
-      : "Игрок 1";
+      ? addMatchCard.attackerDouble
+      : addMatchCard.attackerSingle;
 
     const defenderPlaceholder = isPyramid
-      ? "Защита"
+      ? addMatchCard.defenderPyramid
       : isDouble
-      ? "Команда 2"
-      : "Игрок 2";
+      ? addMatchCard.defenderDouble
+      : addMatchCard.defenderSingle;
 
     return (
       <div className="card add-match-card">
@@ -120,7 +122,7 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
           <div>
             <input
               type="text"
-              placeholder="6-4, 4-6, 11-8"
+              placeholder={addMatchCard.scorePlaceholder}
               value={matchScore}
               onChange={(e) => {
                 setMatchScore(e.target.value);
@@ -132,12 +134,13 @@ export const AddMatchCard: React.FC<AddMatchCardProps> = React.memo(
 
             <SaveIconButton
               className="lg"
-              title="Сохранить счёт"
-              aria-label="Сохранить счёт"
+              title={addMatchCard.saveScore}
+              aria-label={addMatchCard.saveScore}
               onClick={handleSave}
               disabled={false}
             />
           </div>
+          {scoreError && <div className="match-card-edit__error">{addMatchCard.invalidScore}</div>}
       </div>
     );
   }

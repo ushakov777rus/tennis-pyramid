@@ -3,6 +3,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 
 import "./ScoreKeyboard.css";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 const DYNAMIC_KEY = "__dynamic__" as const;
 const NUMBER_ROWS: Array<Array<string>> = [
@@ -60,6 +61,7 @@ export function ScoreKeyboard({
 }: ScoreKeyboardProps) {
   const internalRef = useRef<HTMLInputElement | null>(null);
   const mobile = useScoreKeyboardAvailable();
+  const { scoreKeyboard: scoreKeyboardText } = useDictionary();
 
   useEffect(() => {
     if (!inputRef) return;
@@ -241,7 +243,7 @@ export function ScoreKeyboard({
     <div
       className="score-kb"
       role="dialog"
-      aria-label="Редактор счёта"
+      aria-label={scoreKeyboardText.ariaLabel}
       style={undefined}
     >
       <div className="score-kb__participants">
@@ -263,7 +265,7 @@ export function ScoreKeyboard({
 
       <div className="score-kb__formula">
         <span className="score-kb__fx" aria-hidden>
-          Счет
+          {scoreKeyboardText.formulaLabel}
         </span>
         <input
           ref={internalRef}
@@ -273,7 +275,7 @@ export function ScoreKeyboard({
           onPaste={handlePaste}
           inputMode={mobile ? "numeric" : undefined}
           pattern="[0-9\\s,:-]*"
-          placeholder="6-4, 4-6, 10-8"
+          placeholder={scoreKeyboardText.scorePlaceholder}
           readOnly={false}
           onFocus={!autoFocus && mobile ? (e) => e.currentTarget.blur() : undefined}
           onKeyDown={handleKeyDown}
@@ -283,7 +285,7 @@ export function ScoreKeyboard({
           className="score-kb__action score-kb__action--cancel"
           onClick={onCancel}
           disabled={disabled}
-          aria-label="Отмена"
+          aria-label={scoreKeyboardText.cancel}
         >
           ✕
         </button>
@@ -292,7 +294,7 @@ export function ScoreKeyboard({
           className="score-kb__action score-kb__action--ok"
           onClick={onSave}
           disabled={disabled}
-          aria-label="Сохранить"
+          aria-label={scoreKeyboardText.save}
         >
           {"\u2713"}
         </button>
@@ -338,7 +340,7 @@ export function ScoreKeyboard({
                     className={`score-kb__key ${isBackspace ? "score-kb__key--backspace" : ""}`.trim()}
                     onClick={() => (isBackspace ? handleBackspace() : handleInsert(key))}
                     disabled={disabled}
-                    aria-label={isBackspace ? "Удалить" : undefined}
+                    aria-label={isBackspace ? scoreKeyboardText.backspace : undefined}
                   >
                     {key}
                   </button>
