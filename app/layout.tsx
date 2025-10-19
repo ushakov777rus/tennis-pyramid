@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://honeycup.ru"),
   title: {
     default:
-      "HoneyCup — генератор турнирной сетки онлайн и любительские теннисные турниры",
+      "HoneyCup — генератор турнирной сетки онлайн и любительские турниры по теннису, паделу и бадминтону",
     template: "%s — HoneyCup",
   },
   description:
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://honeycup.ru",
     title:
-      "HoneyCup — генератор турнирной сетки онлайн и любительские теннисные турниры",
+      "HoneyCup — генератор турнирной сетки онлайн и любительские турниры, паделу и бадминтону",
     description:
       "Создавайте и проводите любительские теннисные турниры: сетки, таблицы, расписания, статистика, рейтинги и онлайн-табло.",
     siteName: "HoneyCup",
