@@ -447,6 +447,18 @@ export const enDictionary: Dictionary = {
     noTitle: "No title",
     unknownPlayer: "Player",
   },
+  controls: {
+    select: {
+      placeholder: "Select…",
+      searchPlaceholder: "Search…",
+      empty: "Nothing found",
+    },
+  },
+  matchHistory: {
+    searchPlaceholder: "Search players/teams…",
+    searchAria: "Search by players or teams",
+    empty: "No matches yet",
+  },
   languageSwitcher: {
     label: "Language",
     localeNames: {

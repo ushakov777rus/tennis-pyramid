@@ -2,6 +2,7 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import "./CustomSelect.css";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 type Option = {
   value: string | number;
@@ -32,7 +33,7 @@ export function CustomSelect({
   options,
   value = null,
   onChange,
-  placeholder = "Выберите...",
+  placeholder,
   disabled = false,
   className = "",
   maxDropdownHeight = 240,
@@ -40,6 +41,10 @@ export function CustomSelect({
   sort = "asc",              // 👈 по умолчанию сортируем по возрастанию (как раньше)
   rows = 6,
 }: CustomSelectProps) {
+
+  const { controls } = useDictionary();
+  const selectText = controls.select;
+  const effectivePlaceholder = placeholder ?? selectText.placeholder;
 
   const comboboxRef = useRef<HTMLDivElement | null>(null);
   const listboxRef = useRef<HTMLDivElement | null>(null);
@@ -298,8 +303,8 @@ export function CustomSelect({
 
   const labelToShow = useMemo(() => {
     const i = sortedOptions.findIndex((o) => String(o.value) === String(value));
-    return i >= 0 ? sortedOptions[i].label : placeholder;
-  }, [sortedOptions, value, placeholder]);
+    return i >= 0 ? sortedOptions[i].label : effectivePlaceholder;
+  }, [sortedOptions, value, effectivePlaceholder]);
 
   // При открытии — автофокус в поиск и сброс предыдущего запроса
   useEffect(() => {
@@ -322,7 +327,7 @@ export function CustomSelect({
         onClick={() => setOpenSafe(!open)}
         onKeyDown={onKeyDown}
       >
-        <span className={`cs-value ${labelToShow === placeholder ? "is-placeholder" : ""}`}>
+        <span className={`cs-value ${labelToShow === effectivePlaceholder ? "is-placeholder" : ""}`}>
           {labelToShow}
         </span>
         <span className="cs-caret" aria-hidden>▾</span>
@@ -347,7 +352,7 @@ export function CustomSelect({
                 className="input cs-search"
                 type="text"
                 autoFocus
-                placeholder="Поиск..."
+                placeholder={selectText.searchPlaceholder}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {
@@ -365,7 +370,7 @@ export function CustomSelect({
 
           {/* Список опций */}
           {filteredOptions.length === 0 ? (
-            <div className="cs-empty">Ничего не найдено</div>
+            <div className="cs-empty">{selectText.empty}</div>
           ) : (
             filteredOptions.map((o, i) => {
               const isSelected = i === selectedIndex;

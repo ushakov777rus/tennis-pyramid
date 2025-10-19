@@ -5,6 +5,7 @@ import "@/app/components/matches/MatchHistoryView.css";
 
 import { Match } from "@/app/models/Match";
 import { MatchCard } from "@/app/components/matches/MatchCard";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 type MatchHistoryViewProps = {
   matches: Match[];
@@ -19,6 +20,7 @@ export function MatchHistoryView({
 }: MatchHistoryViewProps) {
   // --- строка поиска
   const [q, setQ] = useState("");
+  const { matchHistory } = useDictionary();
 
   // нормализатор строки (убираем регистр и пробелы по краям)
   const norm = (s: string | null | undefined) => (s ?? "").trim().toLowerCase();
@@ -42,7 +44,7 @@ export function MatchHistoryView({
     });
   }, [matches, q]);
 
-  if (matches.length === 0) return <p className="history-empty">Матчей пока нет</p>;
+  if (matches.length === 0) return <p className="history-empty">{matchHistory.empty}</p>;
 
   return (
     <div className="card-grid-wrapper">
@@ -53,8 +55,8 @@ export function MatchHistoryView({
           type="text"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Поиск по игрокам/командам…"
-          aria-label="Поиск по игрокам или командам"
+          placeholder={matchHistory.searchPlaceholder}
+          aria-label={matchHistory.searchAria}
         />
       </div>
 

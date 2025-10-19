@@ -453,6 +453,18 @@ export const ruDictionary: Dictionary = {
     noTitle: "Без титула",
     unknownPlayer: "Игрок",
   },
+  controls: {
+    select: {
+      placeholder: "Выберите…",
+      searchPlaceholder: "Поиск…",
+      empty: "Ничего не найдено",
+    },
+  },
+  matchHistory: {
+    searchPlaceholder: "Поиск по игрокам/командам…",
+    searchAria: "Поиск по игрокам или командам",
+    empty: "Матчей пока нет",
+  },
   languageSwitcher: {
     label: "Язык",
     localeNames: {

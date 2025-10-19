@@ -380,4 +380,16 @@ export type Dictionary = {
     noTitle: string;
     unknownPlayer: string;
   };
+  controls: {
+    select: {
+      placeholder: string;
+      searchPlaceholder: string;
+      empty: string;
+    };
+  };
+  matchHistory: {
+    searchPlaceholder: string;
+    searchAria: string;
+    empty: string;
+  };
 };
