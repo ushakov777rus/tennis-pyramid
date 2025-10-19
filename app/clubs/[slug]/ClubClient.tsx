@@ -23,8 +23,8 @@ type ViewKey = "aboutc" | "participants" | "tournaments" | "rating";
 export default function ClubClient() {
   const { user } = useUser();
   const { club } = useClub();
-  const searchParams = useSearchParams(); // Добавьте это
-  const { clubPage, common } = useDictionary();
+  const searchParams = useSearchParams();
+  const { clubPage } = useDictionary();
 
   const [view, setView] = useState<ViewKey>("aboutc");
 
@@ -36,7 +36,7 @@ export default function ClubClient() {
       { key: "tournaments", label: clubPage.tabs.tournaments },
       { key: "rating", label: clubPage.tabs.rating },
     ].filter(Boolean) as TabItem[],
-    [user?.role]
+    [user?.role, clubPage.tabs.about, clubPage.tabs.participants, clubPage.tabs.tournaments, clubPage.tabs.rating]
   );
 
   // Синхронизация с URL параметром tab
