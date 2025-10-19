@@ -9,11 +9,11 @@ export async function POST(req: Request) {
 
     // Валидация
     if (!email || typeof email !== "string" || !email.trim()) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
+      return NextResponse.json({ errorCode: "login.emailRequired" }, { status: 400 });
     }
 
     if (!password || typeof password !== "string") {
-      return NextResponse.json({ error: "Password is required" }, { status: 400 });
+      return NextResponse.json({ errorCode: "login.passwordRequired" }, { status: 400 });
     }
 
     // Создаем Supabase клиент
@@ -29,14 +29,14 @@ export async function POST(req: Request) {
       console.error("Login error:", authError);
       
       if (authError.message.includes("Invalid login credentials")) {
-        return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+        return NextResponse.json({ errorCode: "login.invalidCredentials" }, { status: 401 });
       }
 
-      return NextResponse.json({ error: "Login failed: " + authError.message }, { status: 500 });
+      return NextResponse.json({ errorCode: "login.loginFailed" }, { status: 500 });
     }
 
     if (!authData.user) {
-      return NextResponse.json({ error: "User not found" }, { status: 401 });
+      return NextResponse.json({ errorCode: "login.userNotFound" }, { status: 401 });
     }
 
     // Получаем дополнительную информацию о пользователе из таблицы users
@@ -88,10 +88,7 @@ export async function POST(req: Request) {
     console.log("login:user", user);
 
     // Создаём ответ
-    const response = NextResponse.json({
-      message: "Login successful",
-      user,
-    });
+    const response = NextResponse.json({ user });
 
     // Устанавливаем сессионные куки через Supabase
     // Supabase автоматически управляет сессией через куки
@@ -100,6 +97,6 @@ export async function POST(req: Request) {
 
   } catch (e: any) {
     console.error("Login route error:", e);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ errorCode: "common.internalError" }, { status: 500 });
   }
 }

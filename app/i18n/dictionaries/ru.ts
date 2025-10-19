@@ -18,6 +18,11 @@ export const ruDictionary: Dictionary = {
       open: "Открыть меню",
       close: "Закрыть меню",
     },
+    errors: {
+      userLoad: "Не удалось загрузить пользователя",
+      unauthorized: "Не авторизован",
+      internalError: "Внутренняя ошибка сервера",
+    },
   },
   navigation: {
     home: "Главная",
@@ -357,6 +362,14 @@ export const ruDictionary: Dictionary = {
       errorFallback: "Ошибка входа",
       noAccountPrefix: "Нет аккаунта?",
       registerLink: "Зарегистрируйтесь",
+      errors: {
+        emailRequired: "Укажите email",
+        passwordRequired: "Укажите пароль",
+        invalidCredentials: "Неверный email или пароль",
+        userNotFound: "Пользователь не найден",
+        loginFailed: "Не удалось выполнить вход",
+        serverError: "Ошибка сервера. Попробуйте ещё раз",
+      },
     },
     register: {
       title: "Регистрация пользователя",
@@ -385,6 +398,7 @@ export const ruDictionary: Dictionary = {
         passwordMismatch: "Пароли не совпадают",
         ntrpRequired: "Укажите NTRP или 0.0, если не знаете",
         registrationFailed: "Ошибка регистрации",
+        roleRequired: "Укажите роль",
         network: "Сеть недоступна или сервер не отвечает",
       },
     },

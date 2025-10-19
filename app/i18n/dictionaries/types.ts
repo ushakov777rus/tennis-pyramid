@@ -14,6 +14,7 @@ export type Dictionary = {
       open: string;
       close: string;
     };
+    errors?: Record<string, string>;
   };
   navigation: {
     home: string;
@@ -284,6 +285,7 @@ export type Dictionary = {
       errorFallback: string;
       noAccountPrefix: string;
       registerLink: string;
+      errors: Record<string, string>;
     };
     register: {
       title: string;

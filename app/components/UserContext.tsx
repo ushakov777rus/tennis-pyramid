@@ -10,6 +10,7 @@ import {
   useRef,
 } from "react";
 import { User } from "../models/Users";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 type Ctx = {
   user: User | null;
@@ -31,6 +32,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { common } = useDictionary();
+  const commonErrors = (common.errors as Record<string, string> | undefined) ?? {};
 
   const inFlight = useRef<AbortController | null>(null);
 
@@ -53,7 +56,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data?.error ?? "Не удалось загрузить пользователя");
+        const code = data?.errorCode;
+        const key = typeof code === "string" ? code.split(".").pop() ?? code : undefined;
+        setError((key && commonErrors[key]) ?? commonErrors.userLoad ?? "Failed to load user");
         setUser(null);
       } else {
         // кладём в контекст модель User c полем player (объект/ null)
@@ -69,7 +74,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       if (inFlight.current === ac) inFlight.current = null;
       setLoading(false);
     }
-  }, []);
+  }, [commonErrors]);
 
   useEffect(() => {
     void refresh();

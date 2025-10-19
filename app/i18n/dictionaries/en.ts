@@ -17,6 +17,11 @@ export const enDictionary: Dictionary = {
       open: "Open menu",
       close: "Close menu",
     },
+    errors: {
+      userLoad: "Failed to load user",
+      unauthorized: "Unauthorized",
+      internalError: "Server error",
+    },
   },
   navigation: {
     home: "Home",
@@ -351,6 +356,14 @@ export const enDictionary: Dictionary = {
       errorFallback: "Unable to sign in",
       noAccountPrefix: "Don't have an account?",
       registerLink: "Sign up",
+      errors: {
+        emailRequired: "Enter your email",
+        passwordRequired: "Enter your password",
+        invalidCredentials: "Invalid email or password",
+        userNotFound: "User not found",
+        loginFailed: "Login failed",
+        serverError: "Server error. Try again",
+      },
     },
     register: {
       title: "Create account",
@@ -379,6 +392,7 @@ export const enDictionary: Dictionary = {
         passwordMismatch: "Passwords do not match",
         ntrpRequired: "Enter the NTRP or 0.0 if unknown",
         registrationFailed: "Registration failed",
+        roleRequired: "Select a role",
         network: "Network is unavailable or the server is not responding",
       },
     },

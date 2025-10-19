@@ -27,6 +27,7 @@ export function LoginModal({
   const { setUser } = useUser();
   const { auth, common } = useDictionary();
   const { login } = auth;
+  const loginErrors = login.errors as Record<string, string>;
 
   if (!isOpen) return null;
 
@@ -42,7 +43,9 @@ export function LoginModal({
     const data = await res.json();
 
     if (!res.ok) {
-      setError(data.error || login.errorFallback);
+      const code = data?.errorCode;
+      const key = typeof code === "string" ? code.split(".").pop() ?? code : undefined;
+      setError((key && loginErrors[key]) || login.errorFallback);
       return;
     }
 

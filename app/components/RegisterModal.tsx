@@ -27,6 +27,7 @@ export function RegisterModal({
   const { setUser, refresh } = useUser();
   const { auth } = useDictionary();
   const { register } = auth;
+  const registerErrors = register.errors as Record<string, string>;
 
   const [role, setRole] = useState<UserRole>(defaultRole);
   const [fullName, setFullName] = useState("");
@@ -99,7 +100,9 @@ export function RegisterModal({
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data?.error || register.errors.registrationFailed);
+        const code = data?.errorCode;
+        const key = typeof code === "string" ? code.split(".").pop() ?? code : undefined;
+        setError((key && registerErrors[key]) || register.errors.registrationFailed);
         return;
       }
 
