@@ -156,8 +156,8 @@ export function SideNavigationBar() {
   const userNav = useMemo(
     () =>
       isAdmin
-        ? [{ path: "/admin", label: dictionary.sidebar.myClub, icon: <IconMyClub />, localized: false }]
-        : [{ path: "/player", label: dictionary.sidebar.myClubs, icon: <IconMyClub />, localized: false }],
+        ? [{ path: "/admin", label: dictionary.sidebar.myClub, icon: <IconMyClub />, localized: true }]
+        : [{ path: "/player", label: dictionary.sidebar.myClubs, icon: <IconMyClub />, localized: true }],
     [isAdmin, dictionary],
   );
 

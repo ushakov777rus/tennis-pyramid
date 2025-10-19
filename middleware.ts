@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { defaultLocale, isLocale, locales } from "./app/i18n/config";
 
-const HANDLED_PATH_PREFIXES = ["/", "/tournaments", "/matches", "/rating", "/freetournament", "/about"];
+const HANDLED_PATH_PREFIXES = ["/", "/tournaments", "/matches", "/rating", "/freetournament", "/about", "/admin", "/player"];
 
 const PUBLIC_FILE = /\.(.*)$/;
 

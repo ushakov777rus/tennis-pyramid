@@ -157,7 +157,7 @@ export const enDictionary: Dictionary = {
       { key: "matches", label: "MATCHES", link: "/matches", localized: true },
       { key: "players", label: "PLAYERS", link: "/rating", localized: true },
       { key: "tournaments", label: "TOURNAMENTS", link: "/tournaments", localized: true },
-      { key: "clubs", label: "CLUBS", link: "/clubs", localized: false },
+      { key: "clubs", label: "CLUBS", link: "/clubs", localized: true },
     ],
     intro: {
       title: "Everything for amateur tournaments",
