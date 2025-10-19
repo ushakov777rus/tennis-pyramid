@@ -63,7 +63,7 @@ export default function UserPage() {
     return () => {
       cancelled = true;
     };
-  }, [user]); // если user меняется, перегружаем
+  }, [user, mePage.playerNotFound, mePage.loadFailed]); // если user меняется, перегружаем
 
   // Подсчёт статистики побед/поражений
   const { wins, losses, winRate } = useMemo(() => {

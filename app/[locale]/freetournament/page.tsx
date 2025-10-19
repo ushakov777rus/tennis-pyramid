@@ -9,7 +9,7 @@ import { withLocalePath } from "@/app/i18n/routing";
 const BASE_URL = "https://honeycup.ru";
 
 type PageProps = {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 };
 
 export function generateStaticParams() {
@@ -17,11 +17,13 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  if (!isLocale(params.locale)) {
+  const { locale } = await params;
+
+  if (!isLocale(locale)) {
     return {};
   }
 
-  const dictionary = await getDictionary(params.locale);
+  const dictionary = await getDictionary(locale);
   const meta = dictionary.metadata.freeTournament;
 
   return {
@@ -37,7 +39,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: meta.description,
     },
     alternates: {
-      canonical: `${BASE_URL}${withLocalePath(params.locale, meta.canonical)}`,
+      canonical: `${BASE_URL}${withLocalePath(locale, meta.canonical)}`,
     },
     other: {
       "og:description": meta.openGraphDescription,
@@ -45,8 +47,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default function LocaleFreeTournamentPage({ params }: PageProps) {
-  if (!isLocale(params.locale)) {
+export default async function LocaleFreeTournamentPage({ params }: PageProps) {
+  const { locale } = await params;
+
+  if (!isLocale(locale)) {
     notFound();
   }
 

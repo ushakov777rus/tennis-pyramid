@@ -11,7 +11,6 @@ import { DEFAULT_MATCH_PHASE, Match, MatchPhase, PhaseType } from "@/app/models/
 import { Participant } from "@/app/models/Participant";
 
 import { TournamentCard } from "@/app/components/TournamentCard";
-import { LoggedIn } from "@/app/components/RoleGuard";
 
 import { RatingView } from "@/app/components/RatingView";
 import { MatchHistoryModal } from "@/app/components/MatchHistoryModal";
@@ -381,7 +380,7 @@ export default function TournamentClient() {
         alert(err instanceof Error ? err.message : tournamentAlerts.saveScoreFallback);
       }
     },
-    [tournament, matches, updateMatch, addMatch, reload, tournamentAlerts.saveScoreFallback]
+    [tournament, matches, updateMatch, addMatch, tournamentAlerts.saveScoreFallback]
   );
 
   // Функции для управления глобальной клавиатурой
