@@ -443,6 +443,16 @@ export const ruDictionary: Dictionary = {
     },
     fallbackName: "Без имени",
   },
+  ratingView: {
+    loadFailed: "Не удалось загрузить данные для рейтинга",
+    tournamentMissing: "Турнир не найден",
+    loading: "Загрузка…",
+    searchPlaceholder: "Поиск",
+    noParticipants: "Пока нет участников.",
+    noMatches: "Игроки не найдены.",
+    noTitle: "Без титула",
+    unknownPlayer: "Игрок",
+  },
   languageSwitcher: {
     label: "Язык",
     localeNames: {

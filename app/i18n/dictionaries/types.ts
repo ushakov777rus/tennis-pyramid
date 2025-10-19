@@ -370,4 +370,14 @@ export type Dictionary = {
     };
     fallbackName: string;
   };
+  ratingView: {
+    loadFailed: string;
+    tournamentMissing: string;
+    loading: string;
+    searchPlaceholder: string;
+    noParticipants: string;
+    noMatches: string;
+    noTitle: string;
+    unknownPlayer: string;
+  };
 };

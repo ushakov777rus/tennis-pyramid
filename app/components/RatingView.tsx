@@ -19,6 +19,7 @@ import { calculateParticipantTitles } from "./rating/calculateParticipantTitles"
 import { PlayersRepository } from "@/app/repositories/PlayersRepository";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { useUser } from "./UserContext";
+import { useDictionary } from "./LanguageProvider";
 
 type ParticipantStats = {
   games: number;
@@ -41,6 +42,7 @@ export function RatingView() {
   const clubCtx = useOptionalClub();
   const matchesCtx = useOptionalMatches();
   const { user } = useUser();
+  const { ratingView: ratingText, players: playersText } = useDictionary();
 
   const tournament = tournamentCtx?.tournament ?? null;
   const participants = tournamentCtx?.participants ?? EMPTY_PARTICIPANTS;
@@ -104,7 +106,7 @@ export function RatingView() {
       } catch (error) {
         console.error("RatingView: failed to load global rating data", error);
         if (!cancelled) {
-          setGlobalError("Не удалось загрузить данные для рейтинга");
+          setGlobalError(ratingText.loadFailed);
         }
       } finally {
         if (!cancelled) {
@@ -118,7 +120,7 @@ export function RatingView() {
     return () => {
       cancelled = true;
     };
-  }, [scope, matchesFromCtx.length, globalPlayers, globalMatches]);
+  }, [scope, matchesFromCtx.length, globalPlayers, globalMatches, ratingText.loadFailed]);
 
   const scopedMatches: Match[] = useMemo(() => {
     if (scope === "tournament") return tournamentMatches;
@@ -237,13 +239,13 @@ export function RatingView() {
         titles.length > 0
           ? titles.join(" • ")
           : scope === "tournament"
-          ? "Без титула"
+          ? ratingText.noTitle
           : undefined;
 
       const displayName =
         subject.players
-          .map((player) => player.displayName?.() ?? player.name ?? "Без имени")
-          .join(" / ") || "Без имени";
+          .map((player) => player.displayName?.() ?? player.name ?? playersText.fallbackName)
+          .join(" / ") || playersText.fallbackName;
 
       return {
         id: subject.id,
@@ -272,7 +274,7 @@ export function RatingView() {
       rank: index + 1,
       displayName: item.displayName,
     }));
-  }, [subjects, statsById, titlesById, scope]);
+  }, [subjects, statsById, titlesById, scope, ratingText.noTitle, playersText.fallbackName]);
 
   const filteredCards = useMemo(() => {
     const query = filterPlayer.name?.trim().toLowerCase();
@@ -301,8 +303,8 @@ export function RatingView() {
       ? globalError ?? matchesError
       : null;
 
-  if (tournamentCtx && !tournament) return <p>Турнир не найден</p>;
-  if (isInitialLoading) return <p>Загрузка…</p>;
+  if (tournamentCtx && !tournament) return <p>{ratingText.tournamentMissing}</p>;
+  if (isInitialLoading) return <p>{ratingText.loading}</p>;
   if (scopeError) {
     return <p style={{ color: "#f04438" }}>{scopeError}</p>;
   }
@@ -320,7 +322,7 @@ export function RatingView() {
           name="player-name"
           type="text"
           className="input"
-          placeholder="Поиск"
+          placeholder={ratingText.searchPlaceholder}
           value={filterPlayer.name || ""}
           onChange={(e) => setFilterPlayer({ ...filterPlayer, name: e.target.value })}
           suppressHydrationWarning
@@ -328,9 +330,9 @@ export function RatingView() {
       </div>
 
       {noParticipants ? (
-        <p>Пока нет участников.</p>
+        <p>{ratingText.noParticipants}</p>
       ) : noMatchesForSearch ? (
-        <p>Игроки не найдены.</p>
+        <p>{ratingText.noMatches}</p>
       ) : (
         <div className="card-grid-one-column">
           {filteredCards.map((card) => {
@@ -350,7 +352,7 @@ export function RatingView() {
 
               const user = new User({
                 id: primaryPlayer.id ?? 0,
-                name: primaryPlayer.name ?? "Игрок",
+                name: primaryPlayer.name ?? ratingText.unknownPlayer,
                 role: UserRole.Player,
                 player: primaryPlayer,
               });

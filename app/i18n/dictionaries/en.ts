@@ -437,6 +437,16 @@ export const enDictionary: Dictionary = {
     },
     fallbackName: "Unknown",
   },
+  ratingView: {
+    loadFailed: "Failed to load rating data",
+    tournamentMissing: "Tournament not found",
+    loading: "Loading…",
+    searchPlaceholder: "Search",
+    noParticipants: "No participants yet.",
+    noMatches: "No players match your search.",
+    noTitle: "No title",
+    unknownPlayer: "Player",
+  },
   languageSwitcher: {
     label: "Language",
     localeNames: {
