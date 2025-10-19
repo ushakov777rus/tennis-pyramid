@@ -429,6 +429,20 @@ export const ruDictionary: Dictionary = {
     matchesTitle: "Матчи",
     matchesEmpty: "Пока нет сыгранных матчей",
   },
+  players: {
+    ntrp: "NTRP {value}",
+    matches: "Игр: {count}",
+    wins: "Побед: {count}",
+    winRateShort: "WR: {value}%",
+    tooltipPending: "Пока не реализовано",
+    actions: {
+      like: "Поставить лайк",
+      comment: "Оставить комментарий",
+      edit: "Редактировать игрока",
+      delete: "Удалить игрока",
+    },
+    fallbackName: "Без имени",
+  },
   languageSwitcher: {
     label: "Язык",
     localeNames: {

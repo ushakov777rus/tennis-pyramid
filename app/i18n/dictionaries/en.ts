@@ -423,6 +423,20 @@ export const enDictionary: Dictionary = {
     matchesTitle: "Matches",
     matchesEmpty: "No matches yet",
   },
+  players: {
+    ntrp: "NTRP {value}",
+    matches: "Matches: {count}",
+    wins: "Wins: {count}",
+    winRateShort: "WR: {value}%",
+    tooltipPending: "Coming soon",
+    actions: {
+      like: "Like",
+      comment: "Leave a comment",
+      edit: "Edit player",
+      delete: "Delete player",
+    },
+    fallbackName: "Unknown",
+  },
   languageSwitcher: {
     label: "Language",
     localeNames: {

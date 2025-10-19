@@ -6,6 +6,7 @@ import { CommentIconButton, DeleteIconButton, EditIconButton, LikeIconButton } f
 import { AdminOnly } from "../RoleGuard";
 import { useState, type KeyboardEvent } from "react";
 import { Player } from "@/app/models/Player";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 type PlayerCardProps = {
   players: Player[];
@@ -19,6 +20,7 @@ export function PlayerCard({ players, stats, titles, onClick, onDelete }: Player
   const participants = players.filter((p): p is Player => Boolean(p));
   // состояние для временного тултипа "Пока не реализовано"
   const [showTooltip, setShowTooltip] = useState(false);
+  const { players: playersText } = useDictionary();
 
   if (!participants.length) return null;
 
@@ -28,7 +30,7 @@ export function PlayerCard({ players, stats, titles, onClick, onDelete }: Player
 
   const isTeam = participants.length > 1;
 
-  const names = participants.map((p) => p.displayName?.() ?? p.name ?? "Без имени").join("\n");
+  const names = participants.map((p) => p.displayName?.() ?? p.name ?? playersText.fallbackName).join("\n");
   const initials = participants.map((p) => {
     const name = p.displayName?.() ?? p.name ?? "U";
     return name.trim().charAt(0).toUpperCase() || "U";
@@ -77,10 +79,10 @@ export function PlayerCard({ players, stats, titles, onClick, onDelete }: Player
           </div>
         </div>  
         <div className="player-card-second-row">
-            <div className="badge">NTRP {ntrpLabel}</div>
-            <div>Игр: {stats.matches ?? 0}</div>
-            <div>Побед: {stats.wins ?? 0}</div>
-            <div>WR: {winrate(stats.winrate)}</div>
+            <div className="badge">{playersText.ntrp.replace("{value}", ntrpLabel)}</div>
+            <div>{playersText.matches.replace("{count}", String(stats.matches ?? 0))}</div>
+            <div>{playersText.wins.replace("{count}", String(stats.wins ?? 0))}</div>
+            <div>{playersText.winRateShort.replace("{value}", winrate(stats.winrate).replace("%", ""))}</div>
         </div>
         
           {titles && 
@@ -93,7 +95,7 @@ export function PlayerCard({ players, stats, titles, onClick, onDelete }: Player
       <div className="card-bottom-toolbar">
         {/* кнопка лайка */}
         <LikeIconButton
-          title="Поставить лайк"
+          title={playersText.actions.like}
           onClick={(e) => {
             e.stopPropagation();
             setShowTooltip(true);
@@ -103,7 +105,7 @@ export function PlayerCard({ players, stats, titles, onClick, onDelete }: Player
 
         {/* кнопка комментария */}
         <CommentIconButton
-          title="Оставить комментарий"
+          title={playersText.actions.comment}
           onClick={(e) => {
             e.stopPropagation();
             setShowTooltip(true);
@@ -114,7 +116,7 @@ export function PlayerCard({ players, stats, titles, onClick, onDelete }: Player
         {/* кнопка удаления доступна только админам */}
         <AdminOnly>
           <EditIconButton 
-            title="Удалить игрока"
+            title={playersText.actions.edit}
             onClick={(e) => {
               e.stopPropagation();
               setShowTooltip(true);
@@ -124,7 +126,7 @@ export function PlayerCard({ players, stats, titles, onClick, onDelete }: Player
 
           {onDelete && (
             <DeleteIconButton
-              title="Удалить игрока"
+              title={playersText.actions.delete}
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete()}}
@@ -133,7 +135,7 @@ export function PlayerCard({ players, stats, titles, onClick, onDelete }: Player
         </AdminOnly>
 
         {/* тултип "Пока не реализовано" */}
-        {showTooltip && <div className="invalid-tooltip">Пока не реализовано</div>}
+        {showTooltip && <div className="invalid-tooltip">{playersText.tooltipPending}</div>}
       </div>
     </div>
   );

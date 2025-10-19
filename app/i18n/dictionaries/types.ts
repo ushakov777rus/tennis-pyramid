@@ -356,4 +356,18 @@ export type Dictionary = {
     matchesTitle: string;
     matchesEmpty: string;
   };
+  players: {
+    ntrp: string;
+    matches: string;
+    wins: string;
+    winRateShort: string;
+    tooltipPending: string;
+    actions: {
+      like: string;
+      comment: string;
+      edit: string;
+      delete: string;
+    };
+    fallbackName: string;
+  };
 };
