@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
 import { formatDate } from "@/app/components/Utils";
 import { Tournament } from "@/app/models/Tournament";
-import { TournamentStatus, STATUS_OPTIONS } from "@/app/models/Tournament";
+import { TournamentStatus, TournamentFormat, STATUS_OPTIONS } from "@/app/models/Tournament";
 import { useUser } from "@/app/components/UserContext";
 import { useTournaments } from "@/app/tournaments/TournamentsProvider";
 import { UserRole } from "@/app/models/Users";
 import { DeleteIconButton } from "./controls/IconButtons";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 import "./TournamentCard.css";
 
@@ -34,9 +35,37 @@ export function TournamentCard({
 }: TournamentCardProps) {
   const { user } = useUser();
   const { updateTournamentStatus } = useTournaments();
+  const { tournaments: tournamentsText } = useDictionary();
+  const tournamentsCard = tournamentsText.card;
   const statusOptions = useMemo(
-    () => STATUS_OPTIONS.filter((opt) => opt.value) as { value: TournamentStatus; label: string }[],
-    []
+    () =>
+      STATUS_OPTIONS.filter((opt) => opt.value).map((opt) => ({
+        value: opt.value as TournamentStatus,
+        label: tournamentsText.statusLabels[opt.value as TournamentStatus],
+      })),
+    [tournamentsText.statusLabels]
+  );
+  const resolveFormatLabel = useCallback(
+    (format: TournamentFormat) => {
+      switch (format) {
+        case TournamentFormat.RoundRobin:
+          return tournamentsText.formatLabels.roundRobin;
+        case TournamentFormat.SingleElimination:
+          return tournamentsText.formatLabels.singleElimination;
+        case TournamentFormat.DoubleElimination:
+          return tournamentsText.formatLabels.doubleElimination;
+        case TournamentFormat.GroupsPlayoff:
+          return tournamentsText.formatLabels.groupsPlayoff;
+        case TournamentFormat.Swiss:
+          return tournamentsText.formatLabels.swiss;
+        case TournamentFormat.Custom:
+          return tournamentsText.formatLabels.custom;
+        case TournamentFormat.Pyramid:
+        default:
+          return tournamentsText.formatLabels.pyramid;
+      }
+    },
+    [tournamentsText.formatLabels]
   );
   const [statusMenuOpen, setStatusMenuOpen] = useState(false);
   const [statusPending, setStatusPending] = useState(false);
@@ -61,8 +90,25 @@ export function TournamentCard({
 
   const currentStatusLabel = useMemo(() => {
     const matched = statusOptions.find((option) => option.value === currentStatus);
-    return matched ? matched.label : tournament?.getStatus() ?? "";
-  }, [currentStatus, statusOptions, tournament]);
+    return matched ? matched.label : tournamentsText.statusLabels[currentStatus] ?? "";
+  }, [currentStatus, statusOptions, tournamentsText.statusLabels]);
+
+  const typeLabel = useMemo(
+    () => (tournament ? tournamentsText.typeLabels[tournament.tournament_type] : ""),
+    [tournament, tournamentsText.typeLabels]
+  );
+  const formatLabel = useMemo(
+    () => (tournament ? resolveFormatLabel(tournament.format as TournamentFormat) : ""),
+    [tournament, resolveFormatLabel]
+  );
+  const participantsLabel = useMemo(
+    () => tournamentsCard.participantsLabel.replace(" {count}", ""),
+    [tournamentsCard.participantsLabel]
+  );
+  const matchesLabel = useMemo(
+    () => tournamentsCard.matchesLabel.replace(" {count}", ""),
+    [tournamentsCard.matchesLabel]
+  );
 
   const className = `card card-800px ${onClick ? "clickable" : ""}`;
 
@@ -101,7 +147,7 @@ export function TournamentCard({
       onStatusChange?.(nextStatus);
     } catch (err) {
       console.error("Failed to update tournament status", err);
-      alert("Не удалось обновить статус турнира");
+      alert(tournamentsCard.statusUpdateFailed);
       setCurrentStatus(tournament.status);
       onStatusChange?.(tournament.status);
     } finally {
@@ -161,17 +207,17 @@ export function TournamentCard({
           <tbody className="tournament-card-table-body">
             <tr  >
               <td>🏆</td>
-              <td>Тип:</td>
-              <td>{tournament.getType()}</td>
+              <td>{tournamentsCard.typeLabel}</td>
+              <td>{typeLabel}</td>
             </tr>
             <tr>
               <td>🏆</td>
-              <td>Формат:</td>
-              <td>{tournament.getFormat()}</td>
+              <td>{tournamentsCard.formatLabel}</td>
+              <td>{formatLabel}</td>
             </tr>
             <tr>
               <td>📅</td>
-              <td>Даты:</td>
+              <td>{tournamentsCard.datesLabel}</td>
               <td>
                 {tournament.start_date ? formatDate(new Date(tournament.start_date)) : "—"}
                 {tournament.end_date && ` → ${formatDate(new Date(tournament.end_date))}`}
@@ -179,12 +225,12 @@ export function TournamentCard({
             </tr>
             <tr>
               <td>👫</td>
-              <td>Участников:</td>
+              <td>{participantsLabel}</td>
               <td>{participantsCount}</td>
             </tr>
             <tr>
               <td>🎾</td>
-              <td>Игр:</td>
+              <td>{matchesLabel}</td>
               <td>{matchesCount}</td>
             </tr>
           </tbody>
@@ -194,7 +240,7 @@ export function TournamentCard({
       <div className="card-bottom-toolbar">
         {onDelete && (
           <DeleteIconButton
-            title="Удалить турнир"
+            title={tournamentsCard.deleteTitle}
             onClick={(e) => {
               e.stopPropagation();
               onDelete(tournament.id);
