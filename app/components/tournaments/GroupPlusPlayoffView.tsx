@@ -141,16 +141,6 @@ export function GroupPlusPlayoffView({
   }
 
   function isCompletedMatch(m?: Match | null): boolean { return !!(m && m.scores && m.scores.length > 0); }
-  function countCompletedPairsInGroup(group: Participant[], matches: Match[]): number {
-    let done = 0;
-    for (let i = 0; i < group.length; i++) {
-      for (let j = i + 1; j < group.length; j++) {
-        const aId = group[i].getId, bId = group[j].getId;
-        if (isCompletedMatch(findMatchBetween(aId, bId))) done++;
-      }
-    }
-    return done;
-  }
 
   function makePlayoffQualifiersFromFiltered(
     groups: Participant[][],
@@ -205,21 +195,6 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
   }
   return false;
 }
-
-  function buildSingleElimPairs(entrants: (Participant | null)[]) {
-    const size = nextPow2(entrants.length || 1);
-    const padded = entrants.slice();
-    while (padded.length < size) padded.push(null);
-    const r0: Array<[Participant | null, Participant | null]> = [];
-    for (let i = 0; i < size; i += 2) r0.push([padded[i], padded[i + 1]]);
-    const rounds: Array<Array<[Participant | null, Participant | null]>> = [r0];
-    let cur = r0.length;
-    while (cur > 1) {
-      rounds.push(new Array(cur / 2).fill(null).map(() => [null, null]));
-      cur = cur / 2;
-    }
-    return rounds;
-  }
 
   // Обработчики для сохранения
   const handleSaveGroup = useCallback((aId: number, bId: number, groupIndex: number) => {
