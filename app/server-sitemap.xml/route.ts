@@ -1,5 +1,5 @@
 export async function GET(): Promise<Response> {
-  return new Response("server-sitemap.xml no longer available", {
+  return new Response(null, {
     status: 410,
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
