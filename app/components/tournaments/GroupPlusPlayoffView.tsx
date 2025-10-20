@@ -380,29 +380,26 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
     [groups, groupStats, advancePerGroup, groupMatches]
   );
 
-  function GroupBlock({ gIndex, group }: { gIndex: number; group: Participant[] }) {
-    const matchesForGroup = groupMatches[gIndex];
-    return (
-      <GroupStageTable
-        groupParticipants={group}
-        groupMatches={matchesForGroup}
-        groupIndex={gIndex}
-        canManage={canManage}
-        onSaveScore={(aId, bId, score, matchDate, meta) =>
-          onSaveScore?.(aId, bId, score, matchDate || todayISO, meta)
-        }
-        ScoreCellAdapter={GroupMatchCell}
-      />
-    );
-  }
-
   return (
     <div>
       {/* ГРУППЫ */}
       <div className="card-container">
-        {groups.map((g, gi) => (
-          <GroupBlock key={gi} gIndex={gi} group={g} />
-        ))}
+        {groups.map((group, gIndex) => {
+          const matchesForGroup = groupMatches[gIndex];
+          return (
+            <GroupStageTable
+              key={gIndex}
+              groupParticipants={group}
+              groupMatches={matchesForGroup}
+              groupIndex={gIndex}
+              canManage={canManage}
+              onSaveScore={(aId, bId, score, matchDate, meta) =>
+                onSaveScore?.(aId, bId, score, matchDate || todayISO, meta)
+              }
+              ScoreCellAdapter={GroupMatchCell}
+            />
+          );
+        })}
       </div>
 
       {/* ПЛЕЙ-ОФФ */}
