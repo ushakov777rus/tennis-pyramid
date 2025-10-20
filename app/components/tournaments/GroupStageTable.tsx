@@ -34,14 +34,6 @@ export type GroupStageTableProps = {
 };
 
 /**
- * Координаты ячейки, которая сейчас редактируется.
- */
-type EditingCell = {
-  rowId: number;
-  colId: number;
-};
-
-/**
  * Оптимистичный (локальный) ввод счёта в формате, совпадающем с бэкендом.
  */
 type PendingEntry = {
@@ -236,15 +228,6 @@ export function GroupStageTable({
   canManage,
   ScoreCellAdapter: ScoreCell,
 }: GroupStageTableProps) {
-  /** Текущая редактируемая пара (ключ из двух ID). */
-  const [editingKey, setEditingKey] = useState<string | null>(null);
-
-  /** Контекст для мобильной клавиатуры: какие ID сейчас редактируются. */
-  const [mobileKeyboardContext, setMobileKeyboardContext] = useState<{
-    aId: number;
-    bId: number;
-  } | null>(null);
-
   /** Ссылка на таблицу (чтобы находить активные ячейки). */
   const tableRef = useRef<HTMLTableElement | null>(null);
   /** Оптимистично введённые счёты до подтверждения сервером. */
@@ -423,7 +406,7 @@ export function GroupStageTable({
   }
 
   return (
-    <div className={`card rr-scroll ${editingKey ? "card--no-transition" : ""}`.trim()}>
+    <div className="card rr-scroll">
       {groupIndex !== undefined && groupIndex !== null && (
         <div className="rr-header">
           <strong>Группа {String.fromCharCode(65 + groupIndex)}</strong>
@@ -483,7 +466,7 @@ export function GroupStageTable({
         {/* Индекс */}
         <div
           data-rr-cell={`${aId}-${aId}`}
-          className={`center rr-index-cell ${editingKey ? "card--no-transition" : ""}`}
+          className="center rr-index-cell"
           style={{ gridColumn: 1, gridRow }}
         >
           {rowIndex + 1}
@@ -491,7 +474,7 @@ export function GroupStageTable({
 
         {/* Имя игрока */}
         <div 
-          className={`left rr-name-cell ${editingKey ? "card--no-transition" : ""}`}
+          className="left rr-name-cell"
           style={{ gridColumn: 2, gridRow }}
         >
           <span className="rr-participant">{participant.displayName(false)}</span>
@@ -504,7 +487,7 @@ export function GroupStageTable({
             <div
               key={`${aId}_${opponent.getId}`}
               style={{ gridColumn: colIndex + 3, gridRow }}
-              className={`${editingKey ? "card--no-transition" : ""} ${isDiagonal ? 'rr-diag' : ''}`}
+              className={isDiagonal ? "rr-diag" : ""}
             >
               <ScoreCellWrapper
                 aId={aId}
@@ -518,7 +501,7 @@ export function GroupStageTable({
 
         {/* Очки */}
         <div 
-          className={`center ${editingKey ? "card--no-transition" : ""}`}
+          className="center"
           style={{ gridColumn: ordered.length + 3, gridRow }}
         >
           {stats.points}
@@ -526,7 +509,7 @@ export function GroupStageTable({
 
         {/* Геймы */}
         <div 
-          className={`center ${editingKey ? "card--no-transition" : ""}`}
+          className="center"
           style={{ gridColumn: ordered.length + 4, gridRow }}
         >
           {stats.gamesFor}:{stats.gamesAgainst}
@@ -534,7 +517,7 @@ export function GroupStageTable({
 
         {/* Место */}
         <div 
-          className={`center  no-right-border ${editingKey ? "card--no-transition" : ""}`}
+          className="center no-right-border"
           style={{ gridColumn: ordered.length + 5, gridRow }}
         >
           {place}

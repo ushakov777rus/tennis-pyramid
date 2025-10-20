@@ -151,9 +151,6 @@ export function GroupPlusPlayoffView({
     }
     return done;
   }
-  function isGroupStarted(group: Participant[], matches: Match[]): boolean {
-    return countCompletedPairsInGroup(group, matches) > 0;
-  }
 
   function makePlayoffQualifiersFromFiltered(
     groups: Participant[][],
