@@ -6,6 +6,7 @@ import React, { useCallback, useMemo } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, MatchPhase, PhaseType } from "@/app/models/Match";
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 
 /** Совпадает с тем, как блок плей-офф использовался внутри GroupPlusPlayoffView */
@@ -40,6 +41,8 @@ export function PlayoffStageTable({
   const {
     findMatchBetween
   } = useTournament();
+  const { tournamentTables } = useDictionary();
+  const playoffText = tournamentTables.playoff;
   
   /** Счёт матча "6:3, 4:6, 10:8" или null, если матча нет */
   function getMatchScore(
@@ -164,11 +167,16 @@ export function PlayoffStageTable({
   }, [playOffParticipants, findMatchBetween]);
 
   /** Заголовок раунда плей-офф */
-  const roundLabel = useCallback((roundIndex: number, pairsCount: number) => {
-    if (pairsCount === 0) return `Раунд ${roundIndex + 1}`;
-    if (pairsCount === 1) return "Финал";
-    return `1/${pairsCount}`;
-  }, []);
+  const roundLabel = useCallback(
+    (roundIndex: number, pairsCount: number) => {
+      if (pairsCount === 0) {
+        return playoffText.round.replace("{number}", String(roundIndex + 1));
+      }
+      if (pairsCount === 1) return playoffText.final;
+      return `1/${pairsCount}`;
+    },
+    [playoffText]
+  );
 
   const cell = (v: number | null) => (v == null ? "—" : String(v));
 
@@ -210,10 +218,10 @@ export function PlayoffStageTable({
                               {a ? (
                                 <span className={`rr-participant ${
                               winnerId && aId === winnerId ? "bracket__row--winner" : ""
-                            }`}>{a.displayName()}</span> ) : (
-                                  <span className="rr-participant grey">{"Ожидается"}</span>
-                                )
-                              }
+                            }`}>{a.displayName()}</span>
+                              ) : (
+                                <span className="rr-participant grey">{playoffText.waiting}</span>
+                              )}
                             </td>
                           </tr>
                           <tr
@@ -225,10 +233,10 @@ export function PlayoffStageTable({
                               {b ? (
                                 <span className={`rr-participant ${
                               winnerId && aId === winnerId ? "bracket__row--winner" : ""
-                            }`}>{b.displayName()}</span> ) : (
-                                  <span className="rr-participant grey">{"Ожидается"}</span>
-                                )
-                              }
+                            }`}>{b.displayName()}</span>
+                              ) : (
+                                <span className="rr-participant grey">{playoffText.waiting}</span>
+                              )}
                             </td>
                           </tr>
                         </tbody>
@@ -279,7 +287,7 @@ export function PlayoffStageTable({
                   );
                 })
               ) : (
-                <div className="bracket__empty">Нет пар</div>
+                <div className="bracket__empty">{playoffText.empty}</div>
               )}
             </div>
           </div>

@@ -337,6 +337,21 @@ export type Dictionary = {
     removeFromTournament: string;
     removeFromClub: string;
   };
+  tournamentTables: {
+    group: {
+      title: string;
+      players: string;
+      points: string;
+      games: string;
+      place: string;
+    };
+    playoff: {
+      round: string;
+      final: string;
+      waiting: string;
+      empty: string;
+    };
+  };
   profile: {
     unknownPlayer: string;
     copyPhone: string;

@@ -415,6 +415,21 @@ export const enDictionary: Dictionary = {
     removeFromTournament: "Remove from tournament",
     removeFromClub: "Remove from club",
   },
+  tournamentTables: {
+    group: {
+      title: "Group {label}",
+      players: "Players",
+      points: "Points",
+      games: "Games",
+      place: "Place",
+    },
+    playoff: {
+      round: "Round {number}",
+      final: "Final",
+      waiting: "Pending",
+      empty: "No matchups",
+    },
+  },
   profile: {
     unknownPlayer: "Player",
     copyPhone: "Copy phone",

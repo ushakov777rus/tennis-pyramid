@@ -421,6 +421,21 @@ export const ruDictionary: Dictionary = {
     removeFromTournament: "Убрать из турнира",
     removeFromClub: "Убрать из клуба",
   },
+  tournamentTables: {
+    group: {
+      title: "Группа {label}",
+      players: "Игроки",
+      points: "Очки",
+      games: "Геймы",
+      place: "Место",
+    },
+    playoff: {
+      round: "Раунд {number}",
+      final: "Финал",
+      waiting: "Ожидается",
+      empty: "Нет пар",
+    },
+  },
   profile: {
     unknownPlayer: "Игрок",
     copyPhone: "Скопировать телефон",

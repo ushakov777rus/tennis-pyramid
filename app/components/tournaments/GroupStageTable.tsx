@@ -7,6 +7,7 @@ import "@/app/components/ParticipantsView.css";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { Match, MatchPhase, PhaseType } from "@/app/models/Match";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 /**
  * Публичные пропсы для таблицы кругового турнира.
@@ -228,6 +229,15 @@ export function GroupStageTable({
   canManage,
   ScoreCellAdapter: ScoreCell,
 }: GroupStageTableProps) {
+  const { tournamentTables } = useDictionary();
+  const groupText = tournamentTables.group;
+
+  const groupLabel =
+    typeof groupIndex === "number" ? String.fromCharCode(65 + groupIndex) : null;
+  const groupTitle = groupLabel
+    ? groupText.title.replace("{label}", groupLabel)
+    : null;
+
   /** Ссылка на таблицу (чтобы находить активные ячейки). */
   const tableRef = useRef<HTMLTableElement | null>(null);
   /** Оптимистично введённые счёты до подтверждения сервером. */
@@ -407,9 +417,9 @@ export function GroupStageTable({
 
   return (
     <div className="card rr-scroll">
-      {groupIndex !== undefined && groupIndex !== null && (
+      {groupIndex !== undefined && groupIndex !== null && groupTitle && (
         <div className="rr-header">
-          <strong>Группа {String.fromCharCode(65 + groupIndex)}</strong>
+          <strong>{groupTitle}</strong>
         </div>)
       }
 
@@ -422,7 +432,7 @@ export function GroupStageTable({
 >
   {/* Заголовки - должны быть в первой строке */}
   <div className="rr-index-header center" style={{ gridColumn: 1, gridRow: 1 }}>#</div>
-  <div className="rr-name-header left" style={{ gridColumn: 2, gridRow: 1 }}>Игроки</div>
+  <div className="rr-name-header left" style={{ gridColumn: 2, gridRow: 1 }}>{groupText.players}</div>
   
   {ordered.map((_, index) => (
     <div 
@@ -438,19 +448,19 @@ export function GroupStageTable({
     className="center rotate" 
     style={{ gridColumn: ordered.length + 3, gridRow: 1 }}
   >
-    <span>Очки</span>
+    <span>{groupText.points}</span>
   </div>
   <div 
     className="center rotate" 
     style={{ gridColumn: ordered.length + 4, gridRow: 1 }}
   >
-    <span>Геймы</span>
+    <span>{groupText.games}</span>
   </div>
   <div 
     className="center rotate no-right-border" 
     style={{ gridColumn: ordered.length + 5, gridRow: 1 }}
   >
-    <span>Место</span>
+    <span>{groupText.place}</span>
   </div>
 
   {/* Данные */}
