@@ -62,7 +62,7 @@ export function GuestIntroSlider() {
     }, 5000);
 
     return () => window.clearTimeout(timer);
-  }, [user, loading, shouldSkip, pathname]);
+  }, [user, loading, shouldSkip, normalizedPath]);
 
   useEffect(() => {
     if (!visible) return;

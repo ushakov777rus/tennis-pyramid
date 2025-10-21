@@ -44,6 +44,7 @@ export function UserCard({
   const tgHref = telegram
     ? (telegram.startsWith("http") ? telegram : `https://t.me/${telegram.replace(/^@/, "")}`)
     : undefined;
+  const roleName = role ? users.roles[role] ?? users.roles.guest : users.roles.guest;
 
   return (
     <div className={`card ${className}`.trim()}>
@@ -143,4 +144,3 @@ function IconLink({ href, label, color, inactiveTitle, children, targetBlank }: 
     </a>
   );
 }
-  const roleName = role ? users.roles[role] ?? users.roles.guest : users.roles.guest;

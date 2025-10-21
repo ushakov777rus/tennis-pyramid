@@ -131,8 +131,8 @@ export default function AboutPage() {
         setPlayersCount(p ?? 0);
         setTournamentsCount(t ?? 0);
         setClubsCount(c ?? 0);
-      } catch (e) {
-        console.error(dictionary.common.loading);
+      } catch (error) {
+        console.error(dictionary.common.loading, error);
         if (!alive) return;
         setMatchesCount((v) => v ?? 0);
         setPlayersCount((v) => v ?? 0);
@@ -145,7 +145,7 @@ export default function AboutPage() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [dictionary.common.loading]);
 
   const stats = useMemo<Stat[]>(
     () => [

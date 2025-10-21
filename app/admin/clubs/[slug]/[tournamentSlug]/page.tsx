@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 import { ClubsRepository } from "@/app/repositories/ClubsRepository";
 import { ClubProvider } from "@/app/clubs/[slug]/ClubProvider";
-import { TournamentProvider, useOptionalTournament } from "@/app/tournaments/[slug]/TournamentProvider";
+import { TournamentProvider } from "@/app/tournaments/[slug]/TournamentProvider";
 import TournamentClient from "@/app/tournaments/[slug]/TournamentClient";
 
 export const dynamic = "force-dynamic";

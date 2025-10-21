@@ -136,28 +136,6 @@ export function DoubleEliminationView({
   }
 
   /* Победитель/проигравший пары; BYE учитываем опционально (allowBye) */
-  function resultOfPair(
-    a: Participant | null,
-    b: Participant | null,
-    allowBye: boolean
-  ): { winnerId: number | null; loserId: number | null } {
-    const aId = a?.getId;
-    const bId = b?.getId;
-
-    if (allowBye) {
-      if (aId && !bId) return { winnerId: aId, loserId: null };
-      if (!aId && bId) return { winnerId: bId, loserId: null };
-    }
-    if (!aId || !bId) return { winnerId: null, loserId: null };
-
-    const m = findMatchBetween(aId, bId, { phase: PhaseType.Playoff, groupIndex: BRACKET_GROUP_WB });
-    if (!m) return { winnerId: null, loserId: null };
-    const w = m.getWinnerId?.();
-    if (!w || w <= 0) return { winnerId: null, loserId: null };
-    const l = w === aId ? bId : aId;
-    return { winnerId: w, loserId: l ?? null };
-  }
-
   const ordered = useMemo(
     () =>
       participants
@@ -165,6 +143,46 @@ export function DoubleEliminationView({
         .slice()
         .sort((a, b) => a.displayName(false).localeCompare(b.displayName(false), "ru")),
     [participants]
+  );
+
+  const orderedById = useMemo(() => {
+    const map = new Map<number, Participant>();
+    ordered.forEach((participant) => map.set(participant.getId, participant));
+    return map;
+  }, [ordered]);
+
+  const getParticipantById = useCallback(
+    (id: number | null | undefined) => (id ? orderedById.get(id) ?? null : null),
+    [orderedById]
+  );
+
+  const resultOfPair = useCallback(
+    (
+      a: Participant | null,
+      b: Participant | null,
+      allowBye: boolean,
+      bracketGroup: number
+    ): { winnerId: number | null; loserId: number | null } => {
+      const aId = a?.getId;
+      const bId = b?.getId;
+
+      if (allowBye) {
+        if (aId && !bId) return { winnerId: aId, loserId: null };
+        if (!aId && bId) return { winnerId: bId, loserId: null };
+      }
+      if (!aId || !bId) return { winnerId: null, loserId: null };
+
+      const match = findMatchBetween(aId, bId, {
+        phase: PhaseType.Playoff,
+        groupIndex: bracketGroup,
+      });
+      if (!match) return { winnerId: null, loserId: null };
+      const winner = match.getWinnerId?.();
+      if (!winner || winner <= 0) return { winnerId: null, loserId: null };
+      const loser = winner === aId ? bId : aId;
+      return { winnerId: winner, loserId: loser ?? null };
+    },
+    [findMatchBetween]
   );
 
   const wb = useMemo(() => buildWB(ordered), [ordered]);
@@ -189,10 +207,10 @@ export function DoubleEliminationView({
         const prev = wbCopy[r - 1];
         const allowBye = (r === 1); // BYE только на переходе из R0 в R1
         for (let i = 0; i < wbCopy[r].length; i++) {
-          const m1 = resultOfPair(prev[i * 2][0], prev[i * 2][1], allowBye);
-          const m2 = resultOfPair(prev[i * 2 + 1][0], prev[i * 2 + 1][1], allowBye);
-          wbCopy[r][i][0] = m1.winnerId ? ordered.find((p) => p.getId === m1.winnerId) ?? null : null;
-          wbCopy[r][i][1] = m2.winnerId ? ordered.find((p) => p.getId === m2.winnerId) ?? null : null;
+          const m1 = resultOfPair(prev[i * 2][0], prev[i * 2][1], allowBye, BRACKET_GROUP_WB);
+          const m2 = resultOfPair(prev[i * 2 + 1][0], prev[i * 2 + 1][1], allowBye, BRACKET_GROUP_WB);
+          wbCopy[r][i][0] = getParticipantById(m1.winnerId);
+          wbCopy[r][i][1] = getParticipantById(m2.winnerId);
 
           // лузеры предыдущего раунда
           pushUnique(losersByRound[r - 1], m1.loserId);
@@ -204,7 +222,7 @@ export function DoubleEliminationView({
       if (r === 0) {
         const allowByeR0 = true;
         for (let i = 0; i < wbCopy[0].length; i++) {
-          const m0 = resultOfPair(wbCopy[0][i][0], wbCopy[0][i][1], allowByeR0);
+          const m0 = resultOfPair(wbCopy[0][i][0], wbCopy[0][i][1], allowByeR0, BRACKET_GROUP_WB);
           if (!losersByRound[0]) losersByRound[0] = [];
           pushUnique(losersByRound[0], m0.loserId);
         }
@@ -213,14 +231,14 @@ export function DoubleEliminationView({
 
     const lastRound = wbCopy[wbCopy.length - 1];
     const finalPair = lastRound[0];
-    const finalRes = resultOfPair(finalPair[0], finalPair[1], false);
+    const finalRes = resultOfPair(finalPair[0], finalPair[1], false, BRACKET_GROUP_WB);
 
     return {
       resolvedWB: wbCopy,
       wbLosersByRound: losersByRound,
       wbWinnerId: finalRes.winnerId ?? null,
     };
-  }, [wb, ordered]);
+  }, [getParticipantById, resultOfPair, wb]);
 
   /* ---------- Losers Bracket ---------- */
 
@@ -301,7 +319,7 @@ export function DoubleEliminationView({
     }
 
     return rounds;
-  }, [ordered, wbLosersByRound]);
+  }, [findMatchBetween, ordered, wbLosersByRound]);
 
   // Победитель LB
   const lbWinnerId = useMemo(() => {
@@ -316,7 +334,7 @@ export function DoubleEliminationView({
     if (!m) return null;
     const w = m.getWinnerId?.();
     return w && w > 0 ? w : null;
-  }, [resolvedLB]);
+  }, [findMatchBetween, resolvedLB]);
 
   /* ---------- Finals ---------- */
 
@@ -343,7 +361,7 @@ export function DoubleEliminationView({
     phaseFilter: MatchPhase;
     showHelpTooltip: boolean;
   }> = ({ a, b, scoreString, phaseFilter, showHelpTooltip }) => {
-    const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
+    const handleOpenKeyboard = (aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
       
       setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
@@ -357,18 +375,18 @@ export function DoubleEliminationView({
         initialDate,
         phaseFilter
       );
-    }, [onOpenKeyboard, a, b, findMatchBetween, phaseFilter]);
+    };
 
-    const handleSave = useCallback((aId: number, bId: number) => {
+    const handleSave = (aId: number, bId: number) => {
       if (phaseFilter?.roundIndex != null) {
         handleSaveWB(aId, bId, phaseFilter.roundIndex);
       }
-    }, [handleSaveWB, phaseFilter]);
+    };
 
-    const handleCancel = useCallback(() => {
+    const handleCancel = () => {
       setEditValue("");
       onCloseKeyboard?.();
-    }, [onCloseKeyboard]);
+    };
 
     return (
       <ScoreCell
@@ -397,7 +415,7 @@ export function DoubleEliminationView({
     phaseFilter: MatchPhase;
     showHelpTooltip: boolean;
   }> = ({ a, b, scoreString, phaseFilter, showHelpTooltip }) => {
-    const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
+    const handleOpenKeyboard = (aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
       
       setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
@@ -411,18 +429,18 @@ export function DoubleEliminationView({
         initialDate,
         phaseFilter
       );
-    }, [onOpenKeyboard, a, b, findMatchBetween, phaseFilter]);
+    };
 
-    const handleSave = useCallback((aId: number, bId: number) => {
+    const handleSave = (aId: number, bId: number) => {
       if (phaseFilter?.roundIndex != null) {
         handleSaveLB(aId, bId, phaseFilter.roundIndex);
       }
-    }, [handleSaveLB, phaseFilter]);
+    };
 
-    const handleCancel = useCallback(() => {
+    const handleCancel = () => {
       setEditValue("");
       onCloseKeyboard?.();
-    }, [onCloseKeyboard]);
+    };
 
     return (
       <ScoreCell
@@ -451,7 +469,7 @@ export function DoubleEliminationView({
     phaseFilter: MatchPhase;
     showHelpTooltip: boolean;
   }> = ({ a, b, scoreString, phaseFilter, showHelpTooltip }) => {
-    const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
+    const handleOpenKeyboard = (aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
       
       setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
@@ -465,18 +483,18 @@ export function DoubleEliminationView({
         initialDate,
         phaseFilter
       );
-    }, [onOpenKeyboard, a, b, findMatchBetween, phaseFilter]);
+    };
 
-    const handleSave = useCallback((aId: number, bId: number) => {
+    const handleSave = (aId: number, bId: number) => {
       if (phaseFilter?.roundIndex != null) {
         handleSaveGF(aId, bId, phaseFilter.roundIndex);
       }
-    }, [handleSaveGF, phaseFilter]);
+    };
 
-    const handleCancel = useCallback(() => {
+    const handleCancel = () => {
       setEditValue("");
       onCloseKeyboard?.();
-    }, [onCloseKeyboard]);
+    };
 
     return (
       <ScoreCell

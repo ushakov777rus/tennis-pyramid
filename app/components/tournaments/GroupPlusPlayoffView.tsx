@@ -55,6 +55,123 @@ type GroupPlusPlayoffViewProps = {
   seeding?: "simple" | "snake";
 };
 
+type GroupStats = { id: number; name: string; wins: number; setsDiff: number; gamesDiff: number };
+
+function isValidParticipant(p: Participant | null | undefined): p is Participant {
+  return !!p && (!!p.player || !!p.team);
+}
+
+function distributeIntoGroups(items: Participant[], groupsCount: number, mode: "simple" | "snake"): Participant[][] {
+  const groups: Participant[][] = Array.from({ length: groupsCount }, () => []);
+  if (mode === "simple") {
+    items.forEach((p, i) => groups[i % groupsCount].push(p));
+  } else {
+    let idx = 0;
+    let dir = 1;
+    for (const p of items) {
+      groups[idx].push(p);
+      idx += dir;
+      if (idx === groupsCount) {
+        idx = groupsCount - 1;
+        dir = -1;
+      } else if (idx < 0) {
+        idx = 0;
+        dir = 1;
+      }
+    }
+  }
+  return groups;
+}
+
+function computeGroupStats(group: Participant[], matchesForGroup: Match[]): GroupStats[] {
+  const map = new Map<number, GroupStats>();
+
+  for (const p of group) {
+    map.set(p.getId, { id: p.getId, name: p.displayName(), wins: 0, setsDiff: 0, gamesDiff: 0 });
+  }
+
+  for (let i = 0; i < group.length; i++) {
+    for (let j = i + 1; j < group.length; j++) {
+      const a = group[i];
+      const b = group[j];
+      const aId = a.getId;
+      const bId = b.getId;
+      const match = matchesForGroup.find((m) => {
+        const id1 = m.player1?.id ?? m.team1?.id;
+        const id2 = m.player2?.id ?? m.team2?.id;
+        return (id1 === aId && id2 === bId) || (id1 === bId && id2 === aId);
+      });
+      if (!match || !match.scores || match.scores.length === 0) continue;
+
+      let aSets = 0;
+      let bSets = 0;
+      let aGames = 0;
+      let bGames = 0;
+      for (const [s1, s2] of match.scores) {
+        aGames += s1;
+        bGames += s2;
+        if (s1 > s2) aSets++;
+        else if (s2 > s1) bSets++;
+      }
+      if (aSets > bSets) map.get(aId)!.wins += 1;
+      else if (bSets > aSets) map.get(bId)!.wins += 1;
+      map.get(aId)!.setsDiff += aSets - bSets;
+      map.get(bId)!.setsDiff += bSets - aSets;
+      map.get(aId)!.gamesDiff += aGames - bGames;
+      map.get(bId)!.gamesDiff += bGames - aGames;
+    }
+  }
+
+  return Array.from(map.values()).sort((x, y) => {
+    if (y.wins !== x.wins) return y.wins - x.wins;
+    if (y.setsDiff !== x.setsDiff) return y.setsDiff - x.setsDiff;
+    return y.gamesDiff - x.gamesDiff;
+  });
+}
+
+function isCompletedMatch(m?: Match | null): boolean {
+  return !!(m && m.scores && m.scores.length > 0);
+}
+
+function hasParticipantPlayedAnyMatch(participantId: number, matches: Match[]): boolean {
+  return matches.some((match) => {
+    const id1 = match.player1?.id ?? match.team1?.id;
+    const id2 = match.player2?.id ?? match.team2?.id;
+    if (id1 !== participantId && id2 !== participantId) return false;
+    return isCompletedMatch(match);
+  });
+}
+
+function makePlayoffQualifiersFromFiltered(
+  groups: Participant[][],
+  statsPerGroup: GroupStats[][],
+  topK: number,
+  matchesPerGroup: Match[][]
+): (Participant | null)[] {
+  const out: (Participant | null)[] = [];
+
+  for (let place = 0; place < topK; place++) {
+    for (let gi = 0; gi < groups.length; gi++) {
+      const group = groups[gi];
+      const stats = statsPerGroup[gi];
+      const matchesForGroup = matchesPerGroup[gi];
+
+      const slot = stats[place];
+
+      if (!slot) {
+        out.push(null);
+        continue;
+      }
+
+      const qualifier = group.find((pp) => pp.getId === slot.id) ?? null;
+      const hasPlayed = qualifier && hasParticipantPlayedAnyMatch(qualifier.getId, matchesForGroup);
+      out.push(qualifier && hasPlayed ? qualifier : null);
+    }
+  }
+
+  return out;
+}
+
 export function GroupPlusPlayoffView({
   participants,
   matches,
@@ -83,119 +200,6 @@ export function GroupPlusPlayoffView({
   }, [keyboardState]);
 
   // Вспомогательные функции
-  function isValidParticipant(p: Participant | null | undefined): p is Participant {
-    return !!p && (!!p.player || !!p.team);
-  }
-
-  function nextPow2(n: number) { let p = 1; while (p < n) p <<= 1; return p; }
-
-  function distributeIntoGroups(items: Participant[], groupsCount: number, mode: "simple" | "snake"): Participant[][] {
-    const groups: Participant[][] = Array.from({ length: groupsCount }, () => []);
-    if (mode === "simple") {
-      items.forEach((p, i) => groups[i % groupsCount].push(p));
-    } else {
-      let idx = 0, dir = 1;
-      for (const p of items) {
-        groups[idx].push(p);
-        idx += dir;
-        if (idx === groupsCount) { idx = groupsCount - 1; dir = -1; }
-        else if (idx < 0) { idx = 0; dir = 1; }
-      }
-    }
-    return groups;
-  }
-
-  type GroupStats = { id: number; name: string; wins: number; setsDiff: number; gamesDiff: number; };
-  function computeGroupStats(group: Participant[], matches: Match[]): GroupStats[] {
-    const map = new Map<number, GroupStats>();
-    
-    for (const p of group) 
-      map.set(p.getId, { id: p.getId, name: p.displayName(), wins: 0, setsDiff: 0, gamesDiff: 0 });
-
-    for (let i = 0; i < group.length; i++) {
-      for (let j = i + 1; j < group.length; j++) {
-        const a = group[i], b = group[j];
-        const aId = a.getId, bId = b.getId;
-        const m = findMatchBetween(aId, bId);
-        if (!m || !m.scores || m.scores.length === 0) continue;
-
-        let aSets = 0, bSets = 0, aGames = 0, bGames = 0;
-        for (const [s1, s2] of m.scores) {
-          aGames += s1; bGames += s2;
-          if (s1 > s2) aSets++; else if (s2 > s1) bSets++;
-        }
-        if (aSets > bSets) map.get(aId)!.wins += 1;
-        else if (bSets > aSets) map.get(bId)!.wins += 1;
-        map.get(aId)!.setsDiff += (aSets - bSets);
-        map.get(bId)!.setsDiff += (bSets - aSets);
-        map.get(aId)!.gamesDiff += (aGames - bGames);
-        map.get(bId)!.gamesDiff += (bGames - aGames);
-      }
-    }
-
-    return Array.from(map.values()).sort((x, y) => {
-      if (y.wins !== x.wins) return y.wins - x.wins;
-      if (y.setsDiff !== x.setsDiff) return y.setsDiff - x.setsDiff;
-      return y.gamesDiff - x.gamesDiff;
-    });
-  }
-
-  function isCompletedMatch(m?: Match | null): boolean { return !!(m && m.scores && m.scores.length > 0); }
-
-  function makePlayoffQualifiersFromFiltered(
-    groups: Participant[][],
-    statsPerGroup: GroupStats[][],
-    topK: number,
-    matchesPerGroup: Match[][]
-  ): (Participant | null)[] {
-    const out: (Participant | null)[] = [];
-    
-    // Проходим по всем местам от 1 до topK
-    for (let place = 0; place < topK; place++) {
-      // Для каждого места собираем участников из всех групп
-      for (let gi = 0; gi < groups.length; gi++) {
-        const group = groups[gi];
-        const stats = statsPerGroup[gi];
-        const groupMatches = matchesPerGroup[gi];
-                
-        // Берем участника на текущем месте (place) в текущей группе
-        const slot = stats[place];
-        
-        if (!slot) {
-          out.push(null);
-          continue;
-        }
-        
-        // Находим участника по ID
-        const qualifier = group.find(pp => pp.getId === slot.id) ?? null;
-        
-        // Проверяем, сыграл ли этот участник хотя бы один матч
-        const hasPlayed = qualifier && hasParticipantPlayedAnyMatch(qualifier.getId, group, groupMatches);
-        
-        if (qualifier && hasPlayed) {
-          out.push(qualifier);
-        } else {
-          out.push(null);
-        }
-      }
-    }
-    
-    return out;
-  }
-
-// Вспомогательная функция для проверки, сыграл ли участник хотя бы один матч
-function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[], matches: Match[]): boolean {
-  for (const p of group) {
-    if (p.getId === participantId) continue; // пропускаем самого себя
-    
-    const match = findMatchBetween(participantId, p.getId);
-    if (match && isCompletedMatch(match)) {
-      return true;
-    }
-  }
-  return false;
-}
-
   // Обработчики для сохранения
   const handleSaveGroup = useCallback((aId: number, bId: number, groupIndex: number) => {
     if (onSaveScore) {
@@ -225,7 +229,7 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
     phaseFilter: MatchPhase;
     showHelpTooltip: boolean;
   }> = ({ a, b, scoreString, phaseFilter, showHelpTooltip }) => {
-    const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
+    const handleOpenKeyboard = (aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
       
       setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
@@ -247,16 +251,16 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
           roundIndex: null 
         }
       );
-    }, [onOpenKeyboard, a, b, findMatchBetween, phaseFilter?.groupIndex]);
+    };
 
-    const handleSave = useCallback((aId: number, bId: number) => {
+    const handleSave = (aId: number, bId: number) => {
       handleSaveGroup(aId, bId, phaseFilter?.groupIndex ?? 0);
-    }, [handleSaveGroup, phaseFilter?.groupIndex]);
+    };
 
-    const handleCancel = useCallback(() => {
+    const handleCancel = () => {
       setEditValue("");
       onCloseKeyboard?.();
-    }, [onCloseKeyboard]);
+    };
 
     return (
       <ScoreCell
@@ -285,7 +289,7 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
     phaseFilter: MatchPhase;
     showHelpTooltip: boolean;
   }> = ({ a, b, scoreString, phaseFilter, showHelpTooltip }) => {
-    const handleOpenKeyboard = useCallback((aId: number, bId: number, currentScore: string | null) => {
+    const handleOpenKeyboard = (aId: number, bId: number, currentScore: string | null) => {
       if (!onOpenKeyboard || !a || !b) return;
       
       setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
@@ -307,16 +311,16 @@ function hasParticipantPlayedAnyMatch(participantId: number, group: Participant[
           roundIndex: phaseFilter?.roundIndex ?? null 
         }
       );
-    }, [onOpenKeyboard, a, b, findMatchBetween, phaseFilter?.roundIndex]);
+    };
 
-    const handleSave = useCallback((aId: number, bId: number) => {
+    const handleSave = (aId: number, bId: number) => {
       handleSavePlayoff(aId, bId, phaseFilter?.roundIndex ?? 0);
-    }, [handleSavePlayoff, phaseFilter?.roundIndex]);
+    };
 
-    const handleCancel = useCallback(() => {
+    const handleCancel = () => {
       setEditValue("");
       onCloseKeyboard?.();
-    }, [onCloseKeyboard]);
+    };
 
     return (
       <ScoreCell

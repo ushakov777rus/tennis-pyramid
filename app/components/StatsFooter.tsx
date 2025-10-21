@@ -20,7 +20,7 @@ export function StatsFooter() {
   const [clubsCount, setClubsCount] = useState<number | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
-  const [authRole, setAuthRole] = useState<UserRole.Player | UserRole.TournamentAdmin>(UserRole.Player);
+  const authRole = UserRole.Player;
   const { user } = useUser();
   const { locale } = useLanguage();
   const dictionary = useDictionary();

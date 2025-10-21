@@ -87,7 +87,7 @@ export function ClubsClient() {
     if (initialLoaded && !loading && isAdmin && clubs.length === 1) {
       router.replace(withLocalePath(locale, `/admin/clubs/${clubs[0].slug}`));
     }
-  }, [initialLoaded, loading, isAdmin, clubs, router]);
+  }, [initialLoaded, loading, isAdmin, clubs, router, locale]);
 
   /**
    * Если это первый клуб и у пользователя есть creatorId —

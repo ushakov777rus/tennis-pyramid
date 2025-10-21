@@ -43,7 +43,7 @@ export function MatchHistoryModal({
     if (participant.player) return participant.player.displayName?.(false) ?? matchHistoryModal.playerFallback;
     if (participant.team) return participant.team.displayName?.(false) ?? matchHistoryModal.teamFallback;
     return "";
-  }, [participant]);
+  }, [participant, matchHistoryModal.playerFallback, matchHistoryModal.teamFallback]);
 
   // фильтруем матчи для конкретного участника
   const effectiveMatches = useMemo(() => {
