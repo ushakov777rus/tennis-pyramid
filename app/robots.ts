@@ -8,7 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: ["/", "/ru/", "/en/"],
-        disallow: ["/api/", "/admin", "/_next/", "/private/"],
+        disallow: ["/api/", "/admin", "/_next/", "/private/", "/player"],
       },
     ],
     host: "honeycup.ru",
