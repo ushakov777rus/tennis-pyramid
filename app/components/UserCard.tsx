@@ -44,7 +44,18 @@ export function UserCard({
   const tgHref = telegram
     ? (telegram.startsWith("http") ? telegram : `https://t.me/${telegram.replace(/^@/, "")}`)
     : undefined;
-  const roleName = role ? users.roles[role] ?? users.roles.guest : users.roles.guest;
+  const roleName = useMemo(() => {
+    switch (role) {
+      case UserRole.SiteAdmin:
+        return users.roles.siteAdmin;
+      case UserRole.TournamentAdmin:
+        return users.roles.tournamentAdmin;
+      case UserRole.Player:
+        return users.roles.player;
+      default:
+        return users.roles.guest;
+    }
+  }, [role, users.roles]);
 
   return (
     <div className={`card ${className}`.trim()}>
