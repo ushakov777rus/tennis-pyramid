@@ -157,7 +157,7 @@ export function TournamentCard({
 
   return (
     <div className={className} onClick={onClick}>
-      <div className="tournament-card-header">
+      <div className="card-header">
         <div>{tournament.club && tournament.club.name}</div>
         {displayName ? (
           <h3>{tournament.name}</h3>

@@ -38,12 +38,19 @@
 }
 
 /* шапка */
-.card-head {
-  display: flex;
+.card-header {
+  display: grid;
+  grid-template-columns: 1fr 4fr 1fr;
+  border-top: 1px dashed rgba(255, 255, 255, .06);
+  border-bottom: 1px dashed rgba(255, 255, 255, .06);
+  height: calc(2.5em);
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
 }
+
+.card-header > :nth-child(1) { text-align: left; font-size: 10px; font-weight: bold;}
+.card-header > :nth-child(2) { text-align: center;}
+.card-header > :nth-child(3) { text-align: right; }
+
 
 .card-title {
   padding: 10px 10px;

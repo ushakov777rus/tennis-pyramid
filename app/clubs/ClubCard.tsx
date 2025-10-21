@@ -38,12 +38,11 @@ export function ClubCard({ club, displayName, onClick, onDelete }: Props) {
 
   return (
     <div className={className} onClick={onClick} aria-label={clubsText.card.openAria.replace("{name}", club.name)}>
-      <div className="card-head">
+      <div className="card-header">
+        <div>{club.city}</div>
         {displayName && (
           <h3>{club.name}</h3>
         )}
-
-        <div className="match-card-date">{club.city}</div>
       </div>
       
       

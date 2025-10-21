@@ -177,7 +177,8 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
       role={cardClickHandler ? "button" : undefined}
     >
       {/* заголовок карточки */}
-      <div className="card-head">
+      <div className="card-header">
+        <div></div>
         <h3>{match.tournament.name}</h3>
         <div className="match-card-date">{formatDate(match.date)}</div>
       </div>
