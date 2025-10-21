@@ -1,6 +1,7 @@
 import { Participant } from "@/app/models/Participant";
 import { Match } from "@/app/models/Match";
 import { Tournament, TournamentFormat, TournamentType } from "@/app/models/Tournament";
+import type { Dictionary } from "@/app/i18n/dictionaries";
 
 type TitlesMap = Map<number, string[]>;
 
@@ -10,27 +11,33 @@ type Params = {
   tournament: Tournament | null;
 };
 
+type ParticipantTitlesText = Dictionary["ratingView"]["participantTitles"];
+
 export function calculateParticipantTitles({
   participants,
   matches,
   tournament,
-}: Params): TitlesMap {
+}: Params, titlesText: ParticipantTitlesText): TitlesMap {
   if (!participants.length || !matches.length) {
     return new Map();
   }
 
   if (tournament?.format === TournamentFormat.Pyramid) {
-    return calculatePyramidTitles(participants, matches);
+    return calculatePyramidTitles(participants, matches, titlesText);
   }
 
   if (tournament?.format === TournamentFormat.RoundRobin) {
-    return calculateRoundRobinTitles(participants, matches, tournament.tournament_type);
+    return calculateRoundRobinTitles(participants, matches, tournament.tournament_type, titlesText);
   }
 
   return new Map();
 }
 
-function calculatePyramidTitles(participants: Participant[], matches: Match[]): TitlesMap {
+function calculatePyramidTitles(
+  participants: Participant[],
+  matches: Match[],
+  titlesText: ParticipantTitlesText
+): TitlesMap {
   const titles = new Map<number, string[]>();
 
   const tookPart = (participantId: number, match: Match) => {
@@ -85,7 +92,7 @@ function calculatePyramidTitles(participants: Participant[], matches: Match[]): 
     const winners = Array.from(bagelsById.entries())
       .filter(([, value]) => value === bagelMax)
       .map(([id]) => id);
-    registerWinners("🥯 Король бубликов", winners);
+    registerWinners(titlesText.bagelKing, winners);
   }
 
   const straightWinsById = new Map<number, number>();
@@ -107,7 +114,7 @@ function calculatePyramidTitles(participants: Participant[], matches: Match[]): 
     const winners = Array.from(straightWinsById.entries())
       .filter(([, value]) => value === straightMax)
       .map(([id]) => id);
-    registerWinners("🚀 Победитель без потерь", winners);
+    registerWinners(titlesText.spotlessWinner, winners);
   }
 
   const matchesById = new Map<number, number>();
@@ -123,7 +130,7 @@ function calculatePyramidTitles(participants: Participant[], matches: Match[]): 
     const winners = Array.from(matchesById.entries())
       .filter(([, value]) => value === maxMatches)
       .map(([id]) => id);
-    registerWinners("🐝 Самый активный", winners);
+    registerWinners(titlesText.mostActive, winners);
   }
 
   const attackWinsById = new Map<number, number>();
@@ -142,7 +149,7 @@ function calculatePyramidTitles(participants: Participant[], matches: Match[]): 
     const winners = Array.from(attackWinsById.entries())
       .filter(([, value]) => value === maxAttack)
       .map(([id]) => id);
-    registerWinners("⚡ Удачливый нападающий", winners);
+    registerWinners(titlesText.aggressiveWinner, winners);
   }
 
   const attackLossById = new Map<number, number>();
@@ -163,7 +170,7 @@ function calculatePyramidTitles(participants: Participant[], matches: Match[]): 
     const winners = Array.from(attackLossById.entries())
       .filter(([, value]) => value === maxAttackLoss)
       .map(([id]) => id);
-    registerWinners("🙃 Неунывающий драчун", winners);
+    registerWinners(titlesText.relentlessChallenger, winners);
   }
 
   const longMatchById = new Map<number, number>();
@@ -182,7 +189,7 @@ function calculatePyramidTitles(participants: Participant[], matches: Match[]): 
     const winners = Array.from(longMatchById.entries())
       .filter(([, value]) => value === maxLongMatches)
       .map(([id]) => id);
-    registerWinners("🎢 Трёхсетовый боец", winners);
+    registerWinners(titlesText.marathoner, winners);
   }
 
   const defenseWinsById = new Map<number, number>();
@@ -202,7 +209,7 @@ function calculatePyramidTitles(participants: Participant[], matches: Match[]): 
     const winners = Array.from(defenseWinsById.entries())
       .filter(([, value]) => value === maxDefense)
       .map(([id]) => id);
-    registerWinners("🛡 Железный защитник", winners);
+    registerWinners(titlesText.ironDefender, winners);
   }
 
   const defenseLossById = new Map<number, number>();
@@ -223,7 +230,7 @@ function calculatePyramidTitles(participants: Participant[], matches: Match[]): 
     const winners = Array.from(defenseLossById.entries())
       .filter(([, value]) => value === maxDefenseLoss)
       .map(([id]) => id);
-    registerWinners("🪫 Неудачный защитник", winners);
+    registerWinners(titlesText.unluckyDefender, winners);
   }
 
   return titles;
@@ -233,6 +240,7 @@ function calculateRoundRobinTitles(
   participants: Participant[],
   matches: Match[],
   tournamentType: Tournament["tournament_type"],
+  titlesText: ParticipantTitlesText
 ): TitlesMap {
   const titles = new Map<number, string[]>();
 
@@ -298,12 +306,14 @@ function calculateRoundRobinTitles(
     }
   };
 
-  const gamesTitle = tournamentType === TournamentType.Double
-    ? "🎾 Лучшая пара по геймам"
-    : "🎾 Победитель по геймам";
-  const setsTitle = tournamentType === TournamentType.Double
-    ? "🏆 Победа по сетам (пара)"
-    : "🏆 Победитель по сетам";
+  const gamesTitle =
+    tournamentType === TournamentType.Double
+      ? titlesText.bestGamesPair
+      : titlesText.bestGamesSingle;
+  const setsTitle =
+    tournamentType === TournamentType.Double
+      ? titlesText.bestSetsPair
+      : titlesText.bestSetsSingle;
 
   registerLeaders(gamesWon, gamesTitle);
   registerLeaders(setsWon, setsTitle, { uniqueOnly: true });

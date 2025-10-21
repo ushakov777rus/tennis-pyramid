@@ -9,6 +9,7 @@ import { Player } from "@/app/models/Player";
 import { User } from "@/app/models/Users";
 
 import { UserProfileView, type UserProfileStats } from "./UserProfileView";
+import { useDictionary } from "./LanguageProvider";
 
 type UserProfileModalProps = {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export function UserProfileModal({
   onEditPlayer,
   onMessage,
 }: UserProfileModalProps) {
+  const { common } = useDictionary();
   useEffect(() => {
     if (!isOpen) return;
     const prev = document.body.style.overflow;
@@ -62,7 +64,7 @@ export function UserProfileModal({
         <button
           type="button"
           className="modal-close-btn"
-          aria-label="Закрыть модальное окно"
+          aria-label={common.close}
           onClick={onClose}
         >
           ✖

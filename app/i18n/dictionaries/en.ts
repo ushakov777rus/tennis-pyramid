@@ -81,6 +81,10 @@ export const enDictionary: Dictionary = {
       navigation: "Navigation",
     },
     logout: "Log out",
+    toggleOpen: "Open menu",
+    toggleClose: "Close menu",
+    expand: "Expand menu",
+    collapse: "Collapse menu",
   },
   metadata: {
     home: {
@@ -225,6 +229,8 @@ export const enDictionary: Dictionary = {
     errorPrefix: "Error",
     deleteConfirm: "Delete club «{name}»?",
     listEmptyTitle: "Create club",
+    logoFallback: "Tennis club",
+    noData: "No club data",
     addModal: {
       title: "Create club",
       namePlaceholder: "Club name",
@@ -249,6 +255,7 @@ export const enDictionary: Dictionary = {
       deleteTitle: "Delete club",
       tooltip: "Not implemented yet",
     },
+    directorFallback: "Club director",
   },
   tournaments: {
     title: "Tournaments",
@@ -320,6 +327,10 @@ export const enDictionary: Dictionary = {
       matchesLabel: "Matches: {count}",
       deleteTitle: "Delete tournament",
       statusUpdateFailed: "Failed to update tournament status",
+    },
+    scoreCell: {
+      addScore: "Add score",
+      enterScore: "Enter the score",
     },
     modal: {
       title: "Create tournament",
@@ -396,6 +407,45 @@ export const enDictionary: Dictionary = {
         network: "Network is unavailable or the server is not responding",
       },
     },
+  },
+  telegramCreate: {
+    title: "Create a tournament",
+    description: "Configure the tournament parameters and tap the Telegram “Create tournament” button. The bot will send a link after saving.",
+    nameLabel: "Tournament name",
+    namePlaceholder: "For example, Friday Challenge",
+    typeLabel: "Type",
+    formatLabel: "Format",
+    startDateLabel: "Start date",
+    endDateLabel: "End date",
+    pyramidLevelsLabel: "Maximum pyramid levels",
+    groupsCountLabel: "Number of groups",
+    statusHeading: "Status:",
+    statusCreatedWithUrl: "Tournament created: {value}",
+    statusCreatedWithSlug: "Tournament created: {value}",
+    statusCreated: "Tournament created",
+    mainButton: {
+      disabled: "Fill out all fields",
+      submit: "Create tournament",
+    },
+    submitButton: {
+      pending: "Creating…",
+      submit: "Create tournament",
+    },
+    errors: {
+      createFailed: "Failed to create the tournament",
+    },
+  },
+  freeTournamentModal: {
+    restoreTitle: "Continue with your tournament?",
+    restoreDescription: "We found a saved tournament",
+    restoreQuestion: "Would you like to continue?",
+    restoreButton: "Resume tournament",
+    createNewButton: "Create new",
+    errors: {
+      createFailed: "Failed to create the tournament. Try again later.",
+    },
+    unknownFormat: "Unknown format",
+    statusHeading: "Status:",
   },
   participants: {
     loading: "Loading…",
@@ -487,6 +537,20 @@ export const enDictionary: Dictionary = {
     noMatches: "No players match your search.",
     noTitle: "No title",
     unknownPlayer: "Player",
+    participantTitles: {
+      bagelKing: "🥯 Bagel Master",
+      spotlessWinner: "🚀 Clean Sweep Winner",
+      mostActive: "🐝 Most Active",
+      aggressiveWinner: "⚡ Aggressive Winner",
+      relentlessChallenger: "🙃 Relentless Challenger",
+      marathoner: "🎢 Marathon Fighter",
+      ironDefender: "🛡 Iron Defender",
+      unluckyDefender: "🪫 Unlucky Defender",
+      bestGamesPair: "🎾 Games Leader (pair)",
+      bestGamesSingle: "🎾 Games Leader",
+      bestSetsPair: "🏆 Sets Leader (pair)",
+      bestSetsSingle: "🏆 Sets Leader",
+    },
   },
   controls: {
     select: {
@@ -503,12 +567,20 @@ export const enDictionary: Dictionary = {
     searchAria: "Search by players or teams",
     empty: "No matches yet",
   },
+  matchHistoryModal: {
+    playerFallback: "Player",
+    teamFallback: "Team",
+  },
   matchesPage: {
     title: "Matches",
     loading: "Loading matches…",
     errorPrefix: "Error:",
     updateFailed: "Failed to update match",
     deleteFailed: "Failed to delete match",
+    loadFailed: "Failed to load matches",
+  },
+  matchesProvider: {
+    loadFailed: "Failed to load matches",
   },
   addMatchCard: {
     attackerSingle: "Player A",
@@ -564,11 +636,34 @@ export const enDictionary: Dictionary = {
     },
     loading: "Loading club…",
     ariaLabel: "Club sections",
+    noData: "No club data",
+    errors: {
+      notLoaded: "Club is not loaded",
+    },
   },
   aboutTournament: {
     noData: "No tournament data",
     organizerFallback: "Organizer",
     regulationTitle: "Tournament regulation",
+  },
+  userCard: {
+    call: "Call",
+    email: "Email",
+    whatsapp: "WhatsApp",
+    telegram: "Telegram",
+    unavailable: "{label} unavailable",
+    phoneMissing: "Phone not provided",
+    emailMissing: "E-mail not provided",
+    whatsappMissing: "WhatsApp unavailable",
+    telegramMissing: "Telegram unavailable",
+  },
+  users: {
+    roles: {
+      siteAdmin: "Administrator",
+      tournamentAdmin: "Organizer",
+      player: "Player",
+      guest: "User",
+    },
   },
   languageSwitcher: {
     label: "Language",

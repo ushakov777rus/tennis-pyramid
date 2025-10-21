@@ -1,15 +1,19 @@
 // app/components/ClubFallbackLogo.tsx
 "use client";
 
+import { useDictionary } from "@/app/components/LanguageProvider";
+
 type Props = {
   title?: string;
   className?: string;
 };
 
 export function ClubFallbackLogo({
-  title = "Теннисный клуб",
+  title,
   className,
 }: Props) {
+  const { clubs } = useDictionary();
+  const resolvedTitle = title ?? clubs.logoFallback;
   const racketStroke = "currentColor";
   const gripFill = "currentColor";
   const stringsStroke = "rgba(255,255,255,0.4)";
@@ -30,9 +34,9 @@ export function ClubFallbackLogo({
         height="64"
         viewBox="0 0 64 64"
         role="img"
-        aria-label={title}
+        aria-label={resolvedTitle}
       >
-        <title>{title}</title>
+        <title>{resolvedTitle}</title>
 
         {/* левая ракетка */}
         <g transform="translate(10,6) rotate(-25,16,20)">

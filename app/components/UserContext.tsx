@@ -68,10 +68,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     } catch (e: any) {
       if (e?.name !== "AbortError") {
         console.error("UserProvider: refresh error:", e);
-        setError(e?.message ?? "Не удалось загрузить пользователя");
+        setError(e?.message ?? commonErrors.userLoad ?? "Failed to load user");
         setUser(null);
       }
-    } finally {
+  } finally {
       if (inFlight.current === ac) inFlight.current = null;
       setLoading(false);
     }

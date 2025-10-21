@@ -8,6 +8,7 @@ import { Participant } from "@/app/models/Participant";
 import { MatchHistoryView } from "@/app/components/matches/MatchHistoryView";
 
 import "@/app/components/MatchHistoryModal.css";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 type MatchHistoryModalProps = {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export function MatchHistoryModal({
   onEditMatch,
   onDeleteMatch,
 }: MatchHistoryModalProps) {
+  const { matchHistoryModal, common } = useDictionary();
 
   // вычисляем ID участника
   const participantId = useMemo(() => {
@@ -38,8 +40,8 @@ export function MatchHistoryModal({
   // вычисляем имя участника
   const participantName = useMemo(() => {
     if (!participant) return "";
-    if (participant.player) return participant.player.displayName?.(false) ?? "Игрок";
-    if (participant.team) return participant.team.displayName?.(false) ?? "Команда";
+    if (participant.player) return participant.player.displayName?.(false) ?? matchHistoryModal.playerFallback;
+    if (participant.team) return participant.team.displayName?.(false) ?? matchHistoryModal.teamFallback;
     return "";
   }, [participant]);
 
@@ -74,7 +76,7 @@ export function MatchHistoryModal({
           onEditMatch={handleEdit}
           onDeleteMatch={handleDelete}
         />
-        <button onClick={onClose} className="modal-close-btn">
+        <button onClick={onClose} className="modal-close-btn" aria-label={common.close}>
           ✖
         </button>
       </div>

@@ -98,6 +98,10 @@ export type Dictionary = {
      navigation: string;
    };
    logout: string;
+    toggleOpen: string;
+    toggleClose: string;
+    expand: string;
+    collapse: string;
   };
   aboutPage: {
     hero: {
@@ -154,6 +158,8 @@ export type Dictionary = {
     errorPrefix: string;
     deleteConfirm: string;
     listEmptyTitle: string;
+    logoFallback: string;
+    noData: string;
     addModal: {
       title: string;
       namePlaceholder: string;
@@ -178,6 +184,7 @@ export type Dictionary = {
       deleteTitle: string;
       tooltip: string;
     };
+    directorFallback: string;
   };
   tournaments: {
     title: string;
@@ -250,6 +257,10 @@ export type Dictionary = {
       deleteTitle: string;
       statusUpdateFailed: string;
     };
+    scoreCell: {
+      addScore: string;
+      enterScore: string;
+    };
     modal: {
       title: string;
       namePlaceholder: string;
@@ -315,9 +326,48 @@ export type Dictionary = {
         ntrpRequired: string;
         registrationFailed: string;
         roleRequired: string;
-        network: string;
+      network: string;
       };
     };
+  };
+  telegramCreate: {
+    title: string;
+    description: string;
+    nameLabel: string;
+    namePlaceholder: string;
+    typeLabel: string;
+    formatLabel: string;
+    startDateLabel: string;
+    endDateLabel: string;
+    pyramidLevelsLabel: string;
+    groupsCountLabel: string;
+    statusHeading: string;
+    statusCreatedWithUrl: string;
+    statusCreatedWithSlug: string;
+    statusCreated: string;
+    mainButton: {
+      disabled: string;
+      submit: string;
+    };
+    submitButton: {
+      pending: string;
+      submit: string;
+    };
+    errors: {
+      createFailed: string;
+    };
+  };
+  freeTournamentModal: {
+    restoreTitle: string;
+    restoreDescription: string;
+    restoreQuestion: string;
+    restoreButton: string;
+    createNewButton: string;
+    errors: {
+      createFailed: string;
+    };
+    unknownFormat: string;
+    statusHeading: string;
   };
   participants: {
     loading: string;
@@ -409,6 +459,20 @@ export type Dictionary = {
     noMatches: string;
     noTitle: string;
     unknownPlayer: string;
+    participantTitles: {
+      bagelKing: string;
+      spotlessWinner: string;
+      mostActive: string;
+      aggressiveWinner: string;
+      relentlessChallenger: string;
+      marathoner: string;
+      ironDefender: string;
+      unluckyDefender: string;
+      bestGamesPair: string;
+      bestGamesSingle: string;
+      bestSetsPair: string;
+      bestSetsSingle: string;
+    };
   };
   controls: {
     select: {
@@ -425,12 +489,20 @@ export type Dictionary = {
     searchAria: string;
     empty: string;
   };
+  matchHistoryModal: {
+    playerFallback: string;
+    teamFallback: string;
+  };
   matchesPage: {
     title: string;
     loading: string;
     errorPrefix: string;
     updateFailed: string;
     deleteFailed: string;
+    loadFailed: string;
+  };
+  matchesProvider: {
+    loadFailed: string;
   };
   addMatchCard: {
     attackerSingle: string;
@@ -486,10 +558,33 @@ export type Dictionary = {
     };
     loading: string;
     ariaLabel: string;
+    noData: string;
+    errors: {
+      notLoaded: string;
+    };
   };
   aboutTournament: {
     noData: string;
     organizerFallback: string;
     regulationTitle: string;
+  };
+  userCard: {
+    call: string;
+    email: string;
+    whatsapp: string;
+    telegram: string;
+    unavailable: string;
+    phoneMissing: string;
+    emailMissing: string;
+    whatsappMissing: string;
+    telegramMissing: string;
+  };
+  users: {
+    roles: {
+      siteAdmin: string;
+      tournamentAdmin: string;
+      player: string;
+      guest: string;
+    };
   };
 };

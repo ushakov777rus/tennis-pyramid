@@ -8,6 +8,7 @@ import {
   TYPE_OPTIONS,
 } from "@/app/models/Tournament";
 import "./styles.css";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 type FormState = {
   name: string;
@@ -75,9 +76,6 @@ type TelegramWebApp = {
     offClick?: (cb: () => void) => void;
   };
 };
-
-const formatOptions = FORMAT_OPTIONS.filter((o) => o.value);
-const typeOptions = TYPE_OPTIONS.filter((o) => o.value);
 
 function createInitialState(): FormState {
   const today = new Date().toISOString().slice(0, 10);
@@ -163,9 +161,42 @@ export function TelegramTournamentForm({ onSubmit, pending }: Props) {
   const [form, setForm] = useState<FormState>(createInitialState);
   const { tg, initData, colorScheme } = useTelegramInit();
   const isValid = useMemo(() => validateForm(form), [form]);
- const [status, setStatus] = useState<string>("");
- const submittingRef = useRef(false);
- const isInTelegram = Boolean(tg);
+  const [status, setStatus] = useState<string>("");
+  const submittingRef = useRef(false);
+  const isInTelegram = Boolean(tg);
+  const { telegramCreate, tournaments } = useDictionary();
+  const typeOptions = useMemo(
+    () =>
+      TYPE_OPTIONS.filter((option) => option.value).map((option) => ({
+        value: option.value as TournamentType,
+        label: tournaments.typeLabels[option.value as TournamentType],
+      })),
+    [tournaments.typeLabels]
+  );
+  const formatOptions = useMemo(
+    () =>
+      FORMAT_OPTIONS.filter((option) => option.value).map((option) => {
+        const formatValue = option.value as TournamentFormat;
+        switch (formatValue) {
+          case TournamentFormat.RoundRobin:
+            return { value: formatValue, label: tournaments.formatLabels.roundRobin };
+          case TournamentFormat.SingleElimination:
+            return { value: formatValue, label: tournaments.formatLabels.singleElimination };
+          case TournamentFormat.DoubleElimination:
+            return { value: formatValue, label: tournaments.formatLabels.doubleElimination };
+          case TournamentFormat.GroupsPlayoff:
+            return { value: formatValue, label: tournaments.formatLabels.groupsPlayoff };
+          case TournamentFormat.Swiss:
+            return { value: formatValue, label: tournaments.formatLabels.swiss };
+          case TournamentFormat.Custom:
+            return { value: formatValue, label: tournaments.formatLabels.custom };
+          case TournamentFormat.Pyramid:
+          default:
+            return { value: formatValue, label: tournaments.formatLabels.pyramid };
+        }
+      }),
+    [tournaments.formatLabels]
+  );
 
   useEffect(() => {
     setStatus("");
@@ -181,17 +212,17 @@ export function TelegramTournamentForm({ onSubmit, pending }: Props) {
     try {
       const data = await onSubmit({ ...form, initData });
       if (data && typeof data === "object" && "url" in data && data.url) {
-        setStatus(`Турнир создан: ${data.url}`);
+        setStatus(telegramCreate.statusCreatedWithUrl.replace("{value}", String(data.url)));
       } else if (data && typeof data === "object" && "slug" in data) {
-        setStatus(`Турнир создан: ${data.slug}`);
+        setStatus(telegramCreate.statusCreatedWithSlug.replace("{value}", String(data.slug)));
       } else {
-        setStatus("Турнир создан");
+        setStatus(telegramCreate.statusCreated);
       }
       if (!isInTelegram) {
         setForm(createInitialState());
       }
     } catch (error: any) {
-      const message = error?.message ?? "Не удалось создать турнир";
+      const message = error?.message ?? telegramCreate.errors.createFailed;
       setStatus(message);
       tg?.showAlert?.(message);
     } finally {
@@ -202,12 +233,12 @@ export function TelegramTournamentForm({ onSubmit, pending }: Props) {
   useEffect(() => {
     if (!tg) return;
     if (pending || !isValid) {
-      tg.MainButton.setText("Заполните поля");
+      tg.MainButton.setText(telegramCreate.mainButton.disabled);
       tg.MainButton.disable?.();
       tg.MainButton.hide();
       return;
     }
-    tg.MainButton.setText("Создать турнир");
+    tg.MainButton.setText(telegramCreate.mainButton.submit);
     tg.MainButton.show();
     tg.MainButton.enable?.();
   }, [isValid, pending, tg]);
@@ -228,26 +259,26 @@ export function TelegramTournamentForm({ onSubmit, pending }: Props) {
 
   return (
     <div className="tg-create-container" data-theme={containerTheme}>
-      <h1>Создание турнира</h1>
+      <h1>{telegramCreate.title}</h1>
       <p className="tg-create-footnote">
-        Настройте параметры турнира и нажмите кнопку Telegram «Создать турнир». После сохранения бот пришлёт ссылку.
+        {telegramCreate.description}
       </p>
 
       <form className="tg-create-form" onSubmit={onLocalSubmit}>
         <label className="tg-field">
-          <span>Название турнира</span>
+          <span>{telegramCreate.nameLabel}</span>
           <input
             type="text"
             value={form.name}
             onChange={(e) => setField("name", e.target.value)}
-            placeholder="Например, Пятничный челендж"
+            placeholder={telegramCreate.namePlaceholder}
             required
           />
         </label>
 
         <div className="tg-grid">
           <label className="tg-field">
-            <span>Тип</span>
+            <span>{telegramCreate.typeLabel}</span>
             <select
               value={form.type}
               onChange={(e) => setField("type", e.target.value as TournamentType)}
@@ -261,7 +292,7 @@ export function TelegramTournamentForm({ onSubmit, pending }: Props) {
           </label>
 
           <label className="tg-field">
-            <span>Формат</span>
+            <span>{telegramCreate.formatLabel}</span>
             <select
               value={form.format}
               onChange={(e) => setField("format", e.target.value as TournamentFormat)}
@@ -277,7 +308,7 @@ export function TelegramTournamentForm({ onSubmit, pending }: Props) {
 
         <div className="tg-grid">
           <label className="tg-field">
-            <span>Дата начала</span>
+            <span>{telegramCreate.startDateLabel}</span>
             <input
               type="date"
               value={form.startDate}
@@ -286,7 +317,7 @@ export function TelegramTournamentForm({ onSubmit, pending }: Props) {
           </label>
 
           <label className="tg-field">
-            <span>Дата окончания</span>
+            <span>{telegramCreate.endDateLabel}</span>
             <input
               type="date"
               value={form.endDate}
@@ -297,7 +328,7 @@ export function TelegramTournamentForm({ onSubmit, pending }: Props) {
 
         {form.format === TournamentFormat.Pyramid && (
           <label className="tg-field">
-            <span>Максимальное число уровней пирамиды</span>
+            <span>{telegramCreate.pyramidLevelsLabel}</span>
             <input
               type="number"
               min={3}
@@ -310,7 +341,7 @@ export function TelegramTournamentForm({ onSubmit, pending }: Props) {
 
         {form.format === TournamentFormat.GroupsPlayoff && (
           <label className="tg-field">
-            <span>Количество групп</span>
+            <span>{telegramCreate.groupsCountLabel}</span>
             <input
               type="number"
               min={2}
@@ -323,12 +354,17 @@ export function TelegramTournamentForm({ onSubmit, pending }: Props) {
 
         {!isInTelegram && (
           <button type="submit" className="tg-submit" disabled={!isValid || pending}>
-            {pending ? "Создание…" : "Создать турнир"}
+            {pending ? telegramCreate.submitButton.pending : telegramCreate.submitButton.submit}
           </button>
         )}
       </form>
 
-      {status && <div className="tg-create-status"><strong>Статус:</strong><span>{status}</span></div>}
+      {status && (
+        <div className="tg-create-status">
+          <strong>{telegramCreate.statusHeading}</strong>
+          <span>{status}</span>
+        </div>
+      )}
     </div>
   );
 }

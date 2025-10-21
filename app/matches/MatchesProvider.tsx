@@ -12,6 +12,7 @@ import {
 
 import { Match } from "@/app/models/Match";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 type MatchesContextValue = {
   matches: Match[];
@@ -30,6 +31,7 @@ export function MatchesProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState<boolean>(false);
   const [initialLoaded, setInitialLoaded] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { matchesProvider } = useDictionary();
 
   const matchesRef = useRef<Match[]>([]);
   useEffect(() => {
@@ -46,12 +48,12 @@ export function MatchesProvider({ children }: { children: React.ReactNode }) {
       setMatches(list);
     } catch (e: any) {
       console.error("MatchesProvider.refresh error", e);
-      setError(e?.message ?? "Не удалось загрузить матчи");
+      setError(e?.message ?? matchesProvider.loadFailed);
     } finally {
       if (!background) setLoading(false);
       setInitialLoaded(true);
     }
-  }, []);
+  }, [matchesProvider.loadFailed]);
 
   useEffect(() => {
     void refresh();

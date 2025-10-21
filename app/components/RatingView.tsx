@@ -224,12 +224,15 @@ export function RatingView() {
       return new Map<number, string[]>();
     }
 
-    return calculateParticipantTitles({
-      participants,
-      matches: pastMatches,
-      tournament,
-    });
-  }, [scope, participants, pastMatches, tournament]);
+    return calculateParticipantTitles(
+      {
+        participants,
+        matches: pastMatches,
+        tournament,
+      },
+      ratingText.participantTitles
+    );
+  }, [scope, participants, pastMatches, tournament, ratingText.participantTitles]);
 
   const cardsData = useMemo(() => {
     const data = subjects.map((subject) => {

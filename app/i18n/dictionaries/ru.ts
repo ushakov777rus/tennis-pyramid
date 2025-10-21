@@ -82,6 +82,10 @@ export const ruDictionary: Dictionary = {
       navigation: "Навигация",
     },
     logout: "Выйти",
+    toggleOpen: "Открыть меню",
+    toggleClose: "Закрыть меню",
+    expand: "Развернуть меню",
+    collapse: "Свернуть меню",
   },
   metadata: {
     home: {
@@ -231,6 +235,8 @@ export const ruDictionary: Dictionary = {
     errorPrefix: "Ошибка",
     deleteConfirm: "Удалить клуб «{name}»?",
     listEmptyTitle: "Создать клуб",
+    logoFallback: "Теннисный клуб",
+    noData: "Нет данных о клубе",
     addModal: {
       title: "Создать клуб",
       namePlaceholder: "Название клуба",
@@ -255,6 +261,7 @@ export const ruDictionary: Dictionary = {
       deleteTitle: "Удалить клуб",
       tooltip: "Пока не реализовано",
     },
+    directorFallback: "Директор клуба",
   },
   tournaments: {
     title: "Турниры",
@@ -326,6 +333,10 @@ export const ruDictionary: Dictionary = {
       matchesLabel: "Игр: {count}",
       deleteTitle: "Удалить турнир",
       statusUpdateFailed: "Не удалось обновить статус турнира",
+    },
+    scoreCell: {
+      addScore: "Добавить счёт",
+      enterScore: "Введите счёт",
     },
     modal: {
       title: "Создать турнир",
@@ -402,6 +413,45 @@ export const ruDictionary: Dictionary = {
         network: "Сеть недоступна или сервер не отвечает",
       },
     },
+  },
+  telegramCreate: {
+    title: "Создание турнира",
+    description: "Настройте параметры турнира и нажмите кнопку Telegram «Создать турнир». После сохранения бот пришлёт ссылку.",
+    nameLabel: "Название турнира",
+    namePlaceholder: "Например, Пятничный челендж",
+    typeLabel: "Тип",
+    formatLabel: "Формат",
+    startDateLabel: "Дата начала",
+    endDateLabel: "Дата окончания",
+    pyramidLevelsLabel: "Максимальное число уровней пирамиды",
+    groupsCountLabel: "Количество групп",
+    statusHeading: "Статус:",
+    statusCreatedWithUrl: "Турнир создан: {value}",
+    statusCreatedWithSlug: "Турнир создан: {value}",
+    statusCreated: "Турнир создан",
+    mainButton: {
+      disabled: "Заполните поля",
+      submit: "Создать турнир",
+    },
+    submitButton: {
+      pending: "Создание…",
+      submit: "Создать турнир",
+    },
+    errors: {
+      createFailed: "Не удалось создать турнир",
+    },
+  },
+  freeTournamentModal: {
+    restoreTitle: "Продолжить работу с турниром?",
+    restoreDescription: "Найдён сохранённый турнир",
+    restoreQuestion: "Хотите продолжить?",
+    restoreButton: "Загрузить турнир",
+    createNewButton: "Создать новый",
+    errors: {
+      createFailed: "Не удалось создать турнир. Попробуйте позже.",
+    },
+    unknownFormat: "Неизвестный формат",
+    statusHeading: "Статус:",
   },
   participants: {
     loading: "Загрузка…",
@@ -493,6 +543,20 @@ export const ruDictionary: Dictionary = {
     noMatches: "Игроки не найдены.",
     noTitle: "Без титула",
     unknownPlayer: "Игрок",
+    participantTitles: {
+      bagelKing: "🥯 Король бубликов",
+      spotlessWinner: "🚀 Победитель без потерь",
+      mostActive: "🐝 Самый активный",
+      aggressiveWinner: "⚡ Удачливый нападающий",
+      relentlessChallenger: "🙃 Неунывающий драчун",
+      marathoner: "🎢 Трёхсетовый боец",
+      ironDefender: "🛡 Железный защитник",
+      unluckyDefender: "🪫 Неудачный защитник",
+      bestGamesPair: "🎾 Лучшая пара по геймам",
+      bestGamesSingle: "🎾 Победитель по геймам",
+      bestSetsPair: "🏆 Победа по сетам (пара)",
+      bestSetsSingle: "🏆 Победитель по сетам",
+    },
   },
   controls: {
     select: {
@@ -509,12 +573,20 @@ export const ruDictionary: Dictionary = {
     searchAria: "Поиск по игрокам или командам",
     empty: "Матчей пока нет",
   },
+  matchHistoryModal: {
+    playerFallback: "Игрок",
+    teamFallback: "Команда",
+  },
   matchesPage: {
     title: "Список матчей",
     loading: "Загрузка матчей…",
     errorPrefix: "Ошибка:",
     updateFailed: "Не удалось обновить матч",
     deleteFailed: "Не удалось удалить матч",
+    loadFailed: "Не удалось загрузить матчи",
+  },
+  matchesProvider: {
+    loadFailed: "Не удалось загрузить матчи",
   },
   addMatchCard: {
     attackerSingle: "Игрок 1",
@@ -570,11 +642,34 @@ export const ruDictionary: Dictionary = {
     },
     loading: "Загрузка клуба…",
     ariaLabel: "Разделы клуба",
+    noData: "Нет данных о клубе",
+    errors: {
+      notLoaded: "Клуб не загружен",
+    },
   },
   aboutTournament: {
     noData: "Нет данных о турнире",
     organizerFallback: "Организатор",
     regulationTitle: "Положение о турнире",
+  },
+  userCard: {
+    call: "Позвонить",
+    email: "E-mail",
+    whatsapp: "WhatsApp",
+    telegram: "Telegram",
+    unavailable: "{label} недоступно",
+    phoneMissing: "Телефон не указан",
+    emailMissing: "E-mail не указан",
+    whatsappMissing: "WhatsApp недоступен",
+    telegramMissing: "Telegram недоступен",
+  },
+  users: {
+    roles: {
+      siteAdmin: "Администратор",
+      tournamentAdmin: "Организатор",
+      player: "Игрок",
+      guest: "Пользователь",
+    },
   },
   languageSwitcher: {
     label: "Язык",

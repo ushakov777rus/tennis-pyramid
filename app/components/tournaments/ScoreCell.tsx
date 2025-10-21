@@ -3,6 +3,7 @@
 import React, { RefObject, useCallback, useRef, useState } from "react";
 import { Participant } from "@/app/models/Participant";
 import { MatchPhase } from "@/app/models/Match";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 export type ScoreCellProps = {
   a: Participant | null;
@@ -49,6 +50,7 @@ export function ScoreCell({
   const [localEditingKey, setLocalEditingKey] = useState<string | null>(null);
 
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
+  const { tournaments } = useDictionary();
 
   // Определяем, используем ли глобальное или локальное состояние
   const isGlobalKeyboard = !!onOpenKeyboard;
@@ -101,14 +103,14 @@ export function ScoreCell({
             <span className="rr-score rr-score--mirror">{localScoreString}</span>
           ) : !isEditing ? (
             <div className="score-cell__button-wrap">
-              {shouldShowHelpTooltip && <div className="help-tooltip">Введите счёт</div>}
+              {shouldShowHelpTooltip && <div className="help-tooltip">{tournaments.scoreCell.enterScore}</div>}
               <button
                 type="button"
                 className="vs-click"
                 onClick={() => startEdit(aId!, bId!, localScoreString)}
                 disabled={!canManage}
-                title="Добавить счёт"
-                aria-label="Добавить счёт"
+                title={tournaments.scoreCell.addScore}
+                aria-label={tournaments.scoreCell.addScore}
               >
                 vs
               </button>

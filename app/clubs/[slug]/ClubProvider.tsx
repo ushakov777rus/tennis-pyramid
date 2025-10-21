@@ -24,6 +24,7 @@ import { Player } from "@/app/models/Player";
 import { useUser } from "@/app/components/UserContext";
 import type { User } from "@/app/models/Users"; // 👈
 import type { Match } from "@/app/models/Match";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 /** Исходные данные из сервера/роутера */
 type InitialData = {
@@ -84,6 +85,7 @@ export function ClubProvider({
 }) {
   const { loading: userLoading } = useUser();
   const { slug, clubPlain } = initial;
+  const { clubPage } = useDictionary();
 
   // state
   const [club, setClub] = useState<Club | null>(toModelFromPlain(clubPlain));
@@ -165,7 +167,7 @@ export function ClubProvider({
       if (!clubId) {
         await reload({ silent: true });
       }
-      if (!clubId && !club?.id) throw new Error("Клуб не загружен");
+      if (!clubId && !club?.id) throw new Error(clubPage.errors.notLoaded);
       setMutating(true);
       try {
         await ClubsRepository.addMember(club?.id ?? clubId!, playerId);
@@ -174,7 +176,7 @@ export function ClubProvider({
         setMutating(false);
       }
     },
-    [clubId, club?.id, reload]
+    [clubId, club?.id, reload, clubPage.errors.notLoaded]
   );
 
   /** Удалить члена клуба */
@@ -183,7 +185,7 @@ export function ClubProvider({
       if (!clubId) {
         await reload({ silent: true });
       }
-      if (!clubId && !club?.id) throw new Error("Клуб не загружен");
+      if (!clubId && !club?.id) throw new Error(clubPage.errors.notLoaded);
       setMutating(true);
       try {
         await ClubsRepository.removeMember(club?.id ?? clubId!, playerId);
@@ -192,7 +194,7 @@ export function ClubProvider({
         setMutating(false);
       }
     },
-    [clubId, club?.id, reload]
+    [clubId, club?.id, reload, clubPage.errors.notLoaded]
   );
 
   const value = useMemo<ClubContextShape>(

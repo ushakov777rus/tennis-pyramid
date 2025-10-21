@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@/app/components/UserContext";
-import { roleLabel, UserRole } from "@/app/models/Users";
+import { UserRole } from "@/app/models/Users";
 import { useDictionary, useLanguage } from "../LanguageProvider";
 import { stripLocaleFromPath, withLocalePath } from "@/app/i18n/routing";
 
@@ -243,7 +243,7 @@ export function SideNavigationBar() {
     <>
       <button
         className="burger-btn"
-        aria-label={open ? "Закрыть меню" : "Открыть меню"}
+        aria-label={open ? dictionary.sidebar.toggleClose : dictionary.sidebar.toggleOpen}
         aria-expanded={open}
         aria-controls="side-drawer"
         onClick={toggle}
@@ -268,7 +268,7 @@ export function SideNavigationBar() {
           {isDesktop ? (
             <button
               className="collapse-btn"
-              aria-label={collapsed ? "Развернуть меню" : "Свернуть меню"}
+              aria-label={collapsed ? dictionary.sidebar.expand : dictionary.sidebar.collapse}
               onClick={toggleCollapsed}
               type="button"
             >
@@ -277,7 +277,7 @@ export function SideNavigationBar() {
           ) : (
             <button
               className="close-btn"
-              aria-label="Закрыть меню"
+              aria-label={dictionary.sidebar.toggleClose}
               onClick={close}
               type="button"
             >
@@ -293,7 +293,9 @@ export function SideNavigationBar() {
                 <div className="who-name" title={user.name}>
                   {user.name}
                 </div>
-                <div className="who-role">{roleLabel(user.role)}</div>
+                <div className="who-role">
+                  {dictionary.users.roles[user.role] ?? dictionary.users.roles.guest}
+                </div>
               </div>
             )}
           </div>

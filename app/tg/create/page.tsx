@@ -4,9 +4,11 @@ import { useCallback, useState } from "react";
 import Script from "next/script";
 import { TelegramTournamentForm } from "./TelegramTournamentForm";
 import { TournamentFormat, TournamentType } from "@/app/models/Tournament";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 export default function TelegramCreateTournamentPage() {
   const [pending, setPending] = useState(false);
+  const { telegramCreate } = useDictionary();
 
   const handleSubmit = useCallback(async (payload: {
     name: string;
@@ -48,7 +50,7 @@ export default function TelegramCreateTournamentPage() {
 
       if (!response.ok) {
         console.error("tg/create-tournament error", response.status, data);
-        throw new Error(data?.error ?? "Не удалось создать турнир");
+        throw new Error(data?.error ?? telegramCreate.errors.createFailed);
       }
 
       const tg = window.Telegram?.WebApp;
@@ -62,7 +64,7 @@ export default function TelegramCreateTournamentPage() {
     } finally {
       setPending(false);
     }
-  }, []);
+  }, [telegramCreate.errors.createFailed]);
 
   return (
     <>

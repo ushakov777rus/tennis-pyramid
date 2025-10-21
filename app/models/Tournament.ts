@@ -29,52 +29,29 @@ export enum TournamentFormat {
 
 /** Опции для селектов (с первым пунктом «любой …» удобно для фильтров) */
 export const FORMAT_OPTIONS = [
-  { value: "", label: "Любой формат" },
-  { value: TournamentFormat.Pyramid, label: "Пирамида" },
-  { value: TournamentFormat.RoundRobin, label: "Круговой" },
-  { value: TournamentFormat.SingleElimination, label: "Олимпийка" },
-  { value: TournamentFormat.DoubleElimination, label: "Двойная олим." },
-  { value: TournamentFormat.GroupsPlayoff, label: "Гр.+плей-офф" },
-  { value: TournamentFormat.Swiss, label: "Швейцарка" },
-  { value: TournamentFormat.Custom, label: "Произвольный" },
+  { value: "" },
+  { value: TournamentFormat.Pyramid },
+  { value: TournamentFormat.RoundRobin },
+  { value: TournamentFormat.SingleElimination },
+  { value: TournamentFormat.DoubleElimination },
+  { value: TournamentFormat.GroupsPlayoff },
+  { value: TournamentFormat.Swiss },
+  { value: TournamentFormat.Custom },
 ];
 
 export const TYPE_OPTIONS = [
-  { value: "", label: "Любой тип" },
-  { value: TournamentType.Single, label: "Одиночный" },
-  { value: TournamentType.Double, label: "Парный" },
+  { value: "" },
+  { value: TournamentType.Single },
+  { value: TournamentType.Double },
 ];
 
 export const STATUS_OPTIONS = [
-  { value: "", label: "Любой статус" },
-  { value: TournamentStatus.Draft, label: "Черновик" },
-  { value: TournamentStatus.Registration, label: "Идет набор" },
-  { value: TournamentStatus.Ongoing, label: "Идет" },
-  { value: TournamentStatus.Finished, label: "Завершён" },
+  { value: "" },
+  { value: TournamentStatus.Draft },
+  { value: TournamentStatus.Registration },
+  { value: TournamentStatus.Ongoing },
+  { value: TournamentStatus.Finished },
 ];
-
-/** Словари лейблов для UI */
-const FORMAT_LABELS_RU: Record<TournamentFormat, string> = {
-  [TournamentFormat.Pyramid]: "Пирамида",
-  [TournamentFormat.RoundRobin]: "Круговой турнир",
-  [TournamentFormat.SingleElimination]: "Плей-офф (1 вылет)",
-  [TournamentFormat.DoubleElimination]: "Плей-офф (2 вылета)",
-  [TournamentFormat.GroupsPlayoff]: "Гр. + плей-офф",
-  [TournamentFormat.Swiss]: "Швейцарская система",
-  [TournamentFormat.Custom]: "Произвольный формат",
-};
-
-const STATUS_LABELS_RU: Record<TournamentStatus, string> = {
-  [TournamentStatus.Draft]: "Черновик",
-  [TournamentStatus.Registration]: "Идет набор",
-  [TournamentStatus.Ongoing]: "Идет",
-  [TournamentStatus.Finished]: "Завершён",
-};
-
-const TYPE_LABELS_RU: Record<TournamentType, string> = {
-  [TournamentType.Single]: "Одиночный",
-  [TournamentType.Double]: "Парный",
-};
 
 /** Данные для создания турнира (без id) */
 export type TournamentCreateInput = {
@@ -238,20 +215,4 @@ export class Tournament {
     return this.format === TournamentFormat.Custom;
   }
 
-  // ---------- Геттеры лейблов для UI ----------
-
-  /** RU-лейбл статуса */
-  getStatus(): string {
-    return STATUS_LABELS_RU[this.status] ?? "Неизвестно";
-  }
-
-  /** RU-лейбл формата */
-  getFormat(): string {
-    return FORMAT_LABELS_RU[this.format] ?? "Неизвестный формат";
-  }
-
-  /** RU-лейбл типа турнира */
-  getType(): string {
-    return TYPE_LABELS_RU[this.tournament_type] ?? "Неизвестный тип";
-  }
 }

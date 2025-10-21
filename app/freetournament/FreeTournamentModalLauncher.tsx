@@ -6,17 +6,14 @@ import { useRouter } from "next/navigation";
 import { AddTournamentModal } from "@/app/components/AddTournamentModal";
 import { useUser } from "@/app/components/UserContext";
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
-import {
-  FORMAT_OPTIONS,
-  TournamentCreateInput,
-  TournamentFormat,
-  TournamentStatus,
-} from "@/app/models/Tournament";
+import { TournamentCreateInput, TournamentFormat, TournamentStatus } from "@/app/models/Tournament";
 import { OWNER_TOKEN_PREFIX } from "./constants";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 export default function FreeTournamentModalLauncher() {
   const router = useRouter();
   const { user } = useUser();
+  const { freeTournamentModal, tournaments } = useDictionary();
 
   const [status, setStatus] = useState<"loading" | "prompt" | "create">("loading");
   const [candidate, setCandidate] = useState<
@@ -146,19 +143,35 @@ export default function FreeTournamentModalLauncher() {
       router.push(`/freetournament/${created.slug}?tab=participants`);
     } catch (error) {
       console.error("Failed to create free tournament", error);
-      alert("Не удалось создать турнир. Попробуйте позже.");
+      alert(freeTournamentModal.errors.createFailed);
       setIsOpen(true);
     } finally {
       setCreating(false);
     }
-  }, [router, user?.id, setCreating]);
+  }, [router, user?.id, setCreating, freeTournamentModal.errors.createFailed]);
 
   const formatLabel = useMemo(() => {
     if (!candidate) return "";
-    return (
-      FORMAT_OPTIONS.find((opt) => opt.value === candidate.format)?.label ?? "Неизвестный формат"
-    );
-  }, [candidate]);
+    const format = candidate.format as TournamentFormat;
+    switch (format) {
+      case TournamentFormat.RoundRobin:
+        return tournaments.formatLabels.roundRobin;
+      case TournamentFormat.SingleElimination:
+        return tournaments.formatLabels.singleElimination;
+      case TournamentFormat.DoubleElimination:
+        return tournaments.formatLabels.doubleElimination;
+      case TournamentFormat.GroupsPlayoff:
+        return tournaments.formatLabels.groupsPlayoff;
+      case TournamentFormat.Swiss:
+        return tournaments.formatLabels.swiss;
+      case TournamentFormat.Custom:
+        return tournaments.formatLabels.custom;
+      case TournamentFormat.Pyramid:
+        return tournaments.formatLabels.pyramid;
+      default:
+        return freeTournamentModal.unknownFormat;
+    }
+  }, [candidate, tournaments.formatLabels, freeTournamentModal.unknownFormat]);
 
   const handleRestore = useCallback(() => {
     if (!candidate) return;
@@ -178,19 +191,22 @@ export default function FreeTournamentModalLauncher() {
       {status === "prompt" && candidate && (
         <div className="modal-overlay" aria-hidden={false}>
           <div className="modal-content" role="dialog" aria-modal="true">
-            <h2 className="modal-title">Продолжить работу с турниром?</h2>
-              <p style={{ marginBottom: 16,textAlign:"center" }}>
-                Найдён сохранённый турнир<br /><br />
-                <strong>{candidate.name}</strong>
-                {formatLabel ? ` (${formatLabel})` : ""}. <br /><br />
-                Хотите продолжить?
-              </p>
+            <h2 className="modal-title">{freeTournamentModal.restoreTitle}</h2>
+            <p style={{ marginBottom: 16, textAlign: "center" }}>
+              {freeTournamentModal.restoreDescription}
+              <br />
+              <br />
+              <strong>{candidate.name}</strong>
+              {formatLabel ? ` (${formatLabel})` : ""}. <br />
+              <br />
+              {freeTournamentModal.restoreQuestion}
+            </p>
             <div className="modal-actions" style={{ justifyContent: "flex-end" }}>
               <button type="button" className="modal-submit-btn" onClick={handleRestore}>
-                Загрузить турнир
+                {freeTournamentModal.restoreButton}
               </button>
               <button type="button" className="modal-submit-btn" onClick={handleDecline}>
-                Создать новый
+                {freeTournamentModal.createNewButton}
               </button>
             </div>
           </div>
