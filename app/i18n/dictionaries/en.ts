@@ -430,6 +430,18 @@ export const enDictionary: Dictionary = {
       empty: "No matchups",
     },
   },
+  pyramidView: {
+    levelLabel: "Level",
+    benchLabel: "Bench",
+    daysSuffix: "d",
+    invalidChallenge: "You cannot challenge this player",
+    statusTitles: {
+      attackerWinner: "Challenged and won",
+      defenderWinner: "Defended and won",
+      attackerLoser: "Challenged and lost",
+      defenderLoser: "Defended and lost",
+    },
+  },
   profile: {
     unknownPlayer: "Player",
     copyPhone: "Copy phone",

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useUser } from "@/app/components/UserContext";
+import { useDictionary } from "@/app/components/LanguageProvider";
 import { Participant } from "@/app/models/Participant";
 import { Match, MatchPhase } from "@/app/models/Match";
 import "./PyramidView.css";
@@ -40,10 +41,18 @@ type PyramidViewProps = {
   maxLevel: number;
 };
 
+type PlayerStatusTitles = {
+  attackerWinner: string;
+  defenderWinner: string;
+  attackerLoser: string;
+  defenderLoser: string;
+};
+
 // Функция получения статуса игрока (вынесена из компонента)
 const getPlayerStatusIcon = (
   participantId: number,
-  match: Match
+  match: Match,
+  titles: PlayerStatusTitles
 ): { icon: string; className: string; title: string } => {
   const winnerId = match.getWinnerId();
   const isWinner = winnerId === participantId;
@@ -51,12 +60,12 @@ const getPlayerStatusIcon = (
     match.player1?.id === participantId || match.team1?.id === participantId;
 
   if (isWinner && isAttacker)
-    return { icon: " ↑", className: "winner-attacker", title: "Атаковал и выиграл" };
+    return { icon: " ↑", className: "winner-attacker", title: titles.attackerWinner };
   if (isWinner && !isAttacker)
-    return { icon: " ✖", className: "winner-defender", title: "Защищался и выиграл" };
+    return { icon: " ✖", className: "winner-defender", title: titles.defenderWinner };
   if (!isWinner && isAttacker)
-    return { icon: " ↺", className: "loser-attacker", title: "Атаковал и проиграл" };
-  return { icon: " ↓", className: "loser-defender", title: "Защищался и проиграл" };
+    return { icon: " ↺", className: "loser-attacker", title: titles.attackerLoser };
+  return { icon: " ↓", className: "loser-defender", title: titles.defenderLoser };
 };
 
 // Мемоизированный компонент
@@ -70,6 +79,7 @@ export const PyramidView = React.memo(function PyramidView({
   maxLevel,
 }: PyramidViewProps) {
   const { user } = useUser();
+  const { pyramidView: pyramidText } = useDictionary();
 
   const canReorder = !!onPositionsChange && (user?.role === UserRole.SiteAdmin || user?.role === UserRole.TournamentAdmin);
 
@@ -387,9 +397,9 @@ export const PyramidView = React.memo(function PyramidView({
             onClick={() => handleClick(id, p)}
           >
             <div className="player-top-line">
-              
-                <div className={`days-counter ${inactivityClass}`}>{daysWithoutGames ? daysWithoutGames+"д" : ""}</div>
-              
+              <div className={`days-counter ${inactivityClass}`}>
+                {daysWithoutGames ? `${daysWithoutGames}${pyramidText.daysSuffix}` : ""}
+              </div>
               <div className="player-position">
                 {p.level != null && p.position != null ? `${p.level} - ${p.position}` : `Z - ${p.position ?? "?"}`}
               </div>
@@ -398,7 +408,7 @@ export const PyramidView = React.memo(function PyramidView({
             <div className="player-name">
               {(() => {
                 const lines = p.splitName(false) ?? [];
-                const status = lastMatch ? getPlayerStatusIcon(id, lastMatch) : null;
+                const status = lastMatch ? getPlayerStatusIcon(id, lastMatch, pyramidText.statusTitles) : null;
                 return lines.map((line: string, i: number) => (
                   <div key={i} className={`player-line ${status?.className ?? ""}`}>
                     {line}
@@ -437,12 +447,12 @@ export const PyramidView = React.memo(function PyramidView({
               )}
             </div>
 
-            {invalidId === id && <div className="invalid-tooltip">Нельзя вызвать этого игрока</div>}
+            {invalidId === id && <div className="invalid-tooltip">{pyramidText.invalidChallenge}</div>}
           </div>
         )}
       </Draggable>
     );
-  }, [getPlayerClass, getLastMatch, getDaysWithoutGames, selectedIds, invalidId, handleClick, onShowHistory, canReorder]);
+  }, [getPlayerClass, getLastMatch, getDaysWithoutGames, selectedIds, invalidId, handleClick, onShowHistory, canReorder, pyramidText]);
 
   const byLevel = useMemo(() => buildByLevel(localParticipants), [localParticipants, buildByLevel]);
 
@@ -452,7 +462,7 @@ export const PyramidView = React.memo(function PyramidView({
         {Array.from({ length: totalLevels }, (_, i) => String(i + 1)).map((levelKey) => {
           const rows = chunk(byLevel[levelKey] ?? [], perRow);
           return (
-            <div className="card pyramid-row" data-level={`Уровень ${levelKey}`} key={levelKey}>
+            <div className="card pyramid-row" data-level={`${pyramidText.levelLabel} ${levelKey}`} key={levelKey}>
               {rows.map((row, rIdx) => (
                 <Droppable droppableId={`${levelKey}:${rIdx}`} direction="horizontal" key={`${levelKey}:${rIdx}`}>
                   {(provided) => (
@@ -483,7 +493,7 @@ export const PyramidView = React.memo(function PyramidView({
         {(() => {
           const benchRows = chunk(byLevel["999"] ?? [], perRow);
           return (
-            <div className="card pyramid-row bench-level" data-level="Скамейка">
+            <div className="card pyramid-row bench-level" data-level={pyramidText.benchLabel}>
               {benchRows.map((row, rIdx) => (
                 <Droppable droppableId={`999:${rIdx}`} direction="horizontal" key={`999:${rIdx}`}>
                   {(provided) => (

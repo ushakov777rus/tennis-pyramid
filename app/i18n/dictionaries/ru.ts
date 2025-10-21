@@ -436,6 +436,18 @@ export const ruDictionary: Dictionary = {
       empty: "Нет пар",
     },
   },
+  pyramidView: {
+    levelLabel: "Уровень",
+    benchLabel: "Скамейка",
+    daysSuffix: "д",
+    invalidChallenge: "Нельзя вызвать этого игрока",
+    statusTitles: {
+      attackerWinner: "Атаковал и выиграл",
+      defenderWinner: "Защищался и выиграл",
+      attackerLoser: "Атаковал и проиграл",
+      defenderLoser: "Защищался и проиграл",
+    },
+  },
   profile: {
     unknownPlayer: "Игрок",
     copyPhone: "Скопировать телефон",

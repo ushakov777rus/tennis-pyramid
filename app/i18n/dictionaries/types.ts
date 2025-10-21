@@ -352,6 +352,18 @@ export type Dictionary = {
       empty: string;
     };
   };
+  pyramidView: {
+    levelLabel: string;
+    benchLabel: string;
+    daysSuffix: string;
+    invalidChallenge: string;
+    statusTitles: {
+      attackerWinner: string;
+      defenderWinner: string;
+      attackerLoser: string;
+      defenderLoser: string;
+    };
+  };
   profile: {
     unknownPlayer: string;
     copyPhone: string;
