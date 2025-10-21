@@ -294,7 +294,15 @@ export function SideNavigationBar() {
                   {user.name}
                 </div>
                 <div className="who-role">
-                  {dictionary.users.roles[user.role] ?? dictionary.users.roles.guest}
+                  {
+                    user.role === UserRole.SiteAdmin
+                      ? dictionary.users.roles.siteAdmin
+                      : user.role === UserRole.TournamentAdmin
+                      ? dictionary.users.roles.tournamentAdmin
+                      : user.role === UserRole.Player
+                      ? dictionary.users.roles.player
+                      : dictionary.users.roles.guest
+                  }
                 </div>
               </div>
             )}
