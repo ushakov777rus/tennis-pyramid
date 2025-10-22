@@ -130,9 +130,9 @@ export default function TournamentClient() {
     const showGroupsTab = tournament?.isGroupsPlayoff?.() || tournament?.format === "groups_playoff";
     const items: Array<TabItem | false> = [
       !isWizard && { key: "aboutt", label: tournamentTabs.about },
+      showGroupsTab && canManage && { key: "groups", label: tournamentTabs.groups },
       showBracketTab && { key: "bracket", label: tournamentTabs.bracket },
       { key: "matches", label: tournamentTabs.matches },
-      showGroupsTab && canManage && { key: "groups", label: tournamentTabs.groups },
       canManage && {
         key: "participants",
         label: tournamentTabs.participants,
@@ -594,6 +594,10 @@ export default function TournamentClient() {
           )}
 
           <div>
+            {view === "groups" && tournament.isGroupsPlayoff() && canManage && (
+              <TournamentGroupsView />
+            )}
+
             {view === "bracket" &&
             <div style={{marginTop: "10px"}}>             
               <FormatView
@@ -623,10 +627,6 @@ export default function TournamentClient() {
                 onEditMatch={handleEditMatchSave} 
                 onDeleteMatch={handleDeleteMatch} />
             </div>}
-
-            {view === "groups" && tournament.isGroupsPlayoff() && canManage && (
-              <TournamentGroupsView canManage={canManage} />
-            )}
 
             {view === "participants" && canManage &&
               <TournamentParticipantsView canManage={canManage} isWizard={isWizard}/>}

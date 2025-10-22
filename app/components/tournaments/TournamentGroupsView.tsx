@@ -16,11 +16,6 @@ import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 import { useDictionary } from "@/app/components/LanguageProvider";
 import { KebabIconButton, PlusIconButton } from "../controls/IconButtons";
 
-type TournamentGroupsViewProps = {
-  canManage: boolean;
-  isWizard?: boolean;
-};
-
 type LocalAssignments = Record<number, number | null>;
 
 type LastAction = {
@@ -32,7 +27,7 @@ type LastAction = {
 
 const MOBILE_BREAKPOINT = 900;
 
-export function TournamentGroupsView({ canManage }: TournamentGroupsViewProps) {
+export function TournamentGroupsView() {
   const {
     participants,
     tournament,
@@ -382,7 +377,7 @@ export function TournamentGroupsView({ canManage }: TournamentGroupsViewProps) {
                 {renderParticipantLabel(participant)}              
               </div>
               <div>
-                {canManage && renderGroupActions(participant, groupIndex)}
+                {renderGroupActions(participant, groupIndex)}
               </div>
             </div>
           ))
@@ -416,7 +411,7 @@ export function TournamentGroupsView({ canManage }: TournamentGroupsViewProps) {
             type="button"
             className="btn-base"
             onClick={handleAutoDistribute}
-            disabled={!canManage || mutating || unassigned.length === 0}
+            disabled={mutating || unassigned.length === 0}
           >
             {viewText.actions.autoDistribute}
           </button>
@@ -468,7 +463,7 @@ export function TournamentGroupsView({ canManage }: TournamentGroupsViewProps) {
                     {renderParticipantLabel(participant)}                  
                   </div>
                   <div>
-                    {canManage && renderAssignMenu(participant)}
+                    {renderAssignMenu(participant)}
                   </div>
                 </div>
               ))
