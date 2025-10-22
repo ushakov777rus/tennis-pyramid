@@ -46,7 +46,6 @@ type SingleEliminationViewProps = {
 
 export function SingleEliminationView({
   participants,
-  matches,
   canManage,
   onSaveScore,
   onOpenKeyboard,

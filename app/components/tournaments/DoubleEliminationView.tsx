@@ -64,7 +64,6 @@ const BRACKET_GROUP_GF = 2;
 
 export function DoubleEliminationView({
   participants,
-  matches,
   canManage,
   onSaveScore,
   onOpenKeyboard,
