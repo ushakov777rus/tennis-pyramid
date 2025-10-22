@@ -130,13 +130,13 @@ export default function TournamentClient() {
     const showGroupsTab = tournament?.isGroupsPlayoff?.() || tournament?.format === "groups_playoff";
     const items: Array<TabItem | false> = [
       !isWizard && { key: "aboutt", label: tournamentTabs.about },
-      showGroupsTab && canManage && { key: "groups", label: tournamentTabs.groups },
-      showBracketTab && { key: "bracket", label: tournamentTabs.bracket },
-      { key: "matches", label: tournamentTabs.matches },
       canManage && {
         key: "participants",
         label: tournamentTabs.participants,
       },
+      showGroupsTab && canManage && { key: "groups", label: tournamentTabs.groups },
+      showBracketTab && { key: "bracket", label: tournamentTabs.bracket },
+      { key: "matches", label: tournamentTabs.matches },
       { key: "results", label: tournamentTabs.results },
     ];
     return items.filter(Boolean) as TabItem[];
