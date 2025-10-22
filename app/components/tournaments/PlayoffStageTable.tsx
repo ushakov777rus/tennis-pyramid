@@ -4,7 +4,7 @@ import "./PlayoffStageTable.css"
 
 import React, { useCallback, useMemo } from "react";
 import { Participant } from "@/app/models/Participant";
-import { Match, MatchPhase, PhaseType } from "@/app/models/Match";
+import { MatchPhase, PhaseType } from "@/app/models/Match";
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 import { useDictionary } from "@/app/components/LanguageProvider";
 
