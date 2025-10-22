@@ -32,6 +32,7 @@ export function TournamentGroupsView() {
     participants,
     tournament,
     groupsAssignments,
+    matches,
     updateGroupsAssignments,
     mutating,
   } = useTournament();
@@ -427,7 +428,7 @@ export function TournamentGroupsView() {
             type="button"
             className="btn-base"
             onClick={handleSave}
-            disabled={!isDirty || mutating}
+            disabled={!isDirty || mutating || matches.length > 0 || tournament?.isActive()}
           >
             {viewText.actions.save}
           </button>
