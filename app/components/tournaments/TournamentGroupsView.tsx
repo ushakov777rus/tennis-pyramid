@@ -32,12 +32,14 @@ export function TournamentGroupsView() {
   const { tournaments } = useDictionary();
   const viewText = tournaments.groupsView;
 
-  const groupsCount = Math.max(
-    1,
+  const groupsCount = Math.ceil(
+    participants.length/
     Number(
-      (tournament?.settings?.groupsplayoff as any)?.participantsInGroupCount ?? 2
+      (tournament?.settings?.groupsplayoff as any)?.participantsInGroupCount ?? 4
     )
   );
+
+  console.log("groupsCount", groupsCount, (tournament?.settings?.groupsplayoff as any)?.participantsInGroupCount);
 
   const [isMobile, setIsMobile] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
