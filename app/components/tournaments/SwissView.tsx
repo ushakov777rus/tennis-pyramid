@@ -317,6 +317,7 @@ export function SwissView({
             key={rIndex}
             playOffParticipants={pairs.flat()}
             matches={matches}
+            canManage={canManage}
             ScoreCellAdapter={SwissScoreCell}
           />
         ))}

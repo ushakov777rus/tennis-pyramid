@@ -383,6 +383,7 @@ export function GroupPlusPlayoffView({
         <PlayoffStageTable
           playOffParticipants={qualifiers}
           matches={matches}
+          canManage={canManage}
           ScoreCellAdapter={PlayoffMatchCell}
         />
       </div>

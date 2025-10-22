@@ -135,6 +135,7 @@ export function SingleEliminationView({
       <PlayoffStageTable
         playOffParticipants={participants}
         matches={matches}
+        canManage={canManage}
         ScoreCellAdapter={PlayoffScoreCell}
       />
   );

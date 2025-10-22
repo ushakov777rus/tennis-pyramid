@@ -525,6 +525,7 @@ export function DoubleEliminationView({
             key={`WB_${r}`}
             playOffParticipants={pairs.flat()}
             matches={matches}
+            canManage={canManage}
             ScoreCellAdapter={WBScoreCell}
           />
         ))}
@@ -538,6 +539,7 @@ export function DoubleEliminationView({
             key={`LB_${r}`}
             playOffParticipants={pairs.flat()}
             matches={matches}
+            canManage={canManage}
             ScoreCellAdapter={LBScoreCell}
           />
         ))}
@@ -550,6 +552,7 @@ export function DoubleEliminationView({
           key="GF1"
           playOffParticipants={finalsPairs[0]}
           matches={matches}
+          canManage={canManage}
           ScoreCellAdapter={GFScoreCell}
         />
         <div style={{ marginTop: 16 }}>
@@ -557,6 +560,7 @@ export function DoubleEliminationView({
             key="GF2"
             playOffParticipants={finalsPairs[1]}
             matches={matches}
+            canManage={canManage}
             ScoreCellAdapter={GFScoreCell}
           />
         </div>

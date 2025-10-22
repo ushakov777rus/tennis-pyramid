@@ -13,7 +13,7 @@ import { useDictionary } from "@/app/components/LanguageProvider";
 export type PlayoffStageTableProps = {
   playOffParticipants: (Participant | null)[];
   matches: Match[];
-
+  canManage: boolean;
   /** Компонент для ввода счёта, который уже есть у родителя (используется, когда результата ещё нет) */
   ScoreCellAdapter: React.FC<{
     a: Participant | null;
@@ -35,6 +35,7 @@ function nextPow2(n: number) {
 export function PlayoffStageTable({
   playOffParticipants,
   matches: _matches, // TODO зачем мы передаем через пропс если можно из useTournament брать, поиск работает все равно с учетом фазы турнира
+  canManage,
   ScoreCellAdapter: ScoreCell,
 }: PlayoffStageTableProps) {
 
@@ -50,8 +51,7 @@ export function PlayoffStageTable({
     bId: number | undefined,
     meta: MatchPhase
   ): string | null {
-    if(aId == undefined || bId == undefined)
-      return "—";
+    if (aId == null || bId == null) return "—";
 
     const match = findMatchBetween(aId, bId, meta);
     if (!match) return null;
@@ -180,6 +180,8 @@ export function PlayoffStageTable({
 
   const cell = (v: number | null) => (v == null ? "—" : String(v));
 
+  let helpTooltipAssigned = false;
+
   return (
     <div className="card-container">
       {resolvedPlayoff.map((pairs, rIndex) => {
@@ -201,6 +203,16 @@ export function PlayoffStageTable({
                   const oriented = getOrientedSetsFor(a, b, phaseFilter);
                   const aRow = oriented?.aRow ?? [null, null, null];
                   const bRow = oriented?.bRow ?? [null, null, null];
+                  const scoreString = getMatchScore(aId, bId, phaseFilter);
+                  const shouldShowTooltip =
+                    !helpTooltipAssigned &&
+                    canManage &&
+                    !!a &&
+                    !!b &&
+                    (!scoreString || scoreString === "—");
+                  if (shouldShowTooltip) {
+                    helpTooltipAssigned = true;
+                  }
 
                   return (
                     <div key={mIndex} className="el-match">
@@ -272,17 +284,18 @@ export function PlayoffStageTable({
                             <tr>
                               <td>
                                 {/* Когда очков ещё нет — показываем знакомый редактор "vs" */}
-                                <ScoreCell 
-                                  a={a} 
-                                  b={b} 
-                                  scoreString={getMatchScore(a?.getId, b?.getId, phaseFilter)}
+                                <ScoreCell
+                                  a={a}
+                                  b={b}
+                                  scoreString={scoreString}
                                   phaseFilter={phaseFilter}
-                                  showHelpTooltip={false} />
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      )}
+                                  showHelpTooltip={shouldShowTooltip}
+                                />
+                             </td>
+                           </tr>
+                         </tbody>
+                       </table>
+                     )}
                     </div>
                   );
                 })
