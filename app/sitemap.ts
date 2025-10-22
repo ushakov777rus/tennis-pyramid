@@ -24,14 +24,27 @@ const localizedStaticRoutes: LocalizedStaticRoute[] = [
 ];
 
 function buildAlternates(path: string) {
-  return locales.reduce<Record<string, string>>((acc, locale) => {
+  const defaultUrl = `${BASE_URL}${path}`;
+  const alternates = locales.reduce<Record<string, string>>((acc, locale) => {
     acc[locale] = `${BASE_URL}${withLocalePath(locale, path)}`;
     return acc;
   }, {});
+  if (!alternates["x-default"]) {
+    alternates["x-default"] = defaultUrl;
+  }
+  return alternates;
 }
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const localizedEntries: MetadataRoute.Sitemap = localizedStaticRoutes.flatMap(
+type SitemapEntry = {
+  url: string;
+  lastModified: Date;
+  changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
+  priority: number;
+  alternates: Record<string, string>;
+};
+
+async function buildSitemapEntries(): Promise<SitemapEntry[]> {
+  const localizedEntries: SitemapEntry[] = localizedStaticRoutes.flatMap(
     ({ path, changeFrequency, priority }) => {
       const alternates = buildAlternates(path);
       const lastModified = new Date();
@@ -41,12 +54,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified,
         changeFrequency,
         priority,
-        alternates: { languages: alternates },
+        alternates,
       }));
     }
   );
 
-    let tournamentEntries: MetadataRoute.Sitemap = [];
+  let tournamentEntries: SitemapEntry[] = [];
   try {
     const tournaments = await TournamentsRepository.loadAllSlugs();
     tournamentEntries = tournaments.flatMap((tournament) => {
@@ -61,14 +74,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified,
         changeFrequency: "daily",
         priority: 0.8,
-        alternates: { languages: alternates },
+        alternates,
       }));
     });
   } catch (error) {
     console.error("Ошибка генерации sitemap (турниры):", error);
   }
 
-  let clubEntries: MetadataRoute.Sitemap = [];
+  let clubEntries: SitemapEntry[] = [];
   try {
     const clubs = await ClubsRepository.loadAllSlugs();
     clubEntries = clubs.flatMap((club) => {
@@ -81,7 +94,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified,
         changeFrequency: "weekly",
         priority: 0.7,
-        alternates: { languages: alternates },
+        alternates,
       }));
     });
   } catch (error) {
@@ -89,4 +102,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   return [...localizedEntries, ...tournamentEntries, ...clubEntries];
+}
+
+export async function getSitemapEntries(): Promise<SitemapEntry[]> {
+  return buildSitemapEntries();
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const entries = await buildSitemapEntries();
+  return entries.map((entry) => ({
+    url: entry.url,
+    lastModified: entry.lastModified,
+    changeFrequency: entry.changeFrequency,
+    priority: entry.priority,
+    alternates: { languages: entry.alternates },
+  }));
 }
