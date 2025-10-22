@@ -341,6 +341,7 @@ export function CustomSelect({
           className={`card cs-dropdown ${openUp ? "open-up" : ""}`}
           style={{
             width: dropdownWidth ? `${dropdownWidth}px` : undefined,
+            maxHeight: `${dropdownMaxHeight}px`,
           }}
           onMouseDown={(e) => e.stopPropagation()}
         >

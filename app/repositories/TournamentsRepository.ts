@@ -435,6 +435,43 @@ export class TournamentsRepository {
     }
   }
 
+  static async updateGroupsAssignments(
+    tournamentId: number,
+    settings: Record<string, any> | null | undefined,
+    assignments: Record<number, number>
+  ): Promise<Record<string, any>> {
+    const normalizedAssignments: Record<string, number> = {};
+    Object.entries(assignments).forEach(([key, value]) => {
+      const id = Number(key);
+      if (!Number.isNaN(id) && typeof value === "number") {
+        normalizedAssignments[String(id)] = value;
+      }
+    });
+
+    const currentSettings = settings ? { ...settings } : {};
+    const groupsSettings = {
+      ...(currentSettings.groupsplayoff ?? {}),
+      assignments: normalizedAssignments,
+    };
+
+    const nextSettings = {
+      ...currentSettings,
+      groupsplayoff: groupsSettings,
+    };
+
+    const { error } = await supabase
+      .from("tournaments")
+      .update({ settings: nextSettings })
+      .eq("id", tournamentId);
+
+    if (error) {
+      console.error("Ошибка обновления распределения по группам:", error);
+      throw error;
+    }
+
+    return nextSettings;
+  }
+
   /** Счётчики */
   static async loadStats(tournamentIds: number[]) {
     type PRow = { tournament_id: number; participants: number };

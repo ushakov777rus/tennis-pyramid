@@ -9,11 +9,6 @@
   --rr-roundrobin-bg: var(--background, #0f0f0f);
 }
 
-.rr-header {
-  padding: 5px 12px;
-  border-bottom: 1px solid #2a2a2a;
-}
-
 /* ===== Scroll container and matrix styling ===== */
 .rr-scroll {
   display: block;

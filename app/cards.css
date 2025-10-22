@@ -1,3 +1,7 @@
+:root {
+  --max-card-width: 380px;
+}
+
 /* Карточки */
 .card {
   background: #1b1b1b;
@@ -51,9 +55,15 @@
 .card-header > :nth-child(2) { text-align: center;}
 .card-header > :nth-child(3) { text-align: right; }
 
+.rr-header {
+  padding: 5px 12px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
 
 .card-title {
-  padding: 10px 10px;
+  padding: 5px 12px;
+  border-bottom: 1px solid #2a2a2a;
   text-align: center;
 }
 
@@ -136,14 +146,15 @@
 
 .card-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(var(--max-card-width), 1fr));
   gap: 20px;
   justify-items: center;
+  max-width: 100%;
 }
 
 /* Для одной карточки - центрируем с фиксированной шириной */
 .card-container:has(> :only-child) {
-  grid-template-columns: minmax(380px, 800px);
+  grid-template-columns: minmax(var(--max-card-width), 800px);
   justify-content: space-around;
 }
 

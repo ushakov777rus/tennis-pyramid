@@ -227,6 +227,7 @@ export type Dictionary = {
       about: string;
       bracket: string;
       matches: string;
+      groups: string;
       participants: string;
       results: string;
       ariaLabel: string;
@@ -260,6 +261,38 @@ export type Dictionary = {
     scoreCell: {
       addScore: string;
       enterScore: string;
+    };
+    groupsView: {
+      title: string;
+      actions: {
+        save: string;
+        cancel: string;
+        autoDistribute: string;
+        addFromSearch: string;
+        filters: string;
+        filtersUnavailable: string;
+        menuTitle: string;
+        moveTo: string;
+        remove: string;
+        addToGroup: string;
+      };
+      labels: {
+        unassignedHeader: string;
+        groupHeader: string;
+        groupTitle: string;
+        groupShort: string;
+        unassignedShort: string;
+        emptyGroup: string;
+        noUnassigned: string;
+        searchPlaceholder: string;
+      };
+      feedback: {
+        removed: string;
+        undo: string;
+      };
+      errors: {
+        saveFailed: string;
+      };
     };
     modal: {
       title: string;

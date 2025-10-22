@@ -53,6 +53,7 @@ type GroupPlusPlayoffViewProps = {
   groupsCount?: number;
   advancePerGroup?: number;
   seeding?: "simple" | "snake";
+  groupAssignments?: Record<number, number>;
 };
 
 type GroupStats = { id: number; name: string; wins: number; setsDiff: number; gamesDiff: number };
@@ -80,6 +81,43 @@ function distributeIntoGroups(items: Participant[], groupsCount: number, mode: "
       }
     }
   }
+  return groups;
+}
+
+function buildGroupsWithAssignments(
+  items: Participant[],
+  groupsCount: number,
+  assignments: Record<number, number> | undefined,
+  mode: "simple" | "snake"
+): Participant[][] {
+  if (!assignments || Object.keys(assignments).length === 0) {
+    return distributeIntoGroups(items, groupsCount, mode);
+  }
+
+  const groups: Participant[][] = Array.from({ length: groupsCount }, () => []);
+  const fallback: Participant[] = [];
+
+  items.forEach((participant) => {
+    const id = participant.getId;
+    const groupIndex = assignments[id];
+    if (
+      typeof groupIndex === "number" &&
+      groupIndex >= 0 &&
+      groupIndex < groupsCount
+    ) {
+      groups[groupIndex].push(participant);
+    } else {
+      fallback.push(participant);
+    }
+  });
+
+  if (fallback.length > 0) {
+    const auto = distributeIntoGroups(fallback, groupsCount, mode);
+    auto.forEach((autoGroup, index) => {
+      groups[index].push(...autoGroup);
+    });
+  }
+
   return groups;
 }
 
@@ -183,6 +221,7 @@ export function GroupPlusPlayoffView({
   groupsCount = 2,
   advancePerGroup = 2,
   seeding = "snake",
+  groupAssignments,
 }: GroupPlusPlayoffViewProps) {
 
   const {
@@ -345,7 +384,16 @@ export function GroupPlusPlayoffView({
     () => participants.filter(isValidParticipant).slice().sort((a, b) => a.displayName(false).localeCompare(b.displayName(false), "ru")),
     [participants]
   );
-  const groups = useMemo(() => distributeIntoGroups(ordered, Math.max(1, groupsCount), seeding), [ordered, groupsCount, seeding]);
+  const groups = useMemo(
+    () =>
+      buildGroupsWithAssignments(
+        ordered,
+        Math.max(1, groupsCount),
+        groupAssignments,
+        seeding
+      ),
+    [ordered, groupsCount, groupAssignments, seeding]
+  );
   const groupMatches: Match[][] = useMemo(
     () => groups.map((_, gi) => matches.filter(m => (m as any).phase === PhaseType.Group && (m as any).groupIndex === gi)),
     [groups, matches]

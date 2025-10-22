@@ -298,6 +298,7 @@ export const enDictionary: Dictionary = {
       about: "Overview",
       bracket: "Bracket",
       matches: "Matches",
+      groups: "Groups",
       participants: "Participants",
       results: "Ranking",
       ariaLabel: "Tournament sections",
@@ -331,6 +332,38 @@ export const enDictionary: Dictionary = {
     scoreCell: {
       addScore: "Add score",
       enterScore: "Enter the score",
+    },
+    groupsView: {
+      title: "Group allocation",
+      actions: {
+        save: "Save",
+        cancel: "Cancel",
+        autoDistribute: "Auto distribute",
+        addFromSearch: "Add from search",
+        filters: "Filters",
+        filtersUnavailable: "Filters are not available yet",
+        menuTitle: "Actions",
+        moveTo: "Move to",
+        remove: "Remove from group",
+        addToGroup: "Add to group",
+      },
+      labels: {
+        unassignedHeader: "Unassigned ({count})",
+        groupHeader: "Group {index} ({count}/{capacity})",
+        groupTitle: "Group {index}",
+        groupShort: "Group {index}",
+        unassignedShort: "unassigned",
+        emptyGroup: "No players in this group yet",
+        noUnassigned: "No unassigned players",
+        searchPlaceholder: "Search participant…",
+      },
+      feedback: {
+        removed: "Moved {name} from {group}",
+        undo: "Undo",
+      },
+      errors: {
+        saveFailed: "Failed to save group allocation",
+      },
     },
     modal: {
       title: "Create tournament",

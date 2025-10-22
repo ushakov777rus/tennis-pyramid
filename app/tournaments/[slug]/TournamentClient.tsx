@@ -31,6 +31,7 @@ import { DoubleEliminationView } from "@/app/components/tournaments/DoubleElimin
 import { GroupPlusPlayoffView } from "@/app/components/tournaments/GroupPlusPlayoffView";
 import { RoundRobinView } from "@/app/components/tournaments/RoundRobinView";
 import { SwissView } from "@/app/components/tournaments/SwissView";
+import { TournamentGroupsView } from "@/app/components/tournaments/TournamentGroupsView";
 import { AboutTournament } from "@/app/components/AboutTournament";
 import { UserRole } from "@/app/models/Users";
 import { SimpleBreadcrumbs } from "@/app/components/controls/BreadCrumbs";
@@ -39,7 +40,7 @@ import { useDictionary } from "@/app/components/LanguageProvider";
 
 const todayISO = new Date().toISOString().split("T")[0];
 
-type ViewKey = "bracket" | "matches" | "participants" | "results" | "aboutt";
+type ViewKey = "bracket" | "matches" | "participants" | "results" | "aboutt" | "groups";
 
 // Тип для состояния клавиатуры
 type KeyboardIntent = "edit" | "pyramid-add";
@@ -66,6 +67,7 @@ export default function TournamentClient() {
     updatePositions,
     addMatchAndMaybeSwap,
     setTournamentStatus,
+    groupsAssignments,
   } = useTournament();
   const { tournaments: tournamentsText } = useDictionary();
   const { tabs: tournamentTabs, alerts: tournamentAlerts } = tournamentsText;
@@ -125,10 +127,12 @@ export default function TournamentClient() {
   const isWizard = pathname.includes("/freetournament");
 
   const tabs: TabItem[] = useMemo(() => {
+    const showGroupsTab = tournament?.isGroupsPlayoff?.() || tournament?.format === "groups_playoff";
     const items: Array<TabItem | false> = [
       !isWizard && { key: "aboutt", label: tournamentTabs.about },
       showBracketTab && { key: "bracket", label: tournamentTabs.bracket },
       { key: "matches", label: tournamentTabs.matches },
+      showGroupsTab && canManage && { key: "groups", label: tournamentTabs.groups },
       canManage && {
         key: "participants",
         label: tournamentTabs.participants,
@@ -137,12 +141,14 @@ export default function TournamentClient() {
     ];
     return items.filter(Boolean) as TabItem[];
   }, [
+    tournament,
     showBracketTab,
     canManage,
     isWizard,
     tournamentTabs.about,
     tournamentTabs.bracket,
     tournamentTabs.matches,
+    tournamentTabs.groups,
     tournamentTabs.participants,
     tournamentTabs.results,
   ]);
@@ -606,6 +612,7 @@ export default function TournamentClient() {
                 onOpenKeyboard={openKeyboard}
                 onCloseKeyboard={closeKeyboard}
                 keyboardState={keyboardState}
+                groupsAssignments={groupsAssignments}
               />
               </div>}
 
@@ -616,6 +623,10 @@ export default function TournamentClient() {
                 onEditMatch={handleEditMatchSave} 
                 onDeleteMatch={handleDeleteMatch} />
             </div>}
+
+            {view === "groups" && tournament.isGroupsPlayoff() && canManage && (
+              <TournamentGroupsView canManage={canManage} />
+            )}
 
             {view === "participants" && canManage &&
               <TournamentParticipantsView canManage={canManage} isWizard={isWizard}/>}
@@ -680,6 +691,7 @@ export const FormatView = React.memo(function FormatView({
   onOpenKeyboard,
   onCloseKeyboard,
   keyboardState,
+  groupsAssignments,
 }: {
   loading: boolean;
   tournament: Tournament;
@@ -708,6 +720,7 @@ export const FormatView = React.memo(function FormatView({
   ) => void;
   onCloseKeyboard?: () => void;
   keyboardState?: KeyboardState;
+  groupsAssignments: Record<number, number>;
 }) {
   const { tournaments: tournamentsDict } = useDictionary();
   const { empty: tournamentsEmpty } = tournamentsDict;
@@ -792,6 +805,7 @@ export const FormatView = React.memo(function FormatView({
         onOpenKeyboard={onOpenKeyboard}
         onCloseKeyboard={onCloseKeyboard}
         keyboardState={keyboardState}
+        groupAssignments={groupsAssignments}
       />
     );
   }

@@ -304,6 +304,7 @@ export const ruDictionary: Dictionary = {
       about: "О турнире",
       bracket: "Сетка",
       matches: "Матчи",
+      groups: "Группы",
       participants: "Участники",
       results: "Рейтинг",
       ariaLabel: "Разделы турнира",
@@ -337,6 +338,38 @@ export const ruDictionary: Dictionary = {
     scoreCell: {
       addScore: "Добавить счёт",
       enterScore: "Введите счёт",
+    },
+    groupsView: {
+      title: "Распределение по группам",
+      actions: {
+        save: "Сохранить",
+        cancel: "Отменить",
+        autoDistribute: "Авто-распределить",
+        addFromSearch: "Добавить из поиска",
+        filters: "Фильтры",
+        filtersUnavailable: "Фильтры пока недоступны",
+        menuTitle: "Действия",
+        moveTo: "Переместить в",
+        remove: "Убрать из группы",
+        addToGroup: "Добавить в группу",
+      },
+      labels: {
+        unassignedHeader: "Нераспределены ({count})",
+        groupHeader: "Группа {index} ({count}/{capacity})",
+        groupTitle: "Гр. {index}",
+        groupShort: "Гр. {index}",
+        unassignedShort: "нераспределённых",
+        emptyGroup: "В группе пока нет участников",
+        noUnassigned: "Нераспределённых участников нет",
+        searchPlaceholder: "Поиск участника…",
+      },
+      feedback: {
+        removed: "Убрали {name} из {group}",
+        undo: "Отменить",
+      },
+      errors: {
+        saveFailed: "Не удалось сохранить распределение",
+      },
     },
     modal: {
       title: "Создать турнир",

@@ -83,6 +83,8 @@ export type TournamentContextShape = {
   updateMatch: (m: Match) => Promise<void>;
   deleteMatch: (m: Match) => Promise<void>;
   findMatchBetween: (aParticipantId: number, bParticipantId: number, meta?: PhaseMeta) => Match | null;
+  groupsAssignments: Record<number, number>;
+  updateGroupsAssignments: (assignments: Record<number, number>) => Promise<void>;
 
   addPlayerToTournament?: (playerId: number) => Promise<void>;
   removeParticipant?: (participant: Participant) => Promise<void>;
@@ -139,6 +141,20 @@ export function TournamentProvider({
   );
   const [teams, setTeams] = useState<Team[]>(initial.teams ?? []);
   const [matches, setMatches] = useState<Match[]>(initial.matches ?? []);
+
+  const groupsAssignments = useMemo(() => {
+    const assignments = (tournament?.settings?.groupsplayoff as any)?.assignments as Record<string, number> | undefined;
+    if (!assignments) return {};
+    const map: Record<number, number> = {};
+    Object.entries(assignments).forEach(([key, value]) => {
+      const id = Number(key);
+      const groupIndex = typeof value === "number" ? value : Number(value);
+      if (!Number.isNaN(id) && Number.isFinite(groupIndex)) {
+        map[id] = groupIndex;
+      }
+    });
+    return map;
+  }, [tournament?.settings?.groupsplayoff]);
 
   const needInitialFetch =
     !initial.tournamentPlain ||
@@ -536,6 +552,43 @@ export function TournamentProvider({
     [matches]
   );
 
+  const updateGroupsAssignments = useCallback(
+    async (assignments: Record<number, number>) => {
+      setMutating(true);
+      try {
+        const tid = await requireTid();
+        const nextSettings = await TournamentsRepository.updateGroupsAssignments(
+          tid,
+          tournament?.settings,
+          assignments
+        );
+
+        setTournament((prev) => {
+          if (!prev) return prev;
+          return new TournamentModel(
+            prev.id,
+            prev.name,
+            prev.format,
+            prev.status,
+            prev.tournament_type,
+            prev.start_date,
+            prev.end_date,
+            prev.is_public,
+            prev.creator_id,
+            prev.slug,
+            prev.club,
+            nextSettings,
+            prev.ownerToken ?? null,
+            prev.regulation ?? null
+          );
+        });
+      } finally {
+        setMutating(false);
+      }
+    },
+    [requireTid, tournament?.settings]
+  );
+
 
 
   const value = useMemo<TournamentContextShape>(
@@ -563,6 +616,8 @@ export function TournamentProvider({
       updateMatch,
       deleteMatch,
       findMatchBetween,
+      groupsAssignments,
+      updateGroupsAssignments,
 
       addPlayerToTournament,
       removeParticipant,
@@ -592,6 +647,8 @@ export function TournamentProvider({
       updateMatch,
       deleteMatch,
       findMatchBetween,
+      groupsAssignments,
+      updateGroupsAssignments,
       addPlayerToTournament,
       removeParticipant,
       addTeamToTournament,

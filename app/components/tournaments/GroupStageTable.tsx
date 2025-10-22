@@ -418,7 +418,7 @@ export function GroupStageTable({
   return (
     <div className="card rr-scroll">
       {groupIndex !== undefined && groupIndex !== null && groupTitle && (
-        <div className="rr-header">
+        <div className="card-title">
           <strong>{groupTitle}</strong>
         </div>)
       }
