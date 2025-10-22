@@ -14,6 +14,7 @@ import "./TournamentGroupsView.css";
 import { Participant } from "@/app/models/Participant";
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 import { useDictionary } from "@/app/components/LanguageProvider";
+import { ParticipantLabel } from "./ParticipantLabel";
 import { KebabIconButton, PlusIconButton } from "../controls/IconButtons";
 
 type LocalAssignments = Record<number, number | null>;
@@ -228,12 +229,6 @@ export function TournamentGroupsView() {
     ),
   [groupsCount, viewText.labels.groupTitle]);
 
-  const renderParticipantLabel = (participant: Participant) => (
-    <span className="groups-participant-name">
-      {participant.displayName(false)}
-    </span>
-  );
-
   const renderGroupActions = (
     participant: Participant,
     currentGroupIndex: number | null
@@ -349,11 +344,7 @@ export function TournamentGroupsView() {
         ) : (
           members.map((participant) => (
             <div key={participant.getId} className="groups-unnussigned-row">
-              <div
-                className="player"
-              >
-                {renderParticipantLabel(participant)}              
-              </div>
+              <ParticipantLabel participant={participant} showRating={true} />
               <div>
                 {renderGroupActions(participant, groupIndex)}
               </div>
@@ -435,11 +426,7 @@ export function TournamentGroupsView() {
             ) : (
               filteredUnassigned.map((participant) => (
                 <div key={participant.getId} className="groups-unnussigned-row">
-                  <div
-                    className="player"
-                  >
-                    {renderParticipantLabel(participant)}                  
-                  </div>
+                  <ParticipantLabel participant={participant} showRating={true} />
                   <div>
                     {renderAssignMenu(participant)}
                   </div>
