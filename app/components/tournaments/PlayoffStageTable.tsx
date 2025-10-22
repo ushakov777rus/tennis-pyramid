@@ -12,7 +12,6 @@ import { useDictionary } from "@/app/components/LanguageProvider";
 /** Совпадает с тем, как блок плей-офф использовался внутри GroupPlusPlayoffView */
 export type PlayoffStageTableProps = {
   playOffParticipants: (Participant | null)[];
-  matches: Match[];
   canManage: boolean;
   /** Компонент для ввода счёта, который уже есть у родителя (используется, когда результата ещё нет) */
   ScoreCellAdapter: React.FC<{
@@ -34,7 +33,6 @@ function nextPow2(n: number) {
 
 export function PlayoffStageTable({
   playOffParticipants,
-  matches: _matches, // TODO зачем мы передаем через пропс если можно из useTournament брать, поиск работает все равно с учетом фазы турнира
   canManage,
   ScoreCellAdapter: ScoreCell,
 }: PlayoffStageTableProps) {

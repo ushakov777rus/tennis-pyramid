@@ -316,7 +316,6 @@ export function SwissView({
           <PlayoffStageTable
             key={rIndex}
             playOffParticipants={pairs.flat()}
-            matches={matches}
             canManage={canManage}
             ScoreCellAdapter={SwissScoreCell}
           />
