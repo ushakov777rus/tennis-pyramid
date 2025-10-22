@@ -262,7 +262,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
             hidden={!advOpen}
           >
             {/* Общие */}
-            <div className="modal-grid-2">
+            <div className="modal-grid-2" style={{paddingBottom:"10px"}}>
               <input
                 type="number"
                 step={0.25}
@@ -287,7 +287,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
 
             {/* Опция для формата Пирамида */}
             {format === TournamentFormat.Pyramid && (
-              <div className="adv-row">
+              <div className="modal-grid-2">
                 <label className="adv-label" htmlFor="pyr-levels">
                   {modalText.pyramidLevelsLabel}
                 </label>
@@ -301,13 +301,12 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
                   value={pyramidMaxLevel}
                   onChange={(e) => setPyramidMaxLevel(Number(e.target.value) || 0)}
                 />
-                <div className="adv-help">{modalText.pyramidLevelsHelp}</div>
               </div>
             )}
 
             {/* Группы плюс плейофф */}
             {format === TournamentFormat.GroupsPlayoff && (
-              <div className="adv-row">
+              <div className="modal-grid-2">
                 <label className="adv-label" htmlFor="groups-count">
                   {modalText.groupsCountLabel}
                 </label>
@@ -321,7 +320,6 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
                   value={groupsPlayoffGroupsCount}
                   onChange={(e) => setGroupsPlayoffGroupsCount(Number(e.target.value) || 0)}
                 />
-                <div className="adv-help">{modalText.groupsCountHelp}</div>
               </div>
             )}
 

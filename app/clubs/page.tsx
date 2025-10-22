@@ -1,15 +1,10 @@
 // Server Component: просто оборачиваем клиент в провайдер
-import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
-import { ClubsProvider } from "./ClubsProvider";
-import { ClubsClient } from "./ClubsClient";
+import { resolveServerLocale } from "@/app/i18n/locale-server";
+import { withLocalePath } from "@/app/i18n/routing";
 
-export default function ClubsPage() {
-  return (
-    <ClubsProvider mode="all">
-      <Suspense fallback={null}>
-        <ClubsClient />
-      </Suspense>
-    </ClubsProvider>
-  );
+export default async function ClubsPage() {
+  const locale = await resolveServerLocale();
+  redirect(withLocalePath(locale, "/clubs"));
 }
