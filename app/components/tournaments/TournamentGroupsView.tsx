@@ -18,13 +18,6 @@ import { KebabIconButton, PlusIconButton } from "../controls/IconButtons";
 
 type LocalAssignments = Record<number, number | null>;
 
-type LastAction = {
-  participantId: number;
-  fromGroup: number | null;
-  toGroup: number | null;
-  name: string;
-};
-
 const MOBILE_BREAKPOINT = 900;
 
 export function TournamentGroupsView() {
@@ -42,7 +35,7 @@ export function TournamentGroupsView() {
   const groupsCount = Math.max(
     1,
     Number(
-      (tournament?.settings?.groupsplayoff as any)?.groupsCount ?? 2
+      (tournament?.settings?.groupsplayoff as any)?.participantsInGroupCount ?? 2
     )
   );
 
@@ -85,7 +78,6 @@ export function TournamentGroupsView() {
   const [actionMenuTarget, setActionMenuTarget] = useState<number | null>(
     null
   );
-  const [lastAction, setLastAction] = useState<LastAction | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const [openGroups, setOpenGroups] = useState<number[]>([]);
 
@@ -98,7 +90,6 @@ export function TournamentGroupsView() {
     setSearchTerm("");
     setAssignMenuTarget(null);
     setActionMenuTarget(null);
-    setLastAction(null);
   }, [initialAssignments]);
 
   useEffect(() => {
@@ -179,19 +170,6 @@ export function TournamentGroupsView() {
     []
   );
 
-  const handleAssignAndToast = useCallback(
-    (participant: Participant, groupIndex: number | null, fromGroup: number | null) => {
-      handleAssign(participant.getId, groupIndex);
-      setLastAction({
-        participantId: participant.getId,
-        fromGroup,
-        toGroup: groupIndex,
-        name: participant.displayName(false),
-      });
-    },
-    [handleAssign]
-  );
-
   const handleAutoDistribute = useCallback(() => {
     const nextAssignments: LocalAssignments = { ...localAssignments };
     const lengths = groupMembers.map((group) => group.length);
@@ -232,7 +210,6 @@ export function TournamentGroupsView() {
     });
     try {
       await updateGroupsAssignments(payload);
-      setLastAction(null);
     } catch (error) {
       console.error("Failed to update groups assignments", error);
       alert(viewText.errors.saveFailed);
@@ -241,7 +218,6 @@ export function TournamentGroupsView() {
 
   const handleCancel = useCallback(() => {
     setLocalAssignments(initialAssignments);
-    setLastAction(null);
   }, [initialAssignments]);
 
   const groupNames = useMemo(() =>
@@ -291,7 +267,7 @@ export function TournamentGroupsView() {
                   onClick={() => {
                     setActionMenuTarget(null);
                     if (isCurrent) return;
-                    handleAssignAndToast(participant, index, currentGroupIndex);
+                    handleAssign(participant.getId, index);
                   }}
                   disabled={isFull || isCurrent}
                 >
@@ -305,7 +281,7 @@ export function TournamentGroupsView() {
               className="groups-menu__item groups-menu__item--danger"
               onClick={() => {
                 setActionMenuTarget(null);
-                handleAssignAndToast(participant, null, currentGroupIndex);
+                handleAssign(participant.getId, null);
               }}
             >
               {viewText.actions.remove}
@@ -343,7 +319,7 @@ export function TournamentGroupsView() {
                   className="groups-menu__item"
                   onClick={() => {
                     setAssignMenuTarget(null);
-                    handleAssignAndToast(participant, index, null);
+                    handleAssign(participant.getId, index);
                   }}
                   disabled={isFull}
                 >
@@ -359,7 +335,6 @@ export function TournamentGroupsView() {
 
   const renderGroupColumn = (groupIndex: number) => {
     const members = groupMembers[groupIndex];
-    const isFull = members.length >= capacityPerGroup;
     const header = viewText.labels.groupHeader
       .replace("{index}", String(groupIndex + 1))
       .replace("{count}", String(members.length))

@@ -374,8 +374,7 @@ export const enDictionary: Dictionary = {
       maxNTRPPlaceholder: "Max NTRP",
       pyramidLevelsLabel: "Max pyramid levels",
       pyramidLevelsHelp: "Recommended 10–20, default 15",
-      groupsCountLabel: "Number of groups",
-      groupsCountHelp: "Recommended 2–4, default 2",
+      participantsInGroup: "Participants in groups",
       errors: {
         nameRequired: "Enter the tournament name",
         dateRange: "Start date cannot be after end date",
@@ -451,7 +450,7 @@ export const enDictionary: Dictionary = {
     startDateLabel: "Start date",
     endDateLabel: "End date",
     pyramidLevelsLabel: "Maximum pyramid levels",
-    groupsCountLabel: "Number of groups",
+    participantsInGroup: "Number of groups",
     statusHeading: "Status:",
     statusCreatedWithUrl: "Tournament created: {value}",
     statusCreatedWithSlug: "Tournament created: {value}",

@@ -303,8 +303,7 @@ export type Dictionary = {
       maxNTRPPlaceholder: string;
       pyramidLevelsLabel: string;
       pyramidLevelsHelp: string;
-      groupsCountLabel: string;
-      groupsCountHelp: string;
+      participantsInGroup: string;
       errors: {
         nameRequired: string;
         dateRange: string;
@@ -373,7 +372,7 @@ export type Dictionary = {
     startDateLabel: string;
     endDateLabel: string;
     pyramidLevelsLabel: string;
-    groupsCountLabel: string;
+    participantsInGroup: string;
     statusHeading: string;
     statusCreatedWithUrl: string;
     statusCreatedWithSlug: string;

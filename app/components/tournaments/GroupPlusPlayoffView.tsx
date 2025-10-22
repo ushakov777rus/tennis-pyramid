@@ -50,7 +50,7 @@ type GroupPlusPlayoffViewProps = {
     editValue: string;
     editDate: string;
   };
-  groupsCount?: number;
+  participantsInGroupCount?: number;
   advancePerGroup?: number;
   seeding?: "simple" | "snake";
   groupAssignments?: Record<number, number>;
@@ -218,7 +218,7 @@ export function GroupPlusPlayoffView({
   onOpenKeyboard,
   onCloseKeyboard,
   keyboardState,
-  groupsCount = 2,
+  participantsInGroupCount = 4,
   advancePerGroup = 2,
   seeding = "snake",
   groupAssignments,
@@ -230,6 +230,21 @@ export function GroupPlusPlayoffView({
 
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
   const [editValue, setEditValue] = useState("");
+
+  const effectiveGroupSize = Math.max(1, Number.isFinite(participantsInGroupCount) ? participantsInGroupCount : 4);
+  const maxAssignedGroupIndex =
+    groupAssignments && Object.keys(groupAssignments).length
+      ? Math.max(
+          ...Object.values(groupAssignments).map((value) =>
+            typeof value === "number" && Number.isFinite(value) ? value : 0
+          )
+        )
+      : 0;
+  const groupCount = Math.max(
+    1,
+    maxAssignedGroupIndex + 1,
+    Math.ceil(participants.length / effectiveGroupSize)
+  );
 
   // Синхронизируем с глобальной клавиатурой если она открыта
   useEffect(() => {
@@ -388,11 +403,11 @@ export function GroupPlusPlayoffView({
     () =>
       buildGroupsWithAssignments(
         ordered,
-        Math.max(1, groupsCount),
+        groupCount,
         groupAssignments,
         seeding
       ),
-    [ordered, groupsCount, groupAssignments, seeding]
+    [ordered, groupCount, groupAssignments, seeding]
   );
   const groupMatches: Match[][] = useMemo(
     () => groups.map((_, gi) => matches.filter(m => (m as any).phase === PhaseType.Group && (m as any).groupIndex === gi)),

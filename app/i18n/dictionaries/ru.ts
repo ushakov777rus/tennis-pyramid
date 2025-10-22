@@ -380,8 +380,7 @@ export const ruDictionary: Dictionary = {
       maxNTRPPlaceholder: "Макс. NTRP",
       pyramidLevelsLabel: "Макс. уровней пирамиды",
       pyramidLevelsHelp: "Рекомендуем 10–20, по умолчанию 15",
-      groupsCountLabel: "Количество групп",
-      groupsCountHelp: "Рекомендуем 2–4, по умолчанию 2",
+      participantsInGroup: "Участников в группе",
       errors: {
         nameRequired: "Введите название турнира",
         dateRange: "Дата начала не может быть позже даты окончания",
@@ -457,7 +456,7 @@ export const ruDictionary: Dictionary = {
     startDateLabel: "Дата начала",
     endDateLabel: "Дата окончания",
     pyramidLevelsLabel: "Максимальное число уровней пирамиды",
-    groupsCountLabel: "Количество групп",
+    participantsInGroup: "Количество групп",
     statusHeading: "Статус:",
     statusCreatedWithUrl: "Турнир создан: {value}",
     statusCreatedWithSlug: "Турнир создан: {value}",

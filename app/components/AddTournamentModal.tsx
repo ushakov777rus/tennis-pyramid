@@ -67,7 +67,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
   // доп. опции
   const [advOpen, setAdvOpen] = useState(false);
   const [pyramidMaxLevel, setPyramidMaxLevel] = useState<number>(15);
-  const [groupsPlayoffGroupsCount, setGroupsPlayoffGroupsCount] = useState<number>(2);
+  const [participantsInGroupCount, setParticipantsInGroupCount] = useState<number>(4);
   
 
   useEffect(() => {
@@ -95,7 +95,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
     setStartDate(today);
     setEndDate(today);
     setPyramidMaxLevel(15);
-    setGroupsPlayoffGroupsCount(2);
+    setParticipantsInGroupCount(4);
     setAdvOpen(false);
     setError(null);
     setMinNTRP(null);
@@ -144,14 +144,6 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
       },
     };
 
-    // Добавляем форматные настройки
-    if (format === TournamentFormat.Pyramid) {
-      payload.settings.pyramid = { maxLevel: pyramidMaxLevel };
-    }
-    if (format === TournamentFormat.GroupsPlayoff) {
-      payload.settings.groupsplayoff = { groupsCount: groupsPlayoffGroupsCount };
-    }
-
     // Добавляем настройки только для актуального формата
     if (format === TournamentFormat.Pyramid) {
       payload.settings = {
@@ -164,7 +156,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
     if (format === TournamentFormat.GroupsPlayoff) {
       payload.settings = {
         groupsplayoff: {
-          groupsCount: groupsPlayoffGroupsCount,
+          participantsInGroupCount: participantsInGroupCount,
         },
       };
     }
@@ -308,7 +300,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
             {format === TournamentFormat.GroupsPlayoff && (
               <div className="modal-grid-2">
                 <label className="adv-label" htmlFor="groups-count">
-                  {modalText.groupsCountLabel}
+                  {modalText.participantsInGroup}
                 </label>
                 <input
                   id="groups-count"
@@ -317,8 +309,8 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
                   max={50}
                   step={1}
                   className="input"
-                  value={groupsPlayoffGroupsCount}
-                  onChange={(e) => setGroupsPlayoffGroupsCount(Number(e.target.value) || 0)}
+                  value={participantsInGroupCount}
+                  onChange={(e) => setParticipantsInGroupCount(Number(e.target.value) || 0)}
                 />
               </div>
             )}
