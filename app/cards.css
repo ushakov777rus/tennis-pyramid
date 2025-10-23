@@ -167,6 +167,7 @@
 @media (max-width: 450px) {
   .card-container {
     grid-template-columns: 1fr; /* базовая сетка */
+    width: 100%;
   }
 
   .card:has(.rr-matrix) {
