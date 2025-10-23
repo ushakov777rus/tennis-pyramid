@@ -112,14 +112,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries = await buildSitemapEntries();
 
   // Добавьте тестовую запись для проверки
-  const testEntry = {
+const testEntry = {
     url: `${BASE_URL}/test-page`,
     lastModified: new Date(),
     changeFrequency: 'daily' as const,
     priority: 0.5,
+    alternates: {
+      'ru': `${BASE_URL}/ru/test-page`,
+      'en': `${BASE_URL}/en/test-page`,
+      'x-default': `${BASE_URL}/test-page`
+    }
   };
 
-  return entries.map((entry) => ({
+  return [...entries, testEntry].map((entry) => ({
     url: entry.url,
     lastModified: entry.lastModified,
     changeFrequency: entry.changeFrequency,
