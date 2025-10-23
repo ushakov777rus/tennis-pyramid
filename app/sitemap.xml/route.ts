@@ -1,15 +1,15 @@
-import { MetadataRoute } from "next";
-
+// app/sitemap.xml/route.ts
+import { NextResponse } from 'next/server';
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 import { ClubsRepository } from "@/app/repositories/ClubsRepository";
-import { locales } from "./i18n/config";
-import { withLocalePath } from "./i18n/routing";
+import { locales } from "../i18n/config";
+import { withLocalePath } from "../i18n/routing";
 
 const BASE_URL = "https://honeycup.ru";
 
 type LocalizedStaticRoute = {
   path: string;
-  changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
+  changeFrequency: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   priority: number;
 };
 
@@ -38,7 +38,7 @@ function buildAlternates(path: string) {
 type SitemapEntry = {
   url: string;
   lastModified: Date;
-  changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
+  changeFrequency: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   priority: number;
   alternates: Record<string, string>;
 };
@@ -104,15 +104,23 @@ async function buildSitemapEntries(): Promise<SitemapEntry[]> {
   return [...localizedEntries, ...tournamentEntries, ...clubEntries];
 }
 
-export async function getSitemapEntries(): Promise<SitemapEntry[]> {
-  return buildSitemapEntries();
+const XML_HEADER = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+  '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">';
+
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/'/g, "&apos;");
 }
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export async function GET(): Promise<Response> {
   const entries = await buildSitemapEntries();
 
   // Добавьте тестовую запись для проверки
-const testEntry = {
+  const testEntry = {
     url: `${BASE_URL}/test-page`,
     lastModified: new Date(),
     changeFrequency: 'daily' as const,
@@ -124,11 +132,44 @@ const testEntry = {
     }
   };
 
-  return [...entries, testEntry].map((entry) => ({
-    url: entry.url,
-    lastModified: entry.lastModified,
-    changeFrequency: entry.changeFrequency,
-    priority: entry.priority,
-    alternates: { languages: entry.alternates },
-  }));
+  const allEntries = [...entries, testEntry];
+
+  const body = allEntries
+    .map((entry) => {
+      const { url, lastModified, changeFrequency, priority, alternates } = entry;
+
+      const alternateTags = Object.entries(alternates)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(
+          ([hreflang, href]) =>
+            `    <xhtml:link rel="alternate" hreflang="${escapeXml(hreflang)}" href="${escapeXml(href)}" />`
+        )
+        .join("\n");
+
+      const sections = [
+        "  <url>",
+        `    <loc>${escapeXml(url)}</loc>`,
+        `    <lastmod>${lastModified.toISOString()}</lastmod>`,
+        `    <changefreq>${changeFrequency}</changefreq>`,
+        `    <priority>${priority}</priority>`,
+      ];
+
+      if (alternateTags) {
+        sections.push(alternateTags);
+      }
+
+      sections.push("  </url>");
+
+      return sections.join("\n");
+    })
+    .join("\n");
+
+  const xml = `${XML_HEADER}\n${body}\n</urlset>`;
+
+  return new Response(xml, {
+    headers: {
+      "Content-Type": "application/xml; charset=utf-8",
+      "Cache-Control": "public, max-age=3600",
+    },
+  });
 }
