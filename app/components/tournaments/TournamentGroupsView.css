@@ -33,7 +33,7 @@
 
 .groups-column {
   flex: 1 1 0;
-  min-width: 200px;
+  min-width: var(--max-card-width);
   display: flex;
   flex-direction: column;
   gap: 8px;

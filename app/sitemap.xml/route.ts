@@ -4,6 +4,15 @@ const XML_HEADER =
   '<?xml version="1.0" encoding="UTF-8"?>\n' +
   '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">';
 
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/'/g, "&apos;");
+}
+
 export async function GET(): Promise<Response> {
   const entries = await getSitemapEntries();
 
@@ -18,24 +27,32 @@ export async function GET(): Promise<Response> {
       } = entry;
 
       const alternateTags = Object.entries(alternates)
+        .sort(([a], [b]) => a.localeCompare(b))
         .map(
           ([hreflang, href]) =>
-            `<xhtml:link rel="alternate" hreflang="${hreflang}" href="${href}" />`
+            `    <xhtml:link rel="alternate" hreflang="${escapeXml(hreflang)}" href="${escapeXml(href)}" />`
         )
-        .join("");
+        .join("\n");
 
-      return `
-  <url>
-    <loc>${url}</loc>
-    <lastmod>${lastModified.toISOString()}</lastmod>
-    <changefreq>${changeFrequency}</changefreq>
-    <priority>${priority}</priority>
-    ${alternateTags}
-  </url>`;
+      const sections = [
+        "  <url>",
+        `    <loc>${escapeXml(url)}</loc>`,
+        `    <lastmod>${lastModified.toISOString()}</lastmod>`,
+        `    <changefreq>${changeFrequency}</changefreq>`,
+        `    <priority>${priority}</priority>`,
+      ];
+
+      if (alternateTags) {
+        sections.push(alternateTags);
+      }
+
+      sections.push("  </url>");
+
+      return sections.join("\n");
     })
-    .join("");
+    .join("\n");
 
-  const xml = `${XML_HEADER}${body}\n</urlset>`;
+  const xml = `${XML_HEADER}\n${body}\n</urlset>`;
 
   return new Response(xml, {
     headers: {
