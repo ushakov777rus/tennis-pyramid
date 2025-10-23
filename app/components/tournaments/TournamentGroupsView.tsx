@@ -225,7 +225,7 @@ export function TournamentGroupsView() {
 
   const groupNames = useMemo(() =>
     Array.from({ length: groupsCount }, (_, index) =>
-      viewText.labels.groupTitle.replace("{index}", String(index + 1))
+      viewText.labels.groupTitle.replace("{index}", String.fromCharCode(65 + index))
     ),
   [groupsCount, viewText.labels.groupTitle]);
 
@@ -436,7 +436,7 @@ export function TournamentGroupsView() {
           </div>
         </div>
 
-        <div className="card-container">
+        <div className="card-container" style={{'--min-card-width': "280px"} as React.CSSProperties}>
           {groupMembers.map((_, groupIndex) => (
             <Fragment key={groupIndex}>{renderGroupColumn(groupIndex)}</Fragment>
           ))}

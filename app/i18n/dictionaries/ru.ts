@@ -356,7 +356,7 @@ export const ruDictionary: Dictionary = {
       labels: {
         unassignedHeader: "Нераспределены ({count})",
         groupHeader: "Группа {index} ({count}/{capacity})",
-        groupTitle: "Гр. {index}",
+        groupTitle: "Группа. {index}",
         groupShort: "Гр. {index}",
         unassignedShort: "нераспределённых",
         emptyGroup: "В группе пока нет участников",

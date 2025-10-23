@@ -139,7 +139,7 @@
 .card-container {
   display: grid;
   /*grid-template-columns: repeat(auto-fit, minmax(var(--min-card-width, 380px), 1fr));*/
-  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); /* базовая сетка */
+  grid-template-columns: repeat(auto-fit, minmax(var(--min-card-width, 500px), 1fr)); /* базовая сетка */
   gap: 20px;
   justify-items: center;
   max-width: 100%;
