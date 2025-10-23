@@ -1,9 +1,8 @@
 :root {
   --rr-index-min-width: 25px;
-
   --rr-name-min-width: 120px;
-
   --rr-score-min-width: 30px;
+  --rr-result-min-width: 35px;
 
   --rr-roundrobin-border: rgb(63 77 36 / 30%);
   --rr-roundrobin-bg: var(--background, #0f0f0f);
@@ -42,11 +41,9 @@
     minmax(var(--rr-index-min-width), auto)  /* 0.5 доли от свободного пространства */
     minmax(var(--rr-name-min-width), auto)   /* 1 доля */
     repeat(var(--participants-count), minmax(var(--rr-score-min-width), auto))
-    minmax(35px, auto)
-    minmax(35px, auto)
-    minmax(35px, auto);
-
-  /* Ширина строки минимум 370px и может растягиваться */
+    minmax(var(--rr-result-min-width), auto)
+    minmax(var(--rr-result-min-width), auto)
+    minmax(var(--rr-result-min-width), auto);
   
   overflow-x: auto;
   width: 100%;
@@ -57,7 +54,6 @@
 .rr-matrix > * {
   display: flex;
   padding: 2px 2px;
-  /*border: 1px solid var(--rr-roundrobin-border);*/
   height: 45px;
   font-size: 12px;
   align-items: center;
@@ -74,7 +70,6 @@
  .no-right-border {
   border-right: none;
  }
-
 
 .rr-index-header,
 .rr-name-header,

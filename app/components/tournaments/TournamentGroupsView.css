@@ -41,7 +41,7 @@
 }
 
 .groups-column--unassigned {
-  max-width: var(--max-card-width);
+  max-width: var(--min-card-width);
 }
 
 .groups-column-body {
