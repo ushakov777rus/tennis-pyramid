@@ -16,6 +16,9 @@ function escapeXml(value: string): string {
 export async function GET(): Promise<Response> {
   const entries = await getSitemapEntries();
 
+  // Добавьте логирование для отладки
+  console.log('Generating sitemap with namespace:', XML_HEADER);
+
   const body = entries
     .map((entry) => {
       const {
@@ -53,6 +56,9 @@ export async function GET(): Promise<Response> {
     .join("\n");
 
   const xml = `${XML_HEADER}\n${body}\n</urlset>`;
+
+  // Логируем первые 500 символов для проверки
+  console.log('Generated XML start:', xml.substring(0, 500));
 
   return new Response(xml, {
     headers: {
