@@ -333,7 +333,7 @@ export function TournamentGroupsView() {
   const renderGroupColumn = (groupIndex: number) => {
     const members = groupMembers[groupIndex];
     const header = viewText.labels.groupHeader
-      .replace("{index}", String(groupIndex + 1))
+      .replace("{index}", String.fromCharCode(65 + groupIndex)) 
       .replace("{count}", String(members.length))
       .replace("{capacity}", String(capacityPerGroup));
 
