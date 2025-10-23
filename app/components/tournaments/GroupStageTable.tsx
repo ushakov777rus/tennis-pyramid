@@ -416,126 +416,129 @@ export function GroupStageTable({
   }
 
   return (
-    <div className="card rr-scroll">
+    <div 
+      className="card rr-scroll"
+      style={{'--participants-count': ordered.length} as React.CSSProperties}>
+
       {groupIndex !== undefined && groupIndex !== null && groupTitle && (
         <div className="card-title">
           <strong>{groupTitle}</strong>
         </div>)
       }
 
-<div 
-  ref={tableRef} 
-  className="rr-matrix" 
-  style={{
-    '--participants-count': ordered.length
-  } as React.CSSProperties}
->
-  {/* Заголовки - должны быть в первой строке */}
-  <div className="rr-index-header center" style={{ gridColumn: 1, gridRow: 1 }}>#</div>
-  <div className="rr-name-header left" style={{ gridColumn: 2, gridRow: 1 }}>{groupText.players}</div>
-  
-  {ordered.map((_, index) => (
-    <div 
-      key={index} 
-      className="center rr-header-score"
-      style={{ gridColumn: index + 3, gridRow: 1 }}
-    >
-      {index + 1}
-    </div>
-  ))}
-  
-  <div 
-    className="center rotate" 
-    style={{ gridColumn: ordered.length + 3, gridRow: 1 }}
-  >
-    <span>{groupText.points}</span>
-  </div>
-  <div 
-    className="center rotate" 
-    style={{ gridColumn: ordered.length + 4, gridRow: 1 }}
-  >
-    <span>{groupText.games}</span>
-  </div>
-  <div 
-    className="center rotate no-right-border" 
-    style={{ gridColumn: ordered.length + 5, gridRow: 1 }}
-  >
-    <span>{groupText.place}</span>
-  </div>
-
-  {/* Данные */}
-  {ordered.map((participant, rowIndex) => {
-    const aId = participant.getId;
-    const stats = standings.rows.find((row) => row.id === aId)!;
-    const place = standings.placeById.get(aId)!;
-    
-    const gridRow = rowIndex + 2; // +2 потому что заголовки в строке 1
-
-    return (
-      <React.Fragment key={aId}>
-        {/* Индекс */}
-        <div
-          data-rr-cell={`${aId}-${aId}`}
-          className="center rr-index-cell"
-          style={{ gridColumn: 1, gridRow }}
-        >
-          {rowIndex + 1}
-        </div>
-
-        {/* Имя игрока */}
+      <div 
+        ref={tableRef} 
+        className="rr-matrix" 
+        style={{
+          '--participants-count': ordered.length
+        } as React.CSSProperties}
+      >
+        {/* Заголовки - должны быть в первой строке */}
+        <div className="rr-index-header center" style={{ gridColumn: 1, gridRow: 1 }}>#</div>
+        <div className="rr-name-header left" style={{ gridColumn: 2, gridRow: 1 }}>{groupText.players}</div>
+        
+        {ordered.map((_, index) => (
+          <div 
+            key={index} 
+            className="center rr-header-score"
+            style={{ gridColumn: index + 3, gridRow: 1 }}
+          >
+            {index + 1}
+          </div>
+        ))}
+        
         <div 
-          className="left rr-name-cell"
-          style={{ gridColumn: 2, gridRow }}
+          className="center rotate" 
+          style={{ gridColumn: ordered.length + 3, gridRow: 1 }}
         >
-          <span className="rr-participant">{participant.displayName(false)}</span>
+          <span>{groupText.points}</span>
+        </div>
+        <div 
+          className="center rotate" 
+          style={{ gridColumn: ordered.length + 4, gridRow: 1 }}
+        >
+          <span>{groupText.games}</span>
+        </div>
+        <div 
+          className="center rotate no-right-border" 
+          style={{ gridColumn: ordered.length + 5, gridRow: 1 }}
+        >
+          <span>{groupText.place}</span>
         </div>
 
-        {/* Ячейки с противниками */}
-        {ordered.map((opponent, colIndex) => {
-          const isDiagonal = aId === opponent.getId;
+        {/* Данные */}
+        {ordered.map((participant, rowIndex) => {
+          const aId = participant.getId;
+          const stats = standings.rows.find((row) => row.id === aId)!;
+          const place = standings.placeById.get(aId)!;
+          
+          const gridRow = rowIndex + 2; // +2 потому что заголовки в строке 1
+
           return (
-            <div
-              key={`${aId}_${opponent.getId}`}
-              style={{ gridColumn: colIndex + 3, gridRow }}
-              className={isDiagonal ? "rr-diag" : ""}
-            >
-              <ScoreCellWrapper
-                aId={aId}
-                bId={opponent.getId}
-                rIndex={rowIndex}
-                cIndex={colIndex}
-              />
-            </div>
+            <React.Fragment key={aId}>
+              {/* Индекс */}
+              <div
+                data-rr-cell={`${aId}-${aId}`}
+                className="center rr-index-cell"
+                style={{ gridColumn: 1, gridRow }}
+              >
+                {rowIndex + 1}
+              </div>
+
+              {/* Имя игрока */}
+              <div 
+                className="left rr-name-cell"
+                style={{ gridColumn: 2, gridRow }}
+              >
+                <span className="rr-participant">{participant.displayName(false)}</span>
+              </div>
+
+              {/* Ячейки с противниками */}
+              {ordered.map((opponent, colIndex) => {
+                const isDiagonal = aId === opponent.getId;
+                return (
+                  <div
+                    key={`${aId}_${opponent.getId}`}
+                    style={{ gridColumn: colIndex + 3, gridRow }}
+                    className={isDiagonal ? "rr-diag" : ""}
+                  >
+                    <ScoreCellWrapper
+                      aId={aId}
+                      bId={opponent.getId}
+                      rIndex={rowIndex}
+                      cIndex={colIndex}
+                    />
+                  </div>
+                );
+              })}
+
+              {/* Очки */}
+              <div 
+                className="center"
+                style={{ gridColumn: ordered.length + 3, gridRow }}
+              >
+                {stats.points}
+              </div>
+
+              {/* Геймы */}
+              <div 
+                className="center"
+                style={{ gridColumn: ordered.length + 4, gridRow }}
+              >
+                {stats.gamesFor}:{stats.gamesAgainst}
+              </div>
+
+              {/* Место */}
+              <div 
+                className="center no-right-border"
+                style={{ gridColumn: ordered.length + 5, gridRow }}
+              >
+                {place}
+              </div>
+            </React.Fragment>
           );
         })}
-
-        {/* Очки */}
-        <div 
-          className="center"
-          style={{ gridColumn: ordered.length + 3, gridRow }}
-        >
-          {stats.points}
-        </div>
-
-        {/* Геймы */}
-        <div 
-          className="center"
-          style={{ gridColumn: ordered.length + 4, gridRow }}
-        >
-          {stats.gamesFor}:{stats.gamesAgainst}
-        </div>
-
-        {/* Место */}
-        <div 
-          className="center no-right-border"
-          style={{ gridColumn: ordered.length + 5, gridRow }}
-        >
-          {place}
-        </div>
-      </React.Fragment>
-    );
-  })}
-</div>
+      </div>
     </div>
   );
 }

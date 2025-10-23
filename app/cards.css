@@ -1,5 +1,5 @@
 :root {
-  --min-card-width: 380px;
+  
 }
 
 /* Карточки */
@@ -110,10 +110,6 @@
 
 /* ✅ Адаптивность для мобилок */
 @media (max-width: 768px) {
-  .card {
-    width: 100%;
-    max-width: none;
-  }
 
   .card-register {
   max-width: 100%;
@@ -146,11 +142,39 @@
 
 .card-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(var(--min-card-width), 1fr));
+  /*grid-template-columns: repeat(auto-fit, minmax(var(--min-card-width, 380px), 1fr));*/
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); /* базовая сетка */
   gap: 20px;
   justify-items: center;
   max-width: 100%;
 }
+
+/* по умолчанию — простая карточка */
+.card {
+  --min-card-width: 380px;
+}
+
+/* если внутри есть rr-matrix, то считаем минималку динамически */
+.card:has(.rr-matrix) {
+  /* используем те же переменные, что rr-matrix */
+  --min-card-width: calc(
+    var(--rr-index-min-width) +
+    var(--rr-name-min-width) +
+    calc(var(--participants-count) * var(--rr-score-min-width)) +
+    calc(3 * var(--rr-result-min-width)) +
+    60px   /* запас на gap, padding и т.п. */
+  );
+
+  min-inline-size: max(380px, var(--min-card-width));
+}
+
+@media (max-width: 450px) {
+  .card {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
 
 /* Для одной карточки - центрируем с фиксированной шириной */
 .card-container:has(> :only-child) {
