@@ -375,6 +375,7 @@ export const enDictionary: Dictionary = {
       pyramidLevelsLabel: "Max pyramid levels",
       pyramidLevelsHelp: "Recommended 10–20, default 15",
       participantsInGroup: "Participants in groups",
+      advancePerGroup: "Winners per group",
       errors: {
         nameRequired: "Enter the tournament name",
         dateRange: "Start date cannot be after end date",

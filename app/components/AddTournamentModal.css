@@ -15,6 +15,9 @@
 }
 
 .adv-label {
+  display: flex;
+  align-items: center;
+  gap: 10%;
   font-size: 14px;
   color: #ccc;
 }

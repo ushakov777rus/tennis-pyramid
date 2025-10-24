@@ -802,6 +802,7 @@ export const FormatView = React.memo(function FormatView({
         canManage={canManage}
         onSaveScore={onSaveScoreRoundRobin}
         participantsInGroupCount={tournament.settings.groupsplayoff ? tournament.settings.groupsplayoff.participantsInGroupCount : 4}
+        advancePerGroup={tournament.settings.groupsplayoff ? tournament.settings.groupsplayoff.advancePerGroup ?? 1 : 1}
         onOpenKeyboard={onOpenKeyboard}
         onCloseKeyboard={onCloseKeyboard}
         keyboardState={keyboardState}

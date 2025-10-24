@@ -381,6 +381,7 @@ export const ruDictionary: Dictionary = {
       pyramidLevelsLabel: "Макс. уровней пирамиды",
       pyramidLevelsHelp: "Рекомендуем 10–20, по умолчанию 15",
       participantsInGroup: "Участников в группе",
+      advancePerGroup: "Победителей из группы",
       errors: {
         nameRequired: "Введите название турнира",
         dateRange: "Дата начала не может быть позже даты окончания",

@@ -304,6 +304,7 @@ export type Dictionary = {
       pyramidLevelsLabel: string;
       pyramidLevelsHelp: string;
       participantsInGroup: string;
+      advancePerGroup: string;
       errors: {
         nameRequired: string;
         dateRange: string;

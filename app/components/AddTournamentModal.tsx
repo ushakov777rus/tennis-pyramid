@@ -68,6 +68,15 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
   const [advOpen, setAdvOpen] = useState(false);
   const [pyramidMaxLevel, setPyramidMaxLevel] = useState<number>(15);
   const [participantsInGroupCount, setParticipantsInGroupCount] = useState<number>(4);
+  const [advancePerGroup, setAdvancePerGroup] = useState<number>(1);
+  useEffect(() => {
+    setAdvancePerGroup((prev) => {
+      if (!Number.isFinite(participantsInGroupCount) || participantsInGroupCount <= 0) {
+        return prev;
+      }
+      return Math.min(prev, participantsInGroupCount);
+    });
+  }, [participantsInGroupCount]);
   
 
   useEffect(() => {
@@ -96,6 +105,7 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
     setEndDate(today);
     setPyramidMaxLevel(15);
     setParticipantsInGroupCount(4);
+    setAdvancePerGroup(1);
     setAdvOpen(false);
     setError(null);
     setMinNTRP(null);
@@ -156,7 +166,8 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
     if (format === TournamentFormat.GroupsPlayoff) {
       payload.settings = {
         groupsplayoff: {
-          participantsInGroupCount: participantsInGroupCount,
+          participantsInGroupCount,
+          advancePerGroup,
         },
       };
     }
@@ -298,21 +309,44 @@ export function AddTournamentModal({ isOpen, club, onClose, onCreate }: Props) {
 
             {/* Группы плюс плейофф */}
             {format === TournamentFormat.GroupsPlayoff && (
-              <div className="modal-grid-2">
-                <label className="adv-label" htmlFor="groups-count">
-                  {modalText.participantsInGroup}
-                </label>
-                <input
-                  id="groups-count"
-                  type="number"
-                  min={1}
-                  max={50}
-                  step={1}
-                  className="input"
-                  value={participantsInGroupCount}
-                  onChange={(e) => setParticipantsInGroupCount(Number(e.target.value) || 0)}
-                />
-              </div>
+              <>
+                <div className="modal-grid-2">
+                  <label className="adv-label" htmlFor="groups-count">
+                    {modalText.participantsInGroup}
+                  </label>
+                  <input
+                    id="groups-count"
+                    type="number"
+                    min={1}
+                    max={50}
+                    step={1}
+                    className="input"
+                    value={participantsInGroupCount}
+                    onChange={(e) => {
+                      const next = Number(e.target.value);
+                      setParticipantsInGroupCount(Number.isFinite(next) && next > 0 ? next : 1);
+                    }}
+                  />
+                </div>
+                <div className="modal-grid-2">
+                  <label className="adv-label" htmlFor="advance-count">
+                    {modalText.advancePerGroup}
+                  </label>
+                  <input
+                    id="advance-count"
+                    type="number"
+                    min={1}
+                    max={50}
+                    step={1}
+                    className="input"
+                    value={advancePerGroup}
+                    onChange={(e) => {
+                      const next = Number(e.target.value);
+                      setAdvancePerGroup(Number.isFinite(next) && next > 0 ? next : 1);
+                    }}
+                  />
+                </div>
+              </>
             )}
 
             {/* Пример: сюда легко добавить другие настройки под форматы */}
