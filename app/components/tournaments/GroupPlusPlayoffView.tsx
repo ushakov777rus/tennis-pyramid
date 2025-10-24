@@ -207,6 +207,8 @@ function makePlayoffQualifiersFromFiltered(
     }
   }
 
+  console.log("Make playoff qualifiers", topK, groups.length, out.length);
+
   return out;
 }
 
