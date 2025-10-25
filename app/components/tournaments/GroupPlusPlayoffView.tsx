@@ -186,30 +186,41 @@ function makePlayoffQualifiersFromFiltered(
   topK: number,
   matchesPerGroup: Match[][]
 ): (Participant | null)[] {
-  const out: (Participant | null)[] = [];
+  const allQualifiers: { participant: Participant | null; gamesDiff: number }[] = [];
 
   for (let place = 0; place < topK; place++) {
     for (let gi = 0; gi < groups.length; gi++) {
       const group = groups[gi];
       const stats = statsPerGroup[gi];
       const matchesForGroup = matchesPerGroup[gi];
-
+    
       const slot = stats[place];
 
       if (!slot) {
-        out.push(null);
+        allQualifiers.push({ participant: null, gamesDiff: 0 });
         continue;
       }
 
       const qualifier = group.find((pp) => pp.getId === slot.id) ?? null;
       const hasPlayed = qualifier && hasParticipantPlayedAnyMatch(qualifier.getId, matchesForGroup);
-      out.push(qualifier && hasPlayed ? qualifier : null);
+      
+      // Находим gamesDiff для этого участника
+      const gamesDiff = slot.gamesDiff;
+      allQualifiers.push({ 
+        participant: qualifier && hasPlayed ? qualifier : null, 
+        gamesDiff 
+      });
     }
   }
 
-  console.log("Make playoff qualifiers", topK, groups.length, out.length);
+  console.log("Make playoff qualifiers", topK, groups.length, allQualifiers.length);
 
-  return out;
+  // Сортируем по gamesDiff по убыванию, но сохраняем null значения на своих местах
+  const sorted = [...allQualifiers]
+    .sort((a, b) => b.gamesDiff - a.gamesDiff) // по убыванию
+    .map(item => item.participant);
+
+  return sorted;
 }
 
 export function GroupPlusPlayoffView({

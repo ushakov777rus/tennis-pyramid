@@ -99,7 +99,77 @@ export function PlayoffStageTable({
     return { aRow, bRow };
   }
   
-  const resolvedPlayoff = useMemo(() => {
+  const { rounds: resolvedPlayoff, firstRoundByeFlags } = useMemo(() => {
+    const originalParticipants = [...playOffParticipants];
+    const originalLength = originalParticipants.length;
+    const targetSize = nextPow2(originalLength || 1);
+    const byeCount = targetSize - originalLength;
+
+    // Создаем расширенный список участников с BYE
+    const extendedParticipants: (Participant | null)[] = [...originalParticipants];
+    
+    // Добавляем BYE в конец (это временно, потом перераспределим)
+    for (let i = 0; i < byeCount; i++) {
+      extendedParticipants.push(null);
+    }
+
+    // Правильное распределение: сильнейшие получают BYE
+    // В стандартной сетке BYE распределяются так, чтобы избежать BYE vs BYE
+    const firstRound: Array<[Participant | null, Participant | null]> = [];
+    const byeFlags: boolean[] = new Array(targetSize).fill(false);
+
+    // Алгоритм распределения BYE в турнирной сетке
+    // BYE должны быть распределены так, чтобы в каждом матче был максимум один BYE
+    let participantIndex = 0;
+    
+    // Проходим по сетке и распределяем участников
+    for (let i = 0; i < targetSize; i += 2) {
+      const slot1 = i;
+      const slot2 = i + 1;
+      
+      // Определяем, есть ли BYE в этой паре
+      const hasByeInPair = (slot1 < byeCount*2) || (slot2 < byeCount*2);
+      
+      if (hasByeInPair) {
+        // Один из слотов должен быть BYE, другой - реальный участник
+        if (participantIndex < byeCount*2) {
+            // Второй слот - BYE, первый - реальный участник  
+          firstRound.push([extendedParticipants[participantIndex], null]);
+          byeFlags[slot1] = false;
+          byeFlags[slot2] = true;
+
+          participantIndex++;
+        } else {
+          // Если реальные участники закончились, оба слота - BYE (это не должно происходить)
+          firstRound.push([null, null]);
+          byeFlags[slot1] = true;
+          byeFlags[slot2] = true;
+        }
+      } else {
+        // Оба реальных участника
+        if (participantIndex + 1 < originalLength) {
+          firstRound.push([
+            extendedParticipants[participantIndex],
+            extendedParticipants[participantIndex + 1]
+          ]);
+          byeFlags[slot1] = false;
+          byeFlags[slot2] = false;
+          participantIndex += 2;
+        } else if (participantIndex < originalLength) {
+          // Остался один реальный участник - ставим его первым, второй - BYE
+          firstRound.push([extendedParticipants[participantIndex], null]);
+          byeFlags[slot1] = false;
+          byeFlags[slot2] = true;
+          participantIndex += 1;
+        } else {
+          // Участников больше нет - оба BYE
+          firstRound.push([null, null]);
+          byeFlags[slot1] = true;
+          byeFlags[slot2] = true;
+        }
+      }
+    }
+
     const byId = new Map<number, Participant>();
     for (const p of playOffParticipants) {
       if (p) {
@@ -107,28 +177,7 @@ export function PlayoffStageTable({
       }
     }
 
-    const valid = playOffParticipants.slice();
-    const size = nextPow2(valid.length || 1);
-    while (valid.length < size) valid.push(null);
-
-    const rounds: (Array<[Participant | null, Participant | null]>)[] = [];
-    const first: Array<[Participant | null, Participant | null]> = [];
-
-    for (let i = 0; i < valid.length; i += 2) {
-      first.push([valid[i] ?? null, valid[i + 1] ?? null]);
-    }
-/*
-    for (let i = 0; i < valid.length; i += 2) {
-      const pair: [Participant | null, Participant | null] = [
-        valid[i] ?? null,
-        valid[i + 1] ?? null,
-      ];
-      if (!pair[0] && !pair[1]) continue; // skip padding-only pairs (bye vs bye)
-      first.push(pair);
-    }
-*/
-
-    rounds.push(first);
+    const rounds: (Array<[Participant | null, Participant | null]>)[] = [firstRound];
 
     const winnerOfPair = (
       a: Participant | null,
@@ -154,7 +203,7 @@ export function PlayoffStageTable({
       return byId.get(wid) ?? null;
     };
 
-    let prev = first;
+    let prev = firstRound;
     let layer = 1;
     while (prev.length > 1) {
       const next: Array<[Participant | null, Participant | null]> = [];
@@ -173,9 +222,9 @@ export function PlayoffStageTable({
       layer += 1;
     }
 
-    console.log("resolvedPlayoff", playOffParticipants.length, rounds.length);
+    console.log("resolvedPlayoff", originalLength, "->", targetSize, "BYEs:", byeCount, "rounds:", rounds.length);
 
-    return rounds;
+    return { rounds, firstRoundByeFlags: byeFlags };
   }, [playOffParticipants, findMatchBetween]);
 
   /** Заголовок раунда плей-офф */
@@ -211,6 +260,14 @@ export function PlayoffStageTable({
                   const aId = a?.getId;
                   const bId = b?.getId;
                   const winnerId = pairWinnerId(a, b, phaseFilter);
+                  const slotIndexBase = rIndex === 0 ? mIndex * 2 : -1;
+                  const isByeSlot = (offset: number) =>
+                    rIndex === 0 &&
+                    offset >= 0 &&
+                    offset < (firstRoundByeFlags?.length ?? 0) &&
+                    !!firstRoundByeFlags?.[offset];
+                  const isByeA = isByeSlot(slotIndexBase);
+                  const isByeB = isByeSlot(slotIndexBase + 1);
 
                   const oriented = getOrientedSetsFor(a, b, phaseFilter);
                   const aRow = oriented?.aRow ?? [null, null, null];
@@ -240,11 +297,17 @@ export function PlayoffStageTable({
                               winnerId && aId === winnerId ? "bracket__row--winner" : ""
                             }`}>
                               {a ? (
-                                <span className={`rr-participant ${
-                              winnerId && aId === winnerId ? "bracket__row--winner" : ""
-                            }`}>{a.displayName()}</span>
+                                <span
+                                  className={`rr-participant ${
+                                    winnerId && aId === winnerId ? "bracket__row--winner" : ""
+                                  }`}
+                                >
+                                  {a.displayName()}
+                                </span>
                               ) : (
-                                <span className="rr-participant grey">{playoffText.waiting}</span>
+                                <span className={`rr-participant ${isByeA ? "bye" : "grey"}`}>
+                                  {isByeA ? playoffText.bye : playoffText.waiting}
+                                </span>
                               )}
                             </td>
                           </tr>
@@ -255,11 +318,17 @@ export function PlayoffStageTable({
                           >
                             <td className="left rr-name-cell">
                               {b ? (
-                                <span className={`rr-participant ${
-                              winnerId && aId === winnerId ? "bracket__row--winner" : ""
-                            }`}>{b.displayName()}</span>
+                                <span
+                                  className={`rr-participant ${
+                                    winnerId && bId === winnerId ? "bracket__row--winner" : ""
+                                  }`}
+                                >
+                                  {b.displayName()}
+                                </span>
                               ) : (
-                                <span className="rr-participant grey">{playoffText.waiting}</span>
+                                <span className={`rr-participant ${isByeB ? "bye" : "grey"}`}>
+                                  {isByeB ? playoffText.bye : playoffText.waiting}
+                                </span>
                               )}
                             </td>
                           </tr>

@@ -516,6 +516,7 @@ export const ruDictionary: Dictionary = {
       round: "Раунд {number}",
       final: "Финал",
       waiting: "Ожидается",
+      bye: "Bye",
       empty: "Нет пар",
     },
   },

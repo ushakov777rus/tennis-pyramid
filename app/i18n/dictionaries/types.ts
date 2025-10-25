@@ -432,6 +432,7 @@ export type Dictionary = {
       round: string;
       final: string;
       waiting: string;
+      bye: string;
       empty: string;
     };
   };

@@ -510,6 +510,7 @@ export const enDictionary: Dictionary = {
       round: "Round {number}",
       final: "Final",
       waiting: "Pending",
+      bye: "Bye",
       empty: "No matchups",
     },
   },

@@ -188,3 +188,9 @@
   color: #999;          /* делает текст серым */
   opacity: 0.7;         /* можно чуть “приглушить” */
 }
+
+.rr-participant.bye {
+  text-transform: uppercase;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+}
