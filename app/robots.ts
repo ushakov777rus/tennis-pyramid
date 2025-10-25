@@ -11,7 +11,11 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/admin", "/_next/", "/private/", "/player"],
       },
     ],
-    host: "honeycup.ru",
-    sitemap: [`${BASE_URL}/sitemap.xml`],
+    host: BASE_URL,
+    sitemap: `${BASE_URL}/sitemap.xml`,
   };
 }
+
+// Отключаем кэширование для этого route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
