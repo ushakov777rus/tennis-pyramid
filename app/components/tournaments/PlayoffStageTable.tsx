@@ -113,6 +113,11 @@ export function PlayoffStageTable({
 
     const rounds: (Array<[Participant | null, Participant | null]>)[] = [];
     const first: Array<[Participant | null, Participant | null]> = [];
+
+    for (let i = 0; i < valid.length; i += 2) {
+      first.push([valid[i] ?? null, valid[i + 1] ?? null]);
+    }
+/*
     for (let i = 0; i < valid.length; i += 2) {
       const pair: [Participant | null, Participant | null] = [
         valid[i] ?? null,
@@ -121,6 +126,8 @@ export function PlayoffStageTable({
       if (!pair[0] && !pair[1]) continue; // skip padding-only pairs (bye vs bye)
       first.push(pair);
     }
+*/
+
     rounds.push(first);
 
     const winnerOfPair = (
