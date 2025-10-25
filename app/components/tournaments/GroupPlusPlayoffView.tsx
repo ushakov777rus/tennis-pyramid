@@ -424,6 +424,7 @@ export function GroupPlusPlayoffView({
   return (
     <div>
       {/* ГРУППЫ */}
+      <h2 style={{ marginTop: "16px", marginBottom:"16px" }}>Группы</h2>
       <div className="card-container">
         {groups.map((group, gIndex) => {
           const matchesForGroup = groupMatches[gIndex];
@@ -444,7 +445,8 @@ export function GroupPlusPlayoffView({
       </div>
 
       {/* ПЛЕЙ-ОФФ */}
-      <div style={{ marginTop: 16 }}>
+      <h2 style={{ marginTop: "16px", marginBottom:"16px" }}>Плейофф</h2>
+      <div>
         <PlayoffStageTable
           playOffParticipants={qualifiers}
           canManage={canManage}
