@@ -26,7 +26,6 @@ export function TournamentGroupsView() {
     participants,
     tournament,
     groupsAssignments,
-    matches,
     updateGroupsAssignments,
     mutating,
   } = useTournament();
@@ -152,31 +151,54 @@ export function TournamentGroupsView() {
     );
   }, [unassigned, searchTerm]);
 
-  const isDirty = useMemo(() => {
-    const assignedOnly: Record<number, number> = {};
-    Object.entries(localAssignments).forEach(([key, value]) => {
-      if (typeof value === "number") {
-        assignedOnly[Number(key)] = value;
-      }
-    });
+  const persistAssignments = useCallback(
+    async (
+      nextAssignments: LocalAssignments,
+      rollbackAssignments: LocalAssignments
+    ) => {
+      const payload: Record<number, number> = {};
+      Object.entries(nextAssignments).forEach(([key, value]) => {
+        if (typeof value === "number") {
+          payload[Number(key)] = value;
+        }
+      });
 
-    const savedKeys = Object.keys(groupsAssignments);
-    const localKeys = Object.keys(assignedOnly);
-    if (savedKeys.length !== localKeys.length) return true;
-    return localKeys.some((key) => groupsAssignments[Number(key)] !== assignedOnly[Number(key)]);
-  }, [localAssignments, groupsAssignments]);
+      try {
+        await updateGroupsAssignments(payload);
+      } catch (error) {
+        console.error("Failed to update groups assignments", error);
+        alert(viewText.errors.saveFailed);
+        setLocalAssignments(rollbackAssignments);
+      }
+    },
+    [updateGroupsAssignments, viewText.errors.saveFailed]
+  );
+
+  const commitAssignments = useCallback(
+    (nextAssignments: LocalAssignments) => {
+      const previousAssignments = localAssignments;
+      setLocalAssignments(nextAssignments);
+      void persistAssignments(nextAssignments, previousAssignments);
+    },
+    [localAssignments, persistAssignments]
+  );
 
   const handleAssign = useCallback(
     (participantId: number, groupIndex: number | null) => {
-      setLocalAssignments((prev) => ({ ...prev, [participantId]: groupIndex }));
+      if (localAssignments[participantId] === groupIndex) {
+        return;
+      }
+      commitAssignments({ ...localAssignments, [participantId]: groupIndex });
     },
-    []
+    [commitAssignments, localAssignments]
   );
 
   const handleAutoDistribute = useCallback(() => {
+    if (unassigned.length === 0) return;
     const nextAssignments: LocalAssignments = { ...localAssignments };
     const lengths = groupMembers.map((group) => group.length);
     const queue = unassigned.slice();
+    let changed = false;
 
     queue.forEach((participant) => {
       const id = participant.getId;
@@ -198,30 +220,16 @@ export function TournamentGroupsView() {
       }
 
       lengths[targetIndex] += 1;
-      nextAssignments[id] = targetIndex;
-    });
-
-    setLocalAssignments(nextAssignments);
-  }, [localAssignments, unassigned, groupMembers, groupsCount, capacityPerGroup]);
-
-  const handleSave = useCallback(async () => {
-    const payload: Record<number, number> = {};
-    Object.entries(localAssignments).forEach(([key, value]) => {
-      if (typeof value === "number") {
-        payload[Number(key)] = value;
+      if (nextAssignments[id] !== targetIndex) {
+        nextAssignments[id] = targetIndex;
+        changed = true;
       }
     });
-    try {
-      await updateGroupsAssignments(payload);
-    } catch (error) {
-      console.error("Failed to update groups assignments", error);
-      alert(viewText.errors.saveFailed);
-    }
-  }, [localAssignments, updateGroupsAssignments, viewText.errors.saveFailed]);
 
-  const handleCancel = useCallback(() => {
-    setLocalAssignments(initialAssignments);
-  }, [initialAssignments]);
+    if (changed) {
+      commitAssignments(nextAssignments);
+    }
+  }, [localAssignments, unassigned, groupMembers, groupsCount, capacityPerGroup, commitAssignments]);
 
   const groupNames = useMemo(() =>
     Array.from({ length: groupsCount }, (_, index) =>
@@ -383,22 +391,6 @@ export function TournamentGroupsView() {
             disabled={mutating || unassigned.length === 0}
           >
             {viewText.actions.autoDistribute}
-          </button>
-          <button
-            type="button"
-            className="btn-base"
-            onClick={handleCancel}
-            disabled={!isDirty || mutating}
-          >
-            {viewText.actions.cancel}
-          </button>
-          <button
-            type="button"
-            className="btn-base"
-            onClick={handleSave}
-            disabled={!isDirty || mutating || matches.length > 0 || tournament?.isActive()}
-          >
-            {viewText.actions.save}
           </button>
         </div>
       </div>
