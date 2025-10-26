@@ -13,14 +13,19 @@ export default function HomePage() {
     <div
       className="page-container-no-padding" 
       style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100dvh', // Используем dvh вместо vh для мобильных устройств
+        display: 'flex', // Меняем grid на flex
+        flexDirection: 'column', // Вертикальное расположение
+        justifyContent: 'center', // Центрирование по вертикали
+        alignItems: 'center', // Центрирование по горизонтали
+        height: '100dvh',
         width: '100%',
-        
+        gap: '2rem', // Добавляем отступ между элементами
       }}
     >
+      <h1 style={{ 
+        margin: 0, // Убираем стандартные отступы h1
+        textAlign: 'center'
+      }}>{dictionary.landing.title}</h1>
       <Link
         href={withLocalePath(locale, "/freetournament")}
         className="btn-base floating-cta"

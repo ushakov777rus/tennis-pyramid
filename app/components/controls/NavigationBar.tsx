@@ -99,40 +99,19 @@ export function NavigationBar() {
 
       <nav id="main-nav" className={`nav ${menuOpen ? "nav-open" : ""}`}>
         <Link
-          href={buildHref("/")}
-          className={isActive("/") ? "active" : ""}
+          href={buildHref("/freetournament")}
+          className={isActive("/freetournament") ? "active" : ""}
           onClick={() => setMenuOpen(false)}
         >
           {dictionary.navigation.home}
         </Link>
         <Link
-          href={buildHref("/clubs")}
+          href={buildHref("/clubs")+"/demo-klub?tab=tournaments"}
           className={isActive("/clubs") ? "active" : ""}
-          onClick={() => setMenuOpen(false)}
-        >
-          {dictionary.navigation.clubs}
-        </Link>
-        <Link
-          href={buildHref("/tournaments")}
-          className={isActive("/tournaments") ? "active" : ""}
           onClick={() => setMenuOpen(false)}
         >
           {dictionary.navigation.tournaments}
         </Link>
-        <Link
-          href={buildHref("/rating")}
-          className={isActive("/rating") ? "active" : ""}
-          onClick={() => setMenuOpen(false)}
-        >
-          {dictionary.navigation.rating}
-        </Link>
-        {/* <Link
-          href={buildHref("/matches")}
-          className={isActive("/matches") ? "active" : ""}
-          onClick={() => setMenuOpen(false)}
-        >
-          {dictionary.navigation.matches}
-        </Link> */}
         <Link
           href={buildHref("/about")}
           className={isActive("/about") ? "active" : ""}

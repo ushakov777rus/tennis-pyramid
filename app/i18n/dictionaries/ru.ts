@@ -25,9 +25,9 @@ export const ruDictionary: Dictionary = {
     },
   },
   navigation: {
-    home: "Главная",
+    home: "Создать турнир",
     clubs: "Клубы",
-    tournaments: "Турниры",
+    tournaments: "Примеры турниров",
     rating: "Игроки",
     matches: "Матчи",
     about: "О проекте",
@@ -37,8 +37,9 @@ export const ruDictionary: Dictionary = {
     admin: "Админка",
   },
   landing: {
-    fastTournamentCta: "Быстрый турнир",
-    fastTournamentAria: "Перейти к созданию быстрого турнира",
+    fastTournamentCta: "Создать турнир",
+    fastTournamentAria: "Перейти к созданию турнира",
+    title: "Платформа для организации турниров",
   },
   statsFooter: {
     loginPrefix: "Войдите",

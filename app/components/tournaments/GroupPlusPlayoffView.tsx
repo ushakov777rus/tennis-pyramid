@@ -50,8 +50,8 @@ type GroupPlusPlayoffViewProps = {
     editValue: string;
     editDate: string;
   };
-  participantsInGroupCount?: number;
-  advancePerGroup?: number;
+  participantsInGroupCount: number;
+  advancePerGroup: number;
   seeding?: "simple" | "snake";
   groupAssignments?: Record<number, number>;
 };
@@ -183,12 +183,12 @@ function hasParticipantPlayedAnyMatch(participantId: number, matches: Match[]): 
 function makePlayoffQualifiersFromFiltered(
   groups: Participant[][],
   statsPerGroup: GroupStats[][],
-  topK: number,
+  topQualifiers: number,
   matchesPerGroup: Match[][]
 ): (Participant | null)[] {
   const allQualifiers: { participant: Participant | null; gamesDiff: number }[] = [];
 
-  for (let place = 0; place < topK; place++) {
+  for (let place = 0; place < topQualifiers; place++) {
     for (let gi = 0; gi < groups.length; gi++) {
       const group = groups[gi];
       const stats = statsPerGroup[gi];
@@ -213,7 +213,7 @@ function makePlayoffQualifiersFromFiltered(
     }
   }
 
-  console.log("Make playoff qualifiers", topK, groups.length, allQualifiers.length);
+  console.log("Make playoff qualifiers", topQualifiers, groups.length, allQualifiers.length);
 
   // Сортируем по gamesDiff по убыванию, но сохраняем null значения на своих местах
   const sorted = [...allQualifiers]
@@ -231,8 +231,8 @@ export function GroupPlusPlayoffView({
   onOpenKeyboard,
   onCloseKeyboard,
   keyboardState,
-  participantsInGroupCount = 4,
-  advancePerGroup = 2,
+  participantsInGroupCount,
+  advancePerGroup,
   seeding = "snake",
   groupAssignments,
 }: GroupPlusPlayoffViewProps) {

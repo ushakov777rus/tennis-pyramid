@@ -31,6 +31,7 @@ export type Dictionary = {
   landing: {
     fastTournamentCta: string;
     fastTournamentAria: string;
+    title: string,
   };
   statsFooter: {
     loginPrefix: string;

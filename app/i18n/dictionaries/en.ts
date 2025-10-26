@@ -24,9 +24,9 @@ export const enDictionary: Dictionary = {
     },
   },
   navigation: {
-    home: "Home",
+    home: "Create tournament",
     clubs: "Clubs",
-    tournaments: "Tournaments",
+    tournaments: "Tournaments examples",
     rating: "Players",
     matches: "Matches",
     about: "About",
@@ -36,8 +36,9 @@ export const enDictionary: Dictionary = {
     admin: "Admin",
   },
   landing: {
-    fastTournamentCta: "Quick tournament",
+    fastTournamentCta: "Create tournament",
     fastTournamentAria: "Go to quick tournament builder",
+    title: "Tournament Management Platform",
   },
   statsFooter: {
     loginPrefix: "Log in",
