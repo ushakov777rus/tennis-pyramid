@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { MatchRepository } from "@/app/repositories/MatchRepository";
 import { PlayersRepository } from "@/app/repositories/PlayersRepository";
@@ -13,6 +13,94 @@ import { useUser } from "./UserContext";
 import { useDictionary, useLanguage } from "./LanguageProvider";
 import { withLocalePath } from "@/app/i18n/routing";
 
+function useCountUp(target: number | null, duration = 1000) {
+  const [displayValue, setDisplayValue] = useState<number | null>(
+    target === null ? null : 0
+  );
+  const frameRef = useRef<number | null>(null);
+  const startRef = useRef<number | null>(null);
+  const fromRef = useRef<number>(0);
+  const toRef = useRef<number>(0);
+  const latestValueRef = useRef<number>(target ?? 0);
+
+  useEffect(() => {
+    return () => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    latestValueRef.current = displayValue ?? 0;
+  }, [displayValue]);
+
+  useEffect(() => {
+    if (target == null) {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
+      startRef.current = null;
+      fromRef.current = 0;
+      toRef.current = 0;
+      latestValueRef.current = 0;
+      setDisplayValue(null);
+      return;
+    }
+
+    const startValue = latestValueRef.current;
+    const endValue = target;
+
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current);
+    }
+    startRef.current = null;
+    fromRef.current = startValue;
+    toRef.current = endValue;
+
+    if (startValue === endValue) {
+      setDisplayValue(endValue);
+      frameRef.current = null;
+      return;
+    }
+
+    const step = (timestamp: number) => {
+      if (startRef.current === null) {
+        startRef.current = timestamp;
+      }
+
+      const elapsed = timestamp - startRef.current;
+      const progress = Math.min(elapsed / duration, 1);
+      const nextValue = Math.round(
+        fromRef.current + (toRef.current - fromRef.current) * progress
+      );
+
+      setDisplayValue(nextValue);
+
+      if (progress < 1) {
+        frameRef.current = requestAnimationFrame(step);
+      } else {
+        frameRef.current = null;
+        startRef.current = null;
+      }
+    };
+
+    setDisplayValue(startValue);
+    frameRef.current = requestAnimationFrame(step);
+
+    return () => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
+    };
+  }, [target, duration]);
+
+  return displayValue;
+}
+
 export function StatsFooter() {
   const [matchesCount, setMatchesCount] = useState<number | null>(null);
   const [playersCount, setPlayersCount] = useState<number | null>(null);
@@ -24,6 +112,11 @@ export function StatsFooter() {
   const { user } = useUser();
   const { locale } = useLanguage();
   const dictionary = useDictionary();
+
+  const animatedMatchesCount = useCountUp(matchesCount);
+  const animatedPlayersCount = useCountUp(playersCount);
+  const animatedTournamentsCount = useCountUp(tournamentsCount);
+  const animatedClubsCount = useCountUp(clubsCount);
 
   useEffect(() => {
     let alive = true;
@@ -99,28 +192,28 @@ export function StatsFooter() {
         <div className="stats-footer__stats">
           <Link href={withLocalePath(locale, "/clubs")} className="stats-footer__stat-item">
             <div className="stats-footer__stat-value">
-              {clubsCount ?? "…"}
+              {animatedClubsCount ?? "…"}
             </div>
             <div className="stats-footer__stat-label">{dictionary.statsFooter.stats.clubs}</div>
           </Link>
 
           <Link href={withLocalePath(locale, "/tournaments")} className="stats-footer__stat-item">
             <div className="stats-footer__stat-value">
-              {tournamentsCount ?? "…"}
+              {animatedTournamentsCount ?? "…"}
             </div>
             <div className="stats-footer__stat-label">{dictionary.statsFooter.stats.tournaments}</div>
           </Link>
 
           <Link href={withLocalePath(locale, "/rating")} className="stats-footer__stat-item">
             <div className="stats-footer__stat-value">
-              {playersCount ?? "…"}
+              {animatedPlayersCount ?? "…"}
             </div>
             <div className="stats-footer__stat-label">{dictionary.statsFooter.stats.players}</div>
           </Link>
 
           <Link href={withLocalePath(locale, "/matches")} className="stats-footer__stat-item">
             <div className="stats-footer__stat-value">
-              {matchesCount ?? "…"}
+              {animatedMatchesCount ?? "…"}
             </div>
             <div className="stats-footer__stat-label">{dictionary.statsFooter.stats.matches}</div>
           </Link>
