@@ -50,7 +50,7 @@
 }
 
 .adv-toggle {
-  color: #cf6;
+  color: var(--green);
   cursor: pointer;
 }
 

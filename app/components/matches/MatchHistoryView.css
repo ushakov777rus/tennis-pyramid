@@ -65,7 +65,7 @@
 }
 .menu button:hover {
   background: rgba(166, 255, 0, 0.15);
-  color: #a6ff00;
+  color: var(--green);
 }
 .menu button.danger:hover {
   background: rgba(255, 0, 0, 0.1);

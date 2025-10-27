@@ -1,14 +1,13 @@
 .modal-title {
   font-size: 24px;
   margin-bottom: 20px;
-  color: #ccff66;
+  color: var(--green);
   text-align: center;
 }
 
 .modal-submit-btn {
   width: 100%;
   padding: 8px;
-  background: #ccff66;
   color: #000;
   font-weight: bold;
   font-size: 14px;
@@ -16,11 +15,11 @@
   border-radius: 6px;
   cursor: pointer;
   transition: 0.2s ease-in-out;
+  background: var(--green);
 }
 
 .modal-submit-btn:hover {
-  background: #ccff66;
-  box-shadow: 0 0 10px #ccff66;
+  box-shadow: 0 0 10px var(--green);
 }
 
 .modal-close-btn {

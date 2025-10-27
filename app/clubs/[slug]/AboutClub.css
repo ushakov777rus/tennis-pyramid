@@ -1,10 +1,5 @@
 /* app/tournaments/[slug]/components/AboutTournament.css */
 
-.about-root {
-  display: grid;
-  gap: 12px;
-}
-
 /* Карточки — в твоём стиле */
 .card.about-card,
 .card.about-grid,
@@ -18,7 +13,7 @@
   margin: 0 0 8px 0;
   font-size: 20px;
   line-height: 1.2;
-  color: #ccff66;
+  color: var(--green);
 }
 
 /* Summary в строку на десктопе, в столбик на мобиле */
@@ -63,7 +58,7 @@
   padding: 4px 8px;
   border-radius: 999px;
   background: rgba(204,255,102,0.12);
-  color: #ccff66;
+  color: var(--green);
   font-size: 12px;
   line-height: 1;
   border: 1px solid rgba(204,255,102,0.25);
@@ -122,14 +117,14 @@
 }
 .btn-ghost:hover {
   border-color: rgba(204,255,102,0.6);
-  color: #ccff66;
+  color: var(--green);
 }
 
 /* Текстовые блоки */
 .about-text h3 {
   margin: 0 0 6px 0;
   font-size: 16px;
-  color: #ccff66;
+  color: var(--green);
 }
 .about-text .muted {
   margin: 0;

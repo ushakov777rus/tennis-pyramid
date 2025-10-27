@@ -59,7 +59,7 @@ html, body {
 }
 
 h1, h2, h3 {
-  color: #ccff66;
+  color: var(--green);
 }
 
 h1 {
@@ -297,7 +297,7 @@ body {
 .player.win {
   background: rgba(166, 255, 0, 0.15);
   border-color: rgba(166, 255, 0, 0.4);
-  color: #a6ff00;
+  color: var(--green);
   font-weight: 600;
 }
 

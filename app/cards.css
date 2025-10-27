@@ -127,7 +127,7 @@
 
 .card-add {
   font-size: 64px;
-  color: #ccff66;
+  color: var(--green);
   display: flex;
   align-items: center;
   justify-content: center;

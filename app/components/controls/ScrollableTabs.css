@@ -52,7 +52,7 @@
 }
 
 .tab-btn.is-active {
-  color: #ccff66; /* твой теннис-грин */
+  color: var(--green);
 }
 
 .tab-label {
