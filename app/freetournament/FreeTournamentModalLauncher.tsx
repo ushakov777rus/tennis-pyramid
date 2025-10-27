@@ -8,12 +8,14 @@ import { useUser } from "@/app/components/UserContext";
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 import { TournamentCreateInput, TournamentFormat, TournamentStatus } from "@/app/models/Tournament";
 import { OWNER_TOKEN_PREFIX } from "./constants";
-import { useDictionary } from "@/app/components/LanguageProvider";
+import { useDictionary, useLanguage } from "@/app/components/LanguageProvider";
+import { withLocalePath } from "../i18n/routing";
 
 export default function FreeTournamentModalLauncher() {
   const router = useRouter();
   const { user } = useUser();
   const { freeTournamentModal, tournaments } = useDictionary();
+  const { locale } = useLanguage();
 
   const [status, setStatus] = useState<"loading" | "prompt" | "create">("loading");
   const [candidate, setCandidate] = useState<
@@ -186,12 +188,27 @@ export default function FreeTournamentModalLauncher() {
     setIsOpen(true);
   }, []);
 
+  const handleDismissPrompt = useCallback(() => {
+    setCandidate(null);
+    setStatus("create");
+    setIsOpen(false);
+    router.push(withLocalePath(locale, "/"));
+  }, []);
+
   return (
     <>
       {status === "prompt" && candidate && (
         <div className="modal-overlay" aria-hidden={false}>
           <div className="modal-content" role="dialog" aria-modal="true">
-            <h2 className="modal-title">{freeTournamentModal.restoreTitle}</h2>
+            <button
+              type="button"
+              className="modal-close-btn"
+              onClick={handleDismissPrompt}
+            >
+              ✖
+            </button>
+
+            <h3 className="modal-title">{freeTournamentModal.restoreTitle}</h3>
             <p style={{ marginBottom: 16, textAlign: "center" }}>
               {freeTournamentModal.restoreDescription}
               <br />

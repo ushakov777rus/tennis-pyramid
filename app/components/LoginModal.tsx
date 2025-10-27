@@ -57,7 +57,7 @@ export function LoginModal({
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content modal-content-login modal-content-login--register" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-title">{login.title}</div>
+        <h3 className="modal-title">{login.title}</h3>
 
         <div className="login-form">
           <div className="login-form__fields">

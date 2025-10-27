@@ -133,9 +133,9 @@ export function RegisterModal({
         aria-modal="true"
         aria-labelledby="register-title"
       >
-        <h2 id="register-title" className="modal-title">
+        <h3 id="register-title" className="modal-title">
           {register.title}
-        </h2>
+        </h3>
 
         <div className="register-form">
           <div className="register-form__fields">
