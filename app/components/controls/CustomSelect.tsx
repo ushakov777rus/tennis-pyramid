@@ -39,7 +39,7 @@ export function CustomSelect({
   maxDropdownHeight = 240,
   showSearch = true,
   sort = "asc",              // 👈 по умолчанию сортируем по возрастанию (как раньше)
-  rows = 6,
+  rows = 5,
 }: CustomSelectProps) {
 
   const { controls } = useDictionary();
@@ -84,8 +84,8 @@ export function CustomSelect({
   const [dropdownWidth, setDropdownWidth] = useState<number | undefined>(undefined);
 
   const preferredHeight = useMemo(() => {
-    const optionHeight = 38;
-    const extraPadding = showSearch ? 52 : 12;
+    const optionHeight = 24;
+    const extraPadding = showSearch ? 38 : 12;
     return rows > 0 ? Math.min(maxDropdownHeight, optionHeight * rows + extraPadding) : maxDropdownHeight;
   }, [rows, maxDropdownHeight, showSearch]);
 
