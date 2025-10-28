@@ -5,6 +5,7 @@ import FreeTournamentPage from "@/app/freetournament/pageContent";
 import { getDictionary } from "@/app/i18n/dictionaries";
 import { isLocale, locales } from "@/app/i18n/config";
 import { withLocalePath } from "@/app/i18n/routing";
+import { StatsFooter } from "@/app/components/StatsFooter";
 
 const BASE_URL = "https://honeycup.ru";
 
@@ -54,5 +55,10 @@ export default async function LocaleFreeTournamentPage({ params }: PageProps) {
     notFound();
   }
 
-  return <FreeTournamentPage />;
+  return (
+    <div className="page-container-no-padding">
+      <FreeTournamentPage />;
+      <StatsFooter />
+    </div>
+    );
 }

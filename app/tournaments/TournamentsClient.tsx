@@ -30,7 +30,8 @@ import { canDeleteTournament, canViewTournament } from "@/app/lib/permissions";
 import { CustomSelect } from "../components/controls/CustomSelect";
 import { Club } from "../models/Club";
 import { UserRole } from "../models/Users";
-import { useDictionary } from "../components/LanguageProvider";
+import { useDictionary, useLanguage } from "../components/LanguageProvider";
+import { withLocalePath } from "../i18n/routing";
 
 type Props = {
   club: Club | null;
@@ -40,6 +41,7 @@ type Props = {
 export function TournamentsClient({club} : Props) {
   const { user } = useUser();
   const router = useRouter();
+  const { locale } = useLanguage();
   const pathname = usePathname();
   const { tournaments, loading, error, createTournament, deleteTournament, stats } = useTournaments();
   const { tournaments: tournamentsText } = useDictionary();
@@ -277,7 +279,10 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
                 tournament={t}
                 participantsCount={stats[t.id]?.participants ?? 0}
                 matchesCount={stats[t.id]?.matches ?? 0}
-                {...(canView ? { onClick: () => isAdmin ? router.push(`/admin/clubs/${t.club?.slug}/${t.slug}`) : router.push(`/player/clubs/${t.club?.slug}/${t.slug}`)} : {})}
+                {...(canView ? { onClick: () => isAdmin 
+                  ? router.push(withLocalePath(locale, `/admin/clubs/${t.club?.slug}/${t.slug}`)) 
+                  : router.push(withLocalePath(locale, `/player/clubs/${t.club?.slug}/${t.slug}`))} 
+                  : {})}
                 {...(canDelete ? { onDelete } : {})}
                 displayName
               />

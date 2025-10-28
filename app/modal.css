@@ -41,7 +41,8 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6); /* 👈 тёмный полупрозрачный фон */
+  background: rgba(13, 15, 16, 0.45); /* оставляем фон видимым под затемнением */
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -84,7 +85,8 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6); /* 👈 тёмный полупрозрачный фон */
+  background: rgba(13, 15, 16, 0.45); /* оставляем фон видимым под затемнением */
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;

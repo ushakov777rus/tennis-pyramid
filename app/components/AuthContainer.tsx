@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { LoginModal } from "@/app/components/LoginModal";
 import { RegisterModal } from "@/app/components/RegisterModal";
 import { UserRole } from "../models/Users";
+import { withLocalePath } from "../i18n/routing";
+import { useLanguage } from "./LanguageProvider";
 
 type Props = {
   isOpen: boolean;
@@ -19,6 +21,7 @@ export function AuthContainer({
     initialRole: defaultRole = UserRole.Player,
   }: Props) {
   const router = useRouter();
+  const { locale } = useLanguage();
   const [mode, setMode] = useState<"login" | "register">(initialMode);
 
   useEffect(() => {
@@ -32,9 +35,9 @@ export function AuthContainer({
     console.log("AuthContainer.handleClose", role);
 
     if (role === UserRole.Player) {
-      router.push("/player");
+      router.push(withLocalePath(locale, "/player"));
     } else if (role === UserRole.TournamentAdmin) {
-      router.push("/admin");
+      router.push(withLocalePath(locale, "/admin"));
     }
   };
 

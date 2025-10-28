@@ -98,7 +98,7 @@ export default function FreeTournamentModalLauncher() {
   const handleClose = useCallback(() => {
     setIsOpen(false);
     if (!creatingRef.current) {
-      router.push("/tournaments");
+      router.push(withLocalePath(locale, "/"));
     }
   }, [router]);
 
@@ -142,7 +142,7 @@ export default function FreeTournamentModalLauncher() {
         window.localStorage.setItem(`${OWNER_TOKEN_PREFIX}${created.slug}`, anonymousToken);
       }
 
-      router.push(`/freetournament/${created.slug}?tab=participants`);
+      router.push(withLocalePath(locale, `/freetournament/${created.slug}?tab=participants`));
     } catch (error) {
       console.error("Failed to create free tournament", error);
       alert(freeTournamentModal.errors.createFailed);
@@ -179,7 +179,7 @@ export default function FreeTournamentModalLauncher() {
     if (!candidate) return;
     setStatus("loading");
     setIsOpen(false);
-    router.push(`/freetournament/${candidate.slug}?tab=participants`);
+    router.push(withLocalePath(locale, `/freetournament/${candidate.slug}?tab=participants`));
   }, [candidate, router]);
 
   const handleDecline = useCallback(() => {
