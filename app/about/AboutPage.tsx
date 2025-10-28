@@ -1,5 +1,7 @@
 "use client";
 
+import "./AboutPage.css";
+
 import { useEffect, useMemo, useState } from "react";
 
 import { UserRole } from "@/app/models/Users";
@@ -11,7 +13,6 @@ import { PlayersRepository } from "@/app/repositories/PlayersRepository";
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 
 import Script from "next/script";
-import "./MainPage.css";
 import { ClubsRepository } from "@/app/repositories/ClubsRepository";
 import { useUser } from "@/app/components/UserContext";
 import { Footer } from "@/app/Footer";
@@ -245,7 +246,7 @@ export default function AboutPage() {
         </section>
 
         {/* Вступительный абзац (важно для SEO — первые 100–150 слов) */}
-        <section className="about__head">
+        <section>
           <div className="about__grid">
             <div className="about__stats">
               {stats.map((s) => (
