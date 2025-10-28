@@ -119,22 +119,7 @@ function escapeXml(value: string): string {
 export async function GET(): Promise<Response> {
   const entries = await buildSitemapEntries();
 
-  // Добавьте тестовую запись для проверки
-  const testEntry = {
-    url: `${BASE_URL}/test-page`,
-    lastModified: new Date(),
-    changeFrequency: 'daily' as const,
-    priority: 0.5,
-    alternates: {
-      'ru': `${BASE_URL}/ru/test-page`,
-      'en': `${BASE_URL}/en/test-page`,
-      'x-default': `${BASE_URL}/test-page`
-    }
-  };
-
-  const allEntries = [...entries, testEntry];
-
-  const body = allEntries
+  const body = entries
     .map((entry) => {
       const { url, lastModified, changeFrequency, priority, alternates } = entry;
 
