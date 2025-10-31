@@ -21,6 +21,7 @@ export type PlayoffStageTableProps = {
     phaseFilter: MatchPhase;
     showHelpTooltip: boolean;
   }>;
+  forSwiss?: boolean;
 };
 
 /** Следующая степень двойки >= n */
@@ -35,6 +36,7 @@ export function PlayoffStageTable({
   playOffParticipants,
   canManage,
   ScoreCellAdapter: ScoreCell,
+  forSwiss = false,
 }: PlayoffStageTableProps) {
 
   const {
@@ -100,6 +102,18 @@ export function PlayoffStageTable({
   }
   
   const { rounds: resolvedPlayoff, firstRoundByeFlags } = useMemo(() => {
+    if (forSwiss) {
+      const validParticipants = playOffParticipants.filter((p): p is Participant => !!p);
+      const pairs: Array<[Participant | null, Participant | null]> = [];
+      for (let i = 0; i < validParticipants.length; i += 2) {
+        const a = validParticipants[i] ?? null;
+        const b = validParticipants[i + 1] ?? null;
+        if (!a && !b) continue;
+        pairs.push([a, b]);
+      }
+      return { rounds: [pairs], firstRoundByeFlags: [] as boolean[] };
+    }
+
     const originalParticipants = [...playOffParticipants];
     const originalLength = originalParticipants.length;
     const targetSize = nextPow2(originalLength || 1);
@@ -225,18 +239,21 @@ export function PlayoffStageTable({
     console.log("resolvedPlayoff", originalLength, "->", targetSize, "BYEs:", byeCount, "rounds:", rounds.length);
 
     return { rounds, firstRoundByeFlags: byeFlags };
-  }, [playOffParticipants, findMatchBetween]);
+  }, [playOffParticipants, forSwiss, findMatchBetween]);
 
   /** Заголовок раунда плей-офф */
   const roundLabel = useCallback(
     (roundIndex: number, pairsCount: number) => {
+      if (forSwiss) {
+        return playoffText.round.replace("{number}", String(roundIndex + 1));
+      }
       if (pairsCount === 0) {
         return playoffText.round.replace("{number}", String(roundIndex + 1));
       }
       if (pairsCount === 1) return playoffText.final;
       return `1/${pairsCount}`;
     },
-    [playoffText]
+    [playoffText, forSwiss]
   );
 
   const cell = (v: number | null) => (v == null ? "—" : String(v));
@@ -256,7 +273,9 @@ export function PlayoffStageTable({
             <div className="bracket__matches">
               {pairs.length ? (
                 pairs.map(([a, b], mIndex) => {
-                  const phaseFilter = { phase: PhaseType.Playoff, roundIndex: rIndex as number, groupIndex: 0 };
+                  const phaseFilter = forSwiss
+                    ? { phase: PhaseType.Swiss, roundIndex: rIndex as number, groupIndex: null }
+                    : { phase: PhaseType.Playoff, roundIndex: rIndex as number, groupIndex: 0 };
                   const aId = a?.getId;
                   const bId = b?.getId;
                   const winnerId = pairWinnerId(a, b, phaseFilter);
@@ -266,8 +285,8 @@ export function PlayoffStageTable({
                     offset >= 0 &&
                     offset < (firstRoundByeFlags?.length ?? 0) &&
                     !!firstRoundByeFlags?.[offset];
-                  const isByeA = isByeSlot(slotIndexBase);
-                  const isByeB = isByeSlot(slotIndexBase + 1);
+                  const isByeA = forSwiss ? !a : isByeSlot(slotIndexBase);
+                  const isByeB = forSwiss ? !b : isByeSlot(slotIndexBase + 1);
 
                   const oriented = getOrientedSetsFor(a, b, phaseFilter);
                   const aRow = oriented?.aRow ?? [null, null, null];

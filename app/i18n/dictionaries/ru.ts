@@ -520,6 +520,17 @@ export const ruDictionary: Dictionary = {
       bye: "Bye",
       empty: "Нет пар",
     },
+    swiss: {
+      standingsTitle: "Таблица",
+      participant: "Участник",
+      points: "Очки",
+      buchholz: "Бухгольц",
+      sonneborn: "Соннеборн–Бергер",
+      setDiff: "Δ сет",
+      gameDiff: "Δ гейм",
+      sortingHint: "Порядок: Очки → Бухгольц → Соннеборн–Бергер → Δ сетов → Δ геймов.",
+      byeHint: "BYE считается как победа (+1 очко), соперник отсутствует.",
+    },
   },
   pyramidView: {
     levelLabel: "Уровень",

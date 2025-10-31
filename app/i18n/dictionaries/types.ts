@@ -436,6 +436,17 @@ export type Dictionary = {
       bye: string;
       empty: string;
     };
+    swiss: {
+      standingsTitle: string;
+      participant: string;
+      points: string;
+      buchholz: string;
+      sonneborn: string;
+      setDiff: string;
+      gameDiff: string;
+      sortingHint: string;
+      byeHint: string;
+    };
   };
   pyramidView: {
     levelLabel: string;

@@ -514,6 +514,17 @@ export const enDictionary: Dictionary = {
       bye: "Bye",
       empty: "No matchups",
     },
+    swiss: {
+      standingsTitle: "Standings",
+      participant: "Participant",
+      points: "Points",
+      buchholz: "Buchholz",
+      sonneborn: "Sonneborn–Berger",
+      setDiff: "Δ sets",
+      gameDiff: "Δ games",
+      sortingHint: "Order: Points → Buchholz → Sonneborn–Berger → Δ sets → Δ games.",
+      byeHint: "A BYE counts as a win (+1 point); the opponent slot stays empty.",
+    },
   },
   pyramidView: {
     levelLabel: "Level",

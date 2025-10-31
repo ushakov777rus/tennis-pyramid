@@ -6,6 +6,7 @@ import { Match, MatchPhase, PhaseType } from "@/app/models/Match";
 import { PlayoffStageTable } from "./PlayoffStageTable";
 import { ScoreCell } from "./ScoreCell";
 import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
+import { useDictionary } from "@/app/components/LanguageProvider";
 
 const todayISO = new Date().toISOString().split("T")[0];
 
@@ -59,6 +60,9 @@ function havePlayed(aId: number, bId: number, matches: Match[]) {
   });
 }
 
+const makePairKey = (aId: number, bId: number) =>
+  `${Math.min(aId, bId)}_${Math.max(aId, bId)}`;
+
 /* ========= Подсчёт очков и тай-брейков ========= */
 
 type PStats = {
@@ -84,9 +88,8 @@ function computeStats(participants: Participant[], matches: Match[]): Map<number
     const bId = m.player2?.id ?? m.team2?.id ?? 0;
     if (!aId || !bId) continue;
     const a = st.get(aId)!; const b = st.get(bId)!;
-    a.oppIds.push(bId); b.oppIds.push(aId);
-
     if (!m.scores || m.scores.length === 0) continue;
+    a.oppIds.push(bId); b.oppIds.push(aId);
 
     let aSets = 0, bSets = 0, aGames = 0, bGames = 0;
     for (const [s1, s2] of m.scores) {
@@ -119,7 +122,9 @@ function sonnebornBerger(st: Map<number, PStats>, id: number) {
 function swissPairRound(
   participants: Participant[],
   matches: Match[],
-  stats: Map<number, PStats>
+  stats: Map<number, PStats>,
+  alreadyPaired: Set<string>,
+  seedOrder: Map<number, number>
 ): Array<[Participant | null, Participant | null]> {
   const sorted = participants.slice().sort((a, b) => {
     const sa = stats.get(a.getId)!;
@@ -131,6 +136,9 @@ function swissPairRound(
     const sba = sonnebornBerger(stats, a.getId);
     const sbb = sonnebornBerger(stats, b.getId);
     if (sbb !== sba) return sbb - sba;
+    const seedA = seedOrder.get(a.getId) ?? 0;
+    const seedB = seedOrder.get(b.getId) ?? 0;
+    if (seedA !== seedB) return seedA - seedB;
     const an = a.displayName(false);
     const bn = b.displayName(false);
     return an.localeCompare(bn, "ru");
@@ -154,10 +162,13 @@ function swissPairRound(
       const B = sorted[j];
       const bId = B.getId;
       if (used.has(bId)) continue;
+      const key = makePairKey(aId, bId);
+      if (alreadyPaired.has(key)) continue;
       if (!havePlayed(aId, bId, matches)) {
         found = B;
         used.add(aId);
         used.add(bId);
+        alreadyPaired.add(key);
         pairs.push([A, B]);
         break;
       }
@@ -177,6 +188,25 @@ function swissPairRound(
   return pairs;
 }
 
+type SwissRoundPair = {
+  a: Participant | null;
+  b: Participant | null;
+  match: Match | null;
+  phase: MatchPhase;
+  isBye: boolean;
+};
+
+type SwissRoundDefinition = {
+  roundIndex: number;
+  pairs: SwissRoundPair[];
+};
+
+const formatMatchScore = (match: Match | null): string | null => {
+  if (!match) return null;
+  if (!match.scores || match.scores.length === 0) return "—";
+  return match.scores.map(([s1, s2]) => `${s1}:${s2}`).join(", ");
+};
+
 /* ========= Компонент ========= */
 
 export function SwissView({
@@ -191,6 +221,8 @@ export function SwissView({
 }: SwissViewProps) {
   const editingInputRef = useRef<HTMLInputElement | HTMLDivElement | null>(null);
   const [editValue, setEditValue] = useState("");
+  const { tournamentTables } = useDictionary();
+  const swissText = tournamentTables.swiss;
 
   // Синхронизируем с глобальной клавиатурой если она открыта
   useEffect(() => {
@@ -224,18 +256,112 @@ export function SwissView({
     [participants]
   );
 
+  const seedOrder = useMemo(() => {
+    const map = new Map<number, number>();
+    ordered.forEach((p, index) => map.set(p.getId, index));
+    return map;
+  }, [ordered]);
+
+  const swissMatches = useMemo(
+    () =>
+      matches.filter((m) => {
+        const phase = (m as any).phase as PhaseType | undefined;
+        if (!phase) return true;
+        return phase === PhaseType.Swiss;
+      }),
+    [matches]
+  );
+
   // Статы по текущим результатам
-  const stats = useMemo(() => computeStats(ordered, matches), [ordered, matches]);
+  const stats = useMemo(() => computeStats(ordered, swissMatches), [ordered, swissMatches]);
 
   // Строим пары для всех раундов
-  const swissRounds = useMemo(() => {
-    const rounds: Array<Array<[Participant | null, Participant | null]>> = [];
-    for (let r = 0; r < Math.max(1, roundsCount); r++) {
-      const pairs = swissPairRound(ordered, matches, stats);
-      rounds.push(pairs);
+  const swissRounds = useMemo<SwissRoundDefinition[]>(() => {
+    if (!ordered.length) return [];
+
+    const participantsById = new Map<number, Participant>();
+    ordered.forEach((p) => participantsById.set(p.getId, p));
+
+    const matchesByRound = new Map<number, Match[]>();
+    swissMatches.forEach((match) => {
+      const rawRound = (match as any).roundIndex;
+      const roundIndex =
+        typeof rawRound === "number" && Number.isFinite(rawRound) ? rawRound : 0;
+      if (!matchesByRound.has(roundIndex)) {
+        matchesByRound.set(roundIndex, []);
+      }
+      matchesByRound.get(roundIndex)!.push(match);
+    });
+
+    const recordedRoundIndexes = Array.from(matchesByRound.keys());
+    const maxRecordedRound = recordedRoundIndexes.length
+      ? Math.max(...recordedRoundIndexes)
+      : -1;
+    const totalRounds = Math.max(1, Math.max(roundsCount, maxRecordedRound + 1));
+
+    const rounds: SwissRoundDefinition[] = [];
+    const matchesBefore: Match[] = [];
+    const alreadyPaired = new Set<string>();
+
+    for (let roundIndex = 0; roundIndex < totalRounds; roundIndex++) {
+      const roundMatches = matchesByRound.get(roundIndex) ?? [];
+      const scheduledIds = new Set<number>();
+      const pairs: SwissRoundPair[] = [];
+
+      roundMatches.forEach((match) => {
+        const aId = match.player1?.id ?? match.team1?.id ?? 0;
+        const bId = match.player2?.id ?? match.team2?.id ?? 0;
+        const a = aId ? participantsById.get(aId) ?? null : null;
+        const b = bId ? participantsById.get(bId) ?? null : null;
+        if (!a && !b) return;
+        if (a) scheduledIds.add(a.getId);
+        if (b) scheduledIds.add(b.getId);
+        if (a && b) {
+          alreadyPaired.add(makePairKey(a.getId, b.getId));
+        }
+        pairs.push({
+          a,
+          b,
+          match,
+          phase: { phase: PhaseType.Swiss, groupIndex: null, roundIndex },
+          isBye: !a || !b,
+        });
+      });
+
+      const remaining = ordered.filter((p) => !scheduledIds.has(p.getId));
+      if (remaining.length > 0) {
+        const statsForRound = computeStats(ordered, matchesBefore);
+        const generated = swissPairRound(
+          remaining,
+          matchesBefore,
+          statsForRound,
+          alreadyPaired,
+          seedOrder
+        );
+        generated.forEach(([a, b]) => {
+          if (!a && !b) return;
+          const isBye = !a || !b;
+          if (a) scheduledIds.add(a.getId);
+          if (b) scheduledIds.add(b.getId);
+          if (a && b) {
+            alreadyPaired.add(makePairKey(a.getId, b.getId));
+          }
+          pairs.push({
+            a,
+            b,
+            match: null,
+            phase: { phase: PhaseType.Swiss, groupIndex: null, roundIndex },
+            isBye,
+          });
+        });
+      }
+
+      rounds.push({ roundIndex, pairs });
+      matchesBefore.push(...roundMatches);
     }
+
     return rounds;
-  }, [ordered, matches, stats, roundsCount]);
+  }, [ordered, swissMatches, roundsCount, seedOrder]);
 
   // Таблица участников
   const standings = useMemo(() => {
@@ -254,72 +380,94 @@ export function SwissView({
     return rows;
   }, [stats]);
 
-  // Адаптер для ScoreCell
-  const SwissScoreCell: React.FC<{
-    a: Participant | null;
-    b: Participant | null;
-    scoreString: string | null;
-    phaseFilter: MatchPhase;
-    showHelpTooltip: boolean;
-  }> = ({ a, b, scoreString, phaseFilter, showHelpTooltip }) => {
-    const handleOpenKeyboard = (aId: number, bId: number, currentScore: string | null) => {
-      if (!onOpenKeyboard || !a || !b) return;
-      
-      setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
-      const match = findMatchBetween(a.getId, b.getId, phaseFilter);
-      const initialDate = formatDateForInput(match?.date ?? null);
-      
-      onOpenKeyboard(
-        `${aId}_${bId}`,
-        { participantA: a, participantB: b },
-        currentScore && currentScore !== "—" ? currentScore : "",
-        initialDate,
-        phaseFilter
-      );
-    };
-
-    const handleSaveWithRound = (aId: number, bId: number) => {
-      if (phaseFilter?.roundIndex != null) {
-        handleSave(aId, bId, phaseFilter.roundIndex);
-      }
-    };
-
-    const handleCancel = () => {
-      setEditValue("");
-      onCloseKeyboard?.();
-    };
-
-    return (
-      <ScoreCell
-        a={a}
-        b={b}
-        scoreString={scoreString}
-        phaseFilter={phaseFilter}
-        editingKey={keyboardState?.editingKey}
-        editValue={editValue}
-        canManage={canManage}
-        setEditValue={setEditValue}
-        inputRef={editingInputRef}
-        onSave={handleSaveWithRound}
-        onCancel={handleCancel}
-        onOpenKeyboard={onOpenKeyboard ? handleOpenKeyboard : undefined}
-        showHelpTooltip={showHelpTooltip}
-      />
-    );
-  };
-
   return (
     <div className="roundrobin-wrap">
       {/* РАУНДЫ ШВЕЙЦАРКИ */}
       <div className="rounds-grid">
-        {swissRounds.map((pairs, rIndex) => (
-          <PlayoffStageTable
-            key={rIndex}
-            playOffParticipants={pairs.flat()}
-            canManage={canManage}
-            ScoreCellAdapter={SwissScoreCell}
-          />
-        ))}
+        {swissRounds.map((round) => {
+          const roundParticipants = round.pairs.flatMap(({ a, b }) => {
+            const list: Participant[] = [];
+            if (a) list.push(a);
+            if (b) list.push(b);
+            return list;
+          });
+
+          const RoundScoreCell: React.FC<{
+            a: Participant | null;
+            b: Participant | null;
+            scoreString: string | null;
+            phaseFilter: MatchPhase;
+            showHelpTooltip: boolean;
+          }> = ({ a, b, scoreString: rawScoreString, showHelpTooltip }) => {
+            const effectivePhase: MatchPhase = {
+              phase: PhaseType.Swiss,
+              groupIndex: null,
+              roundIndex: round.roundIndex,
+            };
+
+            const resolveScoreString = () => {
+              if (!a || !b) return "—";
+              const match = findMatchBetween(a.getId, b.getId, effectivePhase);
+              if (match && match.scores && match.scores.length > 0) {
+                return formatMatchScore(match);
+              }
+              return rawScoreString ?? "—";
+            };
+
+            const handleOpenKeyboard = (aId: number, bId: number, currentScore: string | null) => {
+              if (!onOpenKeyboard || !a || !b) return;
+
+              setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
+              const match = findMatchBetween(a.getId, b.getId, effectivePhase);
+              const initialDate = formatDateForInput(match?.date ?? null);
+
+              onOpenKeyboard(
+                `${aId}_${bId}`,
+                { participantA: a, participantB: b },
+                currentScore && currentScore !== "—" ? currentScore : "",
+                initialDate,
+                effectivePhase
+              );
+            };
+
+            const handleSaveWithRound = (aId: number, bId: number) => {
+              handleSave(aId, bId, round.roundIndex);
+            };
+
+            const handleCancel = () => {
+              setEditValue("");
+              onCloseKeyboard?.();
+            };
+
+            return (
+              <ScoreCell
+                a={a}
+                b={b}
+                scoreString={resolveScoreString()}
+                phaseFilter={effectivePhase}
+                editingKey={keyboardState?.editingKey}
+                editValue={editValue}
+                canManage={canManage}
+                setEditValue={setEditValue}
+                inputRef={editingInputRef}
+                onSave={handleSaveWithRound}
+                onCancel={handleCancel}
+                onOpenKeyboard={onOpenKeyboard ? handleOpenKeyboard : undefined}
+                showHelpTooltip={showHelpTooltip}
+              />
+            );
+          };
+
+          return (
+            <PlayoffStageTable
+              key={round.roundIndex}
+              playOffParticipants={roundParticipants}
+              canManage={canManage}
+              ScoreCellAdapter={RoundScoreCell}
+              forSwiss
+            />
+          );
+        })}
       </div>
 
       {/* ТАБЛИЦА УЧАСТНИКОВ */}
@@ -327,16 +475,16 @@ export function SwissView({
         className="card"
         style={{ marginTop: 16 }}
       >
-        <div className="history-table-head"><strong>Таблица</strong></div>
+        <div className="history-table-head"><strong>{swissText.standingsTitle}</strong></div>
         <table className="round-table">
           <thead>
             <tr className="grid-row-swiss">
-              <th>Участник</th>
-              <th>Очки</th>
-              <th>Бухгольц</th>
-              <th>Соннеборн–Бергер</th>
-              <th>Δ сет</th>
-              <th>Δ гейм</th>
+              <th>{swissText.participant}</th>
+              <th>{swissText.points}</th>
+              <th>{swissText.buchholz}</th>
+              <th>{swissText.sonneborn}</th>
+              <th>{swissText.setDiff}</th>
+              <th>{swissText.gameDiff}</th>
             </tr>
           </thead>
           <tbody>
@@ -357,8 +505,8 @@ export function SwissView({
           </tbody>
         </table>
         <div className="hint muted" style={{ marginTop: 8 }}>
-          <div>• Порядок: Очки → Бухгольц → Соннеборн–Бергер → Δ сетов → Δ геймов.</div>
-          <div>• BYE считается как победа (+1 очко), соперник отсутствует.</div>
+          <div>• {swissText.sortingHint}</div>
+          <div>• {swissText.byeHint}</div>
         </div>
       </div>
     </div>
