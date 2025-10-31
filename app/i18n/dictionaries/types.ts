@@ -444,7 +444,6 @@ export type Dictionary = {
       sonneborn: string;
       setDiff: string;
       gameDiff: string;
-      sortingHint: string;
       byeHint: string;
     };
   };

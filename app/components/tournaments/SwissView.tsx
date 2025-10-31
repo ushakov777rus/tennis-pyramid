@@ -246,6 +246,73 @@ export function SwissView({
     }
   }, [onSaveScore, editValue]);
 
+  const RoundScoreCell: React.FC<{
+      a: Participant | null;
+      b: Participant | null;
+      scoreString: string | null;
+      phaseFilter: MatchPhase;
+      showHelpTooltip: boolean;
+    }> = ({ a, b, scoreString: rawScoreString, phaseFilter,showHelpTooltip }) => {
+            const effectivePhase: MatchPhase = {
+              phase: PhaseType.Swiss,
+              groupIndex: null,
+              roundIndex: phaseFilter.roundIndex,
+            };
+
+            const resolveScoreString = () => {
+              if (!a || !b) return "—";
+              const match = findMatchBetween(a.getId, b.getId, effectivePhase);
+              if (match && match.scores && match.scores.length > 0) {
+                return formatMatchScore(match);
+              }
+              return rawScoreString ?? "—";
+            };
+
+            const handleOpenKeyboard = (aId: number, bId: number, currentScore: string | null) => {
+              if (!onOpenKeyboard || !a || !b) return;
+
+              setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
+              const match = findMatchBetween(a.getId, b.getId, effectivePhase);
+              const initialDate = formatDateForInput(match?.date ?? null);
+
+              onOpenKeyboard(
+                `${aId}_${bId}`,
+                { participantA: a, participantB: b },
+                currentScore && currentScore !== "—" ? currentScore : "",
+                initialDate,
+                effectivePhase
+              );
+            };
+
+            const handleSaveWithRound = (aId: number, bId: number) => {
+              handleSave(aId, bId, phaseFilter?.roundIndex ?? 0);
+            };
+
+            const handleCancel = () => {
+              setEditValue("");
+              onCloseKeyboard?.();
+            };
+
+            return (
+              <ScoreCell
+                a={a}
+                b={b}
+                scoreString={resolveScoreString()}
+                phaseFilter={effectivePhase}
+                editingKey={keyboardState?.editingKey}
+                editValue={editValue}
+                canManage={canManage}
+                setEditValue={setEditValue}
+                inputRef={editingInputRef}
+                onSave={handleSaveWithRound}
+                onCancel={handleCancel}
+                onOpenKeyboard={onOpenKeyboard ? handleOpenKeyboard : undefined}
+                showHelpTooltip={showHelpTooltip}
+              />
+            );
+          };
+
+
   // Базовая сортировка
   const ordered = useMemo(
     () =>
@@ -383,7 +450,7 @@ export function SwissView({
   return (
     <div className="roundrobin-wrap">
       {/* РАУНДЫ ШВЕЙЦАРКИ */}
-      <div className="rounds-grid">
+      <div className="card-container">
         {swissRounds.map((round) => {
           const roundParticipants = round.pairs.flatMap(({ a, b }) => {
             const list: Participant[] = [];
@@ -391,72 +458,6 @@ export function SwissView({
             if (b) list.push(b);
             return list;
           });
-
-          const RoundScoreCell: React.FC<{
-            a: Participant | null;
-            b: Participant | null;
-            scoreString: string | null;
-            phaseFilter: MatchPhase;
-            showHelpTooltip: boolean;
-          }> = ({ a, b, scoreString: rawScoreString, showHelpTooltip }) => {
-            const effectivePhase: MatchPhase = {
-              phase: PhaseType.Swiss,
-              groupIndex: null,
-              roundIndex: round.roundIndex,
-            };
-
-            const resolveScoreString = () => {
-              if (!a || !b) return "—";
-              const match = findMatchBetween(a.getId, b.getId, effectivePhase);
-              if (match && match.scores && match.scores.length > 0) {
-                return formatMatchScore(match);
-              }
-              return rawScoreString ?? "—";
-            };
-
-            const handleOpenKeyboard = (aId: number, bId: number, currentScore: string | null) => {
-              if (!onOpenKeyboard || !a || !b) return;
-
-              setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
-              const match = findMatchBetween(a.getId, b.getId, effectivePhase);
-              const initialDate = formatDateForInput(match?.date ?? null);
-
-              onOpenKeyboard(
-                `${aId}_${bId}`,
-                { participantA: a, participantB: b },
-                currentScore && currentScore !== "—" ? currentScore : "",
-                initialDate,
-                effectivePhase
-              );
-            };
-
-            const handleSaveWithRound = (aId: number, bId: number) => {
-              handleSave(aId, bId, round.roundIndex);
-            };
-
-            const handleCancel = () => {
-              setEditValue("");
-              onCloseKeyboard?.();
-            };
-
-            return (
-              <ScoreCell
-                a={a}
-                b={b}
-                scoreString={resolveScoreString()}
-                phaseFilter={effectivePhase}
-                editingKey={keyboardState?.editingKey}
-                editValue={editValue}
-                canManage={canManage}
-                setEditValue={setEditValue}
-                inputRef={editingInputRef}
-                onSave={handleSaveWithRound}
-                onCancel={handleCancel}
-                onOpenKeyboard={onOpenKeyboard ? handleOpenKeyboard : undefined}
-                showHelpTooltip={showHelpTooltip}
-              />
-            );
-          };
 
           return (
             <PlayoffStageTable
@@ -504,10 +505,6 @@ export function SwissView({
             ))}
           </tbody>
         </table>
-        <div className="hint muted" style={{ marginTop: 8 }}>
-          <div>• {swissText.sortingHint}</div>
-          <div>• {swissText.byeHint}</div>
-        </div>
       </div>
     </div>
   );

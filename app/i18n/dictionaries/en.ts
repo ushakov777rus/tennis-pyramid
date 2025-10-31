@@ -522,7 +522,6 @@ export const enDictionary: Dictionary = {
       sonneborn: "Sonneborn–Berger",
       setDiff: "Δ sets",
       gameDiff: "Δ games",
-      sortingHint: "Order: Points → Buchholz → Sonneborn–Berger → Δ sets → Δ games.",
       byeHint: "A BYE counts as a win (+1 point); the opponent slot stays empty.",
     },
   },
