@@ -5,7 +5,6 @@ import { Tournament, TournamentType } from "./Tournament";
 export enum PhaseType {
   Group = "group",
   Playoff = "playoff",
-  Swiss = "swiss"
 }
 
 export type MatchPhase = {

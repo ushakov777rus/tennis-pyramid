@@ -273,9 +273,7 @@ export function PlayoffStageTable({
             <div className="bracket__matches">
               {pairs.length ? (
                 pairs.map(([a, b], mIndex) => {
-                  const phaseFilter = forSwiss
-                    ? { phase: PhaseType.Swiss, roundIndex: rIndex as number, groupIndex: null }
-                    : { phase: PhaseType.Playoff, roundIndex: rIndex as number, groupIndex: 0 };
+                  const phaseFilter = { phase: PhaseType.Playoff, roundIndex: rIndex as number, groupIndex: 0 };
                   const aId = a?.getId;
                   const bId = b?.getId;
                   const winnerId = pairWinnerId(a, b, phaseFilter);

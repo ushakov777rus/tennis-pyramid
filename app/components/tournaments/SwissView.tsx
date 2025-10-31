@@ -239,7 +239,7 @@ export function SwissView({
   const handleSave = useCallback((aId: number, bId: number, roundIndex: number) => {
     if (onSaveScore) {
       onSaveScore(aId, bId, editValue || "", todayISO, {
-        phase: PhaseType.Swiss,
+        phase: PhaseType.Playoff,
         groupIndex: null,
         roundIndex,
       });
@@ -252,20 +252,11 @@ export function SwissView({
       scoreString: string | null;
       phaseFilter: MatchPhase;
       showHelpTooltip: boolean;
-    }> = ({ a, b, scoreString: rawScoreString, phaseFilter,showHelpTooltip }) => {
+    }> = ({ a, b, scoreString, phaseFilter,showHelpTooltip }) => {
             const effectivePhase: MatchPhase = {
-              phase: PhaseType.Swiss,
+              phase: PhaseType.Playoff,
               groupIndex: null,
               roundIndex: phaseFilter.roundIndex,
-            };
-
-            const resolveScoreString = () => {
-              if (!a || !b) return "—";
-              const match = findMatchBetween(a.getId, b.getId, effectivePhase);
-              if (match && match.scores && match.scores.length > 0) {
-                return formatMatchScore(match);
-              }
-              return rawScoreString ?? "—";
             };
 
             const handleOpenKeyboard = (aId: number, bId: number, currentScore: string | null) => {
@@ -297,7 +288,7 @@ export function SwissView({
               <ScoreCell
                 a={a}
                 b={b}
-                scoreString={resolveScoreString()}
+                scoreString={scoreString}
                 phaseFilter={effectivePhase}
                 editingKey={keyboardState?.editingKey}
                 editValue={editValue}
@@ -334,7 +325,7 @@ export function SwissView({
       matches.filter((m) => {
         const phase = (m as any).phase as PhaseType | undefined;
         if (!phase) return true;
-        return phase === PhaseType.Swiss;
+        return phase === PhaseType.Playoff;
       }),
     [matches]
   );
@@ -390,7 +381,7 @@ export function SwissView({
           a,
           b,
           match,
-          phase: { phase: PhaseType.Swiss, groupIndex: null, roundIndex },
+          phase: { phase: PhaseType.Playoff, groupIndex: null, roundIndex },
           isBye: !a || !b,
         });
       });
@@ -417,7 +408,7 @@ export function SwissView({
             a,
             b,
             match: null,
-            phase: { phase: PhaseType.Swiss, groupIndex: null, roundIndex },
+            phase: { phase: PhaseType.Playoff, groupIndex: null, roundIndex },
             isBye,
           });
         });
@@ -477,7 +468,7 @@ export function SwissView({
         style={{ marginTop: 16 }}
       >
         <div className="history-table-head"><strong>{swissText.standingsTitle}</strong></div>
-        <table className="round-table">
+        <table style={{width:"100%"}}>
           <thead>
             <tr className="grid-row-swiss">
               <th>{swissText.participant}</th>
