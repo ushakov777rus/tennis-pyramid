@@ -10,6 +10,7 @@
   box-shadow: 0 0 10px rgba(166, 255, 0, 0.1); /* зелёная подсветка */
   max-width: 800px;
   margin: 0 auto;
+  table-layout: fixed; /* держим ширину, даже если имя очень длинное */
 }
 
 .participants-table th {
@@ -26,6 +27,7 @@
   padding: 2px 2px;
   white-space: normal;
   word-break: break-word;
+  overflow-wrap: anywhere;
   color: #ccc;
   background: #1b1b1b;
 }
@@ -73,4 +75,3 @@
   animation: spin .6s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-
