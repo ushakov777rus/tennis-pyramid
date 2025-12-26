@@ -68,8 +68,10 @@
 
 .regulation-textarea {
   width: 100%;
-  resize: vertical;
-  min-height: 180px;
+  resize: none; /* управляем высотой через JS, чтобы подгонять под контент */
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
 }
 
 .regulation-actions {

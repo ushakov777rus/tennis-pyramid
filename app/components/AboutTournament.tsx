@@ -7,13 +7,14 @@ import { UserCard } from "@/app/components/UserCard";
 import { UserRole } from "../models/Users";
 import { useDictionary } from "@/app/components/LanguageProvider";
 import { EditIconButton, SaveIconButton, CancelIconButton } from "./controls/IconButtons";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export function AboutTournament({ canManage = false }: { canManage?: boolean }) {
   const { tournament, creator, updateRegulation, mutating } = useTournament();
   const { aboutTournament } = useDictionary();
   const [isEditing, setIsEditing] = useState(false);
   const [draftRegulation, setDraftRegulation] = useState<string>("");
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null); // авто-ресайз textarea
 
   const {
     organizer_name,
@@ -34,6 +35,16 @@ export function AboutTournament({ canManage = false }: { canManage?: boolean }) 
   useEffect(() => {
     if (!isEditing) {
       setDraftRegulation(tournament?.regulation ?? "");
+    }
+  }, [tournament?.regulation, isEditing]);
+
+  useEffect(() => {
+    // поддерживаем высоту textarea равной контенту
+    if (!isEditing) return;
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight}px`;
     }
   }, [tournament?.regulation, isEditing]);
 
@@ -81,8 +92,17 @@ export function AboutTournament({ canManage = false }: { canManage?: boolean }) 
               className="input regulation-textarea"
               value={draftRegulation}
               placeholder={aboutTournament.regulationPlaceholder}
-              onChange={(e) => setDraftRegulation(e.target.value)}
+              onChange={(e) => {
+                // синхронизируем черновик и высоту textarea
+                setDraftRegulation(e.target.value);
+                const el = textareaRef.current;
+                if (el) {
+                  el.style.height = "auto";
+                  el.style.height = `${el.scrollHeight}px`;
+                }
+              }}
               rows={8}
+              ref={textareaRef}
             />
           ) : (
             <p className="muted about-regulation-text">
