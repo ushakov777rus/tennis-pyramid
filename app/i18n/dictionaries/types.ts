@@ -612,6 +612,10 @@ export type Dictionary = {
     noData: string;
     organizerFallback: string;
     regulationTitle: string;
+    regulationPlaceholder: string;
+    editRegulation: string;
+    saveRegulation: string;
+    cancelRegulation: string;
   };
   userCard: {
     call: string;

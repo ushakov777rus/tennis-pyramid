@@ -6,10 +6,14 @@ import { useTournament } from "@/app/tournaments/[slug]/TournamentProvider";
 import { UserCard } from "@/app/components/UserCard";
 import { UserRole } from "../models/Users";
 import { useDictionary } from "@/app/components/LanguageProvider";
+import { EditIconButton, SaveIconButton, CancelIconButton } from "./controls/IconButtons";
+import React, { useEffect, useState } from "react";
 
-export function AboutTournament() {
-  const { tournament, creator } = useTournament();
+export function AboutTournament({ canManage = false }: { canManage?: boolean }) {
+  const { tournament, creator, updateRegulation, mutating } = useTournament();
   const { aboutTournament } = useDictionary();
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftRegulation, setDraftRegulation] = useState<string>("");
 
   const {
     organizer_name,
@@ -27,9 +31,33 @@ export function AboutTournament() {
   const orgWa = organizer_whatsapp ?? null; // если не указано, UserCard сам возьмёт phone
   const orgTg = organizer_telegram ?? (creator as any)?.telegram ?? null;
 
+  useEffect(() => {
+    if (!isEditing) {
+      setDraftRegulation(tournament?.regulation ?? "");
+    }
+  }, [tournament?.regulation, isEditing]);
+
   if (!tournament) {
     return <div className="card about-card">{aboutTournament.noData}</div>;
   }
+
+  const startEdit = () => {
+    setDraftRegulation(tournament.regulation ?? "");
+    setIsEditing(true);
+  };
+
+  const cancelEdit = () => {
+    setDraftRegulation(tournament.regulation ?? "");
+    setIsEditing(false);
+  };
+
+  const saveRegulation = async () => {
+    if (!updateRegulation) return;
+    await updateRegulation(draftRegulation.trim() ? draftRegulation : null);
+    setIsEditing(false);
+  };
+
+  const showRegulationCard = !!tournament.regulation || isEditing || canManage;
 
   return (
     <div className="page-content-container card-800px">
@@ -45,10 +73,45 @@ export function AboutTournament() {
         />
       </section>
 
-      {tournament.regulation ? (
+      {showRegulationCard ? (
         <div className="card about-text">
           <h3>{aboutTournament.regulationTitle}</h3>
-          <p className="muted about-regulation-text">{tournament.regulation}</p>
+          {isEditing ? (
+            <textarea
+              className="input regulation-textarea"
+              value={draftRegulation}
+              placeholder={aboutTournament.regulationPlaceholder}
+              onChange={(e) => setDraftRegulation(e.target.value)}
+              rows={8}
+            />
+          ) : (
+            <p className="muted about-regulation-text">
+              {tournament.regulation || aboutTournament.regulationPlaceholder}
+            </p>
+          )}
+          {canManage ? (
+            <div className="regulation-actions">
+              {isEditing ? (
+                <>
+                  <SaveIconButton
+                    title={aboutTournament.saveRegulation}
+                    onClick={saveRegulation}
+                    disabled={mutating}
+                  />
+                  <CancelIconButton
+                    title={aboutTournament.cancelRegulation}
+                    onClick={cancelEdit}
+                    disabled={mutating}
+                  />
+                </>
+              ) : (
+                <EditIconButton
+                  title={aboutTournament.editRegulation}
+                  onClick={startEdit}
+                />
+              )}
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>

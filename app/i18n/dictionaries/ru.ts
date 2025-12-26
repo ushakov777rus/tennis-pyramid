@@ -696,6 +696,10 @@ export const ruDictionary: Dictionary = {
     noData: "Нет данных о турнире",
     organizerFallback: "Организатор",
     regulationTitle: "Положение о турнире",
+    regulationPlaceholder: "Регламент пока не добавлен",
+    editRegulation: "Редактировать регламент",
+    saveRegulation: "Сохранить регламент",
+    cancelRegulation: "Отменить",
   },
   userCard: {
     call: "Позвонить",

@@ -305,6 +305,19 @@ export class TournamentsRepository {
     return data ? mapRowToTournament(data) : null;
   }
 
+  /** Обновить регламент турнира */
+  static async updateRegulation(id: number, regulation: string | null): Promise<Tournament | null> {
+    const { data, error } = await supabase
+      .from("tournaments")
+      .update({ regulation })
+      .eq("id", id)
+      .select(`*, club:clubs(*)`)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data ? mapRowToTournament(data) : null;
+  }
+
   /** Загрузить участников турнира (без изменений) */
   static async loadParticipants(tournamentId: number): Promise<Participant[]> {
     const { data, error } = await supabase

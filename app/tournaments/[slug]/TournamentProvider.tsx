@@ -95,6 +95,9 @@ export type TournamentContextShape = {
 
   // быстрый путь
   addMatchAndMaybeSwap: (args: AddMatchAndMaybeSwapArgs) => Promise<void>;
+
+  // регламент
+  updateRegulation?: (regulation: string | null) => Promise<void>;
 };
 
 const TournamentContext = createContext<TournamentContextShape | null>(null);
@@ -589,6 +592,43 @@ export function TournamentProvider({
     [requireTid, tournament?.settings]
   );
 
+  const updateRegulation = useCallback(
+    async (regulation: string | null) => {
+      setMutating(true);
+      try {
+        const tid = await requireTid();
+        const updated = await TournamentsRepository.updateRegulation(
+          tid,
+          regulation
+        );
+
+        setTournament((prev) => {
+          if (updated) return updated;
+          if (!prev) return prev;
+          return new TournamentModel(
+            prev.id,
+            prev.name,
+            prev.format,
+            prev.status,
+            prev.tournament_type,
+            prev.start_date,
+            prev.end_date,
+            prev.is_public,
+            prev.creator_id,
+            prev.slug,
+            prev.club,
+            prev.settings,
+            prev.ownerToken ?? null,
+            regulation
+          );
+        });
+      } finally {
+        setMutating(false);
+      }
+    },
+    [requireTid]
+  );
+
 
 
   const value = useMemo<TournamentContextShape>(
@@ -628,6 +668,8 @@ export function TournamentProvider({
 
       // быстрый экшен
       addMatchAndMaybeSwap,
+
+      updateRegulation,
     }),
     [
       initialLoading,
@@ -656,6 +698,7 @@ export function TournamentProvider({
       removeTeam,
       updatePositions,
       addMatchAndMaybeSwap,
+      updateRegulation,
     ]
   );
 

@@ -690,6 +690,10 @@ export const enDictionary: Dictionary = {
     noData: "No tournament data",
     organizerFallback: "Organizer",
     regulationTitle: "Tournament regulation",
+    regulationPlaceholder: "Regulation is not provided yet",
+    editRegulation: "Edit regulation",
+    saveRegulation: "Save regulation",
+    cancelRegulation: "Cancel editing",
   },
   userCard: {
     call: "Call",

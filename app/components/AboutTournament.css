@@ -65,3 +65,16 @@
 .about-regulation-text {
   white-space: pre-wrap;
 }
+
+.regulation-textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 180px;
+}
+
+.regulation-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}

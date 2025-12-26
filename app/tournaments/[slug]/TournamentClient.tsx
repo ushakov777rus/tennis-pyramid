@@ -129,7 +129,7 @@ export default function TournamentClient() {
   const tabs: TabItem[] = useMemo(() => {
     const showGroupsTab = tournament?.isGroupsPlayoff?.() || tournament?.format === "groups_playoff";
     const items: Array<TabItem | false> = [
-      !isWizard && { key: "aboutt", label: tournamentTabs.about },
+      { key: "aboutt", label: tournamentTabs.about },
       canManage && {
         key: "participants",
         label: tournamentTabs.participants,
@@ -638,7 +638,7 @@ export default function TournamentClient() {
             }
             
             {view === "aboutt" && 
-              <AboutTournament />}
+              <AboutTournament canManage={canManage} />}
           </div>
         </div>
 
