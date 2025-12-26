@@ -68,10 +68,11 @@
 
 .regulation-header {
   display: flex; /* шапка с заголовком и кнопками справа */
-  align-items: flex-start;
+  align-items: center; /* выравниваем заголовок и кнопки по высоте */
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
 .regulation-textarea {
