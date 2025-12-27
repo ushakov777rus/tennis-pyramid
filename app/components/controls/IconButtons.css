@@ -74,3 +74,27 @@
 .card .icon-btn {
   vertical-align: middle; /* для inline-block */
 }
+
+/* Контейнер иконки — одинаковый размер, ровные края */
+.ucard__icon {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  transition: transform .12s ease, background-color .12s ease, border-color .12s ease, opacity .12s ease;
+}
+
+.ucard__icon:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.18); }
+.ucard__icon:active { transform: scale(0.96); }
+
+/* Неактивные — без цветного фона, просто приглушаем */
+.ucard__icon--inactive {
+  opacity: .45;
+  border-color: rgba(255,255,255,0.08);
+  pointer-events: none;
+}
+
+/* Чтобы SVG не «проваливался» по baseline */
+.ucard__svgwrap { display: block; }
+.ucard__svgwrap svg { width: 18px; height: 18px; display: block; fill: currentColor; }

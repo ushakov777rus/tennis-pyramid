@@ -3,6 +3,7 @@
 import React from "react";
 
 import "./IconButtons.css"
+// Компонент переносит иконки контактов из UserCard в общий модуль, чтобы переиспользовать и держать логику в одном месте
 
 /**
  * Базовая иконочная кнопка под существующие стили .icon-btn / .danger / .lg
@@ -45,6 +46,106 @@ export function IconButton({
     </button>
   );
 }
+
+type IconProps = {
+  href?: string;
+  label: string;
+  color: string;
+  inactiveTitle?: string;
+  children: React.ReactNode;
+  targetBlank?: boolean;
+};
+
+// Базовая ссылка-иконка для контактов; экспортируем для специализированных иконок
+export function IconLink({ href, label, color, inactiveTitle, children, targetBlank }: IconProps) {
+  const active = Boolean(href);
+  if (!active) {
+    return (
+      <span className="ucard__icon ucard__icon--inactive" title={inactiveTitle ?? label} role="img" aria-disabled="true">
+        <span className="ucard__svgwrap" style={{ color }}>
+          {children}
+        </span>
+      </span>
+    );
+  }
+  return (
+    <a
+      href={href}
+      className="ucard__icon"
+      title={label}
+      aria-label={label}
+      target={targetBlank ? "_blank" : undefined}
+      rel={targetBlank ? "noopener noreferrer" : undefined}
+    >
+      <span className="ucard__svgwrap" style={{ color }}>
+        {children}
+      </span>
+    </a>
+  );
+}
+
+type ContactIconLinkProps = {
+  href?: string;
+  label: string;
+  inactiveTitle?: string;
+  color: string;
+  targetBlank?: boolean;
+};
+
+// Ссылка на телефон с иконкой трубки
+export function PhoneIconLink(props: ContactIconLinkProps) {
+  return (
+    <IconLink {...props}>
+      <svg viewBox="0 0 24 24">
+        <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24 11.36 11.36 0 003.56.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h2.5a1 1 0 011 1 11.36 11.36 0 00.57 3.56 1 1 0 01-.24 1.02l-2.2 2.2z" />
+      </svg>
+    </IconLink>
+  );
+}
+
+// Ссылка на email с иконкой конверта
+export function EmailIconLink(props: ContactIconLinkProps) {
+  return (
+    <IconLink {...props}>
+      <svg viewBox="0 0 24 24">
+        <path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+      </svg>
+    </IconLink>
+  );
+}
+
+// Ссылка на WhatsApp с фирменной иконкой
+export function WhatsAppIconLink(props: ContactIconLinkProps) {
+  return (
+    <IconLink {...props} targetBlank={props.targetBlank}>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M20.5 12a8.5 8.5 0 01-12.4 7.5L4 20l.6-3.9A8.5 8.5 0 1120.5 12z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M10.2 8.8c-.2.5-.2 1.1 0 1.7.4 1.1 1.5 2.2 2.6 2.6.6.2 1.2.2 1.7 0 .2-.1.5 0 .6.1l1 .9c.2.2.2.6 0 .9-.6.7-1.5 1-2.4 1a6.6 6.6 0 01-6.6-6.6c0-.9.3-1.8 1-2.4.3-.2.7-.2.9 0l.9 1c.1.1.2.4.1.6z"
+          fill="currentColor"
+        />
+      </svg>
+    </IconLink>
+  );
+}
+
+// Ссылка на Telegram с иконкой самолётика
+export function TelegramIconLink(props: ContactIconLinkProps) {
+  return (
+    <IconLink {...props} targetBlank={props.targetBlank}>
+      <svg viewBox="0 0 24 24">
+        <path d="M9.04 15.37l-.38 5.35c.54 0 .77-.23 1.05-.5l2.53-2.43 5.24 3.84c.96.53 1.64.25 1.9-.89l3.44-16.12.01-.01c.31-1.43-.52-1.99-1.45-1.64L1.33 9.67c-1.39.54-1.37 1.33-.24 1.68l5.5 1.72L19.3 6.61c.64-.42 1.22-.19.74.22L9.04 15.37z" />
+      </svg>
+    </IconLink>
+  );
+}
+
 
 /* SVG-иконки 24x24, цвет #CF6 */
 function IconBase({ children }: { children: React.ReactNode }) {
@@ -363,4 +464,3 @@ export function IconVK() {
     </IconBase>
   );
 }
-
