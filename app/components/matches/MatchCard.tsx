@@ -334,7 +334,7 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
               disabled={!hasComment}
             />
             {showComment && (
-              <div className="comment-tooltip comment-tooltip--button help-tooltip">
+              <div className="help-tooltip">
                 {commentText}
               </div>
             )}
