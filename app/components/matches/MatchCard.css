@@ -119,6 +119,8 @@
   line-height: 1.35;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .comment-tooltip--button {
@@ -129,4 +131,12 @@
   transform: translateY(-6px);
   margin-bottom: 0;
   max-width: min(320px, calc(100vw - 32px)); /* ограничиваем по ширине экрана */
+}
+
+.comment-tooltip__text {
+  display: block;
+  max-height: 120px; /* ограничиваем высоту, чтобы не перекрывать экран */
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
 }

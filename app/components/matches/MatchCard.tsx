@@ -335,7 +335,7 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
             />
             {showComment && (
               <div className="comment-tooltip comment-tooltip--button">
-                {commentText}
+                <span className="comment-tooltip__text">{commentText}</span>
               </div>
             )}
           </div>
