@@ -110,8 +110,8 @@
 
 .comment-tooltip {
   margin-left: auto; /* прижимаем к правому краю тулбара */
-  background: rgba(0, 0, 0, 0.85);
-  color: #fff;
+  background: var(--green);
+  color: #000;
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 6px;
   padding: 8px 10px;
@@ -124,7 +124,7 @@
 
 .comment-tooltip--button {
   position: absolute;
-  bottom: calc(100% + 6px); /* чуть выше кнопки */
+  bottom: 5px;
   left: 50%;
   right: auto;
   transform: translateX(-50%);
