@@ -118,12 +118,15 @@
   font-size: 13px;
   line-height: 1.35;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .comment-tooltip--button {
   position: absolute;
   bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-bottom: 10px; /* отступ над кнопкой */
+  right: 0; /* прижимаем к кнопке справа, чтобы не выходить за экран */
+  left: auto;
+  transform: translateY(-6px);
+  margin-bottom: 0;
+  max-width: min(320px, calc(100vw - 32px)); /* ограничиваем по ширине экрана */
 }
