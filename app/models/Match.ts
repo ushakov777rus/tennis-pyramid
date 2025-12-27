@@ -24,6 +24,7 @@ export type MatchCreateInput = {
   date: Date;
   type: Tournament["tournament_type"];
   scores: [number, number][];
+  comment?: string | null; // комментарий к матчу для сохранения в БД
   player1: number | null;
   player2: number | null;
   team1: number | null;
@@ -40,6 +41,7 @@ export class Match {
   type: TournamentType;
   date: Date;
   scores: [number, number][]; 
+  comment: string | null; // текстовый комментарий к матчу
   tournament: Tournament;
   player1?: Player;
   player2?: Player;
@@ -58,11 +60,13 @@ export class Match {
     player1?: Player,
     player2?: Player,
     team1?: Team,
-    team2?: Team
+    team2?: Team,
+    comment: string | null = null // комментарий прокидываем опционально
   ) {
     this.id = id;
     this.type = type;
     this.date = date;
+    this.comment = comment;
 
     // ✅ гарантируем, что это массив
     if (!setsRaw) {

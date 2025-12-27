@@ -661,6 +661,7 @@ export const ruDictionary: Dictionary = {
     ariaLabel: "Редактор счёта",
     formulaLabel: "Счёт",
     scorePlaceholder: "6-4, 4-6, 10-8",
+    commentPlaceholder: "Комментарий к матчу", // подсказка для textarea комментария
     cancel: "Отмена",
     save: "Сохранить",
     backspace: "Удалить",

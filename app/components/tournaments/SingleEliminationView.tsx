@@ -32,7 +32,8 @@ type SingleEliminationViewProps = {
     initialValue: string,
     initialDate: string,
     phaseFilter: MatchPhase,
-    intent?: "edit" | "pyramid-add"
+    intent?: "edit" | "pyramid-add",
+    initialComment?: string | null
   ) => void;
   onCloseKeyboard?: () => void;
   keyboardState?: {
@@ -41,6 +42,7 @@ type SingleEliminationViewProps = {
     mobileKeyboardContext: { participantA: Participant; participantB: Participant } | null;
     editValue: string;
     editDate: string;
+    editComment: string;
   };
 };
 
@@ -88,13 +90,16 @@ export function SingleEliminationView({
       setEditValue(currentScore && currentScore !== "—" ? currentScore : "");
       const match = findMatchBetween(a.getId, b.getId, phaseFilter);
       const initialDate = formatDateForInput(match?.date ?? null);
+      const initialComment = match ? (match as any).comment ?? "" : "";
       
       onOpenKeyboard(
         `${aId}_${bId}`,
         { participantA: a, participantB: b },
         currentScore && currentScore !== "—" ? currentScore : "",
         initialDate,
-        phaseFilter
+        phaseFilter,
+        "edit",
+        initialComment
       );
     };
 

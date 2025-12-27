@@ -19,8 +19,10 @@ export type ScoreKeyboardProps = {
   participantB: string;
   value: string;
   dateValue: string;
+  commentValue: string; // комментарий к матчу, сохраняемый вместе со счётом
   onChange: (value: string) => void;
   onDateChange: (value: string) => void;
+  onCommentChange: (value: string) => void;
   onSave: () => void;
   onCancel: () => void;
   disabled?: boolean;
@@ -54,6 +56,8 @@ export function ScoreKeyboard({
   onChange,
   dateValue,
   onDateChange,
+  commentValue,
+  onCommentChange,
   onSave,
   onCancel,
   disabled = false,
@@ -261,7 +265,16 @@ export function ScoreKeyboard({
           disabled={disabled}
         />
       </div>
-
+      <div className="score-kb__comment">
+        <textarea
+          className="score-kb__input score-kb__input--comment"
+          placeholder={scoreKeyboardText.commentPlaceholder}
+          value={commentValue}
+          onChange={(event) => onCommentChange(event.target.value)}
+          disabled={disabled}
+          rows={3}
+        />
+      </div>
 
       <div className="score-kb__formula">
         <span className="score-kb__fx" aria-hidden>

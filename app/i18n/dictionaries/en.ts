@@ -655,6 +655,7 @@ export const enDictionary: Dictionary = {
     ariaLabel: "Score editor",
     formulaLabel: "Score",
     scorePlaceholder: "6-4, 4-6, 10-8",
+    commentPlaceholder: "Match comment",
     cancel: "Cancel",
     save: "Save",
     backspace: "Delete",

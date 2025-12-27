@@ -57,7 +57,8 @@ export class MatchRepository {
       player1,
       player2,
       team1,
-      team2
+      team2,
+      row.comment ?? null // комментарий матча
     );
 
     // NEW: прокидываем фазовые поля в модель (если у вас они опциональные)
@@ -87,11 +88,13 @@ export class MatchRepository {
       phase?: PhaseType;           // NEW
       groupIndex?: number | null;  // NEW
       roundIndex?: number | null;  // NEW
+      comment?: string | null;     // NEW: комментарий к матчу
     }
   ): Promise<number> {
     const payload: any = {
       match_type: type,
       scores,
+      comment: opts?.comment ?? null, // сохраняем комментарий
       tournament_id: tournamentId,
       player1_id: player1Id,
       player2_id: player2Id,
@@ -126,6 +129,7 @@ export class MatchRepository {
         date,
         scores,
         match_type,
+        comment,
         tournament_id,
         phase,
         group_index,
@@ -191,6 +195,7 @@ export class MatchRepository {
         date,
         scores,
         match_type,
+        comment,
         tournament_id,
         phase,
         group_index,
@@ -232,6 +237,7 @@ export class MatchRepository {
         date,
         scores,
         match_type,
+        comment,
         tournament_id,
         phase,
         group_index,
@@ -273,6 +279,7 @@ export class MatchRepository {
         date,
         scores,
         match_type,
+        comment,
         tournament_id,
         phase,
         group_index,
@@ -313,6 +320,7 @@ export class MatchRepository {
         date,
         scores,
         match_type,
+        comment,
         tournament_id,
         phase,
         group_index,
@@ -368,6 +376,7 @@ static async updateMatch(updatedMatch: Match): Promise<Match> {
   const payload: any = {
     date: isoDate,
     scores: updatedMatch.scores,
+    comment: (updatedMatch as any).comment ?? null, // сохраняем комментарий при обновлении
     player1_id: updatedMatch.player1?.id ?? null,
     player2_id: updatedMatch.player2?.id ?? null,
     team1_id: (updatedMatch as any).team1?.id ?? null,
@@ -393,6 +402,7 @@ static async updateMatch(updatedMatch: Match): Promise<Match> {
       date,
       scores,
       match_type,
+      comment,
       tournament_id,
       phase,
       group_index,

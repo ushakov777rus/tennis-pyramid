@@ -51,6 +51,7 @@ type KeyboardState = {
   mobileKeyboardContext: { participantA: Participant; participantB: Participant } | null;
   editValue: string;
   editDate: string;
+  editComment: string; // комментарий, вводимый через клавиатуру
   phaseFilter: MatchPhase;
   intent: KeyboardIntent;
 };
@@ -91,6 +92,7 @@ export default function TournamentClient() {
     mobileKeyboardContext: null,
     editValue: "",
     editDate: todayISO,
+    editComment: "", // комментарий по умолчанию пустой
     phaseFilter: DEFAULT_MATCH_PHASE,
     intent: "edit",
   });
@@ -270,7 +272,7 @@ export default function TournamentClient() {
   ]);
 
   const handleSavePyramidMatch = useCallback(
-    async (aId: number, bId: number, score: string, matchDateISO: string) => {
+    async (aId: number, bId: number, score: string, matchDateISO: string, comment: string | null) => {
       if (!tournament) return;
 
       const normalizedDate = matchDateISO || todayISO;
@@ -283,6 +285,7 @@ export default function TournamentClient() {
         date: new Date(normalizedDate),
         type: tournament.tournament_type,
         scores,
+        comment: comment ?? null,
         aId,
         bId,
         winnerId,
@@ -308,7 +311,8 @@ export default function TournamentClient() {
       bId: number,
       score: string,
       matchDate: string,
-      meta: MatchPhase
+      meta: MatchPhase,
+      comment: string | null
     ) => {
       if (!tournament) return;
 
@@ -337,7 +341,7 @@ export default function TournamentClient() {
 
         if (existing) {
           // UPDATE: обновляем счёт + (по возможности) фазовые поля
-          const updated = { ...existing, scores } as Match;
+          const updated = { ...existing, scores, comment: comment ?? null } as Match;
           updated.date = new Date(matchDate || todayISO);
           if (meta) {
             (updated as any).phase = meta.phase;
@@ -370,6 +374,7 @@ export default function TournamentClient() {
             date,
             type: tournament.tournament_type,
             scores,
+            comment,
             player1,
             player2,
             team1,
@@ -395,7 +400,8 @@ export default function TournamentClient() {
     initialValue: string,
     initialDate: string,
     phaseFilter: MatchPhase,
-    intent: KeyboardIntent = "edit"
+    intent: KeyboardIntent = "edit",
+    initialComment: string | null = null
   ) => {
     setKeyboardState({
       isOpen: true,
@@ -403,6 +409,7 @@ export default function TournamentClient() {
       mobileKeyboardContext: context,
       editValue: initialValue,
       editDate: initialDate || todayISO,
+      editComment: initialComment ?? "", // заполняем комментарий, если он уже есть
       phaseFilter,
       intent,
     });
@@ -415,6 +422,7 @@ export default function TournamentClient() {
       mobileKeyboardContext: null,
       editValue: "",
       editDate: todayISO,
+      editComment: "",
       phaseFilter: DEFAULT_MATCH_PHASE,
       intent: "edit",
     });
@@ -483,12 +491,17 @@ export default function TournamentClient() {
     setKeyboardState(prev => ({ ...prev, editDate: value || todayISO }));
   }, []);
 
+  const updateKeyboardComment = useCallback((value: string) => {
+    setKeyboardState(prev => ({ ...prev, editComment: value }));
+  }, []);
+
   const handleKeyboardSave = useCallback(async () => {
     if (!keyboardState.mobileKeyboardContext) return;
 
     const { participantA: aId, participantB: bId } = keyboardState.mobileKeyboardContext;
     const score = keyboardState.editValue.trim();
     const matchDate = keyboardState.editDate || todayISO;
+    const matchComment = keyboardState.editComment.trim() || null;
 
     if (!score) {
       alert(tournamentAlerts.enterScore);
@@ -497,12 +510,12 @@ export default function TournamentClient() {
 
     try {
       if (keyboardState.intent === "pyramid-add") {
-        await handleSavePyramidMatch(aId.getId, bId.getId, score, matchDate);
+        await handleSavePyramidMatch(aId.getId, bId.getId, score, matchDate, matchComment);
         closeKeyboard();
         return;
       }
 
-      await handleSaveScore(aId.getId, bId.getId, score, matchDate, keyboardState.phaseFilter);
+      await handleSaveScore(aId.getId, bId.getId, score, matchDate, keyboardState.phaseFilter, matchComment);
       closeKeyboard();
     } catch (err) {
       console.error("Ошибка при сохранении счёта:", err);
@@ -650,8 +663,10 @@ export default function TournamentClient() {
             participantB={keyboardState.mobileKeyboardContext ? keyboardState.mobileKeyboardContext?.participantB.displayName() : ""}
             value={keyboardState.editValue}
             dateValue={keyboardState.editDate}
+            commentValue={keyboardState.editComment}
             onChange={updateKeyboardValue}
             onDateChange={updateKeyboardDate}
+            onCommentChange={updateKeyboardComment}
             onSave={handleKeyboardSave}
             onCancel={handleKeyboardCancel}
             disabled={false}
@@ -716,7 +731,8 @@ export const FormatView = React.memo(function FormatView({
     initialValue: string,
     initialDate: string,
     phaseFilter: MatchPhase,
-    intent?: KeyboardIntent
+    intent?: KeyboardIntent,
+    initialComment?: string | null
   ) => void;
   onCloseKeyboard?: () => void;
   keyboardState?: KeyboardState;

@@ -40,7 +40,8 @@ type GroupPlusPlayoffViewProps = {
     initialValue: string,
     initialDate: string,
     phaseFilter: MatchPhase,
-    intent?: "edit" | "pyramid-add"
+    intent?: "edit" | "pyramid-add",
+    initialComment?: string | null
   ) => void;
   onCloseKeyboard?: () => void;
   keyboardState?: {
@@ -49,6 +50,7 @@ type GroupPlusPlayoffViewProps = {
     mobileKeyboardContext: { participantA: Participant; participantB: Participant } | null;
     editValue: string;
     editDate: string;
+    editComment: string;
   };
   participantsInGroupCount: number;
   advancePerGroup: number;
@@ -306,6 +308,7 @@ export function GroupPlusPlayoffView({
         roundIndex: null 
       });
       const initialDate = formatDateForInput(match?.date ?? null);
+      const initialComment = match ? (match as any).comment ?? "" : "";
       
       onOpenKeyboard(
         `${aId}_${bId}`,
@@ -316,7 +319,9 @@ export function GroupPlusPlayoffView({
           phase: PhaseType.Group, 
           groupIndex: phaseFilter?.groupIndex ?? null, 
           roundIndex: null 
-        }
+        },
+        "edit",
+        initialComment
       );
     };
 
@@ -366,6 +371,7 @@ export function GroupPlusPlayoffView({
         roundIndex: phaseFilter?.roundIndex ?? null 
       });
       const initialDate = formatDateForInput(match?.date ?? null);
+      const initialComment = match ? (match as any).comment ?? "" : "";
       
       onOpenKeyboard(
         `${aId}_${bId}`,
@@ -376,7 +382,9 @@ export function GroupPlusPlayoffView({
           phase: PhaseType.Playoff, 
           groupIndex: null, 
           roundIndex: phaseFilter?.roundIndex ?? null 
-        }
+        },
+        "edit",
+        initialComment
       );
     };
 

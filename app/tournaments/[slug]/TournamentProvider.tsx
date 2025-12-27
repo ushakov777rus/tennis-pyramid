@@ -34,6 +34,7 @@ export type AddMatchAndMaybeSwapArgs = {
   date: Date;
   type: Tournament["tournament_type"];
   scores: any;
+  comment?: string | null; // комментарий к матчу
   aId: number;
   bId: number;
   winnerId: number | null;
@@ -446,12 +447,13 @@ export function TournamentProvider({
           bId: args.bId,
           winnerId: args.winnerId,
           loserId: args.loserId,
-          scores: args.scores,
-          date: args.date,
-          phase: args.phase ?? null,
-          groupIndex: args.groupIndex ?? null,
-          roundIndex: args.roundIndex ?? null,
-          doSwap: args.doSwap,
+        scores: args.scores,
+        comment: args.comment ?? null,
+        date: args.date,
+        phase: args.phase ?? null,
+        groupIndex: args.groupIndex ?? null,
+        roundIndex: args.roundIndex ?? null,
+        doSwap: args.doSwap,
         });
 
         const isSingle = tournament?.isSingle() ?? true;

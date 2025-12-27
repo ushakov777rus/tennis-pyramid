@@ -38,6 +38,23 @@
   height: 40px;
 }
 
+.score-kb__comment {
+  display: grid; /* блок комментария с textarea */
+  background: #2a2b2e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.score-kb__input--comment {
+  min-height: 64px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  resize: vertical;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .score-kb__participants {
   display: grid;
   grid-template-columns: 1fr 30px 1fr;

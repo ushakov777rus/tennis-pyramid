@@ -602,6 +602,7 @@ export class TournamentsRepository {
     winnerId: number | null;
     loserId: number | null;
     scores: any;
+    comment?: string | null; // текстовый комментарий к матчу
     date: Date;
     phase?: string | null;
     groupIndex?: number | null;
@@ -616,6 +617,7 @@ export class TournamentsRepository {
       _winner_id: params.winnerId,
       _loser_id: params.loserId,
       _scores: params.scores,
+      _comment: params.comment ?? null,
       _date: params.date.toISOString(),
       _phase: params.phase ?? null,
       _group_index: params.groupIndex ?? null,

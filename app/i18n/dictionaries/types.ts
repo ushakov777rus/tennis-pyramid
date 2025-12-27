@@ -577,6 +577,7 @@ export type Dictionary = {
     ariaLabel: string;
     formulaLabel: string;
     scorePlaceholder: string;
+    commentPlaceholder: string;
     cancel: string;
     save: string;
     backspace: string;

@@ -44,6 +44,7 @@ CREATE TABLE public.matches (
   player2_id bigint,
   team1_id bigint,
   team2_id bigint,
+  comment text,
   phase text CHECK (phase = ANY (ARRAY['group'::text, 'playoff'::text])),
   group_index integer,
   round_index integer,
