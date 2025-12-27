@@ -346,7 +346,7 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
 
           {showTooltip && <div className="invalid-tooltip">{matchCardText.tooltipPending}</div>}
           {showComment && (
-            <div className="comment-tooltip">{commentText}</div>
+            <div className="help-tooltip">{commentText}</div>
           )}
         </div>
       )}
