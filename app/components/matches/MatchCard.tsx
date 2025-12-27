@@ -13,7 +13,7 @@ import {
   CancelIconButton,
 } from "@/app/components/controls/IconButtons";
 import { AdminOnly } from "../RoleGuard";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDictionary } from "@/app/components/LanguageProvider";
 import type { CSSProperties, MouseEvent as ReactMouseEvent } from "react";
 
@@ -29,6 +29,7 @@ const MAX_SETS_TO_EDIT = 3; // два сета + тай-брейк
 export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) {
   // состояние для временного тултипа "Пока не реализовано"
   const [showTooltip, setShowTooltip] = useState(false);
+  const [showComment, setShowComment] = useState(false); // показываем тултип с комментарием
   const [isEditing, setIsEditing] = useState(false);
   const { matchCard: matchCardText } = useDictionary();
   const scoreSets: Array<[number | string | null, number | string | null]> = Array.isArray(match.scores)
@@ -48,6 +49,11 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
 
     return normalized;
   };
+
+  const commentText = useMemo(() => {
+    const raw = (match as any).comment as string | null | undefined;
+    return raw && raw.trim().length > 0 ? raw.trim() : matchCardText.comment;
+  }, [match, matchCardText.comment]);
 
   const [draftSets, setDraftSets] = useState<[string, string][]>(() => buildDraftSets(scoreSets));
   const [error, setError] = useState<string | null>(null);
@@ -316,8 +322,7 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
             title={matchCardText.comment}
             onClick={(e) => {
               e.stopPropagation();
-              setShowTooltip(true);
-              setTimeout(() => setShowTooltip(false), 2000);
+              setShowComment((prev) => !prev);
             }}
           />
 
@@ -340,6 +345,9 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
           </AdminOnly>
 
           {showTooltip && <div className="invalid-tooltip">{matchCardText.tooltipPending}</div>}
+          {showComment && (
+            <div className="comment-tooltip">{commentText}</div>
+          )}
         </div>
       )}
     </div>
