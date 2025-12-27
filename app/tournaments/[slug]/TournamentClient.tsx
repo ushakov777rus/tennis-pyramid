@@ -312,12 +312,13 @@ export default function TournamentClient() {
       score: string,
       matchDate: string,
       meta: MatchPhase,
-      comment: string | null
+      comment?: string | null
     ) => {
       if (!tournament) return;
 
       try {
         const scores = Match.parseScoreStringFlexible(score);
+        const normalizedComment = comment ?? null;
 
         // Ищем существующий матч по паре + фазовым полям (если заданы)
         const existing = matches.find((m) => {
@@ -374,7 +375,7 @@ export default function TournamentClient() {
             date,
             type: tournament.tournament_type,
             scores,
-            comment,
+            comment: normalizedComment,
             player1,
             player2,
             team1,
