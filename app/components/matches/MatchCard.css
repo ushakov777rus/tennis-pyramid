@@ -102,6 +102,11 @@
   font-size: 13px;
 }
 
+.comment-btn-wrap {
+  position: relative; /* чтобы тултип позиционировался относительно кнопки */
+  display: inline-flex;
+}
+
 .comment-tooltip {
   margin-left: auto; /* прижимаем к правому краю тулбара */
   background: rgba(0, 0, 0, 0.85);
@@ -113,4 +118,12 @@
   font-size: 13px;
   line-height: 1.35;
   white-space: pre-wrap;
+}
+
+.comment-tooltip--button {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 10px; /* отступ над кнопкой */
 }

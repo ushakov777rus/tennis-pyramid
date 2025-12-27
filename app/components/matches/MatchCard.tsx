@@ -55,6 +55,11 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
     return raw && raw.trim().length > 0 ? raw.trim() : matchCardText.comment;
   }, [match, matchCardText.comment]);
 
+  const hasComment = useMemo(() => {
+    const raw = (match as any).comment as string | null | undefined;
+    return !!raw && raw.trim().length > 0;
+  }, [match]);
+
   const [draftSets, setDraftSets] = useState<[string, string][]>(() => buildDraftSets(scoreSets));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -318,13 +323,22 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
             }}
           />
 
-          <CommentIconButton
-            title={matchCardText.comment}
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowComment((prev) => !prev);
-            }}
-          />
+          <div className="comment-btn-wrap">
+            <CommentIconButton
+              title={matchCardText.comment}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!hasComment) return;
+                setShowComment((prev) => !prev);
+              }}
+              disabled={!hasComment}
+            />
+            {showComment && (
+              <div className="comment-tooltip comment-tooltip--button help-tooltip">
+                {commentText}
+              </div>
+            )}
+          </div>
 
           <AdminOnly>
             <EditIconButton
@@ -345,9 +359,6 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
           </AdminOnly>
 
           {showTooltip && <div className="invalid-tooltip">{matchCardText.tooltipPending}</div>}
-          {showComment && (
-            <div className="help-tooltip">{commentText}</div>
-          )}
         </div>
       )}
     </div>
