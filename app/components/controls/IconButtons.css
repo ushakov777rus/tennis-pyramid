@@ -45,6 +45,17 @@
   visibility: visible !important;
 }
 
+/* визуально отличаем disabled-состояние и блокируем hover */
+.icon-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: #1b1b1b;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.icon-btn:disabled:hover {
+  background: #1b1b1b;
+  color: #ccc;
+}
 /* крупнее цель для тача */
 .icon-btn.lg {
   padding: 4px;         /* было 6px */
