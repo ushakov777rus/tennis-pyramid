@@ -333,11 +333,6 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
               }}
               disabled={!hasComment}
             />
-            {showComment && (
-              <div className="comment-tooltip comment-tooltip--button">
-                <span className="comment-tooltip__text">{commentText}</span>
-              </div>
-            )}
           </div>
 
           <AdminOnly>
@@ -361,6 +356,13 @@ export function MatchCard({ match, onClick, onEdit, onDelete }: MatchCardProps) 
           {showTooltip && <div className="invalid-tooltip">{matchCardText.tooltipPending}</div>}
         </div>
       )}
+
+      {showComment && (
+        <div className="comment-tooltip comment-tooltip--button">
+          <span className="comment-tooltip__text">{commentText}</span>
+        </div>
+      )}
+
     </div>
   );
 }
