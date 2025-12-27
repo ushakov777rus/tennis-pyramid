@@ -27,7 +27,7 @@ export const ruDictionary: Dictionary = {
   navigation: {
     home: "Создать турнир",
     clubs: "Клубы",
-    tournaments: "Примеры турниров",
+    tournaments: "Все турниры",
     rating: "Игроки",
     matches: "Матчи",
     about: "О проекте",
