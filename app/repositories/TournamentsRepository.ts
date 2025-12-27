@@ -625,7 +625,17 @@ export class TournamentsRepository {
       _do_swap: params.doSwap,
     });
     if (error) throw error;
-    return data?.[0]?.match_id as number | undefined;
+    const matchId = data?.[0]?.match_id as number | undefined;
+
+    // Принудительно пробиваем комментарий, если RPC его не сохранил
+    if (matchId && params.comment) {
+      await supabase
+        .from("matches")
+        .update({ comment: params.comment })
+        .eq("id", matchId);
+    }
+
+    return matchId;
   }
 }
 

@@ -267,7 +267,8 @@ export function TournamentProvider({
         args.player1 ? { id: args.player1 } as Player : undefined,
         args.player2 ? { id: args.player2 } as Player : undefined,
         args.team1 ? { id: args.team1 } as Team : undefined,
-        args.team2 ? { id: args.team2 } as Team : undefined
+        args.team2 ? { id: args.team2 } as Team : undefined,
+        args.comment ?? null // сохраняем комментарий в оптимистичном матче
       );
 
       // Добавляем фазовые поля если они есть
@@ -301,6 +302,7 @@ export function TournamentProvider({
             phase: args.phase,
             groupIndex: args.groupIndex ?? null,
             roundIndex: args.roundIndex ?? null,
+            comment: args.comment ?? null,
           }
         );
         
@@ -475,7 +477,8 @@ export function TournamentProvider({
           isSingle ? aPart?.player : undefined,
           isSingle ? bPart?.player : undefined,
           !isSingle ? aPart?.team   : undefined,
-          !isSingle ? bPart?.team   : undefined
+          !isSingle ? bPart?.team   : undefined,
+          args.comment ?? null
         );
         (optimistic as any).phase      = args.phase ?? null;
         (optimistic as any).groupIndex = args.groupIndex ?? null;
