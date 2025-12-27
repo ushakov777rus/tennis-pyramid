@@ -106,8 +106,8 @@ export function NavigationBar() {
           {dictionary.navigation.home}
         </Link>
         <Link
-          href={buildHref("/clubs")+"/demo-klub?tab=tournaments"}
-          className={isActive("/clubs") ? "active" : ""}
+          href={buildHref("/tournaments")} // ведём на общий список турниров, а не на удалённый демо-клуб
+          className={isActive("/tournaments") ? "active" : ""}
           onClick={() => setMenuOpen(false)}
         >
           {dictionary.navigation.tournaments}
