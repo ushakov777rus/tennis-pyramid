@@ -118,27 +118,24 @@
   max-width: 320px;
   font-size: 13px;
   line-height: 1.35;
-  white-space: pre-wrap;
+  white-space: normal;
   overflow-wrap: anywhere;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .comment-tooltip--button {
   position: absolute;
   bottom: calc(100% + 6px); /* чуть выше кнопки */
-  right: 0;
-  left: auto;
-  transform: none;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
   margin-bottom: 0;
-  max-width: min(320px, calc(100vw - 32px)); /* ограничиваем по ширине экрана */
+  max-width: min(320px, calc(100vw - 32px), calc(100% - 16px)); /* ограничиваем по ширине карточки/экрана */
   z-index: 5; /* поверх карточки */
 }
 
 .comment-tooltip__text {
   display: block;
-  max-height: 120px; /* ограничиваем высоту, чтобы не перекрывать экран */
-  overflow: hidden;
+  max-height: 150px; /* ограничиваем высоту, чтобы не перекрывать экран */
+  overflow: auto;
   overflow-wrap: anywhere;
-  text-overflow: ellipsis;
 }
