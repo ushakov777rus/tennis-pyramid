@@ -26,7 +26,8 @@ type SwissViewProps = {
     bId: number,
     score: string,
     matchDate: string,
-    meta: MatchPhase
+    meta: MatchPhase,
+    comment?: string | null
   ) => Promise<void> | void;
   onOpenKeyboard?: (
     editingKey: string,

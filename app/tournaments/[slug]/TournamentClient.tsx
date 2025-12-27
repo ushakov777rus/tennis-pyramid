@@ -721,7 +721,8 @@ export const FormatView = React.memo(function FormatView({
     bId: number,
     score: string,
     matchDate: string,
-    meta: MatchPhase
+    meta: MatchPhase,
+    comment?: string | null
   ) => void;
   onPositionsChange?: (next: Participant[]) => Promise<void> | void;
   onGoToParticipants?: () => void;
