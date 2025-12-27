@@ -87,30 +87,8 @@ export function AboutTournament({ canManage = false }: { canManage?: boolean }) 
       {showRegulationCard ? (
         <div className="card about-text">
           <div className="regulation-header">
+            {/* шапка блока регламента без кнопок */}
             <h3>{aboutTournament.regulationTitle}</h3>
-            {canManage ? (
-              <div className="regulation-actions">
-                {isEditing ? (
-                  <>
-                    <SaveIconButton
-                      title={aboutTournament.saveRegulation}
-                      onClick={saveRegulation}
-                      disabled={mutating}
-                    />
-                    <CancelIconButton
-                      title={aboutTournament.cancelRegulation}
-                      onClick={cancelEdit}
-                      disabled={mutating}
-                    />
-                  </>
-                ) : (
-                  <EditIconButton
-                    title={aboutTournament.editRegulation}
-                    onClick={startEdit}
-                  />
-                )}
-              </div>
-            ) : null}
           </div>
           {isEditing ? (
             <textarea
@@ -134,6 +112,30 @@ export function AboutTournament({ canManage = false }: { canManage?: boolean }) 
               {tournament.regulation || aboutTournament.regulationPlaceholder}
             </p>
           )}
+          {canManage ? (
+            <div className="card-bottom-toolbar regulation-actions-bottom">
+              {/* нижний блок действий редактирования регламента */}
+              {isEditing ? (
+                <>
+                  <SaveIconButton
+                    title={aboutTournament.saveRegulation}
+                    onClick={saveRegulation}
+                    disabled={mutating}
+                  />
+                  <CancelIconButton
+                    title={aboutTournament.cancelRegulation}
+                    onClick={cancelEdit}
+                    disabled={mutating}
+                  />
+                </>
+              ) : (
+                <EditIconButton
+                  title={aboutTournament.editRegulation}
+                  onClick={startEdit}
+                />
+              )}
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>

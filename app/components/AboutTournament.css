@@ -83,10 +83,6 @@
   overflow: hidden;
 }
 
-.regulation-actions {
-  display: flex; /* кнопки правого верхнего угла */
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: 0;
-  flex-wrap: wrap;
+.regulation-actions-bottom {
+  justify-content: flex-end; /* выравниваем кнопки внизу карточки по правому краю */
 }
