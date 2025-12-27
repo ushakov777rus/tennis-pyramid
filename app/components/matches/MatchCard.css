@@ -5,6 +5,7 @@
   border-radius: 12px;
   background: rgba(255,255,255,0.02);
   padding: 12px;
+  position: relative; /* чтобы коммент-тултип позиционировался внутри карточки */
 }
 
 .match-card-date {
@@ -125,12 +126,13 @@
 
 .comment-tooltip--button {
   position: absolute;
-  bottom: 100%;
-  right: 0; /* прижимаем к кнопке справа, чтобы не выходить за экран */
+  bottom: calc(100% + 6px); /* чуть выше кнопки */
+  right: 0;
   left: auto;
-  transform: translateY(-6px);
+  transform: none;
   margin-bottom: 0;
   max-width: min(320px, calc(100vw - 32px)); /* ограничиваем по ширине экрана */
+  z-index: 5; /* поверх карточки */
 }
 
 .comment-tooltip__text {
