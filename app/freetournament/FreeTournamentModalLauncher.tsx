@@ -95,13 +95,15 @@ export default function FreeTournamentModalLauncher() {
     };
   }, []);
 
+  // включаем locale в зависимости, так как он влияет на withLocalePath
   const handleClose = useCallback(() => {
     setIsOpen(false);
     if (!creatingRef.current) {
       router.push(withLocalePath(locale, "/"));
     }
-  }, [router]);
+  }, [router, locale]);
 
+  // включаем locale в зависимости, так как используется в withLocalePath при редиректе после создания
   const handleCreate = useCallback(async (payload: TournamentCreateInput & { settings?: any }) => {
     const anonymousToken = user?.id
       ? null
@@ -150,7 +152,7 @@ export default function FreeTournamentModalLauncher() {
     } finally {
       setCreating(false);
     }
-  }, [router, user?.id, setCreating, freeTournamentModal.errors.createFailed]);
+  }, [router, user?.id, setCreating, freeTournamentModal.errors.createFailed, locale]);
 
   const formatLabel = useMemo(() => {
     if (!candidate) return "";
@@ -175,12 +177,13 @@ export default function FreeTournamentModalLauncher() {
     }
   }, [candidate, tournaments.formatLabels, freeTournamentModal.unknownFormat]);
 
+  // добавляем locale в зависимости, так как маршрут локализован
   const handleRestore = useCallback(() => {
     if (!candidate) return;
     setStatus("loading");
     setIsOpen(false);
     router.push(withLocalePath(locale, `/freetournament/${candidate.slug}?tab=participants`));
-  }, [candidate, router]);
+  }, [candidate, router, locale]);
 
   const handleDecline = useCallback(() => {
     setCandidate(null);
@@ -188,12 +191,13 @@ export default function FreeTournamentModalLauncher() {
     setIsOpen(true);
   }, []);
 
+  // добавляем locale и router в зависимости для корректного хука
   const handleDismissPrompt = useCallback(() => {
     setCandidate(null);
     setStatus("create");
     setIsOpen(false);
     router.push(withLocalePath(locale, "/"));
-  }, []);
+  }, [locale, router]);
 
   return (
     <>

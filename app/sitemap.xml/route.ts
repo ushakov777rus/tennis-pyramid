@@ -1,5 +1,5 @@
 // app/sitemap.xml/route.ts
-import { NextResponse } from 'next/server';
+import { NextResponse as _NextResponse } from 'next/server'; // оставляем импорт подчёркнутым на случай будущего перехода на NextResponse
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
 import { ClubsRepository } from "@/app/repositories/ClubsRepository";
 import { locales } from "../i18n/config";

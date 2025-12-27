@@ -144,7 +144,7 @@ export default function TournamentClient() {
     tournament,
     showBracketTab,
     canManage,
-    isWizard,
+    // isWizard не участвует в расчёте табов, убираем чтобы не было лишней зависимости
     tournamentTabs.about,
     tournamentTabs.bracket,
     tournamentTabs.matches,

@@ -201,7 +201,8 @@ type SwissRoundDefinition = {
   pairs: SwissRoundPair[];
 };
 
-const formatMatchScore = (match: Match | null): string | null => {
+// оставляем вспомогательную функцию под подчёркнутым именем, чтобы при необходимости легко включить отображение счёта
+const _formatMatchScore = (match: Match | null): string | null => {
   if (!match) return null;
   if (!match.scores || match.scores.length === 0) return "—";
   return match.scores.map(([s1, s2]) => `${s1}:${s2}`).join(", ");
