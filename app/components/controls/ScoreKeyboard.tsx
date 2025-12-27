@@ -64,6 +64,7 @@ export function ScoreKeyboard({
   autoFocus = true,
 }: ScoreKeyboardProps) {
   const internalRef = useRef<HTMLInputElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null); // корневой контейнер клавиатуры для фокус-менеджмента
   const mobile = useScoreKeyboardAvailable();
   const { scoreKeyboard: scoreKeyboardText } = useDictionary();
 
@@ -76,6 +77,7 @@ export function ScoreKeyboard({
 
   useEffect(() => {
   const node = internalRef.current;
+  const container = containerRef.current;
   if (!node) return;
 
   // Устанавливаем фокус при монтировании клавиатуры
@@ -84,7 +86,11 @@ export function ScoreKeyboard({
   const handleFocusIn = (e: FocusEvent) => {
     // Если фокус ушёл за пределы клавиатуры — вернуть обратно
     if (!e.target || !(e.target instanceof Node)) return;
-    if (!node.parentElement?.contains(e.target)) {
+    if (container && container.contains(e.target)) {
+      return;
+    }
+    if (!container) return;
+    if (!container.contains(e.target)) {
       e.stopPropagation();
       node.focus();
     }
@@ -249,6 +255,7 @@ export function ScoreKeyboard({
       role="dialog"
       aria-label={scoreKeyboardText.ariaLabel}
       style={undefined}
+      ref={containerRef}
     >
       <div className="score-kb__participants">
         <div className="score-kb__key">{participantA}</div>
