@@ -487,33 +487,50 @@ export class TournamentsRepository {
 
   /** Счётчики */
   static async loadStats(tournamentIds: number[]) {
-    type PRow = { tournament_id: number; participants: number };
-    type MRow = { tournament_id: number; matches: number };
+    console.debug("TournamentsRepository.loadStats: request", {
+      tournamentIds,
+    });
+    type PRow = {
+      tournament_id: number;
+      participants?: number | null;
+      participants_count?: number | null;
+    };
+    type MRow = {
+      tournament_id: number;
+      matches?: number | null;
+      matches_count?: number | null;
+    };
 
     const [{ data: p, error: pErr }, { data: m, error: mErr }] =
       await Promise.all([
         supabase
           .from("participants_count_by_tournament")
-          .select("tournament_id, participants")
+          .select("*")
           .in("tournament_id", tournamentIds),
         supabase
           .from("matches_count_by_tournament")
-          .select("tournament_id, matches")
+          .select("*")
           .in("tournament_id", tournamentIds),
       ]);
 
-    if (pErr) console.error(pErr);
-    if (mErr) console.error(mErr);
+    if (pErr) console.error("loadStats participants_count_by_tournament error:", pErr);
+    if (mErr) console.error("loadStats matches_count_by_tournament error:", mErr);
+    console.debug("TournamentsRepository.loadStats: raw response", {
+      participantsRows: p?.length ?? 0,
+      matchesRows: m?.length ?? 0,
+    });
 
     const res: Record<number, { participants: number; matches: number }> = {};
     tournamentIds.forEach((id) => (res[id] = { participants: 0, matches: 0 }));
 
-    (p as PRow[] | null)?.forEach(
-      (r) => (res[r.tournament_id].participants = r.participants)
-    );
-    (m as MRow[] | null)?.forEach(
-      (r) => (res[r.tournament_id].matches = r.matches)
-    );
+    (p as PRow[] | null)?.forEach((r) => {
+      const participants = r.participants ?? r.participants_count ?? 0;
+      res[r.tournament_id].participants = participants;
+    });
+    (m as MRow[] | null)?.forEach((r) => {
+      const matches = r.matches ?? r.matches_count ?? 0;
+      res[r.tournament_id].matches = matches;
+    });
     return res;
   }
 
