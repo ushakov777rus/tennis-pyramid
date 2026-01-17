@@ -17,7 +17,7 @@ type TournamentsPageProps = { // server props for page content
 
 export default async function TournamentsPage({ page, pageSize, locale }: TournamentsPageProps) { // server-side list page
   const safePage = Math.max(1, page); // guard against invalid pages
-  const { tournaments, total } = await TournamentsRepository.loadPage(safePage, pageSize); // load page data
+  const { tournaments, total } = await TournamentsRepository.loadPagePlain(safePage, pageSize); // load page data as plain objects
   const totalPages = Math.max(1, Math.ceil(total / pageSize)); // compute total pages
   if (safePage > totalPages) { // redirect to last page when out of range
     redirect(withLocalePath(locale, `/tournaments/${totalPages}`)); // keep URL consistent with page count
@@ -25,7 +25,7 @@ export default async function TournamentsPage({ page, pageSize, locale }: Tourna
   const stats = await TournamentsRepository.loadStats(tournaments.map((t) => t.id)); // load stats for current page
   return ( // render page
     <TournamentsProvider // provide tournaments context
-      initialTournaments={tournaments} // hydrate list from server
+      initialTournamentsPlain={tournaments} // hydrate list from server as plain objects
       initialStats={stats} // hydrate stats from server
       autoLoad={false} // avoid duplicate client loads
       page={safePage} // current page for refresh fallback

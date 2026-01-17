@@ -4,6 +4,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"; // react hooks
 import { Tournament, TournamentStatus, TournamentCreateInput } from "@/app/models/Tournament"; // tournament models
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository"; // tournaments repository
+import type { TournamentPlain } from "@/app/repositories/TournamentsRepository"; // tournament plain type
 import { useUser } from "@/app/components/UserContext"; // user context
 import { MatchRepository } from "../repositories/MatchRepository"; // matches repository
 import { useDictionary } from "@/app/components/LanguageProvider"; // dictionary hook
@@ -27,25 +28,46 @@ type TournamentsProviderProps = { // provider props
   children: React.ReactNode; // child nodes
   clubId?: number; // optional club filter
   autoLoad?: boolean; // should auto-load data
-  initialTournaments?: Tournament[]; // initial tournaments list
+  initialTournamentsPlain?: TournamentPlain[]; // initial tournaments list as plain objects
   initialStats?: Record<number, TournamentStats>; // initial stats map
   page?: number; // optional page number
   pageSize?: number; // optional page size
 }; // end TournamentsProviderProps
 
+const mapPlainToTournament = (plain: TournamentPlain): Tournament => ( // map plain object to Tournament instance
+  new Tournament( // create tournament instance
+    plain.id, // id
+    plain.name, // name
+    plain.format as Tournament["format"], // format
+    plain.status as Tournament["status"], // status
+    plain.tournament_type as Tournament["tournament_type"], // tournament type
+    plain.start_date ?? null, // start date
+    plain.end_date ?? null, // end date
+    plain.is_public, // public flag
+    plain.creator_id ?? null, // creator id
+    plain.slug, // slug
+    plain.club ?? null, // club
+    plain.settings, // settings
+    plain.owner_token ?? null, // owner token
+    plain.regulation ?? null // regulation
+  ) // end tournament instance
+); // end mapPlainToTournament
+
 export function TournamentsProvider({ // tournaments provider
   children, // provider children
   clubId, // optional club id
   autoLoad = true, // auto-load toggle
-  initialTournaments, // initial tournaments list
+  initialTournamentsPlain, // initial tournaments list as plain objects
   initialStats, // initial stats map
   page, // page number
   pageSize, // page size
 } : TournamentsProviderProps) { // end props
   const { user } = useUser(); // current user
   const { tournaments: tournamentsText } = useDictionary(); // tournaments dictionary
-  const hasInitial = initialTournaments !== undefined; // initial data flag
-  const [tournaments, setTournaments] = useState<Tournament[]>(initialTournaments ?? []); // tournaments state
+  const hasInitial = initialTournamentsPlain !== undefined; // initial data flag
+  const [tournaments, setTournaments] = useState<Tournament[]>( // tournaments state
+    initialTournamentsPlain ? initialTournamentsPlain.map(mapPlainToTournament) : [] // hydrate plain tournaments
+  ); // end tournaments state
   const [loading, setLoading] = useState(!hasInitial); // loading state
   const [error, setError] = useState<string | null>(null); // error state
   const [stats, setStats] = useState<Record<number, TournamentStats>>(initialStats ?? {}); // stats state

@@ -37,6 +37,10 @@ export type TournamentPage = { // pagination result shape
   tournaments: Tournament[]; // page tournaments list
   total: number; // total tournaments count
 }; // end TournamentPage
+export type TournamentPagePlain = { // pagination result shape for server to client
+  tournaments: TournamentPlain[]; // page tournaments list as plain objects
+  total: number; // total tournaments count
+}; // end TournamentPagePlain
 
 /* ---------- Вспомогательный маппер ---------- */
 
@@ -68,6 +72,25 @@ function mapRowToTournament(row: any): Tournament {
     regulation
   );
 }
+
+function mapRowToTournamentPlain(row: any): TournamentPlain { // map db row to plain tournament
+  return { // return plain object
+    id: Number(row.id), // normalize id
+    name: row.name, // tournament name
+    format: row.format, // tournament format
+    start_date: row.start_date, // tournament start date
+    end_date: row.end_date, // tournament end date
+    status: row.status, // tournament status
+    tournament_type: row.tournament_type, // tournament type
+    is_public: row.is_public, // visibility flag
+    creator_id: row.creator_id ?? null, // creator id
+    slug: row.slug, // slug string
+    settings: row.settings, // settings payload
+    owner_token: (row as any).owner_token ?? null, // owner token
+    club: row.club ?? null, // club object
+    regulation: (row as any).regulation ?? null, // regulation payload
+  }; // end plain object
+} // end mapRowToTournamentPlain
 
 export class TournamentsRepository {
   static async loadParticipantsBySlug(slug: string) {
@@ -178,6 +201,35 @@ export class TournamentsRepository {
     )); // end mapping
     return { tournaments, total: count ?? 0 }; // return page result
   } // end loadPage
+
+  /** Загрузить турниры постранично для server components (plain objects) */
+  static async loadPagePlain( // entry for paginated list (plain)
+    page: number, // current page
+    pageSize: number, // page size
+    clubId?: number // optional club filter
+  ): Promise<TournamentPagePlain> { // page result
+    const safePage = Math.max(1, page); // guard against invalid pages
+    const safePageSize = Math.max(1, pageSize); // guard against invalid page size
+    const from = (safePage - 1) * safePageSize; // range start
+    const to = from + safePageSize - 1; // range end
+    let query = supabase // start supabase query
+      .from("tournaments") // source table
+      .select(`*, club:clubs(*)`, { count: "exact" }) // include club and total
+      .order("start_date", { ascending: true }) // stable ordering
+      .range(from, to); // apply range
+    if (clubId) { // apply club filter when provided
+      query = query.eq("club_id", clubId); // filter by club id
+    } // end club filter
+    const { data, error, count } = await query; // execute query
+    if (error) { // handle query errors
+      console.error("Ошибка загрузки турниров постранично (plain):", error); // log error
+      return { tournaments: [], total: 0 }; // return empty page
+    } // end error handling
+    const tournaments = (data ?? []).map((row) => ( // map rows into plain objects
+      mapRowToTournamentPlain(row) // plain mapping for server components
+    )); // end mapping
+    return { tournaments, total: count ?? 0 }; // return page result
+  } // end loadPagePlain
 
   /** Загрузить турниры по клубу (с club) */
   static async loadByClub(clubId: number): Promise<Tournament[]> {
