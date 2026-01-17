@@ -7,11 +7,12 @@ import { TournamentsProvider } from "@/app/tournaments/TournamentsProvider"; // 
 import { TournamentsClient } from "@/app/tournaments/TournamentsClient"; // tournaments list UI
 import { TournamentsRepository } from "@/app/repositories/TournamentsRepository"; // tournaments data access
 import { withLocalePath } from "@/app/i18n/routing"; // locale-aware routing
+import { type Locale } from "@/app/i18n/config"; // locale type
 
 type TournamentsPageProps = { // server props for page content
   page: number; // current page number
   pageSize: number; // items per page
-  locale: string; // current locale
+  locale: Locale; // current locale
 }; // end TournamentsPageProps
 
 export default async function TournamentsPage({ page, pageSize, locale }: TournamentsPageProps) { // server-side list page
