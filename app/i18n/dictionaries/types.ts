@@ -206,6 +206,8 @@ export type Dictionary = {
       ariaLabel: string; // pagination aria label
       previous: string; // previous button label
       next: string; // next button label
+      toStart: string; // to start button label
+      toEnd: string; // to end button label
       pageLabel: string; // page button aria label
       currentPageLabel: string; // current page aria label
     }; // end pagination

@@ -283,6 +283,8 @@ export const ruDictionary: Dictionary = {
       ariaLabel: "Пагинация турниров", // pagination aria label
       previous: "Назад", // previous label
       next: "Вперёд", // next label
+      toStart: "В начало", // to start label
+      toEnd: "В конец", // to end label
       pageLabel: "Страница {page}", // page aria label
       currentPageLabel: "Текущая страница {page}", // current page aria label
     }, // end pagination

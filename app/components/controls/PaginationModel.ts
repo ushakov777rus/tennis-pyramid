@@ -31,6 +31,10 @@ export class PaginationModel { // pagination calculation model
     return Math.min(this.totalPages, this.currentPage + 1); // clamp to last page
   } // end nextPage
 
+  get lastPage(): number { // last page number
+    return Math.max(1, this.totalPages); // normalize last page
+  } // end lastPage
+
   getPages(): number[] { // compute visible pages
     const total = Math.max(1, this.totalPages); // normalize total pages
     const maxButtons = Math.max(1, this.maxButtons); // normalize buttons count
@@ -44,4 +48,13 @@ export class PaginationModel { // pagination calculation model
     } // end range loop
     return pages; // return pages list
   } // end getPages
+
+  getPagesWithLast(): number[] { // compute pages with last page appended
+    const pages = this.getPages(); // base pages list
+    const lastPage = this.lastPage; // normalize last page
+    if (!pages.includes(lastPage)) { // ensure last page is present
+      pages.push(lastPage); // add last page
+    } // end last page check
+    return pages; // return pages list
+  } // end getPagesWithLast
 } // end PaginationModel

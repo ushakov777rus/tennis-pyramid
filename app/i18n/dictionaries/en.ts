@@ -277,6 +277,8 @@ export const enDictionary: Dictionary = {
       ariaLabel: "Tournament pagination", // pagination aria label
       previous: "Previous", // previous label
       next: "Next", // next label
+      toStart: "To start", // to start label
+      toEnd: "To end", // to end label
       pageLabel: "Page {page}", // page aria label
       currentPageLabel: "Current page {page}", // current page aria label
     }, // end pagination
