@@ -173,9 +173,9 @@ export class TournamentsRepository {
       console.error("Ошибка загрузки турниров постранично:", error); // log error
       return { tournaments: [], total: 0 }; // return empty page
     } // end error handling
-    const tournaments = (data ?? []).map((row) => ({ // map to plain objects for client
-      ...mapRowToTournament(row), // reuse mapper and strip prototype
-    })); // end mapping
+    const tournaments = (data ?? []).map((row) => ( // map rows into Tournament instances
+      mapRowToTournament(row) // keep class instance for methods
+    )); // end mapping
     return { tournaments, total: count ?? 0 }; // return page result
   } // end loadPage
 
