@@ -134,7 +134,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
       />
       <YaMetrika counterId={103777315} />
       <UserProvider>
-        <TournamentsProvider>
+        <TournamentsProvider autoLoad={false}> {/* prevent global tournaments preload */}
           <AppShell>{children}</AppShell>
         </TournamentsProvider>
       </UserProvider>

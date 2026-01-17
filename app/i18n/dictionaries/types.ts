@@ -202,6 +202,13 @@ export type Dictionary = {
       onlyMineAria: string;
       resetTitle: string;
     };
+    pagination: { // pagination labels
+      ariaLabel: string; // pagination aria label
+      previous: string; // previous button label
+      next: string; // next button label
+      pageLabel: string; // page button aria label
+      currentPageLabel: string; // current page aria label
+    }; // end pagination
     provider: {
       loadFailed: string;
     };

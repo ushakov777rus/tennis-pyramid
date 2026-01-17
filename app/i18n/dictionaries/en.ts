@@ -273,6 +273,13 @@ export const enDictionary: Dictionary = {
       onlyMineAria: "Toggle only my tournaments",
       resetTitle: "Reset",
     },
+    pagination: { // pagination labels
+      ariaLabel: "Tournament pagination", // pagination aria label
+      previous: "Previous", // previous label
+      next: "Next", // next label
+      pageLabel: "Page {page}", // page aria label
+      currentPageLabel: "Current page {page}", // current page aria label
+    }, // end pagination
     provider: {
       loadFailed: "Failed to load tournaments",
     },

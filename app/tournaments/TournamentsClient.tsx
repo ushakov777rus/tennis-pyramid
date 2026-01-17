@@ -30,15 +30,23 @@ import { canDeleteTournament, canViewTournament } from "@/app/lib/permissions";
 import { CustomSelect } from "../components/controls/CustomSelect";
 import { Club } from "../models/Club";
 import { UserRole } from "../models/Users";
-import { useDictionary, useLanguage } from "../components/LanguageProvider";
+import { useDictionary, useLanguage } from "../components/LanguageProvider"; // dictionary and locale hooks
 import { withLocalePath } from "../i18n/routing";
+import { Pagination } from "@/app/components/controls/Pagination"; // pagination UI
 
-type Props = {
-  club: Club | null;
-};
+type PaginationInfo = { // pagination shape for list page
+  currentPage: number; // current page number
+  totalPages: number; // total pages count
+  basePath: string; // base path for links
+}; // end PaginationInfo
+
+type Props = { // component props
+  club: Club | null; // current club or null
+  pagination?: PaginationInfo; // optional pagination config
+}; // end Props
 
 
-export function TournamentsClient({club} : Props) {
+export function TournamentsClient({ club, pagination } : Props) { // tournaments list UI
   const { user } = useUser();
   const router = useRouter();
   const { locale } = useLanguage();
@@ -185,7 +193,7 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
   const tab = searchParams.get("tab");
   const className = user || tab ? "page-container-no-padding" : "page-container";
 
-  return (
+  return ( // main render
     <div className={className}>
       {club === null && <h1 className="page-title">{tournamentsText.title}</h1>}
 
@@ -257,7 +265,7 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
           </div>
         )}
 
-        <div className="card-grid-new">
+        <div className="card-grid-new"> {/* cards grid */}
           {/* Карточка создания турниров — только для админов */}
           <AdminOnly>
             <TournamentCard
@@ -289,7 +297,15 @@ const isAdmin = user?.role === UserRole.TournamentAdmin && pathname.includes("/a
             );
           })}
 
-        </div>
+        </div> {/* end cards grid */}
+
+        {pagination && ( // show pagination when configured
+          <Pagination // pagination control
+            currentPage={pagination.currentPage} // current page
+            totalPages={pagination.totalPages} // total pages
+            basePath={pagination.basePath} // base path
+          /> // end Pagination
+        )} {/* end pagination */}
 
         <AddTournamentModal
           isOpen={modalOpen}

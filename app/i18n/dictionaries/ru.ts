@@ -279,6 +279,13 @@ export const ruDictionary: Dictionary = {
       onlyMineAria: "Показывать только мои турниры",
       resetTitle: "Сброс",
     },
+    pagination: { // pagination labels
+      ariaLabel: "Пагинация турниров", // pagination aria label
+      previous: "Назад", // previous label
+      next: "Вперёд", // next label
+      pageLabel: "Страница {page}", // page aria label
+      currentPageLabel: "Текущая страница {page}", // current page aria label
+    }, // end pagination
     provider: {
       loadFailed: "Не удалось загрузить турниры",
     },

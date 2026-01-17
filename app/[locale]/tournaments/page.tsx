@@ -1,10 +1,9 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import type { Metadata } from "next"; // metadata type
+import { notFound, redirect } from "next/navigation"; // navigation helpers
 
-import TournamentsPage from "@/app/tournaments/pageContent";
-import { getDictionary } from "@/app/i18n/dictionaries";
-import { isLocale, locales } from "@/app/i18n/config";
-import { withLocalePath } from "@/app/i18n/routing";
+import { getDictionary } from "@/app/i18n/dictionaries"; // dictionary loader
+import { isLocale, locales } from "@/app/i18n/config"; // locale helpers
+import { withLocalePath } from "@/app/i18n/routing"; // locale-aware routing
 
 const BASE_URL = "https://honeycup.ru";
 
@@ -35,12 +34,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function LocaleTournamentsPage({ params }: PageProps) {
-  const { locale } = await params;
-
-  if (!isLocale(locale)) {
-    notFound();
-  }
-
-  return <TournamentsPage />;
-}
+export default async function LocaleTournamentsPage({ params }: PageProps) { // locale tournaments entry
+  const { locale } = await params; // unwrap locale
+  if (!isLocale(locale)) { // validate locale
+    notFound(); // show 404 for invalid locale
+  } // end locale guard
+  redirect(withLocalePath(locale, "/tournaments/1")); // enforce page number in URL
+} // end LocaleTournamentsPage

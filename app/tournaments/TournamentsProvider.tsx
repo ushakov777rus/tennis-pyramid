@@ -1,115 +1,128 @@
 // app/tournaments/TournamentsProvider.tsx
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { Tournament, TournamentStatus, TournamentCreateInput } from "@/app/models/Tournament";
-import { TournamentsRepository } from "@/app/repositories/TournamentsRepository";
-import { useUser } from "@/app/components/UserContext";
-import { MatchRepository } from "../repositories/MatchRepository";
-import { useDictionary } from "@/app/components/LanguageProvider";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"; // react hooks
+import { Tournament, TournamentStatus, TournamentCreateInput } from "@/app/models/Tournament"; // tournament models
+import { TournamentsRepository } from "@/app/repositories/TournamentsRepository"; // tournaments repository
+import { useUser } from "@/app/components/UserContext"; // user context
+import { MatchRepository } from "../repositories/MatchRepository"; // matches repository
+import { useDictionary } from "@/app/components/LanguageProvider"; // dictionary hook
 
-type TournamentStats = { participants: number; matches: number };
+type TournamentStats = { participants: number; matches: number }; // stats shape
 
-type TournamentsContextValue = {
-  tournaments: Tournament[];
-  loading: boolean;
-  error: string | null;
-  stats: Record<number, TournamentStats>;
-  refresh: () => Promise<void>;
-  createTournament: (p: TournamentCreateInput) => Promise<void>;
-  deleteTournament: (id: number) => Promise<void>;
-  updateTournamentStatus: (id: number, status: TournamentStatus) => Promise<void>;
-};
+type TournamentsContextValue = { // context value shape
+  tournaments: Tournament[]; // tournaments list
+  loading: boolean; // loading flag
+  error: string | null; // error message
+  stats: Record<number, TournamentStats>; // stats map
+  refresh: () => Promise<void>; // reload handler
+  createTournament: (p: TournamentCreateInput) => Promise<void>; // create handler
+  deleteTournament: (id: number) => Promise<void>; // delete handler
+  updateTournamentStatus: (id: number, status: TournamentStatus) => Promise<void>; // status update handler
+}; // end TournamentsContextValue
 
-const TournamentsContext = createContext<TournamentsContextValue | undefined>(undefined);
+const TournamentsContext = createContext<TournamentsContextValue | undefined>(undefined); // context instance
 
-export function TournamentsProvider({ 
-  children, clubId } : 
-  { children: React.ReactNode; clubId?: number }) {
-  const { user } = useUser();
-  const { tournaments: tournamentsText } = useDictionary();
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState<Record<number, TournamentStats>>({});
+type TournamentsProviderProps = { // provider props
+  children: React.ReactNode; // child nodes
+  clubId?: number; // optional club filter
+  autoLoad?: boolean; // should auto-load data
+  initialTournaments?: Tournament[]; // initial tournaments list
+  initialStats?: Record<number, TournamentStats>; // initial stats map
+  page?: number; // optional page number
+  pageSize?: number; // optional page size
+}; // end TournamentsProviderProps
+
+export function TournamentsProvider({ // tournaments provider
+  children, // provider children
+  clubId, // optional club id
+  autoLoad = true, // auto-load toggle
+  initialTournaments, // initial tournaments list
+  initialStats, // initial stats map
+  page, // page number
+  pageSize, // page size
+} : TournamentsProviderProps) { // end props
+  const { user } = useUser(); // current user
+  const { tournaments: tournamentsText } = useDictionary(); // tournaments dictionary
+  const hasInitial = initialTournaments !== undefined; // initial data flag
+  const [tournaments, setTournaments] = useState<Tournament[]>(initialTournaments ?? []); // tournaments state
+  const [loading, setLoading] = useState(!hasInitial); // loading state
+  const [error, setError] = useState<string | null>(null); // error state
+  const [stats, setStats] = useState<Record<number, TournamentStats>>(initialStats ?? {}); // stats state
   
   // Флаг для отслеживания первой загрузки
-  const [initialLoaded, setInitialLoaded] = useState(false);
+  const [initialLoaded, setInitialLoaded] = useState(hasInitial); // initial load flag
   // Флаг для предотвращения параллельных запросов
-  const [isFetching, setIsFetching] = useState(false);
+  const [isFetching, setIsFetching] = useState(false); // request guard
 
   // Загрузка статистики - мемоизирована без зависимостей
-  const loadStats = useCallback(async (ids: number[]) => {
-    if (!ids.length) return;
-    try {
-      console.log("Tournaments provider, load stats for tournaments", ids);
-      const map = await TournamentsRepository.loadStats(ids);
-      setStats((prev) => ({ ...prev, ...map }));
-    } catch (e) {
-      console.error("loadStats error:", e);
-    }
-  }, []);
+  const loadStats = useCallback(async (ids: number[]) => { // stats loader
+    if (!ids.length) return; // skip empty ids
+    try { // stats fetch guard
+      console.log("Tournaments provider, load stats for tournaments", ids); // debug stats request
+      const map = await TournamentsRepository.loadStats(ids); // load stats map
+      setStats((prev) => ({ ...prev, ...map })); // merge stats into state
+    } catch (e) { // handle stats errors
+      console.error("loadStats error:", e); // log stats errors
+    } // end stats error handling
+  }, []); // memoize stats loader
 
   // Основная функция загрузки турниров
-  const refresh = useCallback(
-    async (opts?: { background?: boolean }) => {
+  const refresh = useCallback( // refresh tournaments list
+    async (opts?: { background?: boolean }) => { // refresh options
       // Предотвращаем параллельные запросы
-      if (isFetching && !opts?.background) return;
-      
-      const background = !!opts?.background && initialLoaded;
-      
-      if (!background) {
-        setLoading(true);
-        setIsFetching(true);
-      }
-      
-      setError(null);
-      
-      try {
-        let list;
-        if (clubId) {
-          list = await TournamentsRepository.loadByClub(clubId);
-        } else {
-          list = await TournamentsRepository.loadAll();
-        }
-
+      if (isFetching && !opts?.background) return; // skip duplicate requests
+      const background = !!opts?.background && initialLoaded; // background flag
+      if (!background) { // mark loading state for foreground refresh
+        setLoading(true); // set loading
+        setIsFetching(true); // set fetching guard
+      } // end loading state
+      setError(null); // reset error
+      try { // refresh try block
+        let list: Tournament[]; // list placeholder
+        if (page && pageSize) { // use paginated load when page is provided
+          const pageResult = await TournamentsRepository.loadPage(page, pageSize, clubId); // load paginated list
+          list = pageResult.tournaments; // extract tournaments list
+        } else if (clubId) { // club-specific list
+          list = await TournamentsRepository.loadByClub(clubId); // load by club
+        } else { // global list
+          list = await TournamentsRepository.loadAll(); // load all tournaments
+        } // end list selection
         // Сохраняем оптимистичные элементы (id < 0)
-        setTournaments(prev => {
-          const optimistic = prev.filter(t => t.id < 0);
-          return [...optimistic, ...list];
-        });
-
+        setTournaments(prev => { // update tournaments with optimistic items
+          const optimistic = prev.filter(t => t.id < 0); // keep optimistic items
+          return [...optimistic, ...list]; // merge lists
+        }); // end setTournaments
         // Загружаем статистику один раз
-        await loadStats(list.map((t) => t.id));
-        
-      } catch (e: any) {
-        console.error(e);
-        setError(e?.message ?? tournamentsText.provider.loadFailed);
-      } finally {
-        if (!background) {
-          setLoading(false);
-          setIsFetching(false);
-        }
-        setInitialLoaded(true);
-      }
-    },
-    [clubId, loadStats, initialLoaded, isFetching, tournamentsText.provider.loadFailed]
-  );
+        await loadStats(list.map((t) => t.id)); // fetch stats for current list
+      } catch (e: any) { // refresh error handling
+        console.error(e); // log error
+        setError(e?.message ?? tournamentsText.provider.loadFailed); // set error message
+      } finally { // finalize refresh
+        if (!background) { // reset flags for foreground refresh
+          setLoading(false); // stop loading
+          setIsFetching(false); // clear fetching guard
+        } // end foreground reset
+        setInitialLoaded(true); // mark as loaded
+      } // end refresh finalize
+    }, // end refresh callback
+    [clubId, loadStats, initialLoaded, isFetching, tournamentsText.provider.loadFailed, page, pageSize] // refresh deps
+  ); // end refresh
 
   // ЕДИНСТВЕННЫЙ эффект для первоначальной загрузки
-  useEffect(() => {
+  useEffect(() => { // auto-load effect
     // Загружаем только если еще не загружали
-    if (!initialLoaded && !isFetching) {
-      void refresh();
-    }
-  }, [initialLoaded, isFetching, refresh]);
+    if (autoLoad && !initialLoaded && !isFetching) { // gate auto load
+      void refresh(); // trigger refresh
+    } // end auto load guard
+  }, [autoLoad, initialLoaded, isFetching, refresh]); // auto-load deps
 
   // Фоновая синхронизация при смене пользователя (только после первоначальной загрузки)
-  useEffect(() => {
-    if (initialLoaded && user?.id) {
-      void refresh({ background: true });
-    }
-  }, [user?.id, initialLoaded, refresh]);
+  useEffect(() => { // background sync effect
+    if (autoLoad && initialLoaded && user?.id) { // sync only when auto-load enabled
+      void refresh({ background: true }); // background refresh
+    } // end background sync guard
+  }, [user?.id, initialLoaded, refresh, autoLoad]); // background sync deps
 
   // Оптимистичное создание турнира
   const createTournament = useCallback(async (p: TournamentCreateInput) => {
@@ -212,9 +225,12 @@ export function TournamentsProvider({
   }, [stats, tournaments]);
 
   // Обновление статуса турнира
-  const updateTournamentStatus = useCallback(async (id: number, status: TournamentStatus) => {
-    const target = tournaments.find((t) => t.id === id);
-    if (!target) return;
+  const updateTournamentStatus = useCallback(async (id: number, status: TournamentStatus) => { // update tournament status
+    const target = tournaments.find((t) => t.id === id); // find target in state
+    if (!target) { // fallback when target is not in local list
+      await TournamentsRepository.updateStatus(id, status); // update directly in repository
+      return; // exit when list is not hydrated
+    } // end missing target guard
 
     // Оптимистичное обновление
     const optimistic = new Tournament(
@@ -250,25 +266,25 @@ export function TournamentsProvider({
       setTournaments((prev) => prev.map((t) => (t.id === id ? target : t)));
       throw e;
     }
-  }, [tournaments, refresh]);
+  }, [tournaments, refresh]); // update status deps
 
   // Мемоизация значения контекста
-  const value = useMemo(() => ({
-    tournaments,
-    loading,
-    error,
-    stats,
-    refresh,
-    createTournament,
-    deleteTournament,
-    updateTournamentStatus,
-  }), [tournaments, loading, error, stats, refresh, createTournament, deleteTournament, updateTournamentStatus]);
+  const value = useMemo(() => ({ // memoized context value
+    tournaments, // tournaments list
+    loading, // loading state
+    error, // error message
+    stats, // stats map
+    refresh, // refresh handler
+    createTournament, // create handler
+    deleteTournament, // delete handler
+    updateTournamentStatus, // update handler
+  }), [tournaments, loading, error, stats, refresh, createTournament, deleteTournament, updateTournamentStatus]); // memo deps
 
-  return <TournamentsContext.Provider value={value}>{children}</TournamentsContext.Provider>;
+  return <TournamentsContext.Provider value={value}>{children}</TournamentsContext.Provider>; // provider render
 }
 
-export function useTournaments() {
-  const ctx = useContext(TournamentsContext);
-  if (!ctx) throw new Error("useTournaments must be used within <TournamentsProvider>");
-  return ctx;
-}
+export function useTournaments() { // hook to access tournaments context
+  const ctx = useContext(TournamentsContext); // read context
+  if (!ctx) throw new Error("useTournaments must be used within <TournamentsProvider>"); // enforce provider
+  return ctx; // return context value
+} // end useTournaments

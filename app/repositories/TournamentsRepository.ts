@@ -33,6 +33,10 @@ export type TournamentPlain = {
   club: Club | null;
   regulation?: string | null;
 };
+export type TournamentPage = { // pagination result shape
+  tournaments: Tournament[]; // page tournaments list
+  total: number; // total tournaments count
+}; // end TournamentPage
 
 /* ---------- Вспомогательный маппер ---------- */
 
@@ -145,6 +149,35 @@ export class TournamentsRepository {
 
     return (data ?? []).map(mapRowToTournament);
   }
+
+  /** Загрузить турниры постранично (с club) */
+  static async loadPage( // entry for paginated list
+    page: number, // current page
+    pageSize: number, // page size
+    clubId?: number // optional club filter
+  ): Promise<TournamentPage> { // page result
+    const safePage = Math.max(1, page); // guard against invalid pages
+    const safePageSize = Math.max(1, pageSize); // guard against invalid page size
+    const from = (safePage - 1) * safePageSize; // range start
+    const to = from + safePageSize - 1; // range end
+    let query = supabase // start supabase query
+      .from("tournaments") // source table
+      .select(`*, club:clubs(*)`, { count: "exact" }) // include club and total
+      .order("start_date", { ascending: true }) // stable ordering
+      .range(from, to); // apply range
+    if (clubId) { // apply club filter when provided
+      query = query.eq("club_id", clubId); // filter by club id
+    } // end club filter
+    const { data, error, count } = await query; // execute query
+    if (error) { // handle query errors
+      console.error("Ошибка загрузки турниров постранично:", error); // log error
+      return { tournaments: [], total: 0 }; // return empty page
+    } // end error handling
+    const tournaments = (data ?? []).map((row) => ({ // map to plain objects for client
+      ...mapRowToTournament(row), // reuse mapper and strip prototype
+    })); // end mapping
+    return { tournaments, total: count ?? 0 }; // return page result
+  } // end loadPage
 
   /** Загрузить турниры по клубу (с club) */
   static async loadByClub(clubId: number): Promise<Tournament[]> {

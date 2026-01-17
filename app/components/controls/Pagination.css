@@ -1,0 +1,79 @@
+.pagination { /* pagination container */
+  display: flex; /* use flex layout */
+  align-items: center; /* center items vertically */
+  justify-content: center; /* center content horizontally */
+  gap: 12px; /* spacing between controls */
+  margin-top: 20px; /* spacing above pagination */
+  flex-wrap: wrap; /* allow wrap on small screens */
+} /* end pagination container */
+
+.pagination__pages { /* pages container */
+  display: flex; /* layout for page buttons */
+  gap: 8px; /* spacing between page buttons */
+  flex-wrap: wrap; /* wrap pages when needed */
+  justify-content: center; /* center page buttons */
+} /* end pages container */
+
+.pagination__control { /* prev/next controls */
+  display: inline-flex; /* inline flex for alignment */
+  align-items: center; /* center text vertically */
+  justify-content: center; /* center text horizontally */
+  min-width: 90px; /* consistent control width */
+  padding: 8px 14px; /* control padding */
+  border-radius: 999px; /* pill shape */
+  border: 1px solid #1f2937; /* subtle border */
+  color: #1f2937; /* text color */
+  text-decoration: none; /* remove underline */
+  font-weight: 600; /* stronger label */
+  background: #f3f4f6; /* light background */
+  transition: background 0.2s ease, color 0.2s ease; /* hover transition */
+} /* end controls */
+
+.pagination__control:hover { /* control hover */
+  background: #111827; /* dark hover background */
+  color: #ffffff; /* white hover text */
+} /* end control hover */
+
+.pagination__control.is-disabled { /* disabled control */
+  opacity: 0.5; /* soften disabled */
+  pointer-events: none; /* disable interaction */
+} /* end disabled control */
+
+.pagination__page { /* page link */
+  display: inline-flex; /* inline flex for alignment */
+  align-items: center; /* center text vertically */
+  justify-content: center; /* center text horizontally */
+  width: 40px; /* fixed width */
+  height: 40px; /* fixed height */
+  border-radius: 12px; /* rounded corners */
+  border: 1px solid #d1d5db; /* light border */
+  color: #111827; /* text color */
+  text-decoration: none; /* remove underline */
+  font-weight: 600; /* bold numbers */
+  background: #ffffff; /* white background */
+  transition: transform 0.2s ease, background 0.2s ease; /* hover transition */
+} /* end page link */
+
+.pagination__page:hover { /* page hover */
+  transform: translateY(-1px); /* slight lift */
+  background: #f3f4f6; /* subtle hover background */
+} /* end page hover */
+
+.pagination__page.is-current { /* current page */
+  background: #111827; /* dark background */
+  color: #ffffff; /* white text */
+  border-color: #111827; /* match border */
+  cursor: default; /* default cursor */
+} /* end current page */
+
+@media (max-width: 600px) { /* mobile adjustments */
+  .pagination__control { /* adjust control on small screens */
+    min-width: auto; /* allow compact width */
+    padding: 8px 12px; /* smaller padding */
+  } /* end control adjustment */
+
+  .pagination__page { /* adjust page size on small screens */
+    width: 36px; /* smaller width */
+    height: 36px; /* smaller height */
+  } /* end page adjustment */
+} /* end media query */
