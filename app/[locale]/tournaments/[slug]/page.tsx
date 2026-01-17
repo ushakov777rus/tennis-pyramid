@@ -4,18 +4,18 @@ import TournamentPage, { dynamic, revalidate } from "@/app/tournaments/[slug]/pa
 import TournamentsPage from "@/app/tournaments/pageContent"; // tournaments list page
 import { isLocale } from "@/app/i18n/config"; // locale guard
 
-type PageProps = {
-  params: Promise<{ locale: string; tournamentSlug: string }>;
-};
+type PageProps = { // route props
+  params: Promise<{ locale: string; slug: string }>; // locale and slug params
+}; // end PageProps
 
 export { dynamic, revalidate };
 
 export default async function LocaleTournamentPage({ params }: PageProps) { // tournament or list page
-  const { locale, tournamentSlug } = await params; // unwrap params
+  const { locale, slug } = await params; // unwrap params
   if (!isLocale(locale)) { // validate locale
     notFound(); // show 404 for invalid locale
   } // end locale guard
-  const pageNumber = Number(tournamentSlug); // parse numeric page
+  const pageNumber = Number(slug); // parse numeric page
   if (Number.isFinite(pageNumber) && pageNumber >= 1) { // handle numeric page path
     return ( // render paginated tournaments list
       <TournamentsPage // list page content
@@ -25,5 +25,5 @@ export default async function LocaleTournamentPage({ params }: PageProps) { // t
       /> // end TournamentsPage
     ); // end list render
   } // end numeric page guard
-  return <TournamentPage params={Promise.resolve({ tournamentSlug })} />; // render tournament details
+  return <TournamentPage params={Promise.resolve({ tournamentSlug: slug })} />; // render tournament details
 } // end LocaleTournamentPage
